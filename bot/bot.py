@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 from database import *
-import asyncio
 import datetime
 
 intents = discord.Intents.all()
