@@ -10,4 +10,4 @@ COPY . .
 
 ARG DISCORD_TOKEN
 
-CMD ["python", "main.py"]
+CMD ["python", "bot/main.py"]
