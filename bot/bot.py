@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from database import *
 import datetime
+import os
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -75,6 +76,7 @@ def ConvertSecondsToTime(seconds):
     return time_format
 
 def runBot():
-    bot.run('MTIxMDY2NTk5MzMyODkyNjc1MA.GpxMn5.BZMoO_ZqzDNynXJTIgHr-sGJzJ9aLntI_pKRJ8')
+    discord_token = os.environ.get('DISCORD_TOKEN')
+    bot.run(discord_token)
 
 

@@ -1,1 +1,3 @@
-replace 'YOUR TOKEN' in bot.py file
+## DOCKER FILE ARG
+
+DISCORD_TOKEN = 'YOUR TOKEN'

@@ -8,4 +8,6 @@ RUN mkdir -p data && chmod 777 data
 
 COPY . .
 
+ARG DISCORD_TOKEN
+
 CMD ["python", "main.py"]
