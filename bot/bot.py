@@ -75,6 +75,6 @@ def ConvertSecondsToTime(seconds):
     return time_format
 
 def runBot():
-    bot.run('YOUR TOKEN')
+    bot.run('MTIxMDY2NTk5MzMyODkyNjc1MA.GpxMn5.BZMoO_ZqzDNynXJTIgHr-sGJzJ9aLntI_pKRJ8')
 
 
