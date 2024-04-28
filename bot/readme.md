@@ -1,0 +1,1 @@
+replace 'YOUR TOKEN' in bot.py file
