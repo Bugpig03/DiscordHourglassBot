@@ -1,4 +1,6 @@
 import sqlite3
+import os
+from operator import itemgetter
 
 def ConnectToDataBase(serverID): #connect a la database si elle n'existe pas création
     dbName = 'data/server_' + str(serverID) +'.db'
@@ -120,6 +122,74 @@ def GetMessagesOfUser(userID, serverID):
         return messages[0]
     else:
         return 0
+    
+def GetTop10UsersBySeconds(serverID):
+    conn = ConnectToDataBase(serverID)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+    SELECT id, messages, seconds, score, loot_commun, loot_uncommun, loot_rare, loot_epic, loot_legendary, loot_mythical
+    FROM users
+    ORDER BY seconds DESC
+    LIMIT 10
+    ''')
+    
+    top_users = cursor.fetchall()
+    conn.close()
+    return top_users
 
+def GetUserStatsFromAllDBs(userID):
+    data_folder = 'data'
+    all_user_stats = []
 
+    # Parcourir tous les fichiers de base de données dans le dossier 'data'
+    for filename in os.listdir(data_folder):
+        if filename.endswith(".db"):
+            serverID = int(filename.split('_')[1].split('.')[0])
+            user_stats = GetUserStatsFromDB(userID, serverID)
+            if user_stats:
+                all_user_stats.append(user_stats)
+
+    return all_user_stats
+
+# Fonction pour récupérer les statistiques d'un utilisateur dans une base de données spécifique
+def GetUserStatsFromDB(userID, serverID):
+    conn = ConnectToDataBase(serverID)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+    SELECT id, messages, seconds, score, loot_commun, loot_uncommun, loot_rare, loot_epic, loot_legendary, loot_mythical
+    FROM users
+    WHERE id = ?
+    ''', (userID,))
+    
+    user_stats = cursor.fetchone()
+    conn.close()
+    return user_stats
+
+# Fonction pour agréger les secondes de tous les utilisateurs à travers toutes les bases de données
+def AggregateUserSeconds():
+    data_folder = 'data'
+    user_seconds = {}
+
+    # Parcourir tous les fichiers de base de données dans le dossier 'data'
+    for filename in os.listdir(data_folder):
+        if filename.endswith(".db"):
+            serverID = int(filename.split('_')[1].split('.')[0])
+            conn = ConnectToDataBase(serverID)
+            cursor = conn.cursor()
+            cursor.execute('SELECT id, seconds FROM users')
+            rows = cursor.fetchall()
+            for row in rows:
+                user_id = row[0]
+                seconds = row[1]
+                if user_id in user_seconds:
+                    user_seconds[user_id] += seconds
+                else:
+                    user_seconds[user_id] = seconds
+            conn.close()
+
+    # Convertir le dictionnaire en liste de tuples pour le tri
+    sorted_user_seconds = sorted(user_seconds.items(), key=itemgetter(1), reverse=True)
+    return sorted_user_seconds[:10]  # Retourner les 10 premiers utilisateurs triés par secondes
 

@@ -61,7 +61,79 @@ async def stats(ctx, user: discord.User = None):
     seconds_count = GetSecondsOfUser(user.id, ctx.guild.id)
     seconds_count = ConvertSecondsToTime(seconds_count)
 
-    await ctx.send(f"Stats de {user.mention} :\nNombre de messages : {message_count}\nTemps passé en vocal : {seconds_count}")
+    await ctx.send(f"__Statistiques **locale** de {user.display_name}:__\nNombre de messages : {message_count}\nTemps passé en vocal : {seconds_count}")
+
+@bot.command()
+async def allstats(ctx, user: discord.User = None):
+
+    if user is None:
+        user = ctx.author
+
+    user_id = user.id
+
+    try:
+        all_user_stats = GetUserStatsFromAllDBs(user_id)
+
+        if not all_user_stats:
+            await ctx.send(f"Aucune statistique trouvée pour l'utilisateur {user.display_name}.")
+            return
+        
+        await ctx.send(f"__Statistiques **globale** de {user.display_name} :__")
+        user_global_msg = 0
+        user_global_seconds = 0
+        for stats in all_user_stats:
+            user_global_msg = user_global_msg  + stats[1]
+            user_global_seconds = user_global_seconds + stats[2]
+        await ctx.send(f"Nombre de messages: {user_global_msg}\n Temps passé en vocal: {ConvertSecondsToTime(user_global_seconds)}")
+    
+    except Exception as e:
+        await ctx.send(f"Une erreur est survenue lors de la récupération des statistiques : {e}")
+
+
+
+@bot.command()
+async def top(ctx):
+
+    top_users = GetTop10UsersBySeconds(ctx.guild.id)
+
+    await ctx.send(f"__Top 10 **{ctx.guild.name}**:__")
+    top_count = 0
+
+    for user in top_users:
+        top_count+=1
+
+        user_id = user[0]
+        user_seconds = user[2]
+        member = ctx.guild.get_member(user_id)
+        seconds_count = ConvertSecondsToTime(user_seconds)
+
+        if member:
+            await ctx.send(f"**{top_count}** - {member} - {seconds_count}")
+        else:
+            await ctx.send(f"**{top_count}** - {user_id} - {seconds_count}")
+
+# Commande Discord !top pour afficher le top 10 des utilisateurs en fonction des secondes accumulées
+@bot.command()
+async def alltop(ctx):
+    try:
+        top_users = AggregateUserSeconds()
+
+        if not top_users:
+            await ctx.send("Aucun utilisateur trouvé dans les bases de données.")
+            return
+
+        await ctx.send("__Top 10 **global**:__")
+        for index, (user_id, total_seconds) in enumerate(top_users, start=1):
+            user = ctx.guild.get_member(user_id)
+            user_name = user.display_name if user else f"Utilisateur inconnu ({user_id})"
+            await ctx.send(f"**{index}.** {user_name} - {ConvertSecondsToTime(total_seconds)}")
+
+    except Exception as e:
+        await ctx.send(f"Une erreur est survenue lors de la récupération du top 10 : {e}")
+
+@bot.command()
+async def aide(ctx):
+    await ctx.send("__**Commandes de Hourglass BOT:**__\n**!stats [user]** - *stats de l'utilisateur sur le serveur*\n**!allstats [user]** - *stats de l'utilisateurs sur tous les serveur*\n**!top** - *top 10 des utilisateurs en fonction du temps passé sur le serveur*\n**!alltop** - *top 10 des utilisateurs en fonction du temps passé sur tous les serveurs*")
 
 
 def ConvertSecondsToTime(seconds):
