@@ -5,7 +5,7 @@ Gimme the time and stats.... I need to know how much time I've wasted on this Di
 Hourglass version 1.1 
 
 ## Patch Notes
-# 1.1 (sats between server)
+# 1.1 (stats between server)
 - add allstats command
 - add top command
 - add alltop command
