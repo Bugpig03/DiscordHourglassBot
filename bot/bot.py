@@ -1,3 +1,4 @@
+# very very ugly code here sry
 import discord
 from discord.ext import commands
 from database import *

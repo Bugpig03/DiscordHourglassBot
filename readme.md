@@ -12,7 +12,7 @@ Hourglass version 1.1
 - add aide command
 - fix messages from hourglass
 # 1.0 (first release)
-- command stats
+- simple command stats
 
 ## AUTHOR
-    SNOUT LABS
+CHAT GPT and BugPig
