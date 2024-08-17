@@ -1,0 +1,53 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <title>Hourglass bot</title>
+</head>
+
+<body>
+    <header class="sticky-header">
+        <img src="\static\favicon.png" alt="hourglass icon">
+        
+        <nav>
+            <h1> HOURGLASS / Accueil</h1>
+            <ul class="horizontal-list">
+                <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
+                <li><a class ="mid" href="{{ url_for('projects') }}">Serveurs</a></li>
+                <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
+            </ul>
+        </nav>
+        
+    </header>
+        
+    <main>
+        <div style="height: 120px;"></div>
+        <h2>Statistiques global du bot :</h2>
+        <div style="height: 10px;"></div>
+        <p>Nombre de serveurs avec le bot : {{ total_servers }}</p>
+        <p>Nombre de messages envoyés au total : {{ total_messages }}</p>
+        <p>Nombre d'heures passées au total : {{ total_seconds }}</p>
+
+        <div style="height: 10px;"></div>
+        <p>-----------------------------------------------</p>
+
+        <div style="height: 20px;"></div>
+        <h2>TOP 10 Global :</h2>
+        <div>
+            {% for rank, (user_id, time_str) in enumerate(total_top_users, 1) %}
+                <p><strong>Rang {{ rank }}:</strong> {{ user_id }} - {{ time_str }}</p>
+            {% endfor %}
+        </div>
+        <div style="height: 20px;"></div>
+
+        </div>
+    </main>
+    
+
+    <footer>
+        <p> - - - - - - - - - - - - - - - - - - - - - - - - - - - </p>
+        <p>Hourglass bot 2024 kek</p>
+    </footer>
+</body>
+

@@ -193,3 +193,42 @@ def AggregateUserSeconds():
     sorted_user_seconds = sorted(user_seconds.items(), key=itemgetter(1), reverse=True)
     return sorted_user_seconds[:10]  # Retourner les 10 premiers utilisateurs triés par secondes
 
+
+
+def get_total_messages_on_server(serverID):
+    total_messages = 0
+    
+    conn = ConnectToDataBase(serverID)
+    cursor = conn.cursor()
+
+    # Execute the query to sum messages
+    cursor.execute("SELECT SUM(messages) FROM users")
+    # Fetch the result
+    result = cursor.fetchone()
+                
+    # Close the connection
+    conn.close()
+
+    if result is not None and result[0] is not None:
+        result = int(result[0])         
+    
+    return result
+
+def get_total_seconds_on_server(serverID):
+    
+    conn = ConnectToDataBase(serverID)
+    cursor = conn.cursor()
+                
+    # Execute the query to sum seconds
+    cursor.execute("SELECT SUM(seconds) FROM users")
+                
+    # Fetch the result
+    result = cursor.fetchone()
+                
+    # Close the connection
+    conn.close()
+
+    if result is not None and result[0] is not None:
+        result = int(result[0])
+           
+    return result

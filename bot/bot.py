@@ -133,6 +133,13 @@ async def alltop(ctx):
         await ctx.send(f"Une erreur est survenue lors de la récupération du top 10 : {e}")
 
 @bot.command()
+async def server(ctx):
+    message_count = get_total_messages_on_server(ctx.guild.id)
+    seconds_count = get_total_seconds_on_server(ctx.guild.id)
+    seconds_count = ConvertSecondsToTime(seconds_count)
+    await ctx.send(f"__Statistiques du serveur:__\nNombre de messages au total : {message_count}\nTemps passé en vocal au total : {seconds_count}")
+
+@bot.command()
 async def aide(ctx):
     await ctx.send("__**Commandes de Hourglass BOT:**__\n**!stats [user]** - *stats de l'utilisateur sur le serveur*\n**!allstats [user]** - *stats de l'utilisateurs sur tous les serveur*\n**!top** - *top 10 des utilisateurs en fonction du temps passé sur le serveur*\n**!alltop** - *top 10 des utilisateurs en fonction du temps passé sur tous les serveurs*")
 

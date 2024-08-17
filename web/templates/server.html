@@ -1,0 +1,38 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <title>Hourglass bot</title>
+</head>
+
+<body>
+    <header class="sticky-header">
+        <img src="\static\favicon.png" alt="hourglass icon">
+        
+        <nav>
+            <h1> HOURGLASS / Serveurs</h1>
+            <ul class="horizontal-list">
+                <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
+                <li><a class ="mid" href="{{ url_for('projects') }}">Serveurs</a></li>
+                <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
+            </ul>
+        </nav>
+        
+    </header>
+        
+    <main>
+        <div style="height: 140px;"></div>
+        <h2>Liste des serveurs :</h2>
+        <div style="height: 10px;"></div>
+        <p>Un jour la liste des serveurs ici kek</p>
+        <img src="\static\mike_work_in_progress.jpg" alt="mike traveaux image" class="img-large">
+        <p>Full flemme car tous le monde s'en fou en v de v</p>
+
+    </main>
+    
+    <footer>
+        <p> - - - - - - - - - - - - - - - - - - - - - - - - - - - </p>
+        <p>Hourglass 2024 | kek</p>
+    </footer>
+</body>
