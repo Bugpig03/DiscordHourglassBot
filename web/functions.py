@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import heapq
+from collections import defaultdict
 
 def get_total_server_bot():
     data_directory = 'data'
@@ -98,9 +99,9 @@ def ConvertSecondsToTime(seconds):
 
 def get_top_users_by_seconds():
     data_directory = 'data'
-    top_n=10
+    top_n = 10
     user_times = []
-    
+
     for db_file in os.listdir(data_directory):
         db_path = os.path.join(data_directory, db_file)
         
@@ -120,10 +121,19 @@ def get_top_users_by_seconds():
                 print(f"Error accessing {db_file}: {e}")
                 continue
     
+    # Combine results for the same user
+    combined_user_times = defaultdict(int)
+    for user_id, seconds in user_times:
+        combined_user_times[user_id] += seconds
+    
+    # Convert to a list of tuples
+    combined_user_times_list = list(combined_user_times.items())
+    
     # Use heapq to find the top_n users with the most seconds
-    top_users = heapq.nlargest(top_n, user_times, key=lambda x: x[1])
+    top_users = heapq.nlargest(top_n, combined_user_times_list, key=lambda x: x[1])
+    
     # Convert seconds to formatted time
     top_users_formatted = [(user_id, ConvertSecondsToTime(seconds)) for user_id, seconds in top_users]
-    print(top_users_formatted)
+    
     return top_users_formatted
 
