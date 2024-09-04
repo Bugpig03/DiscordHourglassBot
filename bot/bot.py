@@ -16,13 +16,13 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    # Vérifie si le message est envoyé dans un serveur
     if message.guild:
         server_id = message.guild.id
         user_id = message.author.id
+        username = message.author.name
         AddMessagesToUser(user_id,server_id)
+        SetUsername(user_id, username)
         
-
     await bot.process_commands(message)
 
 @bot.event
@@ -42,6 +42,7 @@ async def on_voice_state_update(member, before, after):
             time_spent = int((now - join_time).total_seconds())
             print(f'{member} spent {time_spent} seconds in the voice channel')
             AddSecondsToUser(member.id, member.guild.id, time_spent)
+            SetUsername(member.id, member.name)
 
 
     if before.channel is None and after.channel is not None:
@@ -52,17 +53,25 @@ async def on_voice_state_update(member, before, after):
 
 @bot.command()
 async def stats(ctx, user: discord.User = None):
+
     if user is None:
         user = ctx.author
     
-    # Obtient le nombre de messages de l'utilisateur
-    message_count = GetMessagesOfUser(user.id, ctx.guild.id)
-    
-    # Obtient le nombre de secondes passées sur le serveur par l'utilisateur
-    seconds_count = GetSecondsOfUser(user.id, ctx.guild.id)
-    seconds_count = ConvertSecondsToTime(seconds_count)
+    user_id = user.id
+    server_id = ctx.guild.id
 
-    await ctx.send(f"__Statistiques **locale** de {user.display_name}:__\nNombre de messages : {message_count}\nTemps passé en vocal : {seconds_count}")
+    server_name = ctx.guild.name
+
+    formatted_time = ConvertSecondsToTime(GetSecondsOfUserOnServer(user_id,server_id))
+    nbr_messages = GetMessagesOfUserOnServer(user_id,server_id)
+    
+
+    message = (
+        f"__Statistiques de {user.display_name} sur le serveur **{server_name}** :__\n"
+        f"Nombre de messages : {nbr_messages}\n"
+        f"Temps passé en vocal : {formatted_time}")
+    
+    await ctx.send(message)
 
 @bot.command()
 async def allstats(ctx, user: discord.User = None):
@@ -72,76 +81,96 @@ async def allstats(ctx, user: discord.User = None):
 
     user_id = user.id
 
-    try:
-        all_user_stats = GetUserStatsFromAllDBs(user_id)
+    formatted_time = ConvertSecondsToTime(GetSecondsOfUser(user_id))
+    nbr_messages = GetMessagesOfUser(user_id)
 
-        if not all_user_stats:
-            await ctx.send(f"Aucune statistique trouvée pour l'utilisateur {user.display_name}.")
-            return
+    message = (
+        f"__Statistiques **globales** de {user.display_name} :__\n"
+        f"Nombre de messages: {nbr_messages}\n"
+        f"Temps passé en vocal: {formatted_time}"
+    )
         
-        await ctx.send(f"__Statistiques **globale** de {user.display_name} :__")
-        user_global_msg = 0
-        user_global_seconds = 0
-        for stats in all_user_stats:
-            user_global_msg = user_global_msg  + stats[1]
-            user_global_seconds = user_global_seconds + stats[2]
-        await ctx.send(f"Nombre de messages: {user_global_msg}\n Temps passé en vocal: {ConvertSecondsToTime(user_global_seconds)}")
-    
-    except Exception as e:
-        await ctx.send(f"Une erreur est survenue lors de la récupération des statistiques : {e}")
+    await ctx.send(message)
 
 
 
 @bot.command()
 async def top(ctx):
 
-    top_users = GetTop10UsersBySeconds(ctx.guild.id)
+    top_users = GetTop10UsersBySecondsOnServer(ctx.guild.id)
 
-    await ctx.send(f"__Top 10 **{ctx.guild.name}**:__")
-    top_count = 0
+    message_lines = [f"__Top 10 **{ctx.guild.name}** :__"]
+
+    top_count = 1
 
     for user in top_users:
-        top_count+=1
-
         user_id = user[0]
         user_seconds = user[2]
         member = ctx.guild.get_member(user_id)
         seconds_count = ConvertSecondsToTime(user_seconds)
 
         if member:
-            await ctx.send(f"**{top_count}** - {member} - {seconds_count}")
+            line = f"**{top_count}** - {member} - {seconds_count}"
+            print(line)
         else:
-            await ctx.send(f"**{top_count}** - {user_id} - {seconds_count}")
+            line = f"**{top_count}** - {user_id} - {seconds_count}"
+            print(line)
+        
+        top_count = top_count + 1
+        message_lines.append(line)
+
+    message = "\n".join(message_lines)
+    await ctx.send(message)
 
 # Commande Discord !top pour afficher le top 10 des utilisateurs en fonction des secondes accumulées
 @bot.command()
 async def alltop(ctx):
-    try:
-        top_users = AggregateUserSeconds()
+        
+    top_users = GetTop10UsersBySeconds()
 
-        if not top_users:
-            await ctx.send("Aucun utilisateur trouvé dans les bases de données.")
-            return
+    if not top_users:
+        await ctx.send("Aucun utilisateur trouvé dans les bases de données.")
+        return
 
-        await ctx.send("__Top 10 **global**:__")
-        for index, (user_id, total_seconds) in enumerate(top_users, start=1):
-            user = ctx.guild.get_member(user_id)
-            user_name = user.display_name if user else f"Utilisateur inconnu ({user_id})"
-            await ctx.send(f"**{index}.** {user_name} - {ConvertSecondsToTime(total_seconds)}")
+    message_lines = ["__Top 10 **global** :__"]
 
-    except Exception as e:
-        await ctx.send(f"Une erreur est survenue lors de la récupération du top 10 : {e}")
+    top_count = 1
+
+    for user in top_users:
+        user_id = user[0]
+        user_seconds = user[3]
+        member = ctx.guild.get_member(user_id)
+        seconds_count = ConvertSecondsToTime(user_seconds)
+
+        if member:
+            line = f"**{top_count}** - {member} - {seconds_count}"
+        else:
+            line = f"**{top_count}** - {user_id} - {seconds_count}"
+
+        top_count = top_count + 1
+        message_lines.append(line)
+    message = "\n".join(message_lines)
+    await ctx.send(message)
 
 @bot.command()
 async def server(ctx):
-    message_count = get_total_messages_on_server(ctx.guild.id)
-    seconds_count = get_total_seconds_on_server(ctx.guild.id)
+    message_count = GetTotalMessagesOnServer(ctx.guild.id)
+    seconds_count = GetTotalSecondsOnServer(ctx.guild.id)
     seconds_count = ConvertSecondsToTime(seconds_count)
     await ctx.send(f"__Statistiques du serveur:__\nNombre de messages au total : {message_count}\nTemps passé en vocal au total : {seconds_count}")
 
 @bot.command()
 async def aide(ctx):
-    await ctx.send("__**Commandes de Hourglass BOT:**__\n**!stats [user]** - *stats de l'utilisateur sur le serveur*\n**!allstats [user]** - *stats de l'utilisateurs sur tous les serveur*\n**!top** - *top 10 des utilisateurs en fonction du temps passé sur le serveur*\n**!alltop** - *top 10 des utilisateurs en fonction du temps passé sur tous les serveurs*")
+    message = (
+        f"__**Commandes de Hourglass BOT:**__\n"
+        f"**!stats [user]** - *stats de l'utilisateur sur le serveur*\n"
+        f"**!allstats [user]** - *stats de l'utilisateurs sur tous les serveur*\n"
+        f"**!top** - *top 10 des utilisateurs en fonction du temps passé sur le serveur*\n"
+        f"**!allstats [user]** - *stats de l'utilisateurs sur tous les serveur*\n"
+        f"**!alltop** - *top 10 des utilisateurs en fonction du temps passé sur tous les serveurs*\n"
+        f"**!server** - *Informations du serveur*\n"
+    )
+    await ctx.send(message)
 
 
 def ConvertSecondsToTime(seconds):

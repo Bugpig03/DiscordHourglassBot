@@ -1,90 +1,108 @@
-import sqlite3
+import psycopg2
+import os
 import os
 import heapq
 from collections import defaultdict
 
-def get_total_server_bot():
-    data_directory = 'data'
-    total_servers = 0
-    
-    # Iterate over all files in the specified directory
-    for db_file in os.listdir(data_directory):
-        # Construct the full path to the database file
-        db_path = os.path.join(data_directory, db_file)
-        
-        # Check if it's a file (to skip directories or other file types)
-        if os.path.isfile(db_path):
-            total_servers += 1
-    
-    return total_servers
+dbName = 'devhourglass' #os.environ.get('POSTGRESQL_DBNAME')
+user = 'postgres' #os.environ.get('POSTGRESQL_USER')
+password = 'iuobzvg451' #os.environ.get('POSTGRESQL_PASSWORD')
+host = 'localhost' #os.environ.get('POSTGRESQL_HOST')
+port = '5432' #os.environ.get('POSTGRESQL_PORT')
 
-def get_total_messages_bot():
-    data_directory = 'data'
-    total_messages = 0
-    
-    # Iterate over all files in the specified directory
-    for db_file in os.listdir(data_directory):
-        # Construct the full path to the database file
-        db_path = os.path.join(data_directory, db_file)
-        
-        # Check if it's a file (to skip directories or other file types)
-        if os.path.isfile(db_path):
-            try:
-                # Connect to the SQLite database
-                conn = sqlite3.connect(db_path)
-                cursor = conn.cursor()
-                
-                # Execute the query to sum messages
-                cursor.execute("SELECT SUM(messages) FROM users")
-                
-                # Fetch the result
-                result = cursor.fetchone()
-                
-                # Add the result to the total, handle None case
-                if result[0] is not None:
-                    total_messages += result[0]
-                
-                # Close the connection
-                conn.close()
-            except sqlite3.Error as e:
-                print(f"Error accessing {db_file}: {e}")
-                continue
-    
-    return total_messages
+# connection a la bdd
+def ConnectToDatabase():
+    """
+    Connexion à la base de données PostgreSQL en mode lecture seule.
+    """
+    conn = psycopg2.connect(
+        dbname=dbName,
+        user=user,
+        password=password,
+        host=host,
+        port=port
+    )
+    cursor = conn.cursor()
+    return conn
 
-def get_total_seconds_bot():
-    data_directory = 'data'
-    total_seconds = 0
+def GetDistinctServerCount():
+    """
+    Récupère le nombre de server_id distincts.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
     
-    # Iterate over all files in the specified directory
-    for db_file in os.listdir(data_directory):
-        # Construct the full path to the database file
-        db_path = os.path.join(data_directory, db_file)
+    try:
+        # Exécute la requête SQL pour compter les server_id distincts
+        cursor.execute('''
+        SELECT COUNT(DISTINCT server_id) FROM stats
+        ''')
         
-        # Check if it's a file (to skip directories or other file types)
-        if os.path.isfile(db_path):
-            try:
-                # Connect to the SQLite database
-                conn = sqlite3.connect(db_path)
-                cursor = conn.cursor()
-                
-                # Execute the query to sum seconds
-                cursor.execute("SELECT SUM(seconds) FROM users")
-                
-                # Fetch the result
-                result = cursor.fetchone()
-                
-                # Add the result to the total, handle None case
-                if result[0] is not None:
-                    total_seconds += result[0]
-                
-                # Close the connection
-                conn.close()
-            except sqlite3.Error as e:
-                print(f"Error accessing {db_file}: {e}")
-                continue
+        # Récupère le résultat de la requête
+        result = cursor.fetchone()
+        distinct_count = result[0]
+        
+        return distinct_count
+
+    except Exception as e:
+        print(f"Error while retrieving distinct server_id count: {e}")
+        return 0  # Retourne 0 en cas d'erreur
     
-    return total_seconds
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTotalMessages():
+    """
+    Récupère la somme totale des messages envoyés sur le bot.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+        SELECT COALESCE(SUM(messages), 0) FROM stats
+        ''')
+        
+        # Récupère le résultat de la requête
+        result = cursor.fetchone()
+        total_messages = result[0]
+        
+        return total_messages
+
+    except Exception as e:
+        print(f"Error while retrieving total messages: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTotalSeconds():
+    """
+    Récupère la somme totale des secondes de toutes les entrées dans la table.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+        SELECT COALESCE(SUM(seconds), 0) FROM stats
+        ''')
+        
+        # Récupère le résultat de la requête
+        result = cursor.fetchone()
+        total_seconds = result[0]
+        
+        return total_seconds
+
+    except Exception as e:
+        print(f"Error while retrieving total seconds: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
 
 def ConvertSecondsToTime(seconds):
     # Calcul des heures, minutes et secondes
@@ -97,43 +115,72 @@ def ConvertSecondsToTime(seconds):
     
     return time_format
 
-def get_top_users_by_seconds():
-    data_directory = 'data'
-    top_n = 10
-    user_times = []
-
-    for db_file in os.listdir(data_directory):
-        db_path = os.path.join(data_directory, db_file)
+def GetTop25UsersBySeconds():
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        # Récupère le top 25 des utilisateurs avec le plus de secondes, en agrégeant par utilisateur
+        cursor.execute('''
+        SELECT user_id, SUM(seconds) AS total_seconds, SUM(messages) AS total_messages, SUM(score) AS total_score
+        FROM stats
+        GROUP BY user_id
+        ORDER BY total_seconds DESC
+        LIMIT 25
+        ''')
         
-        if os.path.isfile(db_path) and db_file.endswith('.db'):
-            try:
-                with sqlite3.connect(db_path) as conn:
-                    cursor = conn.cursor()
-                    
-                    # Assuming 'users' table has columns 'id' and 'seconds'
-                    cursor.execute("SELECT id, seconds FROM users")
-                    results = cursor.fetchall()
-                    
-                    # Add results to the list, if any
-                    if results:
-                        user_times.extend(results)
-            except sqlite3.Error as e:
-                print(f"Error accessing {db_file}: {e}")
-                continue
+        # Récupère le résultat de la requête
+        top_users = cursor.fetchall()
+        
+        return top_users
+
+    except Exception as e:
+        print(f"Error while retrieving top 25 users by seconds: {e}")
+        return []  # Retourne une liste vide en cas d'erreur
     
-    # Combine results for the same user
-    combined_user_times = defaultdict(int)
-    for user_id, seconds in user_times:
-        combined_user_times[user_id] += seconds
+    finally:
+        # Fermer le curseur et la connexion
+        cursor.close()
+        conn.close()
+
+def FormatGetTop25Users():
+    top_users = GetTop25UsersBySeconds()
     
-    # Convert to a list of tuples
-    combined_user_times_list = list(combined_user_times.items())
-    
-    # Use heapq to find the top_n users with the most seconds
-    top_users = heapq.nlargest(top_n, combined_user_times_list, key=lambda x: x[1])
-    
-    # Convert seconds to formatted time
-    top_users_formatted = [(user_id, ConvertSecondsToTime(seconds)) for user_id, seconds in top_users]
+    # Convertir les secondes en temps formaté
+    top_users_formatted = [
+        {
+            "user_id": GetUsernameById(user[0]),  # Indice pour user_id
+            "formatted_time": ConvertSecondsToTime(user[1]),  # Indice pour total_seconds
+            "total_messages": user[2],  # Indice pour total_messages
+            "total_score": user[3]  # Indice pour total_score
+        }
+        for user in top_users
+    ]
     
     return top_users_formatted
 
+def GetUsernameById(user_id):
+    """
+    Récupère le nom d'utilisateur associé à user_id.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+        SELECT username FROM usernames WHERE user_id = %s
+        ''', (user_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result[0]
+        else:
+            return user_id
+
+    except Exception as e:
+        print(f"Error while retrieving username: {e}")
+        return user_id
+
+    finally:
+        cursor.close()
+        conn.close()

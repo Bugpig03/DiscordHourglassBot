@@ -33,10 +33,10 @@
         <p>-----------------------------------------------</p>
 
         <div style="height: 20px;"></div>
-        <h2>TOP 10 Global :</h2>
+        <h2>TOP 25 Global :</h2>
         <div>
-            {% for rank, (user_id, time_str) in enumerate(total_top_users, 1) %}
-                <p><strong>Rang {{ rank }}:</strong> {{ user_id }} - {{ time_str }}</p>
+            {% for rank, user in enumerate(total_top_users, 1) %}
+                <p><strong>Rang {{ rank }}:</strong> {{ user['user_id'] }} - {{ user['formatted_time'] }}</p>
             {% endfor %}
         </div>
         <div style="height: 20px;"></div>
