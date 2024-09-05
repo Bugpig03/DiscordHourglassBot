@@ -2,14 +2,14 @@
 Gimme the time and stats.... I need to know how much time I've wasted on this Discord server.
 
 # DOCKER INSTALLATION
-
+Configuration setup for Docker deployment
 ## DOCKER ARG TO DEFINE
-DISCORD_TOKEN = 'your discord token'
-POSTGRESQL_DBNAME = 'your db name'
-POSTGRESQL_USER = 'user name'
-POSTGRESQL_PASSWORD = 'user password'
-POSTGRESQL_HOST = 'host'
-POSTGRESQL_PORT = 'port'
+- DISCORD_TOKEN = 'your discord token'
+- POSTGRESQL_DBNAME = 'your db name'
+- POSTGRESQL_USER = 'user name'
+- POSTGRESQL_PASSWORD = 'user password'
+- POSTGRESQL_HOST = 'host'
+- POSTGRESQL_PORT = 'port'
 
 # VERSION
 Hourglass version 2.0

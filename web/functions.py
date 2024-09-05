@@ -4,11 +4,11 @@ import os
 import heapq
 from collections import defaultdict
 
-dbName = 'devhourglass' #os.environ.get('POSTGRESQL_DBNAME')
-user = 'postgres' #os.environ.get('POSTGRESQL_USER')
-password = 'iuobzvg451' #os.environ.get('POSTGRESQL_PASSWORD')
-host = 'localhost' #os.environ.get('POSTGRESQL_HOST')
-port = '5432' #os.environ.get('POSTGRESQL_PORT')
+dbName = os.environ.get('POSTGRESQL_DBNAME')
+user = os.environ.get('POSTGRESQL_USER')
+password = os.environ.get('POSTGRESQL_PASSWORD')
+host = os.environ.get('POSTGRESQL_HOST')
+port = os.environ.get('POSTGRESQL_PORT')
 
 # connection a la bdd
 def ConnectToDatabase():
