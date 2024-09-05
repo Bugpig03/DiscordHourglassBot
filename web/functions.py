@@ -52,6 +52,60 @@ def GetDistinctServerCount():
         cursor.close()
         conn.close()
 
+def GetDistinctUserCount():
+    """
+    Récupère le nombre de user_id distincts.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        # Exécute la requête SQL pour compter les user_id distincts
+        cursor.execute('''
+        SELECT COUNT(DISTINCT user_id) FROM stats
+        ''')
+        
+        # Récupère le résultat de la requête
+        result = cursor.fetchone()
+        distinct_count = result[0]
+        
+        return distinct_count
+
+    except Exception as e:
+        print(f"Error while retrieving distinct user_id count: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetDistinctUserServerComboCount():
+    """
+    Récupère le nombre de combinaisons distinctes de user_id et server_id.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        # Exécute la requête SQL pour compter les combinaisons distinctes de user_id et server_id
+        cursor.execute('''
+        SELECT COUNT(DISTINCT (user_id, server_id)) FROM stats
+        ''')
+        
+        # Récupère le résultat de la requête
+        result = cursor.fetchone()
+        distinct_combo_count = result[0]
+        
+        return distinct_combo_count
+
+    except Exception as e:
+        print(f"Error while retrieving distinct user_id and server_id combo count: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
 def GetTotalMessages():
     """
     Récupère la somme totale des messages envoyés sur le bot.

@@ -3,34 +3,43 @@ Gimme the time and stats.... I need to know how much time I've wasted on this Di
 
 # DOCKER INSTALLATION
 Configuration setup for Docker deployment
-## DOCKER ARG TO DEFINE
-- DISCORD_TOKEN = 'your discord token'
-- POSTGRESQL_DBNAME = 'your db name'
-- POSTGRESQL_USER = 'user name'
-- POSTGRESQL_PASSWORD = 'user password'
-- POSTGRESQL_HOST = 'host'
-- POSTGRESQL_PORT = 'port'
 
-# VERSION
-Hourglass version 2.0
+### Docker Arguments to Define
 
-## Patch Notes
-## Version 2.0 - Database System and Username Display - 02/09/2024
-- Migrated the database system to PostgreSQL
-- Implemented TOP 25 leaderboard on the website with username display
-- fix SPAM message
-## Version 1.2 - Web interface - 18/08/2024
-- add website to check stats
-- add server command
-- new system for parallel processing (discord bot and web)
-## Version 1.1 - Stats between server - 20/06/24
-- add allstats command
-- add top command
-- add alltop command
-- add aide command
-- fix messages from hourglass
-## Version 1.0 - first release - 28/04/24
-- simple command stats
+- **DISCORD_TOKEN**: → Your Discord token
+- **POSTGRESQL_DBNAME**: → Your PostgreSQL database name
+- **POSTGRESQL_USER**: → Your PostgreSQL user
+- **POSTGRESQL_PASSWORD**: → Your PostgreSQL password
+- **POSTGRESQL_HOST**: → Host of your PostgreSQL server
+- **POSTGRESQL_PORT**: → Port number of your PostgreSQL server
+
+
+# Hourglass - Version History
+
+## Version 2.1 - Bot Page and More Stats! - 05/09/2024
+- Added a new bot page on the website to display all bot statistics.
+- Introduced new user count and profile count statistics.
+- Made minor improvements to the website.
+
+## Version 2.0 - Database System and Username Display - 03/09/2024
+- Migrated the database system to PostgreSQL.
+- Implemented a TOP 25 leaderboard on the website with username display.
+- Fixed the SPAM message issue.
+
+## Version 1.2 - Web Interface - 18/08/2024
+- Launched the website to view bot statistics.
+- Added the `server` command to get server stats.
+- Implemented a parallel processing system for the Discord bot and web.
+
+## Version 1.1 - Cross-Server Stats - 20/06/2024
+- Added the `allstats` command for cross-server statistics.
+- Added the `top` command to get the top 10 users.
+- Added the `alltop` command for cross-server top statistics.
+- Added the `aide` command for help.
+- Fixed message formatting issues in Hourglass responses.
+
+## Version 1.0 - Initial Release - 28/04/2024
+- Basic `stats` command for displaying user statistics.
 
 ## MADE BY
-CHAT GPT and BugPig
+ChatGPT, Mike and BugPig
