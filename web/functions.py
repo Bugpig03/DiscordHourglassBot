@@ -238,3 +238,106 @@ def GetUsernameById(user_id):
     finally:
         cursor.close()
         conn.close()
+
+def GetDatabaseSize():
+    """
+    Récupère la taille de la base de données en kilo-octets.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        # Exécute la requête SQL pour obtenir la taille de la base de données en octets
+        cursor.execute(f"SELECT pg_database_size('{dbName}')")
+        
+        # Récupère la taille de la base de données en octets
+        result = cursor.fetchone()
+        size_in_bytes = result[0]
+        
+        # Convertir la taille en kilo-octets
+        size_in_kb = size_in_bytes / 1024
+        
+        return size_in_kb
+
+    except Exception as e:
+        print(f"Error while retrieving database size: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetCommittedTransactionCount():
+    """
+    Récupère le nombre de transactions validées (committed) dans la base de données.
+    
+    Returns:
+        int: Le nombre de transactions validées.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        query = f"""
+        SELECT xact_commit 
+        FROM pg_stat_database 
+        WHERE datname = '{dbName}';
+        """
+        cursor.execute(query)
+        result = cursor.fetchone()
+        print(result[0])
+        return result[0] if result else 0
+    
+    except Exception as e:
+        return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTotalCharacterCountInDatabase():
+    """
+    Récupère le nombre total de caractères dans toutes les colonnes de type texte (VARCHAR, TEXT) 
+    dans toute la base de données.
+    
+    Returns:
+        int: Le nombre total de caractères dans la base de données.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+
+    try:
+        # Récupérer toutes les colonnes de type texte (VARCHAR, TEXT)
+        query = """
+        SELECT table_schema, table_name, column_name
+        FROM information_schema.columns
+        WHERE data_type IN ('character varying', 'text')
+        """
+        cursor.execute(query)
+        columns = cursor.fetchall()
+
+        total_characters = 0
+        
+        # Pour chaque colonne de type texte, compter le nombre total de caractères
+        for table_schema, table_name, column_name in columns:
+            # Construire et exécuter la requête SQL pour chaque colonne
+            count_query = f"""
+            SELECT SUM(LENGTH({column_name})) 
+            FROM {table_schema}.{table_name}
+            """
+            cursor.execute(count_query)
+            result = cursor.fetchone()
+            column_total = result[0] if result[0] is not None else 0
+            
+            # Ajouter le total de caractères de cette colonne au total global
+            total_characters += column_total
+        
+        return total_characters
+
+    except Exception as e:
+        print(f"Error while retrieving total character count: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()

@@ -25,13 +25,17 @@
     <main>
         <div style="height: 120px;"></div>
         <h2>Statistiques global du bot :</h2>
-        <div style="height: 10px;"></div>
+        <div style="height: 0px;"></div>
         <p>Nombre d'utilisateurs : {{ total_users }}</p>
         <p>Nombre de profils : {{ total_profile }}</p>
         <p>Nombre de serveurs : {{ total_servers }}</p>
         <p>Nombre de messages envoyés : {{ total_messages }}</p>
         <p>Nombre d'heures passées : {{ total_seconds }}</p>
-
+        <div style="height: 10px;"></div>
+        <h2>Statistiques de la base de données :</h2>
+        <div style="height: 0px;"></div>
+        <p>Taille de DB : {{ total_users }} ko</p>
+        <p>Nombre de transactions : {{ transaction_count }}</p>
 
     </main>
     
