@@ -16,6 +16,9 @@ Configuration setup for Docker deployment
 
 # Hourglass - Version History
 
+## Version 2.1.1 - Fix alltop command - 15/09/2024
+- The display of seconds for the "alltop" command was incorrect
+
 ## Version 2.1.0 - Bot Page and More Stats! - 09/09/2024
 - Added a new bot page on the website to display all bot statistics.
 - Introduced new user count and profile count statistics.
