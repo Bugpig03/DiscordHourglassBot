@@ -138,7 +138,7 @@ async def alltop(ctx):
 
     for user in top_users:
         user_id = user[0]
-        user_seconds = user[2]
+        user_seconds = user[1]
         member = ctx.guild.get_member(user_id)
         seconds_count = ConvertSecondsToTime(user_seconds)
 
