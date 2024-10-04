@@ -1,12 +1,11 @@
 # DESCRIPTION
-Discord bot to get stats from all server
+Website to easily view stats from the discord bot
 
 # DOCKER INSTALLATION
 Configuration setup for Docker deployment
 
 ### Docker Arguments to Define
 
-- **DISCORD_TOKEN**: → Your Discord token
 - **POSTGRESQL_DBNAME**: → Your PostgreSQL database name
 - **POSTGRESQL_USER**: → Your PostgreSQL user
 - **POSTGRESQL_PASSWORD**: → Your PostgreSQL password
