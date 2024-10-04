@@ -18,4 +18,4 @@ ARG POSTGRESQL_PASSWORD
 ARG POSTGRESQL_HOST
 ARG POSTGRESQL_PORT
 
-CMD ["python", "server.py"]
+CMD ["python", "web/server.py"]
