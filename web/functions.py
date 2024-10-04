@@ -1,6 +1,5 @@
 import psycopg2
 import os
-import os
 import heapq
 from collections import defaultdict
 
