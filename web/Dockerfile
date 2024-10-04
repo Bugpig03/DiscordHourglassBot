@@ -4,7 +4,7 @@ FROM python:3.10
 
 WORKDIR /app
 
-COPY ./web .
+COPY ./web /app
 
 # Requirement for python
 RUN pip install Flask
