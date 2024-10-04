@@ -1,7 +1,11 @@
-# DESCRIPTION
+# WEB APP
+
+## DESCRIPTION
+
 Website to easily view stats from the discord bot
 
-# DOCKER INSTALLATION
+## DOCKER INSTALLATION
+
 Configuration setup for Docker deployment
 
 ### Docker Arguments to Define

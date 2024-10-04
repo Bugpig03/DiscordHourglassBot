@@ -1,7 +1,11 @@
-# DESCRIPTION
+# HOURGLASS PROJECT
+
+## DESCRIPTION
+
 Gimme the time and stats.... I need to know how much time I've wasted on this Discord server.
 
-### Features
+## Features
+
 - Get the number of messages
 - Get the number of hours
 - Individual stats per server
@@ -10,4 +14,5 @@ Gimme the time and stats.... I need to know how much time I've wasted on this Di
 - verry cool
 
 ## MADE BY
+
 ChatGPT, Mike and BugPig

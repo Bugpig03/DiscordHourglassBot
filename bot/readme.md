@@ -1,7 +1,11 @@
-# DESCRIPTION
+# DISCORD BOT
+
+## DESCRIPTION
+
 Discord bot to get stats from all server
 
-# DOCKER INSTALLATION
+## DOCKER INSTALLATION
+
 Configuration setup for Docker deployment
 
 ### Docker Arguments to Define
