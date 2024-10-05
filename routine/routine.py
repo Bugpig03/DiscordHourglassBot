@@ -15,7 +15,7 @@ if __name__ == '__main__':
         print("Error DB connection")
     
     # WAIT DATE
-    schedule.every().day.at("00:20").do(routine)
+    schedule.every().day.at("00:30").do(routine)
     while True:
         schedule.run_pending()
         # Attendre une minute avant de vérifier à nouveau
