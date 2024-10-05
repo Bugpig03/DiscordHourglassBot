@@ -28,7 +28,10 @@
         <h2>TOP 25 Global :</h2>
         <div>
             {% for rank, user in enumerate(total_top_users, 1) %}
-                <p><strong>Rang {{ rank }}:</strong> {{ user['user_id'] }} - {{ user['formatted_time'] }}</p>
+                <p>
+                    <strong>Rang {{ rank }}:</strong> <a class ="small" href="{{ url_for('profile', username=user['user_id']) }}">{{ user['user_id'] }}</a> - {{ user['formatted_time'] }}
+                </p>
+                
             {% endfor %}
         </div>
         <div style="height: 20px;"></div>

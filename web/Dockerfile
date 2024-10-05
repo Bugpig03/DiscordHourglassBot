@@ -10,7 +10,7 @@ COPY ./web /app
 RUN pip install Flask
 RUN pip install psycopg2
 
-EXPOSE 5003
+EXPOSE 5002
 
 ARG POSTGRESQL_DBNAME
 ARG POSTGRESQL_USER

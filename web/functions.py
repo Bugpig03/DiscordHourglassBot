@@ -238,6 +238,35 @@ def GetUsernameById(user_id):
         cursor.close()
         conn.close()
 
+def GetUserIdByUsername(username):
+    """
+    Récupère l'ID utilisateur (user_id) associé à un nom d'utilisateur (username).
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données (à implémenter)
+    cursor = conn.cursor()
+    
+    try:
+        # Requête SQL pour récupérer le user_id à partir du username
+        cursor.execute('''
+        SELECT user_id FROM usernames WHERE username = %s
+        ''', (username,))
+        
+        # Récupérer le résultat de la requête
+        result = cursor.fetchone()
+        
+        if result:
+            return result[0]  # Retourne user_id si trouvé
+        else:
+            return None  # Retourne None si le username n'existe pas
+
+    except Exception as e:
+        print(f"Error while retrieving user_id: {e}")
+        return None  # Retourne None en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
 def GetDatabaseSize():
     """
     Récupère la taille de la base de données en kilo-octets.
@@ -340,3 +369,51 @@ def GetTotalCharacterCountInDatabase():
     finally:
         cursor.close()
         conn.close()
+
+def GetUserServerStats(user_id):
+    """
+    Récupère pour un utilisateur donné (user_id), la liste des serveurs auxquels il appartient,
+    ainsi que pour chaque serveur : le nombre total de secondes, le nombre de messages,
+    et la date de création de l'entrée la plus ancienne.
+    
+    Renvoie une liste de dictionnaires contenant ces informations pour chaque serveur.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données (à implémenter)
+    cursor = conn.cursor()
+    
+    try:
+        # Requête pour récupérer les informations de chaque serveur auquel l'utilisateur appartient
+        query = '''
+        SELECT server_id, COALESCE(SUM(seconds), 0) as total_seconds, 
+               COALESCE(SUM(messages), 0) as total_messages, 
+               MIN(date_creation) as date_creation
+        FROM stats
+        WHERE user_id = %s
+        GROUP BY server_id
+        '''
+        
+        cursor.execute(query, (user_id,))
+        
+        # Récupérer tous les résultats
+        results = cursor.fetchall()
+        
+        # Préparer la liste des statistiques par serveur
+        server_stats = []
+        for row in results:
+            server_stats.append({
+                'server_id': row[0],            # ID du serveur
+                'total_seconds': row[1],        # Somme des secondes sur ce serveur
+                'total_messages': row[2],       # Somme des messages sur ce serveur
+                'creation_date': row[3]         # Date de création la plus ancienne
+            })
+        
+        return server_stats
+
+    except Exception as e:
+        print(f"Error while retrieving user server stats: {e}")
+        return []  # Retourne une liste vide en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+

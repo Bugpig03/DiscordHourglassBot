@@ -8,10 +8,10 @@
 
 <body>
     <header class="sticky-header">
-        <img src="\static\favicon.png" alt="hourglass icon">
+        <img src="\static\favicon.png" alt="snout labs icon">
         
         <nav>
-            <h1> HOURGLASS / Serveurs</h1>
+            <h1> HOURGLASS / Profil</h1>
             <ul class="horizontal-list">
                 <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
                 <li><a class ="mid" href="{{ url_for('bot') }}">Bot</a></li>
@@ -24,10 +24,17 @@
         
     <main>
         <div style="height: 140px;"></div>
-        <h2>Liste des serveurs :</h2>
-        <div style="height: 10px;"></div>
-        <p>MAINTENANCE MIKE ET CHAT GPT BOSS SUR LE PROJET...</p>
-        <img src="\static\mike_work_in_progress.jpg" alt="mike traveaux image" class="img-large">
+        <h2>Profil de {{ username }}</h2>
+        <ul>
+            {% for server in server_stats %}
+            <li>
+                <p><strong>Serveur ID :</strong> {{ server.server_id }}<br>
+                <strong>Temps passé en vocal :</strong> {{ server.total_seconds }}<br>
+                <strong>Messages envoyés :</strong> {{ server.total_messages }}<br>
+                <strong>Membre depuis le :</strong> {{ server.creation_date }}</p>
+            </li>
+            {% endfor %}
+        </ul>
     </main>
     
     <footer>

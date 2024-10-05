@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 import json
 import os
 from functions import *
@@ -34,7 +34,15 @@ def server():
 def about():
     return render_template('about.html')
 
+@app.route('/profile/<username>')
+def profile(username):
+    user_id = GetUserIdByUsername(username)
+    if user_id:
+        server_stats = GetUserServerStats(user_id)
+        return render_template('profile.html', username=username, server_stats=server_stats)
+    else:
+        return redirect(url_for('home'))
 
 if __name__ == '__main__':
     print("Application start")
-    app.run(host='0.0.0.0', port=5003)
+    app.run(host='0.0.0.0', port=5002)
