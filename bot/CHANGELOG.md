@@ -1,5 +1,9 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.2.1 - Creation time - 05/10/2024
+
+- Now retrieve the creation date of each profile.
+
 ## Version 2.2.0 - Split discord bot and web app - 05/10/2024
 
 - Split the project into two separate parts for better modularity.

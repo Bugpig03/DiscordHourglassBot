@@ -23,15 +23,16 @@ def ConnectToDataBase():
     
     # Création de la table 'stats' avec une clé primaire composite (user_id, server_id)
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS stats (
-        user_id BIGINT,
-        server_id BIGINT,
-        messages INTEGER DEFAULT 0,
-        seconds INTEGER DEFAULT 0,
-        score INTEGER DEFAULT 0,
-        PRIMARY KEY (user_id, server_id)
-    )
-    ''')
+        CREATE TABLE IF NOT EXISTS stats (
+            user_id BIGINT,
+            server_id BIGINT,
+            messages INTEGER DEFAULT 0,
+            seconds INTEGER DEFAULT 0,
+            score INTEGER DEFAULT 0,
+            date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id, server_id)
+        )
+        ''')
     
     return conn
 
