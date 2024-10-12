@@ -25,13 +25,18 @@
     <main>
         <div style="height: 120px;"></div>
         <div style="height: 20px;"></div>
-        <h2>TOP 25 Global :</h2>
-        <div>
+        <h2>TOP 30 Global :</h2>
+        <div class="top-container">
+
             {% for rank, user in enumerate(total_top_users, 1) %}
-                <p>
-                    <strong>Rang {{ rank }}:</strong> <a class ="small" href="{{ url_for('profile', username=user['user_id']) }}">{{ user['user_id'] }}</a> - {{ user['formatted_time'] }}
-                </p>
-                
+                <a href="{{ url_for('profile', username=user['user_id']) }}" class="userbox-link">
+                    <div class="user-box">
+                        <div class="rank" >RANG {{ rank }}</div>
+                        <div style="height: 5px;"></div>
+                        <div class="username">{{ user['user_id'] }}</div>
+                        <div class="time">Temps: {{ user['formatted_time'] }}</div>
+                    </div>
+                </a>         
             {% endfor %}
         </div>
         <div style="height: 20px;"></div>

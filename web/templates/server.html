@@ -24,10 +24,17 @@
         
     <main>
         <div style="height: 140px;"></div>
-        <h2>Liste des serveurs :</h2>
-        <div style="height: 10px;"></div>
-        <p>MAINTENANCE MIKE ET CHAT GPT BOSS SUR LE PROJET...</p>
-        <img src="\static\mike_work_in_progress.jpg" alt="mike traveaux image" class="img-large">
+        <div class="h2-mid">Liste des serveurs :</div>
+        <div class="server-container">
+            {% for server in server_stats %}
+            <div class="server-box">
+                <div class="server-text" >Server: {{ server.server_id }}</div>
+                <p>Temps: {{ server.total_seconds }}</p>
+                <p>Messages: {{ server.total_messages }}</p>
+                <p>Nombre de membres : {{ server.total_members }}</p>
+            </div>
+            {% endfor %}
+        </div>
     </main>
     
     <footer>

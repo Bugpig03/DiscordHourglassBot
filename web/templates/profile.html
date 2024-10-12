@@ -24,17 +24,18 @@
         
     <main>
         <div style="height: 140px;"></div>
-        <h2>Profil de {{ username }}</h2>
-        <ul>
-            {% for server in server_stats %}
-            <li>
-                <p><strong>Serveur ID :</strong> {{ server.server_id }}<br>
-                <strong>Temps passé en vocal :</strong> {{ server.total_seconds }}<br>
-                <strong>Messages envoyés :</strong> {{ server.total_messages }}<br>
-                <strong>Membre depuis le :</strong> {{ server.creation_date }}</p>
-            </li>
+        <div class="h2-mid">Profil de {{ username }}</div>
+        <div class="vertical-container">
+            {% for server in user_server_stats %}
+            <div class="bot-box">
+                <div class="server-text" >Statistiques sur: {{ server.server_id }}</div>
+                <p>Temps: {{ server.total_seconds }}</p>
+                <p>Messages: {{ server.total_messages }}</p>
+                <p>Rang : {{ server.rank }}</p>
+                <p>profil créé depuis le: {{ server.creation_date }}</p>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
     </main>
     
     <footer>

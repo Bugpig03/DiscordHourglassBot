@@ -12,7 +12,7 @@ def utility_processor():
 
 @app.route('/')
 def home():
-    total_top_users = FormatGetTop25Users()
+    total_top_users = FormatGetTopUsers()
     return render_template('home.html', total_top_users=total_top_users)
 
 @app.route('/bot')
@@ -28,7 +28,8 @@ def bot():
 
 @app.route('/server')
 def server():
-    return render_template('server.html')
+    server_stats = GetServersStats()
+    return render_template('server.html', server_stats=server_stats)
 
 @app.route('/about')
 def about():
@@ -38,10 +39,14 @@ def about():
 def profile(username):
     user_id = GetUserIdByUsername(username)
     if user_id:
-        server_stats = GetUserServerStats(user_id)
-        return render_template('profile.html', username=username, server_stats=server_stats)
+        user_server_stats = GetUserServerStats(user_id)
+        return render_template('profile.html', username=username, user_server_stats=user_server_stats)
     else:
         return redirect(url_for('home'))
+    
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     print("Application start")

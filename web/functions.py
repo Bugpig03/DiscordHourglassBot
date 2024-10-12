@@ -168,18 +168,17 @@ def ConvertSecondsToTime(seconds):
     
     return time_format
 
-def GetTop25UsersBySeconds():
+def GetTopUsersBySeconds():
     conn = ConnectToDatabase()
     cursor = conn.cursor()
     
     try:
-        # Récupère le top 25 des utilisateurs avec le plus de secondes, en agrégeant par utilisateur
         cursor.execute('''
         SELECT user_id, SUM(seconds) AS total_seconds, SUM(messages) AS total_messages, SUM(score) AS total_score
         FROM stats
         GROUP BY user_id
         ORDER BY total_seconds DESC
-        LIMIT 25
+        LIMIT 30
         ''')
         
         # Récupère le résultat de la requête
@@ -188,7 +187,7 @@ def GetTop25UsersBySeconds():
         return top_users
 
     except Exception as e:
-        print(f"Error while retrieving top 25 users by seconds: {e}")
+        print(f"Error while retrieving top users by seconds: {e}")
         return []  # Retourne une liste vide en cas d'erreur
     
     finally:
@@ -196,8 +195,8 @@ def GetTop25UsersBySeconds():
         cursor.close()
         conn.close()
 
-def FormatGetTop25Users():
-    top_users = GetTop25UsersBySeconds()
+def FormatGetTopUsers():
+    top_users = GetTopUsersBySeconds()
     
     # Convertir les secondes en temps formaté
     top_users_formatted = [
@@ -402,8 +401,9 @@ def GetUserServerStats(user_id):
         for row in results:
             server_stats.append({
                 'server_id': row[0],            # ID du serveur
-                'total_seconds': row[1],        # Somme des secondes sur ce serveur
+                'total_seconds':  ConvertSecondsToTime(row[1]),        # Somme des secondes sur ce serveur
                 'total_messages': row[2],       # Somme des messages sur ce serveur
+                'rank': GetUserRankBySeconds(user_id,row[0]),
                 'creation_date': row[3]         # Date de création la plus ancienne
             })
         
@@ -417,3 +417,86 @@ def GetUserServerStats(user_id):
         cursor.close()
         conn.close()
 
+def GetUserRankBySeconds(user_id, server_id):
+    """
+    Récupère le rang d'un utilisateur dans un serveur donné, basé sur le nombre de secondes.
+    """
+    conn = ConnectToDatabase()  # Remplacer par ta fonction de connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        # Requête pour récupérer le rang de l'utilisateur
+        query = '''
+        SELECT rank FROM (
+            SELECT user_id, server_id, 
+                   RANK() OVER (PARTITION BY server_id ORDER BY seconds DESC) AS rank
+            FROM stats
+        ) AS ranked
+        WHERE user_id = %s AND server_id = %s;
+        '''
+
+        # Exécution de la requête avec les paramètres user_id et server_id
+        cursor.execute(query, (user_id, server_id))
+
+        # Récupérer le résultat
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]  # Retourne le rang
+        else:
+            return None  # Si l'utilisateur n'est pas trouvé dans ce serveur
+
+    except Exception as e:
+        print(f"Erreur lors de la récupération du rang de l'utilisateur: {e}")
+        return None  # Retourne None en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetServersStats():
+    """
+    Récupère la liste des serveurs avec le total de secondes, le nombre total de messages,
+    et le nombre de membres uniques (utilisateurs) par serveur.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        # Requête SQL pour agréger les statistiques par serveur
+        query = '''
+        SELECT server_id, 
+               SUM(seconds) AS total_seconds, 
+               SUM(messages) AS total_messages, 
+               COUNT(DISTINCT user_id) AS total_members
+        FROM stats
+        GROUP BY server_id
+        ORDER BY server_id;
+        '''
+
+        # Exécution de la requête
+        cursor.execute(query)
+
+        # Récupérer tous les résultats
+        results = cursor.fetchall()
+
+        # Transformer les résultats en une liste de dictionnaires
+        servers_stats = []
+        for row in results:
+            server_id, total_seconds, total_messages, total_members = row
+            servers_stats.append({
+                'server_id': server_id,
+                'total_seconds':  ConvertSecondsToTime(total_seconds),
+                'total_messages': total_messages,
+                'total_members': total_members
+            })
+
+        return servers_stats
+
+    except Exception as e:
+        print(f"Erreur lors de la récupération des statistiques des serveurs: {e}")
+        return []
+
+    finally:
+        cursor.close()
+        conn.close()
