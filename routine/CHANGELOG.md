@@ -1,5 +1,9 @@
 # Hourglass - Routine - CHANGELOG
 
+## Version 1.1.0 - Bash execute - 12/10/2024
+
+- Try to fix routine with bash file
+
 ## Version 1.0.1 - Fix routine start - 06/10/2024
 
 - Routine not working
