@@ -15,4 +15,4 @@ ARG POSTGRESQL_PASSWORD
 ARG POSTGRESQL_HOST
 ARG POSTGRESQL_PORT
 
-CMD ["python", "routine.py"]
+CMD ["python3", "routine.py"]
