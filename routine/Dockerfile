@@ -7,8 +7,7 @@ WORKDIR /app
 COPY ./routine /app
 
 # Requirement for python
-RUN pip install psycopg2
-RUN pip install schedule
+RUN pip install psycopg2-binary
 
 ARG POSTGRESQL_DBNAME
 ARG POSTGRESQL_USER
