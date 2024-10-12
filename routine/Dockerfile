@@ -9,9 +9,6 @@ WORKDIR /app
 # Copier les fichiers dans le conteneur
 COPY ./routine /app
 
-# Copier le script shell
-COPY run_query.sh /app/run_query.sh
-
 # Rendre le script exécutable
 RUN chmod +x /app/run_query.sh
 
