@@ -1,25 +1,23 @@
-# Dockerfile - ROUTINE APP avec Cron
+# Dockerfile - Routine app avec Python Scheduler
 FROM python:3.10
 
-# Installer cron et PostgreSQL client pour exécuter des requêtes SQL
-RUN apt-get update && apt-get install -y cron postgresql-client
+# Installer PostgreSQL client et les dépendances
+RUN apt-get update && apt-get install -y postgresql-client
 
 WORKDIR /app
 
 # Copier les fichiers dans le conteneur
 COPY ./routine /app
 
-# Rendre le script exécutable
-RUN chmod +x /app/run_query.sh
+# Installer psycopg2 pour Python
+RUN pip install psycopg2-binary
 
-# Créer une tâche cron pour exécuter le script à 3h00 chaque jour
-RUN echo "0 3 * * * /app/run_query.sh >> /var/log/cron.log 2>&1" > /etc/cron.d/daily-sql-task
+# Définir les variables d'environnement
+ARG POSTGRESQL_DBNAME
+ARG POSTGRESQL_USER
+ARG POSTGRESQL_PASSWORD
+ARG POSTGRESQL_HOST
+ARG POSTGRESQL_PORT
 
-# Donner les droits corrects au fichier cron
-RUN chmod 0644 /etc/cron.d/daily-sql-task
-
-# Appliquer la tâche cron
-RUN crontab /etc/cron.d/daily-sql-task
-
-# S'assurer que le conteneur reste actif avec cron en cours d'exécution
-CMD cron -f
+# Exécuter le script Python lors du démarrage du conteneur
+CMD ["python", "/app/scheduler.py"]
