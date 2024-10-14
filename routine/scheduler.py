@@ -56,14 +56,16 @@ def run_sql_query():
         print(f"Erreur lors de l'exécution de la requête : {e}")
 
 if __name__ == "__main__":
-    while True:
+    
+    print("Pls a need a logs WTF")
+    #while True:
         # Attendre jusqu'à 3h00
-        sleep_time = time_until_3am()
-        print(f"Attente de {sleep_time / 3600:.2f} heures jusqu'à 3h00.")
-        time.sleep(sleep_time)
+        #sleep_time = time_until_3am()
+        #print(f"Attente de {sleep_time / 3600:.2f} heures jusqu'à 3h00.")
+        #time.sleep(sleep_time)
 
         # Exécuter la requête SQL
-        run_sql_query()
+        #run_sql_query()
 
         # Attendre 24 heures jusqu'au prochain cycle
-        time.sleep(24 * 3600)
+        #time.sleep(24 * 3600)
