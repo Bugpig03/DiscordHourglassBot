@@ -67,4 +67,4 @@ if __name__ == "__main__":
         run_sql_query()
 
         # Attendre 24 heures jusqu'au prochain cycle
-        time.sleep(24 * 3600)
+        time.sleep(5 * 60)
