@@ -28,10 +28,10 @@
         <div class="vertical-container">
             {% for server in user_server_stats %}
             <div class="bot-box">
-                <div class="server-text" >Statistiques sur: {{ server.server_id }}</div>
+                <div class="server-text" >Statistiques sur: {{ server.server_name }}</div>
                 <p>Temps: {{ server.total_seconds }}</p>
                 <p>Messages: {{ server.total_messages }}</p>
-                <p>Rang : {{ server.rank }}</p>
+                <p>Rang: {{ server.rank }}/{{ server.total_members }}</p>
                 <p>profil créé depuis le: {{ server.creation_date }}</p>
             </div>
             {% endfor %}

@@ -28,7 +28,7 @@
         <div class="server-container">
             {% for server in server_stats %}
             <div class="server-box">
-                <div class="server-text" >Server: {{ server.server_id }}</div>
+                <div class="server-text" >Server: {{ server.server_name }}</div>
                 <p>Temps: {{ server.total_seconds }}</p>
                 <p>Messages: {{ server.total_messages }}</p>
                 <p>Nombre de membres : {{ server.total_members }}</p>

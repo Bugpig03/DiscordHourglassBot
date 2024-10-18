@@ -2,6 +2,7 @@ import psycopg2
 import os
 import heapq
 from collections import defaultdict
+from datetime import datetime
 
 dbName = os.environ.get('POSTGRESQL_DBNAME')
 user = os.environ.get('POSTGRESQL_USER')
@@ -237,6 +238,32 @@ def GetUsernameById(user_id):
         cursor.close()
         conn.close()
 
+def GetServerNameById(server_id):
+    """
+    Récupère le nom du serveur associé à server_id.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+        SELECT servername FROM servernames WHERE server_id = %s
+        ''', (server_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result[0]
+        else:
+            return server_id
+
+    except Exception as e:
+        print(f"Error while retrieving servername: {e}")
+        return server_id
+
+    finally:
+        cursor.close()
+        conn.close()
+
 def GetUserIdByUsername(username):
     """
     Récupère l'ID utilisateur (user_id) associé à un nom d'utilisateur (username).
@@ -401,10 +428,12 @@ def GetUserServerStats(user_id):
         for row in results:
             server_stats.append({
                 'server_id': row[0],            # ID du serveur
+                'server_name': GetServerNameById(row[0]),
                 'total_seconds':  ConvertSecondsToTime(row[1]),        # Somme des secondes sur ce serveur
                 'total_messages': row[2],       # Somme des messages sur ce serveur
                 'rank': GetUserRankBySeconds(user_id,row[0]),
-                'creation_date': row[3]         # Date de création la plus ancienne
+                'total_members': GetUniqueUsersCountByServerId(row[0]),
+                'creation_date': FormatSQLTimestampToFrench(row[3])      # Date de création la plus ancienne
             })
         
         return server_stats
@@ -486,6 +515,7 @@ def GetServersStats():
             server_id, total_seconds, total_messages, total_members = row
             servers_stats.append({
                 'server_id': server_id,
+                'server_name': GetServerNameById(server_id),
                 'total_seconds':  ConvertSecondsToTime(total_seconds),
                 'total_messages': total_messages,
                 'total_members': total_members
@@ -496,6 +526,53 @@ def GetServersStats():
     except Exception as e:
         print(f"Erreur lors de la récupération des statistiques des serveurs: {e}")
         return []
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def FormatSQLTimestampToFrench(timestamp):
+    """
+    Transforme un objet datetime (timestamp) en 'jour mois année' (ex: 5 octobre 2024).
+    """
+    # Dictionnaire des mois en français
+    mois_francais = {
+        1: "janvier", 2: "février", 3: "mars", 4: "avril",
+        5: "mai", 6: "juin", 7: "juillet", 8: "août",
+        9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre"
+    }
+    
+    # Extraire le jour, le mois et l'année
+    jour = timestamp.day
+    mois = mois_francais[timestamp.month]
+    annee = timestamp.year
+    
+    # Formatage de la date
+    return f"{jour} {mois} {annee}"
+
+def GetUniqueUsersCountByServerId(server_id):
+    """
+    Récupère la somme des utilisateurs uniques (distincts) pour un serveur spécifique.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        SELECT COUNT(DISTINCT user_id) AS total_members
+        FROM stats
+        WHERE server_id = %s;
+        ''', (server_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result[0]  # Retourne le nombre d'utilisateurs distincts
+        else:
+            return 0  # Retourne 0 si aucun utilisateur n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving unique users count for server {server_id}: {e}")
+        return 0  # Retourne 0 en cas d'erreur
 
     finally:
         cursor.close()

@@ -368,3 +368,38 @@ def SetUsername(user_id, username):
     finally:
         cursor.close()
         conn.close()
+
+def SetServerName(server_id, servername):
+    """
+    Initialise la table servernames si elle n'existe pas et met à jour le servername pour un server_id donné.
+    """
+    conn = ConnectToDataBase()
+    cursor = conn.cursor()
+
+    try:
+        # Créer la table servernames si elle n'existe pas encore
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS servernames (
+            server_id BIGINT PRIMARY KEY,
+            servername VARCHAR(255) NOT NULL
+        )
+        ''')
+
+        # Mettre à jour ou insérer le servername pour le server_id donné
+        cursor.execute('''
+        INSERT INTO servernames (server_id, servername)
+        VALUES (%s, %s)
+        ON CONFLICT (server_id) DO UPDATE
+        SET servername = EXCLUDED.servername
+        ''', (server_id, servername))
+
+        # Commit les changements
+        conn.commit()
+
+    except Exception as e:
+        print(f"Error while initializing or updating servernames: {e}")
+        conn.rollback()  # Annule les changements en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()

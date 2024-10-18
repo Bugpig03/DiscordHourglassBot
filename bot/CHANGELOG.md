@@ -1,5 +1,9 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.3.0 - Serveur Name - 18/10/2024
+
+- Server name are now saved.
+
 ## Version 2.2.1 - Creation time - 05/10/2024
 
 - Now retrieve the creation date of each profile.

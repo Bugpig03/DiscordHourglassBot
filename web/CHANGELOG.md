@@ -1,5 +1,9 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 1.3.0 - Server Name - 18/10/2024
+
+- Now display the server name instead of the server_id
+
 ## Version 1.2.0 - Web Box ! - 12/10/2024
 
 - Changed the display of the top 25 with boxes. (and now its top30)

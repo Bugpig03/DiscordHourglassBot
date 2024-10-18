@@ -20,8 +20,10 @@ async def on_message(message):
         server_id = message.guild.id
         user_id = message.author.id
         username = message.author.name
+        servername = message.guild.name
         AddMessagesToUser(user_id,server_id)
         SetUsername(user_id, username)
+        SetServerName(server_id, servername)
         
     await bot.process_commands(message)
 
@@ -43,6 +45,7 @@ async def on_voice_state_update(member, before, after):
             print(f'{member} spent {time_spent} seconds in the voice channel')
             AddSecondsToUser(member.id, member.guild.id, time_spent)
             SetUsername(member.id, member.name)
+            SetServerName(member.guild.id, member.guild.name)
 
 
     if before.channel is None and after.channel is not None:
