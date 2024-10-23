@@ -37,8 +37,12 @@
             <div class="bot-box">
                 <h2>Statistiques de la base de données :</h2>
                 <div style="height: 0px;"></div>
-                <p>Taille de la base de données: {{ total_users }} ko</p>
+                <p>Taille de la base de données: {{ database_size }} ko</p>
+                <p>Taille de la table des stats: {{ stats_table_size }} ko</p>
+                <p>Taille de la table des historiques stats: {{ historical_stats_table_size }} ko</p>
+                <p>Dernière sauvegarde des stats: {{ last_historical }}</p>
                 <p>Nombre de transactions dans la base de données: {{ transaction_count }}</p>
+                
             </div>
         </div>
 

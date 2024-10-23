@@ -301,15 +301,12 @@ def GetDatabaseSize():
     cursor = conn.cursor()
     
     try:
-        # Exécute la requête SQL pour obtenir la taille de la base de données en octets
-        cursor.execute(f"SELECT pg_database_size('{dbName}')")
+        # Exécute la requête SQL pour obtenir la taille de la base de données en Ko directement
+        cursor.execute(f"SELECT pg_database_size('{dbName}') / 1024 AS size_in_kb")
         
-        # Récupère la taille de la base de données en octets
+        # Récupère la taille de la base de données en Ko
         result = cursor.fetchone()
-        size_in_bytes = result[0]
-        
-        # Convertir la taille en kilo-octets
-        size_in_kb = size_in_bytes / 1024
+        size_in_kb = result[0]
         
         return size_in_kb
 
@@ -320,6 +317,32 @@ def GetDatabaseSize():
     finally:
         cursor.close()
         conn.close()
+
+def GetTableSize(tableName):
+    """
+    Récupère la taille d'une table spécifique en kilo-octets.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        # Exécute la requête SQL pour obtenir la taille de la table en Ko
+        cursor.execute(f"SELECT pg_total_relation_size('{tableName}'::regclass) / 1024 AS size_in_kb")
+        
+        # Récupère la taille de la table en Ko
+        result = cursor.fetchone()
+        size_in_kb = result[0]
+        
+        return size_in_kb
+
+    except Exception as e:
+        print(f"Error while retrieving table size: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
 
 def GetCommittedTransactionCount():
     """
@@ -344,6 +367,31 @@ def GetCommittedTransactionCount():
     
     except Exception as e:
         return 0  # Retourne 0 en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetMostRecentDate():
+    """
+    Récupère la date la plus récente de la colonne 'created_at' d'une table.
+    """
+    conn = ConnectToDatabase()
+    cursor = conn.cursor()
+    
+    try:
+        # Exécute la requête SQL pour obtenir la date la plus récente
+        cursor.execute("SELECT MAX(created_at) FROM historical_stats")
+        
+        # Récupère la date la plus récente
+        result = cursor.fetchone()
+        most_recent_date = result[0]
+        
+        return most_recent_date
+
+    except Exception as e:
+        print(f"Error while retrieving the most recent date: {e}")
+        return None  # Retourne None en cas d'erreur
     
     finally:
         cursor.close()
@@ -549,6 +597,30 @@ def FormatSQLTimestampToFrench(timestamp):
     
     # Formatage de la date
     return f"{jour} {mois} {annee}"
+
+def FormatSQLTimestampAndHoursToFrench(timestamp):
+    """
+    Transforme un objet datetime (timestamp) en 'jour mois année, heure:minute:seconde' 
+    (ex: 5 octobre 2024 à 14:30:45).
+    """
+    # Dictionnaire des mois en français
+    mois_francais = {
+        1: "janvier", 2: "février", 3: "mars", 4: "avril",
+        5: "mai", 6: "juin", 7: "juillet", 8: "août",
+        9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre"
+    }
+    
+    # Extraire le jour, le mois, l'année, l'heure, les minutes et les secondes
+    jour = timestamp.day
+    mois = mois_francais[timestamp.month]
+    annee = timestamp.year
+    heure = timestamp.hour
+    minute = timestamp.minute
+    seconde = timestamp.second
+    
+    # Formatage de la date et de l'heure
+    return f"{jour} {mois} {annee} à {heure:02}:{minute:02}:{seconde:02}"
+
 
 def GetUniqueUsersCountByServerId(server_id):
     """

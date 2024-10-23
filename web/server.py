@@ -22,9 +22,12 @@ def bot():
     total_servers = GetDistinctServerCount()
     total_users = GetDistinctUserCount()
     total_profile = GetDistinctUserServerComboCount()
-    db_size = GetDatabaseSize()
+    database_size = GetDatabaseSize()
+    stats_table_size = GetTableSize('stats')
+    historical_stats_table_size = GetTableSize('historical_stats')
     transaction_count = GetCommittedTransactionCount()
-    return render_template('bot.html', total_messages=total_messages, total_seconds=total_seconds, total_servers=total_servers,total_users=total_users, total_profile=total_profile, db_size=db_size, transaction_count=transaction_count)
+    last_historical = FormatSQLTimestampAndHoursToFrench(GetMostRecentDate())
+    return render_template('bot.html', total_messages=total_messages, total_seconds=total_seconds, total_servers=total_servers,total_users=total_users, total_profile=total_profile, database_size=database_size, stats_table_size=stats_table_size, historical_stats_table_size=historical_stats_table_size, transaction_count=transaction_count, last_historical=last_historical)
 
 @app.route('/server')
 def server():
