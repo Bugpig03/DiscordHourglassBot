@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 1.5.1 - Fix Activity and More Scroll - 29/12/2024
+
+### Changes and Fixes
+
+- Fixed an issue where activity values were incorrect.
+- Added a scroll bar to the server page.
+- Enabled the ability to click on a user in the server page to view their profile.
+
 ## Version 1.5.0 - Activity and Serveurs stats - 29/12/2024
 
 ### Revamped Home Page

@@ -907,127 +907,221 @@ def GetUsersRankingByServerId(server_id):
         cursor.close()
         conn.close()
 
-def GetTopUsersActivityThisMonth(top_n=3):
+def GetTop5UsersEvolutionLast30Days():
     """
-    Récupère les top N utilisateurs en fonction de leur activité (secondes et messages)
-    sur le mois en cours pour tous les serveurs, basé sur les 30 enregistrements les plus récents.
+    Récupère le TOP 5 des utilisateurs ayant la plus grande évolution
+    (écart en secondes) entre la date la plus récente et celle datant de 30 jours.
     """
     conn = ConnectToDatabase()  # Connexion à la base de données
     cursor = conn.cursor()
 
     try:
-        # Requête SQL pour récupérer les 30 derniers enregistrements par utilisateur
+        # Étape 1 : Requête pour récupérer l'évolution de chaque utilisateur
         query = '''
-        WITH recent_activity AS (
-            SELECT user_id, seconds, messages, created_at,
-                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS row_num
+        WITH ranked_activity AS (
+            SELECT user_id, SUM(seconds) AS total_seconds, DATE(created_at) AS activity_date,
+                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(created_at) DESC) AS rank
             FROM historical_stats
+            GROUP BY user_id, DATE(created_at)
+        ),
+        user_evolution AS (
+            SELECT
+                user_id,
+                MAX(CASE WHEN rank = 1 THEN total_seconds ELSE 0 END) AS recent_seconds,
+                MAX(CASE WHEN rank = 30 THEN total_seconds ELSE 0 END) AS thirtieth_seconds,
+                MAX(rank) AS max_rank
+            FROM ranked_activity
+            GROUP BY user_id
         )
-        SELECT user_id,
-               MAX(created_at) AS most_recent_date,
-               MIN(created_at) AS oldest_date,
-               MAX(seconds) - MIN(seconds) AS total_seconds,
-               SUM(messages) AS total_messages
-        FROM recent_activity
-        WHERE row_num <= 30
-        GROUP BY user_id
-        ORDER BY total_seconds DESC
-        LIMIT %s;
+        SELECT
+            u.user_id,
+            u.recent_seconds,
+            CASE
+                WHEN u.max_rank < 30 THEN MIN(r.total_seconds)
+                ELSE u.thirtieth_seconds
+            END AS adjusted_thirtieth_seconds
+        FROM user_evolution u
+        LEFT JOIN ranked_activity r ON u.user_id = r.user_id
+        GROUP BY u.user_id, u.recent_seconds, u.thirtieth_seconds, u.max_rank;
         '''
 
-        # Exécution de la requête avec les paramètres
-        cursor.execute(query, (top_n,))
-
-        # Récupérer tous les résultats
+        # Exécuter la requête
+        cursor.execute(query)
         results = cursor.fetchall()
 
-        # Transformer les résultats en une liste de dictionnaires
-        top_users = []
-        for rank, row in enumerate(results, start=1):
-            user_id, most_recent_date, oldest_date, total_seconds, total_messages = row
-            top_users.append({
-                'rank': rank,
+        if not results:
+            return []
+
+        # Étape 2 : Calculer les évolutions pour chaque utilisateur
+        users_evolution = []
+        for row in results:
+            user_id, recent_seconds, thirtieth_seconds = row
+
+            # Calcul de l'évolution
+            evolution = recent_seconds - thirtieth_seconds
+
+            # Ajouter au tableau
+            users_evolution.append({
                 'user_id': user_id,
-                'user_name': GetUsernameById(user_id),
-                'total_seconds': ConvertSecondsToHours(total_seconds),  # Convertir les secondes au format lisible
-                'total_messages': total_messages
+                'user_name': GetUsernameById(user_id),  # Fonction pour récupérer le nom d'utilisateur
+                'evolution': evolution,
+                'formatted_time': ConvertSecondsToHours(abs(evolution))  # Format lisible
             })
 
-        return top_users
+        # Étape 3 : Trier les utilisateurs par évolution décroissante
+        users_evolution = sorted(users_evolution, key=lambda x: x['evolution'], reverse=True)
+
+        # Retourner le TOP 5
+        top_5_users = users_evolution[:5]
+
+        return top_5_users
 
     except Exception as e:
-        print(f"Erreur lors de la récupération de l'activité des utilisateurs : {e}")
+        print(f"Erreur lors de la récupération du TOP 5 des utilisateurs ayant la plus grande évolution : {e}")
         return []
 
     finally:
         cursor.close()
         conn.close()
 
-def GetUserActivityThisMonth(user_id):
+def GetUserLastHistorySeconds(user_id):
     """
-    Récupère l'activité d'un utilisateur spécifique en fonction de son user_id
-    sur tous les serveurs pour le mois en cours, basé sur les 30 enregistrements les plus récents.
-    Retourne les résultats formatés pour une utilisation dans un template HTML.
+    Récupère la somme des secondes pour la journée la plus récente
+    d'un utilisateur spécifique en fonction de son user_id.
     """
     conn = ConnectToDatabase()  # Connexion à la base de données
     cursor = conn.cursor()
 
     try:
-        # Requête SQL pour récupérer les 30 derniers enregistrements pour cet utilisateur
+        # Requête SQL pour récupérer la somme des secondes pour la journée la plus récente
         query = '''
-        WITH recent_activity AS (
-            SELECT user_id, server_id, seconds, messages, created_at,
-                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS row_num
+        WITH latest_day AS (
+            SELECT user_id, DATE(created_at) AS activity_date, SUM(seconds) AS daily_seconds
             FROM historical_stats
             WHERE user_id = %s
+            GROUP BY user_id, DATE(created_at)
+            ORDER BY activity_date DESC
+            LIMIT 1
         )
-        SELECT user_id,
-               MAX(created_at) AS most_recent_date,
-               MIN(created_at) AS oldest_date,
-               MAX(seconds) - MIN(seconds) AS total_seconds,
-               SUM(messages) AS total_messages
-        FROM recent_activity
-        WHERE row_num <= 30
-        GROUP BY user_id;
+        SELECT user_id, activity_date, SUM(daily_seconds) AS total_seconds
+        FROM latest_day
+        GROUP BY user_id, activity_date;
         '''
 
         # Exécution de la requête avec le paramètre user_id
         cursor.execute(query, (user_id,))
 
-        # Récupérer le résultat
+        # Récupérer les résultats
         result = cursor.fetchone()
 
-        # Si aucun résultat n'est trouvé
+        # Vérification si aucun résultat n'est trouvé
         if not result:
             return {
                 'user_id': user_id,
                 'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
-                'formatted_time': '0.0 h',
-                'total_messages': 0
+                'total_seconds': 0,
+                'formatted_time': '0.0 h'
             }
 
         # Extraire les données
-        user_id, most_recent_date, oldest_date, total_seconds, total_messages = result
+        user_id, activity_date, total_seconds = result
 
         # Construire le dictionnaire de résultat
         user_activity = {
             'user_id': user_id,
             'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
-            'formatted_time': ConvertSecondsToHours(total_seconds),  # Convertir les secondes au format lisible
-            'total_messages': total_messages
+            'total_seconds': total_seconds,
+            'formatted_time': ConvertSecondsToHours(total_seconds),  # Convertir les secondes en format lisible
+            'activity_date': activity_date  # Ajouter la date de l'activité la plus récente
         }
 
         return user_activity
 
     except Exception as e:
-        print(f"Erreur lors de la récupération de l'activité pour l'utilisateur {user_id} : {e}")
+        print(f"Erreur lors de la récupération de l'activité récente pour l'utilisateur {user_id} : {e}")
         return {
             'user_id': user_id,
             'user_name': GetUsernameById(user_id),
-            'formatted_time': '0.0 h',
-            'total_messages': 0
+            'total_seconds': 0,
+            'formatted_time': '0.0 h'
         }
 
     finally:
         cursor.close()
         conn.close()
+
+
+def GetUser30thHistorySeconds(user_id):
+    """
+    Récupère la somme des secondes pour la 30ᵉ date la plus récente (par jour)
+    d'un utilisateur spécifique. Si moins de 30 dates sont disponibles,
+    prend la plus ancienne.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        # Requête SQL pour récupérer la somme des secondes pour la 30ᵉ date la plus récente ou la plus ancienne
+        query = '''
+        WITH ranked_activity AS (
+            SELECT user_id, DATE(created_at) AS activity_date, SUM(seconds) AS daily_seconds,
+                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(created_at) DESC) AS rank
+            FROM historical_stats
+            WHERE user_id = %s
+            GROUP BY user_id, DATE(created_at)
+        )
+        SELECT user_id, activity_date, SUM(daily_seconds) AS total_seconds
+        FROM ranked_activity
+        WHERE rank = 30 OR (rank = (SELECT MAX(rank) FROM ranked_activity) AND 30 > (SELECT MAX(rank) FROM ranked_activity))
+        GROUP BY user_id, activity_date;
+        '''
+
+        # Exécution de la requête avec le paramètre user_id
+        cursor.execute(query, (user_id,))
+
+        # Récupérer les résultats
+        results = cursor.fetchall()
+
+        # Vérification si les résultats sont vides
+        if not results:
+            return {
+                'user_id': user_id,
+                'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
+                'total_seconds': 0,
+                'formatted_time': '0.0 h'
+            }
+
+        # Calcul de la somme des secondes
+        total_seconds = sum(row[2] for row in results)  # Somme des secondes pour les dates sélectionnées
+
+        # Construire le dictionnaire de résultat
+        user_activity = {
+            'user_id': user_id,
+            'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
+            'total_seconds': total_seconds,
+            'formatted_time': ConvertSecondsToHours(total_seconds)  # Convertir les secondes en format lisible
+        }
+
+        return user_activity
+
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'activité pour la 30ᵉ date la plus récente pour l'utilisateur {user_id} : {e}")
+        return {
+            'user_id': user_id,
+            'user_name': GetUsernameById(user_id),
+            'total_seconds': 0,
+            'formatted_time': '0.0 h'
+        }
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def GetUserLastMonthSeconds(user_id):
+    old = GetUser30thHistorySeconds(user_id)
+    print(f"{old['total_seconds']} OLD")
+    new = GetUserLastHistorySeconds(user_id)
+    print(f"{new['total_seconds']} NEW")
+    print(ConvertSecondsToHours(new['total_seconds'] - old['total_seconds']))
+    return ConvertSecondsToHours(new['total_seconds'] - old['total_seconds'])

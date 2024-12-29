@@ -36,7 +36,7 @@
                             <div class="rank" >RANG {{ user['rank'] }}</div>
                             <div style="height: 5px;"></div>
                             <div class="username">{{ user['user_name'] }}</div>
-                            <div class="time">{{ user['total_seconds'] }} les 30 derniers jours</div>
+                            <div class="time">{{ user['formatted_time'] }} les 30 derniers jours</div>
                         </div>
                     </a>
                 {% endfor %}

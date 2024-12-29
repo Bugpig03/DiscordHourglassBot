@@ -22,7 +22,7 @@ def home():
     historical_stats_table_size = GetTableSize('historical_stats')
     last_historical = FormatSQLTimestampAndHoursToFrench(GetMostRecentDate())
 
-    TopActivityUsers = GetTopUsersActivityThisMonth(5)
+    TopActivityUsers = GetTop5UsersEvolutionLast30Days()
     
     return render_template('home.html',TopActivityUsers=TopActivityUsers,total_messages=total_messages, total_seconds=total_seconds, total_servers=total_servers,total_users=total_users, total_profile=total_profile, database_size=database_size, stats_table_size=stats_table_size, historical_stats_table_size=historical_stats_table_size,last_historical=last_historical)
 
@@ -48,7 +48,7 @@ def profile(username):
         user_global_time = GetTotalSecondsByUserId(user_id)
         user_global_msg = GetTotalMessagesByUserId(user_id)
         user_global_rank = GetUserRankBySeconds(user_id)
-        activity =GetUserActivityThisMonth(user_id)
+        activity = GetUserLastMonthSeconds(user_id)
 
         return render_template('profile.html', username=username, user_server_stats=user_server_stats, user_global_time=user_global_time,user_global_msg=user_global_msg,user_global_rank=user_global_rank, activity=activity)
     else:

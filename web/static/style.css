@@ -344,3 +344,27 @@ img {
   .scroll-container::-webkit-scrollbar-track {
     background-color: #1e1e1e; /* Couleur de l'arrière-plan de la scrollbar */
   }
+
+  .server-user-scroll-container {
+    width: 300px; /* Largeur du conteneur */
+    height: 550px; /* Hauteur du conteneur, pour restreindre l'espace visible */
+    overflow-y: auto; /* Active le défilement vertical */
+    padding: 0px;
+    border: 1px solid #cccccc00; /* Pour visualiser les bordures */
+    border-radius: 5px;
+    background-color: #f9f9f900;
+  }
+
+/* Personnalisation de la scrollbar */
+.server-user-scroll-container::-webkit-scrollbar {
+    width: 8px; /* Largeur de la scrollbar */
+  }
+  
+.server-user-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #4caf50; /* Couleur de la poignée */
+    border-radius: 10px;
+  }
+  
+.server-user-scroll-container::-webkit-scrollbar-track {
+    background-color: #1e1e1e; /* Couleur de l'arrière-plan de la scrollbar */
+  }
