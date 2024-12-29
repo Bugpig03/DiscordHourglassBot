@@ -1,5 +1,26 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 1.5.0 - Activity and Serveurs stats - 29/12/2024
+
+### Revamped Home Page
+
+- Displays the top 5 most active members, bot stats, and database stats.
+
+### New Users Page
+
+- Now displays a ranked list of all users.
+
+### Enhanced Servers Page
+
+- Includes more stats such as rankings and a complete list of users.
+
+### Improved Profile Page
+
+- Added more detailed stats, including:
+  - Activity.
+  - Global statistics.
+  - A scrollable list of serve
+
 ## Version 1.4.0 - More Sizes and Time - 23/10/2024
 
 - Provide more database size information

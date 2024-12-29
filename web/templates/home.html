@@ -14,8 +14,8 @@
             <h1> HOURGLASS / Accueil</h1>
             <ul class="horizontal-list">
                 <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
-                <li><a class ="mid" href="{{ url_for('bot') }}">Bot</a></li>
-                <li><a class ="mid" href="{{ url_for('server') }}">Serveurs</a></li>
+                <li><a class ="mid" href="{{ url_for('user') }}">Utilisateurs</a></li>
+                <li><a class ="mid" href="{{ url_for('servers') }}">Serveurs</a></li>
                 <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
             </ul>
         </nav>
@@ -25,21 +25,46 @@
     <main>
         <div style="height: 120px;"></div>
         <div style="height: 20px;"></div>
-        <h2>TOP 30 Global :</h2>
-        <div class="top-container">
 
-            {% for rank, user in enumerate(total_top_users, 1) %}
-                <a href="{{ url_for('profile', username=user['user_id']) }}" class="userbox-link">
-                    <div class="user-box">
-                        <div class="rank" >RANG {{ rank }}</div>
-                        <div style="height: 5px;"></div>
-                        <div class="username">{{ user['user_id'] }}</div>
-                        <div class="time">Temps: {{ user['formatted_time'] }}</div>
-                    </div>
-                </a>         
-            {% endfor %}
+        <div class="two-vertical-container">
+        
+            <div class="vertical-container">
+                <div class="h2-left" >Top 5 des 30 derniers jours</div>
+                {% for user in TopActivityUsers %}
+                    <a href="{{ url_for('profile', username=user['user_name']) }}" class="userbox-link">
+                        <div class="activity-box">
+                            <div class="rank" >RANG {{ user['rank'] }}</div>
+                            <div style="height: 5px;"></div>
+                            <div class="username">{{ user['user_name'] }}</div>
+                            <div class="time">{{ user['total_seconds'] }} les 30 derniers jours</div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+            
+
+        <div class="vertical-container">
+            <div class="h2-left" >Statistiques générales</div>
+            <div class="bot-box">
+                <h2>Informations sur HourglassBOT :</h2>
+                <p>Nombre d'utilisateurs: {{ total_users }}</p>
+                <p>Nombre de profils: {{ total_profile }}</p>
+                <p>Nombre de serveurs: {{ total_servers }}</p>
+                <p>Nombre de messages envoyés: {{ total_messages }}</p>
+                <p>Nombre d'heures passées: {{ total_seconds }}</p>
+            </div>
+
+            <div class="bot-box">
+                <h2>Informations sur la base de données :</h2>
+                <div style="height: 0px;"></div>
+                <p>Taille de la base de données: {{ database_size }} ko</p>
+                <p>Taille de la table des stats: {{ stats_table_size }} ko</p>
+                <p>Taille de la table des historiques stats: {{ historical_stats_table_size }} ko</p>
+                <p>Dernière sauvegarde des stats: {{ last_historical }}</p>       
+            </div>
         </div>
-        <div style="height: 20px;"></div>
+
+        </div>
 
         </div>
     </main>

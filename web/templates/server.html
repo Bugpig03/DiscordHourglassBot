@@ -8,14 +8,14 @@
 
 <body>
     <header class="sticky-header">
-        <img src="\static\favicon.png" alt="hourglass icon">
+        <img src="\static\favicon.png" alt="snout labs icon">
         
         <nav>
-            <h1> HOURGLASS / Serveurs</h1>
+            <h1> HOURGLASS / Serveur</h1>
             <ul class="horizontal-list">
                 <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
-                <li><a class ="mid" href="{{ url_for('bot') }}">Bot</a></li>
-                <li><a class ="mid" href="{{ url_for('server') }}">Serveurs</a></li>
+                <li><a class ="mid" href="{{ url_for('user') }}">Utilisateurs</a></li>
+                <li><a class ="mid" href="{{ url_for('servers') }}">Serveurs</a></li>
                 <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
             </ul>
         </nav>
@@ -24,17 +24,30 @@
         
     <main>
         <div style="height: 140px;"></div>
-        <div class="h2-mid">Liste des serveurs :</div>
-        <div class="server-container">
-            {% for server in server_stats %}
-            <div class="server-box">
-                <div class="server-text" >Server: {{ server.server_name }}</div>
-                <p>Temps: {{ server.total_seconds }}</p>
-                <p>Messages: {{ server.total_messages }}</p>
-                <p>Nombre de membres : {{ server.total_members }}</p>
+        <h2>Serveur {{ server_name }}</h2>
+            <div class="vertical-container">
+                <div class="global-server-box ">
+                    <div class="server-text" >Statistiques générale du serveur</div>
+                    <p>Serveur ID: {{ server_id }} </p>
+                    <p>Temps: {{ server_time }} </p>
+                    <p>Messages: {{ server_msg }} </p>
+                    <p>Nombere de membres: {{ server_member_count }}</p>
+                    <p>Rang du serveur: {{ server_rank }}/{{ server_count}} </p>
+                </div>
             </div>
-            {% endfor %}
+
+        <div style="height: 30px;"></div>
+        <h2>Classement des membres du serveur</h2>
+        {% for user in server_users_stats %}
+        <div style="height: 15px;"></div>
+        <div class="user-box">
+            <div class="rank">RANG {{ user.rank }}</div>
+            <div class="username">{{ user.user_name }}</div>
+            <div class="time">Temps: {{ user.total_seconds }}</div>
+            <div class="time">Messages: {{ user.total_messages }}</div>
         </div>
+        {% endfor %}
+
     </main>
     
     <footer>

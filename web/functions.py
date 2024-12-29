@@ -165,9 +165,14 @@ def ConvertSecondsToTime(seconds):
     seconds = seconds % 60
     
     # Formatage du temps
-    time_format = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
-    
-    return time_format
+    #time_format = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+    return f"{hours} h {minutes} min {seconds} s"
+
+def ConvertSecondsToHours(seconds):
+    # Transforme les secondes en heures
+    hours = round(seconds / 3600,1)
+
+    return f"{hours} h"
 
 def GetTopUsersBySeconds():
     conn = ConnectToDatabase()
@@ -179,7 +184,6 @@ def GetTopUsersBySeconds():
         FROM stats
         GROUP BY user_id
         ORDER BY total_seconds DESC
-        LIMIT 30
         ''')
         
         # Récupère le résultat de la requête
@@ -479,7 +483,7 @@ def GetUserServerStats(user_id):
                 'server_name': GetServerNameById(row[0]),
                 'total_seconds':  ConvertSecondsToTime(row[1]),        # Somme des secondes sur ce serveur
                 'total_messages': row[2],       # Somme des messages sur ce serveur
-                'rank': GetUserRankBySeconds(user_id,row[0]),
+                'rank': GetUserRankBySecondsOnServer(user_id,row[0]),
                 'total_members': GetUniqueUsersCountByServerId(row[0]),
                 'creation_date': FormatSQLTimestampToFrench(row[3])      # Date de création la plus ancienne
             })
@@ -494,7 +498,7 @@ def GetUserServerStats(user_id):
         cursor.close()
         conn.close()
 
-def GetUserRankBySeconds(user_id, server_id):
+def GetUserRankBySecondsOnServer(user_id, server_id):
     """
     Récupère le rang d'un utilisateur dans un serveur donné, basé sur le nombre de secondes.
     """
@@ -645,6 +649,384 @@ def GetUniqueUsersCountByServerId(server_id):
     except Exception as e:
         print(f"Error while retrieving unique users count for server {server_id}: {e}")
         return 0  # Retourne 0 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTotalSecondsByUserId(user_id):
+    """
+    Récupère le nombre total de secondes pour un utilisateur spécifique.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        SELECT SUM(seconds) AS total_seconds
+        FROM stats
+        WHERE user_id = %s;
+        ''', (user_id,))
+        
+        result = cursor.fetchone()
+        if result and result[0] is not None:
+            return ConvertSecondsToTime(result[0])
+        else:
+            return 0  # Retourne 0 si aucun enregistrement n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving total seconds for user {user_id}: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTotalMessagesByUserId(user_id):
+    """
+    Récupère le nombre total de messages pour un utilisateur spécifique.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        SELECT SUM(messages) AS total_messages
+        FROM stats
+        WHERE user_id = %s;
+        ''', (user_id,))
+        
+        result = cursor.fetchone()
+        if result and result[0] is not None:
+            return result[0]  # Retourne le nombre total de messages
+        else:
+            return 0  # Retourne 0 si aucun enregistrement n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving total messages for user {user_id}: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetUserRankBySeconds(user_id):
+    """
+    Récupère le rang d'un utilisateur basé sur les secondes accumulées.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        SELECT rank
+        FROM (
+            SELECT user_id, RANK() OVER (ORDER BY SUM(seconds) DESC) AS rank
+            FROM stats
+            GROUP BY user_id
+        ) AS ranked_users
+        WHERE user_id = %s;
+        ''', (user_id,))
+
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]  # Retourne le rang de l'utilisateur
+        else:
+            return None  # Retourne None si l'utilisateur n'est pas trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving rank for user {user_id}: {e}")
+        return None  # Retourne None en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTotalSecondsByServerId(server_id):
+    """
+    Récupère le total de secondes pour un serveur spécifique.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        SELECT SUM(seconds) AS total_seconds
+        FROM stats
+        WHERE server_id = %s;
+        ''', (server_id,))
+        
+        result = cursor.fetchone()
+        if result and result[0] is not None:
+            return ConvertSecondsToTime(result[0])  # Retourne le total de secondes
+        else:
+            return 0  # Retourne 0 si aucun enregistrement n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving total seconds for server {server_id}: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTotalMessagesByServerId(server_id):
+    """
+    Récupère le nombre total de messages pour un serveur spécifique.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        SELECT SUM(messages) AS total_messages
+        FROM stats
+        WHERE server_id = %s;
+        ''', (server_id,))
+        
+        result = cursor.fetchone()
+        if result and result[0] is not None:
+            return result[0]  # Retourne le total de messages
+        else:
+            return 0  # Retourne 0 si aucun enregistrement n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving total messages for server {server_id}: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetMemberCountByServerId(server_id):
+    """
+    Récupère le nombre de membres distincts pour un serveur spécifique.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        SELECT COUNT(DISTINCT user_id) AS member_count
+        FROM stats
+        WHERE server_id = %s;
+        ''', (server_id,))
+        
+        result = cursor.fetchone()
+        if result and result[0] is not None:
+            return result[0]  # Retourne le nombre de membres
+        else:
+            return 0  # Retourne 0 si aucun membre n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving member count for server {server_id}: {e}")
+        return 0  # Retourne 0 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetServerRankByTotalSeconds(server_id):
+    """
+    Récupère directement le classement d'un serveur spécifique basé sur le total des secondes.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('''
+        WITH RankedServers AS (
+            SELECT server_id, RANK() OVER (ORDER BY SUM(seconds) DESC) AS rank
+            FROM stats
+            GROUP BY server_id
+        )
+        SELECT rank
+        FROM RankedServers
+        WHERE server_id = %s;
+        ''', (server_id,))
+        
+        result = cursor.fetchone()
+        if result and result[0] is not None:
+            return result[0]  # Retourne le rang du serveur
+        else:
+            return -1  # Retourne -1 si le serveur n'est pas trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving rank for server {server_id}: {e}")
+        return -1  # Retourne -1 en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetUsersRankingByServerId(server_id):
+    """
+    Récupère le classement des utilisateurs d'un serveur en fonction des secondes, triés par secondes en ordre décroissant.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        # Requête SQL pour récupérer les statistiques des utilisateurs triés par secondes
+        query = '''
+        SELECT user_id, 
+               SUM(seconds) AS total_seconds,
+               SUM(messages) AS total_messages
+        FROM stats
+        WHERE server_id = %s
+        GROUP BY user_id
+        ORDER BY total_seconds DESC;
+        '''
+
+        # Exécution de la requête
+        cursor.execute(query, (server_id,))
+
+        # Récupérer tous les résultats
+        results = cursor.fetchall()
+
+        # Transformer les résultats en une liste de dictionnaires
+        users_ranking = []
+        for rank, row in enumerate(results, start=1):  # Inclure le classement (1, 2, 3, ...)
+            user_id, total_seconds, total_messages = row
+            users_ranking.append({
+                'rank': rank,
+                'user_id': user_id,
+                'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
+                'total_seconds': ConvertSecondsToTime(total_seconds),  # Convertit les secondes en format lisible
+                'total_messages': total_messages
+            })
+
+        return users_ranking
+
+    except Exception as e:
+        print(f"Erreur lors de la récupération du classement des utilisateurs pour le serveur {server_id}: {e}")
+        return []
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetTopUsersActivityThisMonth(top_n=3):
+    """
+    Récupère les top N utilisateurs en fonction de leur activité (secondes et messages)
+    sur le mois en cours pour tous les serveurs, basé sur les 30 enregistrements les plus récents.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        # Requête SQL pour récupérer les 30 derniers enregistrements par utilisateur
+        query = '''
+        WITH recent_activity AS (
+            SELECT user_id, seconds, messages, created_at,
+                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS row_num
+            FROM historical_stats
+        )
+        SELECT user_id,
+               MAX(created_at) AS most_recent_date,
+               MIN(created_at) AS oldest_date,
+               MAX(seconds) - MIN(seconds) AS total_seconds,
+               SUM(messages) AS total_messages
+        FROM recent_activity
+        WHERE row_num <= 30
+        GROUP BY user_id
+        ORDER BY total_seconds DESC
+        LIMIT %s;
+        '''
+
+        # Exécution de la requête avec les paramètres
+        cursor.execute(query, (top_n,))
+
+        # Récupérer tous les résultats
+        results = cursor.fetchall()
+
+        # Transformer les résultats en une liste de dictionnaires
+        top_users = []
+        for rank, row in enumerate(results, start=1):
+            user_id, most_recent_date, oldest_date, total_seconds, total_messages = row
+            top_users.append({
+                'rank': rank,
+                'user_id': user_id,
+                'user_name': GetUsernameById(user_id),
+                'total_seconds': ConvertSecondsToHours(total_seconds),  # Convertir les secondes au format lisible
+                'total_messages': total_messages
+            })
+
+        return top_users
+
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'activité des utilisateurs : {e}")
+        return []
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetUserActivityThisMonth(user_id):
+    """
+    Récupère l'activité d'un utilisateur spécifique en fonction de son user_id
+    sur tous les serveurs pour le mois en cours, basé sur les 30 enregistrements les plus récents.
+    Retourne les résultats formatés pour une utilisation dans un template HTML.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+
+    try:
+        # Requête SQL pour récupérer les 30 derniers enregistrements pour cet utilisateur
+        query = '''
+        WITH recent_activity AS (
+            SELECT user_id, server_id, seconds, messages, created_at,
+                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS row_num
+            FROM historical_stats
+            WHERE user_id = %s
+        )
+        SELECT user_id,
+               MAX(created_at) AS most_recent_date,
+               MIN(created_at) AS oldest_date,
+               MAX(seconds) - MIN(seconds) AS total_seconds,
+               SUM(messages) AS total_messages
+        FROM recent_activity
+        WHERE row_num <= 30
+        GROUP BY user_id;
+        '''
+
+        # Exécution de la requête avec le paramètre user_id
+        cursor.execute(query, (user_id,))
+
+        # Récupérer le résultat
+        result = cursor.fetchone()
+
+        # Si aucun résultat n'est trouvé
+        if not result:
+            return {
+                'user_id': user_id,
+                'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
+                'formatted_time': '0.0 h',
+                'total_messages': 0
+            }
+
+        # Extraire les données
+        user_id, most_recent_date, oldest_date, total_seconds, total_messages = result
+
+        # Construire le dictionnaire de résultat
+        user_activity = {
+            'user_id': user_id,
+            'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
+            'formatted_time': ConvertSecondsToHours(total_seconds),  # Convertir les secondes au format lisible
+            'total_messages': total_messages
+        }
+
+        return user_activity
+
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'activité pour l'utilisateur {user_id} : {e}")
+        return {
+            'user_id': user_id,
+            'user_name': GetUsernameById(user_id),
+            'formatted_time': '0.0 h',
+            'total_messages': 0
+        }
 
     finally:
         cursor.close()

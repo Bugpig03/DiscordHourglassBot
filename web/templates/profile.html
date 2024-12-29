@@ -14,8 +14,8 @@
             <h1> HOURGLASS / Profil</h1>
             <ul class="horizontal-list">
                 <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
-                <li><a class ="mid" href="{{ url_for('bot') }}">Bot</a></li>
-                <li><a class ="mid" href="{{ url_for('server') }}">Serveurs</a></li>
+                <li><a class ="mid" href="{{ url_for('user') }}">Utilisateurs</a></li>
+                <li><a class ="mid" href="{{ url_for('servers') }}">Serveurs</a></li>
                 <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
             </ul>
         </nav>
@@ -24,18 +24,41 @@
         
     <main>
         <div style="height: 140px;"></div>
-        <div class="h2-mid">Profil de {{ username }}</div>
-        <div class="vertical-container">
-            {% for server in user_server_stats %}
-            <div class="bot-box">
-                <div class="server-text" >Statistiques sur: {{ server.server_name }}</div>
-                <p>Temps: {{ server.total_seconds }}</p>
-                <p>Messages: {{ server.total_messages }}</p>
-                <p>Rang: {{ server.rank }}/{{ server.total_members }}</p>
-                <p>profil créé depuis le: {{ server.creation_date }}</p>
+        <div class="h2-left" >Profil de {{ username }}</div>
+        <div style="height: 15px;"></div>
+        <div class="two-vertical-container">
+
+            <div class="vertical-container">
+                <div class="global-user-stat-box ">
+                    <div class="server-text" >Statistiques générale</div>
+                    <p>Temps: {{ user_global_time }} </p>
+                    <p>Messages: {{ user_global_msg }} </p>
+                    <p>Rang: {{ user_global_rank }} </p>
+                </div>
+                <div class="global-user-stat-box ">
+                    <div class="server-text" >Activité récente</div>
+                    <div style="height: 20px;"></div>
+                    <div class="time">{{ activity['formatted_time'] }} les 30 derniers jours</div>
+                </div>
             </div>
-            {% endfor %}
+
+            <div class="vertical-container">
+                <div class="scroll-container">
+                    {% for server in user_server_stats %}
+                    <div class="bot-box">
+                        <div class="server-text" >Statistiques sur: {{ server.server_name }}</div>
+                        <p>Temps: {{ server.total_seconds }}</p>
+                        <p>Messages: {{ server.total_messages }}</p>
+                        <p>Rang: {{ server.rank }}/{{ server.total_members }}</p>
+                        <p>profil créé le: {{ server.creation_date }}</p>
+                    </div>
+                    <div style="height: 10px;"></div>
+                    {% endfor %}
+                </div>
+            </div>
+
         </div>
+
     </main>
     
     <footer>

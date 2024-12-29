@@ -77,10 +77,14 @@ h2 {
     font-size: 18px;
     color: #ffffff;
     text-align: left;
-
-    
 }
 
+.h2-left {
+    font-family: Lucida Console, sans-serif;
+    font-size: 18px;
+    color: #ffffff;
+    text-align: left;
+}
 .h2-mid {
     grid-column: 2;
     font-family: Lucida Console, sans-serif;
@@ -170,7 +174,16 @@ img {
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
+    justify-items: top;
+}
+
+.two-vertical-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
     justify-items: center;
+    align-items: start; /* Aligne les éléments au début (haut) */
+    justify-items: start
 }
 
 .bot-box {
@@ -191,6 +204,30 @@ img {
     padding: 10px 15px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.global-server-box {
+    width: 400px;
+    height: auto;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.global-user-stat-box {
+    width: 500px;
+    height: 100px;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.server-box:hover {
+    background-color: #444;
 }
 
 .about-box {
@@ -214,6 +251,20 @@ img {
 }
 
 .user-box:hover {
+    background-color: #444;
+}
+
+.activity-box {
+    width: 400px; /* Largeur fixe */
+    height: 50px; /* Hauteur fixe */
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.activity-box:hover {
     background-color: #444;
 }
 
@@ -243,6 +294,16 @@ img {
     text-decoration: none; /* Pas de soulignement au survol */
 }
 
+.serverbox-link {
+    text-decoration: none; /* Supprime le soulignement */
+    color: inherit; /* Garde la couleur par défaut de l'élément parent */
+}
+
+.serverbox-link:hover {
+    color: inherit; /* Pas de changement de couleur au survol */
+    text-decoration: none; /* Pas de soulignement au survol */
+}
+
 .server-text {
     font-size: 16px;
     color: rgb(0, 255, 106);
@@ -259,3 +320,27 @@ img {
     color: rgb(226, 103, 81);
     margin-top: 20px;
 }
+
+.scroll-container {
+    width: 550px; /* Largeur du conteneur */
+    height: 550px; /* Hauteur du conteneur, pour restreindre l'espace visible */
+    overflow-y: auto; /* Active le défilement vertical */
+    padding: 0px;
+    border: 1px solid #cccccc00; /* Pour visualiser les bordures */
+    border-radius: 5px;
+    background-color: #f9f9f900;
+  }
+
+/* Personnalisation de la scrollbar */
+.scroll-container::-webkit-scrollbar {
+    width: 8px; /* Largeur de la scrollbar */
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb {
+    background-color: #4caf50; /* Couleur de la poignée */
+    border-radius: 10px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-track {
+    background-color: #1e1e1e; /* Couleur de l'arrière-plan de la scrollbar */
+  }
