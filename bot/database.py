@@ -412,7 +412,7 @@ def SetUserAvatar(user_id, avatar_url):
     """
     conn = ConnectToDataBase()
     cursor = conn.cursor()
-    
+    print(f"define user avatar : {user_id}")
     try:
         # Créer la table si elle n'existe pas encore
         cursor.execute('''
@@ -448,7 +448,7 @@ def SetServerAvatar(server_id, avatar_url):
     """
     conn = ConnectToDataBase()
     cursor = conn.cursor()
-    print("server avatar set")
+    print(f"define server avatar : {server_id}")
     try:
         # Créer la table si elle n'existe pas encore
         cursor.execute('''

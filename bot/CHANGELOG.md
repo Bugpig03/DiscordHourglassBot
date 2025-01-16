@@ -1,5 +1,9 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.4.1 - !stats update avatar - 16/01/2025
+
+    - command !stats now update avatar of tag user
+
 ## Version 2.4.0 - Avatar Update and time format ! - 15/01/2025
 
 - Now saved avatar servers and users on DB

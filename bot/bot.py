@@ -73,6 +73,9 @@ async def stats(ctx, user: discord.User = None):
 
     server_name = ctx.guild.name
 
+    if user.avatar:
+        SetUserAvatar(user.id, user.avatar.url)
+
     formatted_time = ConvertSecondsToTime(GetSecondsOfUserOnServer(user_id,server_id))
     nbr_messages = GetMessagesOfUserOnServer(user_id,server_id)
     
