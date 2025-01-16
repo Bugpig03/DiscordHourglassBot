@@ -1,8 +1,17 @@
 # Hourglass - WEB APP - CHANGELOG
 
-## Version 1.5.1 - Fix Activity and More Scroll - 29/12/2024
+## Version 1.6.0 - Avatar Udpate and 2025 change - 15/01/2025
 
 ### Changes and Fixes
+
+- Now display users and servers avatar on differents page
+- Now you can click on server list in profile page
+- Change about page for 2025
+- Change footer page on every page
+
+## Version 1.5.1 - Fix Activity and More Scroll - 29/12/2024
+
+### Changes and Fixes 1.5.1
 
 - Fixed an issue where activity values were incorrect.
 - Added a scroll bar to the server page.

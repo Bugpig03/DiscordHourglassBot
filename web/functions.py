@@ -209,7 +209,8 @@ def FormatGetTopUsers():
             "user_id": GetUsernameById(user[0]),  # Indice pour user_id
             "formatted_time": ConvertSecondsToTime(user[1]),  # Indice pour total_seconds
             "total_messages": user[2],  # Indice pour total_messages
-            "total_score": user[3]  # Indice pour total_score
+            "total_score": user[3],  # Indice pour total_score
+            "avatar_url": GetAvatarUrlById(user[0])
         }
         for user in top_users
     ]
@@ -225,7 +226,7 @@ def GetUsernameById(user_id):
     
     try:
         cursor.execute('''
-        SELECT username FROM usernames WHERE user_id = %s
+        SELECT username FROM users WHERE user_id = %s
         ''', (user_id,))
         
         result = cursor.fetchone()
@@ -242,6 +243,60 @@ def GetUsernameById(user_id):
         cursor.close()
         conn.close()
 
+def GetAvatarUrlById(user_id):
+    """
+    Récupère l'URL de l'avatar associé à user_id.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+    
+    try:
+        # Requête pour récupérer l'URL de l'avatar
+        cursor.execute('''
+        SELECT avatar FROM users WHERE user_id = %s
+        ''', (user_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result[0]  # Retourne l'URL de l'avatar
+        else:
+            return None  # Retourne None si aucun avatar n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving avatar URL: {e}")
+        return None  # Retourne None en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def GetServerAvatarUrlById(server_id):
+    """
+    Récupère l'URL de l'avatar d'un serveur associé à server_id.
+    """
+    conn = ConnectToDatabase()  # Connexion à la base de données
+    cursor = conn.cursor()
+    
+    try:
+        # Requête pour récupérer l'URL de l'avatar
+        cursor.execute('''
+        SELECT avatar FROM servers WHERE server_id = %s
+        ''', (server_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result[0]  # Retourne l'URL de l'avatar
+        else:
+            return None  # Retourne None si aucun avatar n'est trouvé
+
+    except Exception as e:
+        print(f"Error while retrieving avatar URL: {e}")
+        return None  # Retourne None en cas d'erreur
+
+    finally:
+        cursor.close()
+        conn.close()
+
 def GetServerNameById(server_id):
     """
     Récupère le nom du serveur associé à server_id.
@@ -251,7 +306,7 @@ def GetServerNameById(server_id):
     
     try:
         cursor.execute('''
-        SELECT servername FROM servernames WHERE server_id = %s
+        SELECT servername FROM servers WHERE server_id = %s
         ''', (server_id,))
         
         result = cursor.fetchone()
@@ -278,7 +333,7 @@ def GetUserIdByUsername(username):
     try:
         # Requête SQL pour récupérer le user_id à partir du username
         cursor.execute('''
-        SELECT user_id FROM usernames WHERE username = %s
+        SELECT user_id FROM users WHERE username = %s
         ''', (username,))
         
         # Récupérer le résultat de la requête
@@ -485,7 +540,8 @@ def GetUserServerStats(user_id):
                 'total_messages': row[2],       # Somme des messages sur ce serveur
                 'rank': GetUserRankBySecondsOnServer(user_id,row[0]),
                 'total_members': GetUniqueUsersCountByServerId(row[0]),
-                'creation_date': FormatSQLTimestampToFrench(row[3])      # Date de création la plus ancienne
+                'creation_date': FormatSQLTimestampToFrench(row[3]),      # Date de création la plus ancienne
+                'avatar_url' : GetServerAvatarUrlById(row[0])
             })
         
         return server_stats
@@ -570,7 +626,8 @@ def GetServersStats():
                 'server_name': GetServerNameById(server_id),
                 'total_seconds':  ConvertSecondsToTime(total_seconds),
                 'total_messages': total_messages,
-                'total_members': total_members
+                'total_members': total_members,
+                'avatar_url' : GetServerAvatarUrlById(server_id)
             })
 
         return servers_stats
@@ -894,7 +951,8 @@ def GetUsersRankingByServerId(server_id):
                 'user_id': user_id,
                 'user_name': GetUsernameById(user_id),  # Assurez-vous que cette fonction est définie
                 'total_seconds': ConvertSecondsToTime(total_seconds),  # Convertit les secondes en format lisible
-                'total_messages': total_messages
+                'total_messages': total_messages,
+                'avatar_url' : GetAvatarUrlById(user_id)
             })
 
         return users_ranking
@@ -965,7 +1023,8 @@ def GetTop5UsersEvolutionLast30Days():
                 'user_id': user_id,
                 'user_name': GetUsernameById(user_id),  # Fonction pour récupérer le nom d'utilisateur
                 'evolution': evolution,
-                'formatted_time': ConvertSecondsToHours(abs(evolution))  # Format lisible
+                'formatted_time': ConvertSecondsToHours(abs(evolution)),  # Format lisible
+                'avatar_url': GetAvatarUrlById(user_id)
             })
 
         # Étape 3 : Trier les utilisateurs par évolution décroissante

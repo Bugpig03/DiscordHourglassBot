@@ -24,6 +24,10 @@ async def on_message(message):
         AddMessagesToUser(user_id,server_id)
         SetUsername(user_id, username)
         SetServerName(server_id, servername)
+        if message.author.avatar:
+            SetUserAvatar(message.author.id, message.author.avatar.url)
+        if message.guild.icon:
+            SetServerAvatar(message.guild.id, message.guild.icon.url)
         
     await bot.process_commands(message)
 
@@ -46,6 +50,10 @@ async def on_voice_state_update(member, before, after):
             AddSecondsToUser(member.id, member.guild.id, time_spent)
             SetUsername(member.id, member.name)
             SetServerName(member.guild.id, member.guild.name)
+            if member.avatar:
+                SetUserAvatar(member.guild.id, member.avatar.url)
+            if member.guild.icon:
+                SetServerAvatar(member.guild.id, member.guild.icon.url)
 
 
     if before.channel is None and after.channel is not None:
@@ -175,7 +183,6 @@ async def aide(ctx):
     )
     await ctx.send(message)
 
-
 def ConvertSecondsToTime(seconds):
     # Calcul des heures, minutes et secondes
     hours = seconds // 3600
@@ -183,9 +190,8 @@ def ConvertSecondsToTime(seconds):
     seconds = seconds % 60
     
     # Formatage du temps
-    time_format = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
-    
-    return time_format
+    #time_format = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+    return f"{hours} h {minutes} min {seconds} s"
 
 def runBot():
     discord_token = os.environ.get('DISCORD_TOKEN')

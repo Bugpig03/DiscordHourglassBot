@@ -26,10 +26,10 @@ def home():
     
     return render_template('home.html',TopActivityUsers=TopActivityUsers,total_messages=total_messages, total_seconds=total_seconds, total_servers=total_servers,total_users=total_users, total_profile=total_profile, database_size=database_size, stats_table_size=stats_table_size, historical_stats_table_size=historical_stats_table_size,last_historical=last_historical)
 
-@app.route('/user')
-def user():
+@app.route('/users')
+def users():
     total_top_users = FormatGetTopUsers()
-    return render_template('user.html', total_top_users=total_top_users)
+    return render_template('users.html', total_top_users=total_top_users)
 
 @app.route('/servers')
 def servers():
@@ -49,8 +49,9 @@ def profile(username):
         user_global_msg = GetTotalMessagesByUserId(user_id)
         user_global_rank = GetUserRankBySeconds(user_id)
         activity = GetUserLastMonthSeconds(user_id)
+        avatar_url = GetAvatarUrlById(user_id)
 
-        return render_template('profile.html', username=username, user_server_stats=user_server_stats, user_global_time=user_global_time,user_global_msg=user_global_msg,user_global_rank=user_global_rank, activity=activity)
+        return render_template('profile.html', username=username, user_server_stats=user_server_stats, user_global_time=user_global_time,user_global_msg=user_global_msg,user_global_rank=user_global_rank, activity=activity, avatar_url=avatar_url)
     else:
         return redirect(url_for('home'))
     
@@ -63,7 +64,8 @@ def server(server_id):
     server_count = GetDistinctServerCount()
     server_member_count = GetMemberCountByServerId(server_id)
     server_users_stats = GetUsersRankingByServerId(server_id)
-    return render_template('server.html', server_id = server_id, server_time = server_time,server_name = server_name, server_msg=server_msg,server_member_count=server_member_count, server_rank = server_rank, server_count = server_count, server_users_stats= server_users_stats)
+    server_avatar_url = GetServerAvatarUrlById(server_id)
+    return render_template('server.html', server_id = server_id, server_time = server_time,server_name = server_name, server_msg=server_msg,server_member_count=server_member_count, server_rank = server_rank, server_count = server_count, server_users_stats= server_users_stats, server_avatar_url=server_avatar_url)
     
 @app.errorhandler(404)
 def page_not_found(e):

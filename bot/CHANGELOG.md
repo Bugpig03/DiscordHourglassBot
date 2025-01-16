@@ -1,5 +1,13 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.4.0 - Avatar Update and time format ! - 15/01/2025
+
+- Now saved avatar servers and users on DB
+- Update time format to h:min:s
+- Security improvement with empty commit in DB
+- BDD change with news colums for avatars
+- Change name of for table usernames to users and servernames table to servers
+
 ## Version 2.3.0 - Serveur Name - 18/10/2024
 
 - Server name are now saved.

@@ -336,7 +336,7 @@ def GetTotalSecondsOnServer(serverID):
 
 def SetUsername(user_id, username):
     """
-    Initialise la table usernames si elle n'existe pas et met à jour le username pour un user_id donné.
+    Initialise la table users si elle n'existe pas et met à jour le username pour un user_id donné.
     """
     conn = ConnectToDataBase()
     cursor = conn.cursor()
@@ -344,15 +344,16 @@ def SetUsername(user_id, username):
     try:
         # Créer la table si elle n'existe pas encore
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS usernames (
+        CREATE TABLE IF NOT EXISTS users (
             user_id BIGINT PRIMARY KEY,
-            username VARCHAR(255) NOT NULL
+            username VARCHAR(255),
+            avatar VARCHAR(255)
         )
         ''')
         
         # Mettre à jour ou insérer le username pour le user_id donné
         cursor.execute('''
-        INSERT INTO usernames (user_id, username)
+        INSERT INTO users (user_id, username)
         VALUES (%s, %s)
         ON CONFLICT (user_id) DO UPDATE
         SET username = EXCLUDED.username
@@ -362,7 +363,7 @@ def SetUsername(user_id, username):
         conn.commit()
 
     except Exception as e:
-        print(f"Error while initializing or updating usernames: {e}")
+        print(f"Error while initializing or updating userss: {e}")
         conn.rollback()  # Annule les changements en cas d'erreur
     
     finally:
@@ -379,15 +380,16 @@ def SetServerName(server_id, servername):
     try:
         # Créer la table servernames si elle n'existe pas encore
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS servernames (
+        CREATE TABLE IF NOT EXISTS servers (
             server_id BIGINT PRIMARY KEY,
-            servername VARCHAR(255) NOT NULL
+            servername VARCHAR(255),
+            avatar VARCHAR(255)
         )
         ''')
 
         # Mettre à jour ou insérer le servername pour le server_id donné
         cursor.execute('''
-        INSERT INTO servernames (server_id, servername)
+        INSERT INTO servers (server_id, servername)
         VALUES (%s, %s)
         ON CONFLICT (server_id) DO UPDATE
         SET servername = EXCLUDED.servername
@@ -400,6 +402,78 @@ def SetServerName(server_id, servername):
         print(f"Error while initializing or updating servernames: {e}")
         conn.rollback()  # Annule les changements en cas d'erreur
 
+    finally:
+        cursor.close()
+        conn.close()
+
+def SetUserAvatar(user_id, avatar_url):
+    """
+    Initialise la table users si elle n'existe pas et met à jour l'avatar pour un user_id donné.
+    """
+    conn = ConnectToDataBase()
+    cursor = conn.cursor()
+    
+    try:
+        # Créer la table si elle n'existe pas encore
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            user_id BIGINT PRIMARY KEY,
+            username VARCHAR(255),
+            avatar VARCHAR(255)
+        )
+        ''')
+        
+        # Mettre à jour ou insérer l'avatar pour le user_id donné
+        cursor.execute('''
+        INSERT INTO users (user_id, avatar)
+        VALUES (%s, %s)
+        ON CONFLICT (user_id) DO UPDATE
+        SET avatar = EXCLUDED.avatar
+        ''', (user_id, avatar_url))
+        
+        # Commit les changements
+        conn.commit()
+
+    except Exception as e:
+        print(f"Error while initializing or updating avatars: {e}")
+        conn.rollback()  # Annule les changements en cas d'erreur
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+def SetServerAvatar(server_id, avatar_url):
+    """
+    Initialise la table servers si elle n'existe pas et met à jour l'avatar pour un server_id donné.
+    """
+    conn = ConnectToDataBase()
+    cursor = conn.cursor()
+    print("server avatar set")
+    try:
+        # Créer la table si elle n'existe pas encore
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS servers (
+            server_id BIGINT PRIMARY KEY,
+            servername VARCHAR(255),
+            avatar VARCHAR(255)
+        )
+        ''')
+        
+        # Mettre à jour ou insérer l'avatar pour le server_id donné
+        cursor.execute('''
+        INSERT INTO servers (server_id, avatar)
+        VALUES (%s, %s)
+        ON CONFLICT (server_id) DO UPDATE
+        SET avatar = EXCLUDED.avatar
+        ''', (server_id, avatar_url))
+        
+        # Commit les changements
+        conn.commit()
+
+    except Exception as e:
+        print(f"Error while initializing or updating avatars: {e}")
+        conn.rollback()  # Annule les changements en cas d'erreur
+    
     finally:
         cursor.close()
         conn.close()

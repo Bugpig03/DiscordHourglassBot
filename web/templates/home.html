@@ -14,7 +14,7 @@
             <h1> HOURGLASS / Accueil</h1>
             <ul class="horizontal-list">
                 <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
-                <li><a class ="mid" href="{{ url_for('user') }}">Utilisateurs</a></li>
+                <li><a class ="mid" href="{{ url_for('users') }}">Utilisateurs</a></li>
                 <li><a class ="mid" href="{{ url_for('servers') }}">Serveurs</a></li>
                 <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
             </ul>
@@ -29,14 +29,21 @@
         <div class="two-vertical-container">
         
             <div class="vertical-container">
-                <div class="h2-left" >Top 5 des 30 derniers jours</div>
+                <div class="h2-left" >Top 5 des utilisateurs les plus actifs</div>
                 {% for user in TopActivityUsers %}
                     <a href="{{ url_for('profile', username=user['user_name']) }}" class="userbox-link">
                         <div class="activity-box">
-                            <div class="rank" >RANG {{ user['rank'] }}</div>
-                            <div style="height: 5px;"></div>
-                            <div class="username">{{ user['user_name'] }}</div>
-                            <div class="time">{{ user['formatted_time'] }} les 30 derniers jours</div>
+                            <div class="two-vertical-container-user">
+                                <div>
+                                    <img src="{{ user['avatar_url'] if user['avatar_url'] else url_for('static', filename='poro.png') }}" class="small-left-pp" alt="avatar">
+                                </div>
+                                <div>
+                                    <div class="rank" >RANG {{ loop.index }}</div>
+                                    <div style="height: 5px;"></div>
+                                    <div class="username">{{ user['user_name'] }}</div>
+                                    <div class="time">{{ user['formatted_time'] }} les 30 derniers jours</div>
+                                </div>
+                            </div>
                         </div>
                     </a>
                 {% endfor %}
@@ -72,7 +79,7 @@
 
     <footer>
         <p> - - - - - - - - - - - - - - - - - - - - - - - - - - - </p>
-        <p>Hourglass bot 2024 kek</p>
+        <p>Hourglass 2025 | KEK | I LOVE STATS</p>
     </footer>
 </body>
 

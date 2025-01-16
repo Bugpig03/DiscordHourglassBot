@@ -14,7 +14,7 @@
             <h1> HOURGLASS / Profil</h1>
             <ul class="horizontal-list">
                 <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
-                <li><a class ="mid" href="{{ url_for('user') }}">Utilisateurs</a></li>
+                <li><a class ="mid" href="{{ url_for('users') }}">Utilisateurs</a></li>
                 <li><a class ="mid" href="{{ url_for('servers') }}">Serveurs</a></li>
                 <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
             </ul>
@@ -26,7 +26,10 @@
         <div style="height: 140px;"></div>
         <div class="h2-left" >Profil de {{ username }}</div>
         <div style="height: 15px;"></div>
+        <img src="{{ avatar_url if avatar_url else url_for('static', filename='poro.png') }}"  class="big-left-pp" alt="PP">
+        <div style="height: 15px;"></div>
         <div class="two-vertical-container">
+
 
             <div class="vertical-container">
                 <div class="global-user-stat-box ">
@@ -43,15 +46,24 @@
             </div>
 
             <div class="vertical-container">
-                <div class="scroll-container">
+                <div class="server-profile-list-scroll-container">
                     {% for server in user_server_stats %}
-                    <div class="bot-box">
-                        <div class="server-text" >Statistiques sur: {{ server.server_name }}</div>
-                        <p>Temps: {{ server.total_seconds }}</p>
-                        <p>Messages: {{ server.total_messages }}</p>
-                        <p>Rang: {{ server.rank }}/{{ server.total_members }}</p>
-                        <p>profil créé le: {{ server.creation_date }}</p>
-                    </div>
+                    <a href="{{ url_for('server', server_id=server.server_id) }}" class="serverbox-link">
+                        <div class="server-box">
+                            <div class="two-vertical-container-user">
+                                <div>
+                                    <img src="{{ server.avatar_url if server.avatar_url else url_for('static', filename='poro_king.png') }}" class="mid-left-server-icon" alt="server icon">
+                                </div>
+                                <div>
+                                    <div class="server-text" >{{ server.server_name }}</div>
+                                    <p>Temps: {{ server.total_seconds }}</p>
+                                    <p>Messages: {{ server.total_messages }}</p>
+                                    <p>Rang: {{ server.rank }}/{{ server.total_members }}</p>
+                                    <p>profil créé le: {{ server.creation_date }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                     <div style="height: 10px;"></div>
                     {% endfor %}
                 </div>
@@ -63,6 +75,6 @@
     
     <footer>
         <p> - - - - - - - - - - - - - - - - - - - - - - - - - - - </p>
-        <p>Hourglass 2024 | kek</p>
+        <p>Hourglass 2025 | KEK | I LOVE STATS</p>
     </footer>
 </body>

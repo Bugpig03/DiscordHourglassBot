@@ -14,7 +14,7 @@
             <h1> HOURGLASS / Serveurs</h1>
             <ul class="horizontal-list">
                 <li><a class ="mid" href="{{ url_for('home') }}">Accueil</a></li>
-                <li><a class ="mid" href="{{ url_for('user') }}">Utilisateurs</a></li>
+                <li><a class ="mid" href="{{ url_for('users') }}">Utilisateurs</a></li>
                 <li><a class ="mid" href="{{ url_for('servers') }}">Serveurs</a></li>
                 <li><a class ="mid" href="{{ url_for('about') }}">A propos</a></li>
             </ul>
@@ -30,10 +30,17 @@
             {% for server in server_stats %}
             <a href="{{ url_for('server', server_id=server.server_id) }}" class="serverbox-link">
                 <div class="server-box">
-                    <div class="server-text" >Server: {{ server.server_name }}</div>
-                    <p>Temps: {{ server.total_seconds }}</p>
-                    <p>Messages: {{ server.total_messages }}</p>
-                    <p>Nombre de membres : {{ server.total_members }}</p>
+                    <div class="two-vertical-container-user">
+                        <div>
+                            <img src="{{ server.avatar_url if server.avatar_url else url_for('static', filename='poro_king.png') }}" class="mid-left-server-icon" alt="server icon">
+                        </div>
+                        <div>
+                            <div class="server-text" >Server: {{ server.server_name }}</div>
+                            <p>Temps: {{ server.total_seconds }}</p>
+                            <p>Messages: {{ server.total_messages }}</p>
+                            <p>Nombre de membres : {{ server.total_members }}</p>
+                        </div>
+                    </div>
                 </div>
             </a>
             {% endfor %}
@@ -42,6 +49,6 @@
     
     <footer>
         <p> - - - - - - - - - - - - - - - - - - - - - - - - - - - </p>
-        <p>Hourglass 2024 | kek</p>
+        <p>Hourglass 2025 | KEK | I LOVE STATS</p>
     </footer>
 </body>

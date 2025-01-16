@@ -186,6 +186,13 @@ img {
     justify-items: start
 }
 
+.two-vertical-container-user {
+    display: grid; /* Utilisation de CSS Grid */
+    grid-template-columns: auto 1fr; /* Deux colonnes : auto pour l'image, 1fr pour le texte */
+    column-gap: 20px; /* Espacement entre les colonnes */
+    align-items: center; /* Aligne les éléments verticalement au centre (facultatif) */
+}
+
 .bot-box {
     width: 500px;
     height: auto;
@@ -197,13 +204,17 @@ img {
 }
 
 .server-box {
-    width: 400px;
+    width: 450px;
     height: auto;
     background-color: #2c2c2c;
     border: 1px solid #444;
     padding: 10px 15px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.server-box:hover {
+    background-color: #444;
 }
 
 .global-server-box {
@@ -241,7 +252,7 @@ img {
 }
 
 .user-box {
-    width: 250px; /* Largeur fixe */
+    width: 280px; /* Largeur fixe */
     height: 50px; /* Hauteur fixe */
     background-color: #2c2c2c;
     border: 1px solid #444;
@@ -251,6 +262,20 @@ img {
 }
 
 .user-box:hover {
+    background-color: #444;
+}
+
+.server-userslist-box {
+    width: 350px; /* Largeur fixe */
+    height: 50px; /* Hauteur fixe */
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.server-userslist-box:hover {
     background-color: #444;
 }
 
@@ -323,7 +348,7 @@ img {
 
 .scroll-container {
     width: 550px; /* Largeur du conteneur */
-    height: 550px; /* Hauteur du conteneur, pour restreindre l'espace visible */
+    height: 500px; /* Hauteur du conteneur, pour restreindre l'espace visible */
     overflow-y: auto; /* Active le défilement vertical */
     padding: 0px;
     border: 1px solid #cccccc00; /* Pour visualiser les bordures */
@@ -345,9 +370,11 @@ img {
     background-color: #1e1e1e; /* Couleur de l'arrière-plan de la scrollbar */
   }
 
+
+
   .server-user-scroll-container {
-    width: 300px; /* Largeur du conteneur */
-    height: 550px; /* Hauteur du conteneur, pour restreindre l'espace visible */
+    width: 330px; /* Largeur du conteneur */
+    height: 500px; /* Hauteur du conteneur, pour restreindre l'espace visible */
     overflow-y: auto; /* Active le défilement vertical */
     padding: 0px;
     border: 1px solid #cccccc00; /* Pour visualiser les bordures */
@@ -367,4 +394,74 @@ img {
   
 .server-user-scroll-container::-webkit-scrollbar-track {
     background-color: #1e1e1e; /* Couleur de l'arrière-plan de la scrollbar */
+  }
+
+
+  .server-profile-list-scroll-container {
+    width: 500px; /* Largeur du conteneur */
+    height: 500px; /* Hauteur du conteneur, pour restreindre l'espace visible */
+    overflow-y: auto; /* Active le défilement vertical */
+    padding: 0px;
+    border: 1px solid #cccccc00; /* Pour visualiser les bordures */
+    border-radius: 5px;
+    background-color: #f9f9f900;
+  }
+
+/* Personnalisation de la scrollbar */
+.server-profile-list-scroll-container::-webkit-scrollbar {
+    width: 8px; /* Largeur de la scrollbar */
+  }
+  
+.server-profile-list-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #4caf50; /* Couleur de la poignée */
+    border-radius: 10px;
+  }
+  
+.server-profile-list-scroll-container::-webkit-scrollbar-track {
+    background-color: #1e1e1e; /* Couleur de l'arrière-plan de la scrollbar */
+  }
+
+  .big-left-pp {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover; /* Permet de garder la proportion de l'image sans déformation */
+    display: block; /* Permet à l'image de se comporter comme un bloc */
+    margin-left: 0; 
+  }
+
+.small-left-pp {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover; /* Permet de garder la proportion de l'image sans déformation */
+    display: block; /* Permet à l'image de se comporter comme un bloc */
+    margin-left: 0; 
+  } 
+
+  .big-left-server-icon {
+    width: 150px;
+    height: 150px;
+    border-radius: 5%;
+    object-fit: cover; /* Permet de garder la proportion de l'image sans déformation */
+    display: block; /* Permet à l'image de se comporter comme un bloc */
+    margin-left: 0; 
+  }
+
+  .mid-left-server-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 5%;
+    object-fit: cover; /* Permet de garder la proportion de l'image sans déformation */
+    display: block; /* Permet à l'image de se comporter comme un bloc */
+    margin-left: 0; 
+  }
+
+  .small-left-server-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 5%;
+    object-fit: cover; /* Permet de garder la proportion de l'image sans déformation */
+    display: block; /* Permet à l'image de se comporter comme un bloc */
+    margin-left: 0; 
   }
