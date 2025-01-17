@@ -51,7 +51,7 @@ async def on_voice_state_update(member, before, after):
             SetUsername(member.id, member.name)
             SetServerName(member.guild.id, member.guild.name)
             if member.avatar:
-                SetUserAvatar(member.guild.id, member.avatar.url)
+                SetUserAvatar(member.id, member.avatar.url)
             if member.guild.icon:
                 SetServerAvatar(member.guild.id, member.guild.icon.url)
 

@@ -1,5 +1,9 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.4.2 - !stats update avatar - 17/01/2025
+
+    - Fix duplication bug of users in DB
+
 ## Version 2.4.1 - !stats update avatar - 16/01/2025
 
     - command !stats now update avatar of tag user
