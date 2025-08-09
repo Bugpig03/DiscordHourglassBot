@@ -1,0 +1,160 @@
+body {
+  background-color: #000000;
+  margin: 0; /* Pour éviter un petit espace par défaut autour */
+  font-family: Arial, sans-serif; /* Optionnel, pour la police */
+}
+
+.main-container {
+      max-width: 60%;      /* Largeur max fixe */
+      margin: 0 auto;         /* Centre horizontalement */
+      padding: 0px;
+      background-color: #000000; /* Fond gris très foncé */
+      border-radius: 8px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+.nav-logo {
+  width: 50px;   /* Largeur souhaitée */
+  height: 50px;  /* Hauteur souhaitée (ou auto pour garder proportions) */
+  image-rendering: pixelated;  /* Utilise nearest neighbor en modern CSS */
+  padding : 10px
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center; /* aligne verticalement logo et texte */
+    gap: 10px; /* espace entre logo et texte */
+}
+
+.nav-title {
+  color : white;
+  font-weight: bold;
+  font-size: 36px;
+  padding: 0px;
+  margin: 0px;
+}
+
+.nav-menu-horizontal {
+  background-color: #101013;
+  list-style: none;
+  padding: 10px;
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+  border-radius: 30px;
+}
+
+.nav-menu-item a {
+  display: inline-block;
+  background-color: #4caf50; /* vert */
+  color: white;
+  padding: 10px 15px;
+  border-radius: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+.nav-menu-item a:hover,
+.nav-menu-item a:focus {
+  background-color: #5dd260; /* bleu foncé au hover */
+  outline: none;
+}
+
+
+
+
+.nav-menu-item a, 
+.nav-menu-item a:link, 
+.nav-menu-item a:visited, 
+.nav-menu-item a:hover, 
+.nav-menu-item a:active {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+footer {
+    background-color: #000000;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+.gray-box {
+  background-color: #101013;
+  padding: 10px 10px; /* Ajoute un peu de padding à l'intérieur du cadre */
+  margin: 20px 10px;
+  display: block;
+  gap: 10px;
+  border-radius: 30px; /* Coins arrondis */
+  width: 100%
+}
+
+.small-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: 16px;
+}
+
+.small-bold-text {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  margin: 10px 20px;
+}
+
+.medium-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: 24px;
+}
+
+.medium-bold-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.btn-discord {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #5865F2;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  margin: 10px 20px;
+}
+
+.btn-discord:hover {
+  background-color: #4752c4;
+}
+
+.commands-table {
+  width: calc(100% - 30px);
+  border-collapse: collapse;
+  margin: 20px auto;
+}
+
+.commands-table th,
+.commands-table td {
+  border: 1px solid #333;
+  padding: 8px 12px;
+  text-align: left;
+  color: white;
+}
+
+.commands-table th {
+  background-color: #202024;
+  font-weight: bold;
+}
+
+.commands-table tr:nth-child(even) {
+  background-color: #151517;
+}

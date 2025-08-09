@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hourglass Bot{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
+    <link rel="stylesheet" href="static/styles.css"/>
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <div class="nav-brand">
+                <img src="{{ url_for('static', filename='images/hourglass_logo_white.png') }}" 
+                    alt="Logo" class="nav-logo">
+
+                <p class="nav-title">Hourglass</p>
+            </div>
+        </header>
+
+        <div>
+            <nav>
+                <ul class="nav-menu-horizontal">
+                    <li class="nav-menu-item"><a href="{{ url_for('home.home') }}">Accueil</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('home.home') }}">Top</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('home.home') }}">Utilisateurs</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('home.home') }}">Serveurs</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('home.commands') }}">Commandes</a></li>
+                </ul>
+            </nav>
+
+            <!-- Contenu principal -->
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    <footer>
+        Hourglass Bot - powered by Mike Server & SnoutLabs
+    </footer>
+</body> 
+</html>

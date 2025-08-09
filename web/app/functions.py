@@ -4,11 +4,9 @@ import heapq
 from collections import defaultdict
 from datetime import datetime
 
-dbName = os.environ.get('POSTGRESQL_DBNAME')
-user = os.environ.get('POSTGRESQL_USER')
-password = os.environ.get('POSTGRESQL_PASSWORD')
-host = os.environ.get('POSTGRESQL_HOST')
-port = os.environ.get('POSTGRESQL_PORT')
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # connection a la bdd
 def ConnectToDatabase():
@@ -16,11 +14,11 @@ def ConnectToDatabase():
     Connexion à la base de données PostgreSQL en mode lecture seule.
     """
     conn = psycopg2.connect(
-        dbname=dbName,
-        user=user,
-        password=password,
-        host=host,
-        port=port
+        host=os.getenv("POSTGRESQL_HOST"),
+        port=os.getenv("POSTGRESQL_PORT"),
+        database=os.getenv("POSTGRESQL_DB"),
+        user=os.getenv("POSTGRESQL_USER"),
+        password=os.getenv("POSTGRESQL_PASSWORD")
     )
     cursor = conn.cursor()
     return conn
