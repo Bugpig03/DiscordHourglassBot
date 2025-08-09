@@ -21,6 +21,7 @@ def ConnectToDatabase():
         password=os.getenv("POSTGRESQL_PASSWORD")
     )
     cursor = conn.cursor()
+    print("connexion OK bdd")
     return conn
 
 def GetDistinctServerCount():

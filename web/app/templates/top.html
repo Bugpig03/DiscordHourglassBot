@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="medium-bold-text">Top des utilisateurs les plus actifs du mois</div>
+<form method="GET" action="{{ url_for('top.top') }}" id="top-filter-form" class="top-form">
+  <label for="top-filter-period" class="top-label">Période :</label>
+  <select name="period" id="top-filter-period" class="top-select">
+    <option value="24h" {% if request.args.get('period') == '24h' %}selected{% endif %}>24 heures</option>
+    <option value="7d" {% if request.args.get('period') == '7d' %}selected{% endif %}>7 jours</option>
+    <option value="15d" {% if request.args.get('period') == '15d' %}selected{% endif %}>15 jours</option>
+    <option value="1m" {% if request.args.get('period') == '1m' %}selected{% endif %}>1 mois</option>
+    <option value="6m" {% if request.args.get('period') == '6m' %}selected{% endif %}>6 mois</option>
+    <option value="1y" {% if request.args.get('period') == '1y' %}selected{% endif %}>1 an</option>
+    <option value="all" {% if request.args.get('period') == 'all' or not request.args.get('period') %}selected{% endif %}>Toujours</option>
+  </select>
+
+  <label for="top-filter-sort" class="top-label">Trier par :</label>
+  <select name="sort_by" id="top-filter-sort" class="top-select">
+    <option value="hours" {% if request.args.get('sort_by') == 'hours' %}selected{% endif %}>Heures</option>
+    <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>Messages</option>
+  </select>
+
+  <button type="submit" id="top-filter-submit" class="top-button">Appliquer</button>
+</form>
+{% for user in users %}
+<div class="gray-box">
+    <ul class="horizontal-list">
+        <li><div class="big-bold-text rank">{{ loop.index }}</div></li>
+        <li><img src="{{ user.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar"></li>
+        <li><div class="medium-bold-text username">{{ user.username }}</div></li>
+        <li><div class="medium-bold-text hours">{{ (user.seconds / 3600) | round(1) }} h</div></li>
+        <li><div class="medium-bold-text messages">{{ user.messages }} messages</div></li>
+    </ul>
+</div>
+{% endfor %}
+
+{% endblock %}

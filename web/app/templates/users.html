@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="medium-bold-text">Listes des utilisateurs</div>
+{% for i in range(1, 11) %}
+<div class="gray-box">
+    <ul class="horizontal-list">
+        <li><div class="big-bold-text rank">{{ i }}</div></li>
+        <li><img src="{{url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar"></li>
+        <li><div class="medium-bold-text">BugPigo</div></li>
+        <li><div class="medium-bold-text">77.9 h</div></li>
+        <li><div class="medium-bold-text">5200 messages</div></li>
+    </ul>
+</div>
+{% endfor %}
+
+{% endblock %}

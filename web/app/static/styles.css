@@ -39,10 +39,11 @@ body {
   background-color: #101013;
   list-style: none;
   padding: 10px;
-  margin: 10px 0;
+  margin: 10px 10px;
   display: flex;
   gap: 10px;
   border-radius: 30px;
+  width: 100%;
 }
 
 .nav-menu-item a {
@@ -60,7 +61,7 @@ body {
 
 .nav-menu-item a:hover,
 .nav-menu-item a:focus {
-  background-color: #5dd260; /* bleu foncé au hover */
+  background-color: #5dd260;
   outline: none;
 }
 
@@ -120,6 +121,19 @@ footer {
   font-weight: bold;
 }
 
+.big-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: 36px;
+}
+
+.big-bold-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: 36px;
+  font-weight: bold;
+}
+
 .btn-discord {
   display: inline-block;
   padding: 10px 20px;
@@ -157,4 +171,104 @@ footer {
 
 .commands-table tr:nth-child(even) {
   background-color: #151517;
+}
+
+
+.horizontal-list {
+  list-style: none;          
+  padding: 0;
+  margin: 0;
+  display: flex;             
+  align-items: center;       
+  gap: 15px;                 
+}
+
+.horizontal-list li {
+  display: flex;             
+  align-items: center;       
+}
+
+/* Avatar rond */
+.small-pp {
+  display: flex;
+  border-radius: 30px;
+  width: 60px;
+  height: 60px;
+  image-rendering: pixelated;
+}
+
+/* Rang - largeur fixe pour centrer */
+.rank {
+  display: inline-block;
+  width: 30px;       
+  text-align: center;
+}
+
+/* Nom d’utilisateur - largeur fixe, tronqué si trop long */
+.username {
+  width: 250px;            /* ajuste à ta convenance */
+  white-space: nowrap;     
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Heures - largeur fixe, aligné à droite */
+.hours {
+  width: 150px;
+  text-align: center;
+}
+
+/* Messages - largeur fixe, aligné à droite */
+.messages {
+  width: auto;
+}
+
+.top-form {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.top-label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+  color: #ffffff;
+  margin: 10px;
+}
+
+.top-select {
+  padding: 0.4rem 0.6rem;
+  background-color: #222329;
+  border-radius: 15px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+  color: #ffffff;
+  border: none;
+  outline: none;  
+}
+
+.top-select:focus {
+  outline: none;
+  border: none;
+  outline: none;
+}
+
+.top-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  margin: 0rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.top-button:hover {
+  background-color: #5dd260;
 }
