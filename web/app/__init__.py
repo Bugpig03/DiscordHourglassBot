@@ -4,6 +4,7 @@ from app.config import Config
 from app.routes.home import home_bp
 from app.routes.top import top_bp
 from app.routes.users import users_bp
+from app.routes.user_profile import user_profile_bp
 
 def create_app():
     app = Flask(__name__)
@@ -18,5 +19,6 @@ def create_app():
     app.register_blueprint(home_bp)
     app.register_blueprint(top_bp)
     app.register_blueprint(users_bp)
+    app.register_blueprint(user_profile_bp)
 
     return app

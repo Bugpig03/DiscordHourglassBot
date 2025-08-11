@@ -39,24 +39,26 @@ body {
   background-color: #101013;
   list-style: none;
   padding: 10px;
-  margin: 10px 10px;
+  margin: 0px;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   border-radius: 30px;
-  width: 100%;
+  max-width: 100%;
 }
 
 .nav-menu-item a {
   display: inline-block;
   background-color: #4caf50; /* vert */
   color: white;
-  padding: 10px 15px;
+  padding: 10px 20px;
   border-radius: 30px;
   font-weight: bold;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.3s ease;
+  font-size: clamp(0.8rem, 1vw, 1.5rem);
 }
 
 .nav-menu-item a:hover,
@@ -64,9 +66,6 @@ body {
   background-color: #5dd260;
   outline: none;
 }
-
-
-
 
 .nav-menu-item a, 
 .nav-menu-item a:link, 
@@ -87,23 +86,35 @@ footer {
 
 .gray-box {
   background-color: #101013;
-  padding: 10px 10px; /* Ajoute un peu de padding à l'intérieur du cadre */
-  margin: 20px 10px;
+  padding: 10px 0px;
+  margin-top: 20px;
+  margin-bottom: 20px;
   display: block;
-  gap: 10px;
   border-radius: 30px; /* Coins arrondis */
   width: 100%
+}
+
+.link {
+    text-decoration: none;
+    color: inherit;
+    border-radius: 30px;
+    display: block;
+}
+
+.link:hover {
+    background-color: #395371fd;
+    text-decoration: none;
 }
 
 .small-text {
   margin: 10px 20px;
   color: white;
-  font-size: 16px;
+  font-size: clamp(0.9rem, 0.95vw, 1rem);
 }
 
 .small-bold-text {
   color: white;
-  font-size: 16px;
+  font-size: clamp(0.9rem, 0.95vw, 1rem);
   font-weight: bold;
   margin: 10px 20px;
 }
@@ -112,26 +123,47 @@ footer {
   margin: 10px 20px;
   color: white;
   font-size: 24px;
+  font-size: clamp(1rem, 0.75vw, 1.5rem);
 }
 
 .medium-bold-text {
   margin: 10px 20px;
   color: white;
-  font-size: 24px;
+  font-size: clamp(1rem, 1vw, 1.5rem);
   font-weight: bold;
 }
 
 .big-text {
   margin: 10px 20px;
   color: white;
-  font-size: 36px;
+  font-size: clamp(1rem, 1.5vw, 2.2rem);
 }
 
 .big-bold-text {
   margin: 10px 20px;
   color: white;
-  font-size: 36px;
+  font-size: clamp(1rem, 1.5vw, 2.2rem);
   font-weight: bold;
+}
+
+.green {
+  color:#4caf50
+}
+
+.gray {
+  color:#B0BAC5
+}
+
+.nomargin{
+  margin:0px 0px;
+}
+
+.center {
+  display: flex;
+  justify-content: center; /* centre horizontalement */
+  align-items: center;     /* centre verticalement si hauteur définie */
+  text-align: center;      /* centre le texte si besoin */
+  width: 100%;
 }
 
 .btn-discord {
@@ -178,7 +210,8 @@ footer {
   list-style: none;          
   padding: 0;
   margin: 0;
-  display: flex;             
+  display: flex;
+  flex-wrap: wrap;          
   align-items: center;       
   gap: 15px;                 
 }
@@ -197,6 +230,19 @@ footer {
   image-rendering: pixelated;
 }
 
+.big-pp {
+  display: flex;
+  border-radius: 30px;
+  max-width: 150px;
+  max-height: 150px;
+  margin-left: 10px;
+  image-rendering: pixelated;
+}
+
+.square{
+  border-radius: 0px;
+}
+
 /* Rang - largeur fixe pour centrer */
 .rank {
   display: inline-block;
@@ -204,23 +250,28 @@ footer {
   text-align: center;
 }
 
-/* Nom d’utilisateur - largeur fixe, tronqué si trop long */
-.username {
-  width: 250px;            /* ajuste à ta convenance */
-  white-space: nowrap;     
+.username-fixed {
+  display: inline-block;
+  width: clamp(120px, 20vw, 250px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Heures - largeur fixe, aligné à droite */
-.hours {
-  width: 150px;
-  text-align: center;
+.hours-fixed {
+  display: inline-block;
+  width: clamp(80px, 20vw, 120px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Messages - largeur fixe, aligné à droite */
-.messages {
-  width: auto;
+.messages-fixed {
+  display: inline-block;
+  width: clamp(120px, 20vw, 200px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .top-form {
@@ -234,8 +285,8 @@ footer {
   font-weight: 600;
   margin-right: 0.5rem;
   white-space: nowrap;
-  color: #ffffff;
-  margin: 10px;
+  color: #B0BAC5;
+  margin: 20px;
 }
 
 .top-select {
@@ -245,9 +296,10 @@ footer {
   font-size: 1rem;
   cursor: pointer;
   transition: border-color 0.3s ease;
-  color: #ffffff;
+  color: #B0BAC5;
   border: none;
-  outline: none;  
+  outline: none;
+  font-weight: bold;
 }
 
 .top-select:focus {
@@ -271,4 +323,16 @@ footer {
 
 .top-button:hover {
   background-color: #5dd260;
+}
+
+/* Adaptation mobile */
+@media (max-width: 768px) {
+  .main-container {
+    max-width: 95%;  /* prend toute la largeur sur téléphone */
+    border-radius: 0; /* optionnel : supprime arrondis sur mobile */
+  }
+  .big-pp {
+    max-width: 75px;
+    max-height: 75px;
+  }
 }

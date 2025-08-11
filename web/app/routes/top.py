@@ -8,7 +8,6 @@ top_bp = Blueprint("top", __name__)
 @top_bp.route("/top", methods=["GET"])
 def top():
     users = load()
-    print(users)
     return render_template("top.html", users=users)
 
 def load():

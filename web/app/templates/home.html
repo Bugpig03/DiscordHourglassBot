@@ -3,27 +3,27 @@
 {% block content %}
 <div class="medium-bold-text">Hourglass Bot</div>
 <div class="gray-box">
-    <div class="small-bold-text">{{ stats.nb_users }} Utilisateurs</div>
-    <div class="small-bold-text">{{ stats.nb_profiles }} Profils</div>
-    <div class="small-bold-text">{{ stats.nb_serveurs }} Serveurs</div>
-    <div class="small-bold-text">{{ stats.nb_messages }} Messages</div>
-    <div class="small-bold-text">7400 h 34 min 45 s</div>
+    <div class="medium-bold-text gray">{{ stats.nb_users }} Utilisateurs</div>
+    <div class="medium-bold-text gray">{{ stats.nb_profiles }} Profils</div>
+    <div class="medium-bold-text gray">{{ stats.nb_servers }} Serveurs</div>
+    <div class="medium-bold-text gray">{{ stats.nb_messages }} Messages</div>
+    <div class="medium-bold-text gray">{{ stats.nb_time }}</div>
 </div>
     <div class="medium-bold-text">Base de données</div>
 <div class="gray-box">
-    <div class="small-bold-text">{{ stats.size_db_ko }} Ko données</div>
-    <div class="small-bold-text">{{ stats.size_stats_ko }} Ko données journalière</div>
-    <div class="small-bold-text">{{ stats.size_hist_ko }} données d'historique</div>
-    <div class="small-bold-text">Dernière sauvegarde le {{ stats.last_backup }}</div>
+    <div class="small-bold-text gray">{{ stats.size_db_ko }} Ko données</div>
+    <div class="small-bold-text gray">{{ stats.size_stats_ko }} Ko données journalière</div>
+    <div class="small-bold-text gray">{{ stats.size_hist_ko }} données d'historique</div>
+    <div class="small-bold-text gray">Dernière sauvegarde le {{ stats.last_backup }}</div>
 </div>
 <div class="medium-bold-text">Hourglass c'est quoi ?</div>
 <div class="gray-box">
-    <div class="small-text">C’est un bot Discord qui affiche de manière simple les stats du serveur. 
+    <div class="small-text gray">C’est un bot Discord qui affiche de manière simple les stats du serveur. 
         Il montre combien de messages chaque utilisateur a envoyé et combien de temps ils ont passé en vocal. 
         Une interface web permet de voir le nombre de membres, les meilleurs utilisateurs, et des graphiques sur l’activité du serveur.</div>
     <br>
     <div class="small-bold-text">Bot opérationnel depuis le 28/04/2024</div>
-    <a class="btn-discord" href="https://discord.com/oauth2/authorize?client_id=1210665993328926750">Inviter ce bot sur votre serveur Discord</a>
+    <di class="center"><a class="btn-discord" href="https://discord.com/oauth2/authorize?client_id=1210665993328926750">Inviter ce bot sur votre serveur Discord</a></di>
 </div>
 
 {% endblock %}

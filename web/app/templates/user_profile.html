@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul class="horizontal-list">
+    <li><img src="{{ url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="avatar"></li>
+    <li><div class="big-bold-text gray">Username</div></li>
+</ul>
+<div class="medium-bold-text">Statistiques</div>
+<div class="gray-box">
+    <ul class="horizontal-list">
+        <li><div class="big-bold-text">1/100</div></li>
+        <li><img src="{{ url_for('static', filename='images/top.png') }}" class="small-pp square" alt="avatar"></li>
+        <li><div class="medium-bold-text"> </div></li>
+        <li><div class="medium-bold-text gray">{{ stats.total_time }}</div></li>
+        <li><div class="medium-bold-text gray">1000 messages</div></li>
+        <li><div class="medium-bold-text gray">99 h les 30 derniers jours</div></li>
+    </ul>
+</div>
+<div class="medium-bold-text">Serveurs</div>
+<div class="gray-box">
+    <ul class="horizontal-list">
+        <div>
+            <li><img src="{{ url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="avatar"></li>
+        </div>
+        <div>
+            <div class="medium-bold-text">Server Name</div>
+            <div class="small-bold-text gray">1/20</div>
+            <div class="small-bold-text gray">1000 h 59 min 59 s</div>
+            <div class="small-bold-text gray">1000 messages</div>
+            <div class="small-bold-text gray">Membre depuis le 10 aout 2025</div>
+        </div>
+    </ul>
+</div>
+
+<div class="gray-box">
+    <ul class="horizontal-list">
+        <div>
+            <li><img src="{{ url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="avatar"></li>
+        </div>
+        <div>
+            <div class="medium-bold-text">Server Name</div>
+            <div class="small-bold-text gray">1/20</div>
+            <div class="small-bold-text gray">1000 h 59 min 59 s</div>
+            <div class="small-bold-text gray">1000 messages</div>
+            <div class="small-bold-text gray">Membre depuis le 10 aout 2025</div>
+        </div>
+    </ul>
+</div>
+
+<div class="gray-box">
+    <ul class="horizontal-list">
+        <div>
+            <li><img src="{{ url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="avatar"></li>
+        </div>
+        <div>
+            <div class="medium-bold-text">Server Name</div>
+            <div class="small-bold-text gray">1/20</div>
+            <div class="small-bold-text gray">1000 h 59 min 59 s</div>
+            <div class="small-bold-text gray">1000 messages</div>
+            <div class="small-bold-text gray">Membre depuis le 10 aout 2025</div>
+        </div>
+    </ul>
+</div>
+
+{% endblock %}

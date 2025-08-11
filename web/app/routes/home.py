@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from app.database import db, Users, Servers, HistoricalStats, Stats
 from peewee import fn
+from app.functions import format_date_fr, ConvertSecondsToTime
 
 home_bp = Blueprint("home", __name__)
 
@@ -21,7 +22,7 @@ def load():
     nb_profiles = Stats.select().count()
     nb_servers = Servers.select().count()
     nb_messages = Stats.select(fn.SUM(Stats.messages)).scalar() or 0
-    nb_time = Stats.select(fn.SUM(Stats.seconds)).scalar() or 0
+    nb_time = ConvertSecondsToTime(Stats.select(fn.SUM(Stats.seconds)).scalar() or 0)
 
     # Taille totale de la base en octets
     query_db_size = db.execute_sql(
@@ -64,15 +65,3 @@ def load():
         "size_hist_ko": size_hist_ko,
         "last_backup": last_backup_str
     }
-
-
-def format_date_fr(dt):
-    mois = [
-        "janvier", "février", "mars", "avril", "mai", "juin",
-        "juillet", "août", "septembre", "octobre", "novembre", "décembre"
-    ]
-    jour = dt.day
-    mois_str = mois[dt.month - 1]
-    annee = dt.year
-    heure = dt.strftime("%H:%M:%S")
-    return f"{jour} {mois_str} {annee} à {heure}"

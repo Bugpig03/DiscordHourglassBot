@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hourglass Bot{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
-    <link rel="stylesheet" href="static/styles.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="main-container">
@@ -13,12 +13,10 @@
             <div class="nav-brand">
                 <img src="{{ url_for('static', filename='images/hourglass_logo_white.png') }}" 
                     alt="Logo" class="nav-logo">
-
                 <p class="nav-title">Hourglass</p>
             </div>
         </header>
 
-        <div>
             <nav>
                 <ul class="nav-menu-horizontal">
                     <li class="nav-menu-item"><a href="{{ url_for('home.home') }}">Accueil</a></li>
@@ -33,10 +31,9 @@
             <main>
                 {% block content %}{% endblock %}
             </main>
-        </div>
     </div>
     <footer>
-        Hourglass Bot - powered by Mike Server & SnoutLabs
+        <di class="small-text gray">Hourglass Bot - powered by Mike Server & SnoutLabs</di>
     </footer>
 </body> 
 </html>
