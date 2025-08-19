@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <ul class="nav-menu-horizontal-short">
+    <li class="nav-menu-item-short nav-menu-item-short-selected"><a href="{{ url_for('top.top_users') }}">Utilisateurs</a></li>
+    <li class="nav-menu-item-short"><a href="{{ url_for('top.top_servers') }}">Serveurs</a></li>
+  </ul>
+
+<form method="GET" action="{{ url_for('top.top_users') }}" id="top-filter-form" class="top-form">
+  
+  <!-- Période -->
+  <div>
+  <label for="top-filter-period" class="top-label">Période :</label>
+  <select name="period" id="top-filter-period" class="top-select">
+    <option value="24h" {% if request.args.get('period') == '24h' %}selected{% endif %}>24 heures</option>
+    <option value="7d" {% if request.args.get('period') == '7d' %}selected{% endif %}>7 jours</option>
+    <option value="15d" {% if request.args.get('period') == '15d' %}selected{% endif %}>15 jours</option>
+    <option value="1m" {% if request.args.get('period') == '1m' %}selected{% endif %}>1 mois</option>
+    <option value="6m" {% if request.args.get('period') == '6m' %}selected{% endif %}>6 mois</option>
+    <option value="1y" {% if request.args.get('period') == '1y' %}selected{% endif %}>1 an</option>
+    <option value="all" {% if request.args.get('period') == 'all' or not request.args.get('period') %}selected{% endif %}>Toujours</option>
+  </select>
+  </div>
+
+  <!-- Trier par -->
+   <div>
+  <label for="top-filter-sort" class="top-label">Trier par :</label>
+  <select name="sort_by" id="top-filter-sort" class="top-select">
+    <option value="hours" {% if request.args.get('sort_by') == 'hours' %}selected{% endif %}>Heures</option>
+    <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>Messages</option>
+  </select>
+  </div>
+
+  <!-- Filtre serveur -->
+  <div>
+  <label for="top-filter-server" class="top-label">Serveur :</label>
+  <select name="server_id" id="top-filter-server" class="top-select">
+    <option value="all" {% if request.args.get('server_id') == 'all' or not request.args.get('server_id') %}selected{% endif %}>Tous les serveurs</option>
+    {% for srv in servers %}
+      <option value="{{ srv.server_id }}" {% if request.args.get('server_id') == srv.server_id|string %}selected{% endif %}>{{ srv.servername }}</option>
+    {% endfor %}
+  </select>
+  </div>
+
+  <button type="submit" id="top-filter-submit" class="top-button">Appliquer</button>
+</form>
+{% for user in users %}
+<div class="gray-box link">
+    <a class="link" href="{{ url_for('user_profile.profile', username=user['username']) }}">
+      <ul class="horizontal-list">
+          <li><div class="big-bold-text rank">{{ loop.index }}</div></li>
+          <li><img src="{{ user.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar"></li>
+          <li><div class="medium-bold-text username-fixed ">{{ user.username }}</div></li>
+          <li><div class="medium-bold-text gray hours-fixed ">{{ (user.seconds / 3600) | round(1) }} h</div></li>
+          <li><div class="medium-bold-text gray messages-fixed ">{{ user.messages }} messages</div></li>
+      </ul>
+    </a>
+</div>
+{% endfor %}
+
+{% endblock %}

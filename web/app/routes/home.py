@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from app.database import db, Users, Servers, HistoricalStats, Stats
 from peewee import fn
-from app.functions import format_date_fr, ConvertSecondsToTime
+from app.functions import format_date_heure_fr, ConvertSecondsToTime
 
 home_bp = Blueprint("home", __name__)
 
@@ -51,7 +51,7 @@ def load():
                    .scalar())
     
     # Formatte la date en string lisible si pas None
-    last_backup_str = format_date_fr(last_backup)
+    last_backup_str = format_date_heure_fr(last_backup)
     db.close()
 
     return {

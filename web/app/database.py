@@ -7,8 +7,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-print("DB:", os.getenv("POSTGRESQL_DBNAME"))
-print("USER:", os.getenv("POSTGRESQL_USER"))
 # --- Configuration de la connexion PostgreSQL ---
 db = PostgresqlDatabase(
     os.getenv("POSTGRESQL_DBNAME"),

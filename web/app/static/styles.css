@@ -47,18 +47,23 @@ body {
   max-width: 100%;
 }
 
+.nav-menu-item {
+  flex: 1; /* chaque bouton prend la même part */
+}
+
 .nav-menu-item a {
-  display: inline-block;
-  background-color: #4caf50; /* vert */
+  display: block; /* Le lien remplit le li */
+  background-color: #4caf50;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 10px; /* Hauteur uniforme */
   border-radius: 30px;
   font-weight: bold;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.3s ease;
-  font-size: clamp(0.8rem, 1vw, 1.5rem);
+  font-size: clamp(1rem, 1vw, 1.2rem);
+  text-align: center; /* Centre le texte */
 }
 
 .nav-menu-item a:hover,
@@ -76,6 +81,7 @@ body {
   text-decoration: none;
   font-weight: bold;
 }
+
 
 footer {
     background-color: #000000;
@@ -102,7 +108,7 @@ footer {
 }
 
 .link:hover {
-    background-color: #395371fd;
+    background-color: #461f43; /* #395371fd;*/
     text-decoration: none;
 }
 
@@ -147,7 +153,8 @@ footer {
 }
 
 .green {
-  color:#4caf50
+  color:#4caf50;
+  background-color: #5dd260;
 }
 
 .gray {
@@ -232,15 +239,20 @@ footer {
 
 .big-pp {
   display: flex;
-  border-radius: 30px;
-  max-width: 150px;
-  max-height: 150px;
+  border-radius: 70px;
+  width: 150px;
+  height: 150px;
   margin-left: 10px;
   image-rendering: pixelated;
 }
 
 .square{
   border-radius: 0px;
+}
+
+.boder-server{
+  border-radius: 15px;
+  margin-left: 5px;
 }
 
 /* Rang - largeur fixe pour centrer */
@@ -286,7 +298,7 @@ footer {
   margin-right: 0.5rem;
   white-space: nowrap;
   color: #B0BAC5;
-  margin: 20px;
+  margin: 20px 0px;
 }
 
 .top-select {
@@ -300,6 +312,8 @@ footer {
   border: none;
   outline: none;
   font-weight: bold;
+  margin: 5px;
+  margin-right: 20px;
 }
 
 .top-select:focus {
@@ -309,21 +323,75 @@ footer {
 }
 
 .top-button {
-  background-color: #4caf50;
+  background-color: #461f43;
   color: white;
   border: none;
-  padding: 0.5rem 1.2rem;
-  margin: 0rem 2rem;
+  padding: 0.6rem 0.8rem;
+  margin: 1.5rem;
   font-size: 1rem;
   font-weight: 700;
-  border-radius: 15px;
+  border-radius: 30px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .top-button:hover {
-  background-color: #5dd260;
+  background-color: #6c3167;
 }
+
+/*NAVIGATION BAR DE SELECTION ENTRE UTILISATEURS ET SERVEURS SUR PAGE TOP*/
+.nav-menu-horizontal-short {
+  background-color: #222329;
+  list-style: none;
+  padding: 5px;
+  margin-bottom: 5px;
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-radius: 30px;
+  width: max-content;
+}
+
+.nav-menu-item-short a {
+  display: inline-flex;
+  background-color: #222329;
+  color: #B0BAC5;
+  padding: 7px 10px; /* Hauteur uniforme */
+  border-radius: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  text-align: center; /* Centre le texte */
+}
+
+.nav-menu-item-short a:hover,
+.nav-menu-item-short a:focus {
+  background-color: #454752;
+  outline: none;
+}
+
+.nav-menu-item-short a, 
+.nav-menu-item-short a:link, 
+.nav-menu-item-short a:visited, 
+.nav-menu-item-short a:hover, 
+.nav-menu-item-short a:active {
+  color: #B0BAC5;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.nav-menu-item-short-selected a{
+  background-color: #461f43;
+}
+
+.nav-menu-item-short-selected a:hover{
+  background-color: #461f43;
+}
+
 
 /* Adaptation mobile */
 @media (max-width: 768px) {
@@ -334,5 +402,8 @@ footer {
   .big-pp {
     max-width: 75px;
     max-height: 75px;
+  }
+  .top-button {
+    margin: 0rem;
   }
 }
