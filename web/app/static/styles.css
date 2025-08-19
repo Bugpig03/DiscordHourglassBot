@@ -90,6 +90,14 @@ footer {
     padding: 1rem;
 }
 
+.continous-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+  width: 100%;           /* largeur totale du bloc parent */
+  box-sizing: border-box; /* inclut les padding/border dans la largeur */
+}
+
 .gray-box {
   background-color: #101013;
   padding: 10px 0px;
@@ -99,6 +107,15 @@ footer {
   border-radius: 30px; /* Coins arrondis */
   width: 100%
 }
+
+.dynamic {
+  display: flex;  
+  align-items: center;
+  padding: 10px 10px;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
 
 .link {
     text-decoration: none;
@@ -165,6 +182,14 @@ footer {
   margin:0px 0px;
 }
 
+.text-overflow{
+  white-space: nowrap;       /* empêche le passage à la ligne */
+  overflow: hidden;          /* cache le dépassement */
+  text-overflow: ellipsis;   /* ajoute "..." si le texte est trop long */
+  max-width: 100%;           /* s’assure que le texte ne dépasse pas le conteneur */
+  display: block;  
+}
+
 .center {
   display: flex;
   justify-content: center; /* centre horizontalement */
@@ -228,6 +253,15 @@ footer {
   align-items: center;       
 }
 
+.horizontal-list li:last-child {
+    flex: 1; /* le texte prend tout l'espace restant */
+    min-width: 0; /* nécessaire pour que le flex shrink fonctionne et ellipsis marche */
+}
+
+.nowrap{
+  flex-wrap: nowrap;
+}
+
 /* Avatar rond */
 .small-pp {
   display: flex;
@@ -250,7 +284,7 @@ footer {
   border-radius: 0px;
 }
 
-.boder-server{
+.border-server{
   border-radius: 15px;
   margin-left: 5px;
 }
@@ -392,6 +426,22 @@ footer {
   background-color: #461f43;
 }
 
+.search-input {
+    padding: 5px 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    background-color: #222329;
+    border-radius: 5px;
+    outline: none;
+    border: 0px solid ;
+    box-sizing: border-box; 
+}
+
+.search-input:focus {
+    border: 0px solid ; /* couleur de bordure quand actif */
+    background-color: #2a2d33;
+}
 
 /* Adaptation mobile */
 @media (max-width: 768px) {
@@ -407,3 +457,4 @@ footer {
     margin: 0rem;
   }
 }
+
