@@ -211,6 +211,22 @@ def get_user_rank_in_server(user_id, server_id):
     rank = query.scalar()
     return rank
 
+# RÉCUPÈRE LE RANK D'UN SERVEUR DEPUIS SON SERVER ID
+def get_server_rank(server_id):
+    query = (
+        Stats
+        .select(
+            Stats.server_id,
+            fn.SUM(Stats.seconds).alias('total_seconds')
+        )
+        .group_by(Stats.server_id)
+        .order_by(fn.SUM(Stats.seconds).desc())
+    )
+    for idx, row in enumerate(query, start=1):
+        if int(row.server_id) == int(server_id):
+            return idx
+    return None
+
 
 def get_server_activity_sum_last_X_days(server_id, days):
     now = datetime.utcnow()

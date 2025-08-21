@@ -17,11 +17,11 @@ def load(server_id, search_query=""):
     stats = {
             #"avatar_url": get_user_avatar_url(server_id),
             "servername": get_servername_by_server_id(server_id),
-            #"rank": get_server_rank(server_id),
+            "rank": get_server_rank(server_id),
             "total_server": get_global_nb_server(),
             "total_time": ConvertSecondsToTime(get_total_seconds_by_server_id(server_id)),
             "total_message": get_total_message_by_server_id(server_id),
-            #"total_time_last_30d": total_time_last_30d,
+            "total_time_last_30d": get_server_activity_sum_last_X_days(server_id,30),
             "users": load_users_from_server(server_id, search_query)
             }
     return stats
