@@ -8,31 +8,33 @@
 </ul>
 <br>
 <div class="medium-bold-text">Statistiques</div>
-<div class="gray-box">
-    <ul class="horizontal-list">
-        <li><div class="big-bold-text">{{ stats.rank }}/{{ stats.total_user}}</div></li>
-        <li><img src="{{ url_for('static', filename='images/top.png') }}" class="small-pp square" alt="avatar"></li>
-        <li><div class="medium-bold-text"> </div></li>
-        <li><div class="medium-bold-text gray">{{ stats.total_time }}</div></li>
-        <li><div class="medium-bold-text gray">{{ stats.total_message }} messages</div></li>
-        <li><div class="medium-bold-text gray">{{ (stats.total_time_last_30d / 3600) | round(1) }} h les 30 derniers jours</div></li>
-    </ul>
+<div class="gray-box stats-box">
+    <div class="big-bold-text">{{ stats.rank }}/{{ stats.total_user }}</div>
+    <div class="medium-bold-text gray">{{ stats.total_time }}</div>
+    <div class="medium-bold-text gray">{{ stats.total_message }} messages</div>
+    <div class="medium-bold-text gray">
+        {{ (stats.total_time_last_30d / 3600) | round(1) }} h les 30 derniers jours
+    </div>
 </div>
 <div class="medium-bold-text">Serveurs</div>
 {% for server in stats.user_servers_stats %}
-<div class="gray-box">
-    <ul class="horizontal-list">
+<div class="gray-box link">
+    <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
+    <ul class="horizontal-list nowrap nomargin nogap">
         <div>
-            <li>><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp boder-server" alt="avatar"></li>
+            <li><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp boder-server" alt="avatar"></li>
         </div>
         <div>
-            <div class="medium-bold-text">{{ server.server_name }}</div>
-            <div class="small-bold-text gray">{{ server.rank }}/{{ server.nb_user }}</div>
-            <div class="small-bold-text gray">{{ server.time_spent }} heures</div>
-            <div class="small-bold-text gray">{{ server.messages_count }} messages</div>
-            <div class="small-bold-text gray">Membre depuis le {{ server.joined_at }}</div>
+            <ul class="nopadding">
+                <li><div class="big-bold-text nomargin">{{ server.server_name }}</div></li>
+                <li><div class="medium-bold-text gray nomargin">{{ server.rank }}/{{ server.nb_user }}</div></li>
+                <li><div class="medium-bold-text gray nomargin">{{ server.time_spent }} heures</div></li>
+                <li><div class="medium-bold-text gray nomargin">{{ server.messages_count }} messages</div></li>
+                <li><div class="medium-bold-text gray nomargin">Membre depuis le {{ server.joined_at }}</div></li>
+            </ul>
         </div>
     </ul>
+    </a>
 </div>
 {% endfor %}
 

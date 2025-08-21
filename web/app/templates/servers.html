@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="medium-bold-text">Listes des serveurs</div>
+<form method="get" action="{{ url_for('servers.servers') }}">
+    <input type="text" name="q" placeholder="Rechercher un serveur..."
+           value="{{ search_query }}" class="medium-bold-text search-input nomargin">
+</form>
+<div class="continous-container">
+    {% for server in servers %}
+    <div class="gray-box dynamic link">
+        <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
+            <ul class="horizontal-list nowrap">
+                <li><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp border-server" alt="avatar"></li>
+                <li><div class="medium-bold-text text-overflow">{{ server.servername }}</div></li>
+            </ul>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

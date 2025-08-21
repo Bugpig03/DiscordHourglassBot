@@ -137,6 +137,7 @@ def load_servers():
                             .scalar()) or 0
 
         results.append({
+            "server_id": server.server_id,
             "servername": server.servername,
             "avatar_url": server.avatar,
             "seconds": total_seconds,

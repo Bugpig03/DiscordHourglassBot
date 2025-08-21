@@ -182,6 +182,14 @@ footer {
   margin:0px 0px;
 }
 
+.nogap{
+  gap: 0px;
+}
+
+.nopadding{
+  padding: 0px;
+}
+
 .text-overflow{
   white-space: nowrap;       /* empêche le passage à la ligne */
   overflow: hidden;          /* cache le dépassement */
@@ -298,7 +306,7 @@ footer {
 
 .username-fixed {
   display: inline-block;
-  width: clamp(120px, 20vw, 250px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  width: clamp(130px, 20vw, 280px); /* min = 120px, adaptatif = 20% écran, max = 200px */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -432,7 +440,7 @@ footer {
     margin-bottom: 20px;
     width: 100%;
     background-color: #222329;
-    border-radius: 5px;
+    border-radius: 15px;
     outline: none;
     border: 0px solid ;
     box-sizing: border-box; 
@@ -443,6 +451,13 @@ footer {
     background-color: #2a2d33;
 }
 
+.stats-box {
+  display: flex;
+  flex-wrap: wrap;     /* autorise le retour à la ligne */
+  align-items: center;
+  gap: 15px;           /* espace entre les éléments */
+}
+
 /* Adaptation mobile */
 @media (max-width: 768px) {
   .main-container {
@@ -450,8 +465,8 @@ footer {
     border-radius: 0; /* optionnel : supprime arrondis sur mobile */
   }
   .big-pp {
-    max-width: 75px;
-    max-height: 75px;
+    max-width: 90px;
+    max-height: 90px;
   }
   .top-button {
     margin: 0rem;

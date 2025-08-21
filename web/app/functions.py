@@ -52,6 +52,13 @@ def get_user_id_by_username(username):
         return user.user_id
     return None
 
+# RECUPERE LE SERVERNAME DEPUIS LE SERVER ID
+def get_servername_by_server_id(server_id):
+    server = Servers.select().where(Servers.server_id == server_id).first()
+    if server:
+        return server.servername
+    return None
+
 # RECUPERE LE TOTAL DE SECONDES DEPUIS UN USER ID
 def get_total_seconds_by_user_id(user_id):
     result = Stats.select(fn.SUM(Stats.seconds).alias('total_seconds')) \
@@ -59,10 +66,24 @@ def get_total_seconds_by_user_id(user_id):
                   .scalar()
     return result or 0
 
-# RECUPERE LE TOTAL DE SECONDES DEPUIS UN USER ID
+# RECUPERE LE TOTAL DE SECONDES DEPUIS UN SERVER ID
+def get_total_seconds_by_server_id(server_id):
+    result = Stats.select(fn.SUM(Stats.seconds).alias('total_seconds')) \
+                  .where(Stats.server_id == server_id) \
+                  .scalar()
+    return result or 0
+
+# RECUPERE LE TOTAL DE MESSAGE DEPUIS UN USER ID
 def get_total_message_by_user_id(user_id):
     result = Stats.select(fn.SUM(Stats.messages).alias('total_messages')) \
                   .where(Stats.user_id == user_id) \
+                  .scalar()
+    return result or 0
+
+# RECUPERE LE TOTAL DE MESSAGE DEPUIS UN SERVER ID
+def get_total_message_by_server_id(server_id):
+    result = Stats.select(fn.SUM(Stats.messages).alias('total_messages')) \
+                  .where(Stats.server_id == server_id) \
                   .scalar()
     return result or 0
 
@@ -86,8 +107,12 @@ def get_global_rank_by_user_id_seconds(user_id):
 # RECUPERE LE NB D UTILISATEUR GLOBAL
 def get_global_nb_user():
     # Total de secondes de cet utilisateur
-    print(Users.select(fn.COUNT(Users.user_id)).scalar() or 0)
     return Users.select(fn.COUNT(Users.user_id)).scalar() or 0
+
+# RECUPERE LE NB SERVER GLOBAL
+def get_global_nb_server():
+    # Total de secondes de cet utilisateur
+    return Servers.select(fn.COUNT(Servers.server_id)).scalar() or 0
 
 # Récupérer l'activité d'un user sur X jours
 # Si server_id est donné, ne prendre que ce serveur, sinon tous
@@ -185,7 +210,7 @@ def get_user_rank_in_server(user_id, server_id):
     
     rank = query.scalar()
     return rank
-    
+
 
 def get_server_activity_sum_last_X_days(server_id, days):
     now = datetime.utcnow()
@@ -256,6 +281,7 @@ def get_user_servers_stats(user_id):
     # On transforme en liste de dictionnaires
     return [
         {
+            "server_id": stat.server_id,
             "server_name": get_server_name_by_id(stat.server_id),
             "avatar": get_server_avatar_url(stat.server_id),
             "rank": stat.rank,
