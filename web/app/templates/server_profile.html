@@ -20,7 +20,8 @@
     <div class="gray-box dynamic link">
         <a class="link" href="{{ url_for('user_profile.profile', username=user['username']) }}">
             <ul class="horizontal-list nowrap">
-                <li><img src="{{ user.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar"></li>
+                <li><img src="{{ user.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar"
+                    onerror="this.onerror=null; this.src='{{ fallback_avatar }}';"></li>
                 <li><div class="medium-bold-text text-overflow">{{ user.username }}</div></li>
             </ul>
         </a>

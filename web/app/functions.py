@@ -3,7 +3,7 @@ import heapq
 from collections import defaultdict
 from datetime import datetime
 from app.database import Users, Stats, HistoricalStats, Servers
-from peewee import fn, JOIN
+from peewee import fn, JOIN, SQL
 from datetime import datetime, timedelta
 
 # CONVERTI LES SECONDES EN HEURES, MINUTES, SECONDES
@@ -95,7 +95,7 @@ def get_global_rank_by_user_id_seconds(user_id):
                   .where(Stats.user_id == user_id)
                   .scalar() or 0)
     if user_total == 0:
-        return None  # Pas d'activité → pas de classement
+        return "Non classé"  # Pas d'activité → pas de classement
     # Nombre d'utilisateurs ayant plus de secondes que lui
     rank = (Stats
             .select(Stats.user_id)
@@ -309,3 +309,45 @@ def get_user_servers_stats(user_id):
         }
         for stat in user_stats
     ]
+
+
+def get_first_of_month_hours_sum(server_id=None, user_id=None):
+    """
+    Somme des heures pour tous les utilisateurs,
+    uniquement le premier jour de chaque mois.
+    """
+    # Grouper par mois directement, filtrer les 1ers jours
+    query = (HistoricalStats
+        .select(
+            fn.DATE_TRUNC('month', HistoricalStats.created_at).alias('month_start'),
+            fn.SUM(HistoricalStats.seconds).alias('total_seconds')
+        )
+        .where(SQL("EXTRACT(DAY FROM created_at) = 1"))
+    )
+
+    if server_id:
+        query = query.where(HistoricalStats.server_id == server_id)
+    if user_id:
+        query = query.where(HistoricalStats.user_id == user_id)
+
+    query = query.group_by(fn.DATE_TRUNC('month', HistoricalStats.created_at)) \
+                 .order_by(fn.DATE_TRUNC('month', HistoricalStats.created_at))
+
+    result = []
+    for row in query:
+        hours = row.total_seconds / 3600
+        result.append({
+            "month": row.month_start.strftime("%Y-%m-%d"),
+            "total_hours": round(hours, 1)
+        })
+
+    # ajout du debut du bot ici
+    result.append({
+            "month": "2024-04-01",
+            "total_hours": 0.0
+        })
+
+    #TRIE
+    result = sorted(result, key=lambda x: x["month"])
+
+    return result

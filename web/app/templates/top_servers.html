@@ -38,7 +38,8 @@
     <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
       <div class="stats-box">
           <div class="big-bold-text rank">{{ loop.index }}</div>
-          <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp border-server" alt="avatar">
+          <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp border-server" alt="avatar"
+          onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
           <div class="medium-bold-text username-fixed ">{{ server.servername }}</div>
           <div class="medium-bold-text gray hours-fixed ">{{ (server.seconds / 3600) | round(1) }} h</div>
           <div class="medium-bold-text gray messages-fixed ">{{ server.messages }} messages</div>

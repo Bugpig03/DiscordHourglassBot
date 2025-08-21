@@ -3,7 +3,8 @@
 {% block content %}
 <br>
 <ul class="horizontal-list">
-    <li><img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="avatar"></li>
+    <li><img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="avatar"
+        onerror="this.onerror=null; this.src='{{ fallback_avatar }}';"></li>
     <li><div class="big-bold-text gray">{{stats.username}}</div></li>
 </ul>
 <br>
@@ -22,7 +23,8 @@
     <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
     <ul class="horizontal-list nowrap nomargin nogap">
         <div>
-            <li><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp boder-server" alt="avatar"></li>
+            <li><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp boder-server" alt="avatar"
+                onerror="this.onerror=null; this.src='{{ fallback_avatar }}';"></li>
         </div>
         <div>
             <ul class="nopadding">

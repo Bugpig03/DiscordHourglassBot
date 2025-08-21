@@ -11,7 +11,8 @@
     <div class="gray-box dynamic link">
         <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
             <ul class="horizontal-list nowrap">
-                <li><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp border-server" alt="avatar"></li>
+                <li><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp border-server" alt="avatar"
+                    onerror="this.onerror=null; this.src='{{ fallback_avatar }}';"></li>
                 <li><div class="medium-bold-text text-overflow">{{ server.servername }}</div></li>
             </ul>
         </a>

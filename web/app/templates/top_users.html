@@ -49,7 +49,8 @@
     <a class="link" href="{{ url_for('user_profile.profile', username=user['username']) }}">
       <div class="stats-box">
           <div class="big-bold-text rank">{{ loop.index }}</div>
-          <img src="{{ user.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar">
+          <img src="{{ user.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar"
+          onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
           <div class="medium-bold-text username-fixed ">{{ user.username }}</div>
           <div class="medium-bold-text gray hours-fixed ">{{ (user.seconds / 3600) | round(1) }} h</div>
           <div class="medium-bold-text gray messages-fixed ">{{ user.messages }} messages</div>

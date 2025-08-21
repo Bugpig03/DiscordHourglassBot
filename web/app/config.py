@@ -1,8 +1,11 @@
 # Variable environment configurationS
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
+debug = False
+
+if debug == True:
+    from dotenv import load_dotenv
+    load_dotenv()
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")

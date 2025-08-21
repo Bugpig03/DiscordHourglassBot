@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 2.0.0 - UI Rework - 21/08/2025
+
+### Changes and Fixes
+
+- Overall UI improvements
+- Faster performance (Loading)
+- New pages to search users and servers
+- One chart to visualize key data
+- New Top page with extended statistics
+
 ## Version 1.6.0 - Avatar Udpate and 2025 change - 15/01/2025
 
 ### Changes and Fixes
