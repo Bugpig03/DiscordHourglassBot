@@ -346,6 +346,12 @@ def get_first_of_month_hours_sum(server_id=None, user_id=None):
             "month": "2024-04-01",
             "total_hours": 0.0
         })
+    
+    # ajout last value
+    result.append({
+            "month": datetime.now().strftime("%Y-%m-%d"),
+            "total_hours": round ((Stats.select(fn.SUM(Stats.seconds)).scalar() or 0) / 3600 ,1)
+        })
 
     #TRIE
     result = sorted(result, key=lambda x: x["month"])
