@@ -1,0 +1,475 @@
+body {
+  background-color: #000000;
+  margin: 0; /* Pour éviter un petit espace par défaut autour */
+  font-family: Arial, sans-serif; /* Optionnel, pour la police */
+}
+
+.main-container {
+      max-width: 60%;      /* Largeur max fixe */
+      margin: 0 auto;         /* Centre horizontalement */
+      padding: 0px;
+      background-color: #000000; /* Fond gris très foncé */
+      border-radius: 8px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+.nav-logo {
+  width: 50px;   /* Largeur souhaitée */
+  height: 50px;  /* Hauteur souhaitée (ou auto pour garder proportions) */
+  image-rendering: pixelated;  /* Utilise nearest neighbor en modern CSS */
+  padding : 10px
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center; /* aligne verticalement logo et texte */
+    gap: 10px; /* espace entre logo et texte */
+}
+
+.nav-title {
+  color : white;
+  font-weight: bold;
+  font-size: 36px;
+  padding: 0px;
+  margin: 0px;
+}
+
+.nav-menu-horizontal {
+  background-color: #101013;
+  list-style: none;
+  padding: 10px;
+  margin: 0px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-radius: 30px;
+  max-width: 100%;
+}
+
+.nav-menu-item {
+  flex: 1; /* chaque bouton prend la même part */
+}
+
+.nav-menu-item a {
+  display: block; /* Le lien remplit le li */
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 10px; /* Hauteur uniforme */
+  border-radius: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  font-size: clamp(1rem, 1vw, 1.2rem);
+  text-align: center; /* Centre le texte */
+}
+
+.nav-menu-item a:hover,
+.nav-menu-item a:focus {
+  background-color: #5dd260;
+  outline: none;
+}
+
+.nav-menu-item a, 
+.nav-menu-item a:link, 
+.nav-menu-item a:visited, 
+.nav-menu-item a:hover, 
+.nav-menu-item a:active {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+
+footer {
+    background-color: #000000;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+.continous-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+  width: 100%;           /* largeur totale du bloc parent */
+  box-sizing: border-box; /* inclut les padding/border dans la largeur */
+}
+
+.gray-box {
+  background-color: #101013;
+  padding: 10px 0px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: block;
+  border-radius: 30px; /* Coins arrondis */
+  width: 100%
+}
+
+.dynamic {
+  display: flex;  
+  align-items: center;
+  padding: 10px 10px;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+
+.link {
+    text-decoration: none;
+    color: inherit;
+    border-radius: 30px;
+    display: block;
+}
+
+.link:hover {
+    background-color: #461f43; /* #395371fd;*/
+    text-decoration: none;
+}
+
+.small-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: clamp(0.9rem, 0.95vw, 1rem);
+}
+
+.small-bold-text {
+  color: white;
+  font-size: clamp(0.9rem, 0.95vw, 1rem);
+  font-weight: bold;
+  margin: 10px 20px;
+}
+
+.medium-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: 24px;
+  font-size: clamp(1rem, 0.75vw, 1.5rem);
+}
+
+.medium-bold-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: clamp(1rem, 1vw, 1.5rem);
+  font-weight: bold;
+}
+
+.big-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: clamp(1rem, 1.5vw, 2.2rem);
+}
+
+.big-bold-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: clamp(1rem, 1.5vw, 2.2rem);
+  font-weight: bold;
+}
+
+.green {
+  color:#4caf50;
+  background-color: #5dd260;
+}
+
+.gray {
+  color:#B0BAC5
+}
+
+.nomargin{
+  margin:0px 0px;
+}
+
+.nogap{
+  gap: 0px;
+}
+
+.nopadding{
+  padding: 0px;
+}
+
+.text-overflow{
+  white-space: nowrap;       /* empêche le passage à la ligne */
+  overflow: hidden;          /* cache le dépassement */
+  text-overflow: ellipsis;   /* ajoute "..." si le texte est trop long */
+  max-width: 100%;           /* s’assure que le texte ne dépasse pas le conteneur */
+  display: block;  
+}
+
+.center {
+  display: flex;
+  justify-content: center; /* centre horizontalement */
+  align-items: center;     /* centre verticalement si hauteur définie */
+  text-align: center;      /* centre le texte si besoin */
+  width: 100%;
+}
+
+.btn-discord {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #5865F2;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  margin: 10px 20px;
+}
+
+.btn-discord:hover {
+  background-color: #4752c4;
+}
+
+.commands-table {
+  width: calc(100% - 30px);
+  border-collapse: collapse;
+  margin: 20px auto;
+}
+
+.commands-table th,
+.commands-table td {
+  border: 1px solid #333;
+  padding: 8px 12px;
+  text-align: left;
+  color: white;
+}
+
+.commands-table th {
+  background-color: #202024;
+  font-weight: bold;
+}
+
+.commands-table tr:nth-child(even) {
+  background-color: #151517;
+}
+
+
+.horizontal-list {
+  list-style: none;          
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;          
+  align-items: center;       
+  gap: 15px;                 
+}
+
+.horizontal-list li {
+  display: flex;             
+  align-items: center;       
+}
+
+.horizontal-list li:last-child {
+    flex: 1; /* le texte prend tout l'espace restant */
+    min-width: 0; /* nécessaire pour que le flex shrink fonctionne et ellipsis marche */
+}
+
+.nowrap{
+  flex-wrap: nowrap;
+}
+
+/* Avatar rond */
+.small-pp {
+  display: flex;
+  border-radius: 30px;
+  width: 60px;
+  height: 60px;
+  image-rendering: pixelated;
+}
+
+.big-pp {
+  display: flex;
+  border-radius: 70px;
+  width: 120px;
+  height: 120px;
+  margin-left: 10px;
+  image-rendering: pixelated;
+}
+
+.square{
+  border-radius: 0px;
+}
+
+.border-server{
+  border-radius: 15px;
+  margin-left: 5px;
+}
+
+/* Rang - largeur fixe pour centrer */
+.rank {
+  display: inline-block;
+  width: 30px;       
+  text-align: center;
+}
+
+.username-fixed {
+  display: inline-block;
+  width: clamp(130px, 20vw, 280px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hours-fixed {
+  display: inline-block;
+  width: clamp(80px, 20vw, 120px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.messages-fixed {
+  display: inline-block;
+  width: clamp(120px, 20vw, 200px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-form {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.top-label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+  color: #B0BAC5;
+  margin: 20px 0px;
+}
+
+.top-select {
+  padding: 0.4rem 0.6rem;
+  background-color: #222329;
+  border-radius: 15px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+  color: #B0BAC5;
+  border: none;
+  outline: none;
+  font-weight: bold;
+  margin: 5px;
+  margin-right: 20px;
+}
+
+.top-select:focus {
+  outline: none;
+  border: none;
+  outline: none;
+}
+
+.top-button {
+  background-color: #461f43;
+  color: white;
+  border: none;
+  padding: 0.6rem 0.8rem;
+  margin: 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.top-button:hover {
+  background-color: #6c3167;
+}
+
+/*NAVIGATION BAR DE SELECTION ENTRE UTILISATEURS ET SERVEURS SUR PAGE TOP*/
+.nav-menu-horizontal-short {
+  background-color: #222329;
+  list-style: none;
+  padding: 5px;
+  margin-bottom: 5px;
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-radius: 30px;
+  width: max-content;
+}
+
+.nav-menu-item-short a {
+  display: inline-flex;
+  background-color: #222329;
+  color: #B0BAC5;
+  padding: 7px 10px; /* Hauteur uniforme */
+  border-radius: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  text-align: center; /* Centre le texte */
+}
+
+.nav-menu-item-short a:hover,
+.nav-menu-item-short a:focus {
+  background-color: #454752;
+  outline: none;
+}
+
+.nav-menu-item-short a, 
+.nav-menu-item-short a:link, 
+.nav-menu-item-short a:visited, 
+.nav-menu-item-short a:hover, 
+.nav-menu-item-short a:active {
+  color: #B0BAC5;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.nav-menu-item-short-selected a{
+  background-color: #461f43;
+}
+
+.nav-menu-item-short-selected a:hover{
+  background-color: #461f43;
+}
+
+.search-input {
+    padding: 5px 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    background-color: #222329;
+    border-radius: 15px;
+    outline: none;
+    border: 0px solid ;
+    box-sizing: border-box; 
+}
+
+.search-input:focus {
+    border: 0px solid ; /* couleur de bordure quand actif */
+    background-color: #2a2d33;
+}
+
+.stats-box {
+  display: flex;
+  flex-wrap: wrap;     /* autorise le retour à la ligne */
+  align-items: center;
+  gap: 15px;           /* espace entre les éléments */
+}
+
+/* Adaptation mobile */
+@media (max-width: 768px) {
+  .main-container {
+    max-width: 95%;  /* prend toute la largeur sur téléphone */
+    border-radius: 0; /* optionnel : supprime arrondis sur mobile */
+  }
+  .big-pp {
+    max-width: 90px;
+    max-height: 90px;
+  }
+  .top-button {
+    margin: 0rem;
+  }
+}
+

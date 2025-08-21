@@ -15,4 +15,4 @@ Gimme the time and stats.... I need to know how much time I've wasted on this Di
 
 ## MADE BY
 
-ChatGPT, Mike and BugPig
+Mike and BugPig

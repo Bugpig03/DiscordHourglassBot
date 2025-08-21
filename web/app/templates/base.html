@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+{% set fallback_avatar = url_for('static', filename='images/base_avatar_big.png') %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hourglass Bot{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <div class="nav-brand">
+                <img src="{{ url_for('static', filename='images/hourglass_logo_white.png') }}" 
+                    alt="Logo" class="nav-logo">
+                <p class="nav-title">Hourglass</p>
+            </div>
+        </header>
+
+            <nav>
+                <ul class="nav-menu-horizontal">
+                    <li class="nav-menu-item"><a href="{{ url_for('home.home') }}">Accueil</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('top.top_users') }}">Top</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('graphs.graphs') }}">Graphiques</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('users.users') }}">Utilisateurs</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('servers.servers') }}">Serveurs</a></li>
+                    <li class="nav-menu-item"><a href="{{ url_for('home.commands') }}">Commandes</a></li>
+                </ul>
+            </nav>
+
+            <!-- Contenu principal -->
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+    </div>
+    <footer>
+        <di class="small-text gray">Hourglass Bot - powered by Mike Server & SnoutLabs</di>
+    </footer>
+</body> 
+</html>
