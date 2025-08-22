@@ -8,9 +8,9 @@ if debug == True:
     load_dotenv()
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY")
-    DB_NAME = os.getenv("POSTGRESQL_DBNAME")
-    DB_USER = os.getenv("POSTGRESQL_USER")
-    DB_PASSWORD = os.getenv("POSTGRESQL_PASSWORD")
-    DB_HOST = os.getenv("POSTGRESQL_HOST")
-    DB_PORT = int(os.getenv("POSTGRESQL_PORT"))
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    DB_NAME = os.environ.get("POSTGRESQL_DBNAME")
+    DB_USER = os.environ.get("POSTGRESQL_USER")
+    DB_PASSWORD = os.environ.get("POSTGRESQL_PASSWORD")
+    DB_HOST = os.environ.get("POSTGRESQL_HOST")
+    DB_PORT = int(os.environ.get("POSTGRESQL_PORT"))
