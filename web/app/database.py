@@ -2,18 +2,15 @@
 from peewee import *
 from datetime import datetime
 import os
-
-from dotenv import load_dotenv
-
-load_dotenv()
+from app.config import Config
 
 # --- Configuration de la connexion PostgreSQL ---
 db = PostgresqlDatabase(
-    os.getenv("POSTGRESQL_DBNAME"),
-    user=os.getenv("POSTGRESQL_USER"),
-    password=os.getenv("POSTGRESQL_PASSWORD"),
-    host=os.getenv("POSTGRESQL_HOST"),
-    port=os.getenv("POSTGRESQL_PORT")
+    Config.DB_NAME,
+    user=Config.DB_USER,
+    password=Config.DB_PASSWORD,
+    host=Config.DB_HOST,
+    port=Config.DB_PORT
 )
 
 # --- Base model pour centraliser la DB ---

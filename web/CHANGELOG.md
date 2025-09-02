@@ -1,5 +1,22 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 2.0.1 - API and Fixes - 28/08/2025
+
+### New Features
+- Added API for Hourglass (because why not?)
+- Added 404 page error
+
+### Bug Fixes
+- Fixed crash when a non-existent username or server name is set on the profile page
+- Updated descriptions on the home page and other pages
+- Fixed typos
+- Adjusted chart scales to be consistent with actual time intervals
+- Fixed server avatar not loading on the server profile page
+- Rounded activity values to show only one decimal
+- Fixed miscalculation of activity values
+- Improved top page responsiveness to display only one row per user (with hours and messages)
+- Set the first date on charts to the bot's first day (28/04/2024)
+
 ## Version 2.0.0 - UI Rework - 21/08/2025
 
 ### Changes and Fixes
@@ -46,7 +63,7 @@
 - Added more detailed stats, including:
   - Activity.
   - Global statistics.
-  - A scrollable list of serve
+  - A scrollable list of servers
 
 ## Version 1.4.0 - More Sizes and Time - 23/10/2024
 

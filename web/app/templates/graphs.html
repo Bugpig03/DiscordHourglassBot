@@ -3,6 +3,7 @@
 {% block content %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
 <div class="gray-box">
     <div class="medium-bold-text">Graphique des heures enregistrées par Hourglass</div>
@@ -19,17 +20,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const ctx = canvas.getContext('2d');
 
-    // Convertir les dates YYYY-MM-DD en format français
-    const labelsFR = chartData.labels.map(dateStr => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        // exemple : "1 octobre 2024"
-    });
-
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labelsFR,
+            labels: chartData.labels, // dates au format YYYY-MM-DD
             datasets: [{
                 label: 'Heures',
                 data: chartData.hours,
@@ -43,11 +37,33 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             plugins: {
                 legend: { display: true },
-                tooltip: { enabled: true }
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        title: (items) => {
+                            const date = new Date(items[0].parsed.x);
+                            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                        }
+                    }
+                }
             },
             scales: {
-                x: { title: { display: true, text: 'Mois' } },
-                y: { title: { display: true, text: 'Heures' }, beginAtZero: true }
+                x: {
+                    type: 'time',
+                    time: { unit: 'day' },
+                    ticks: {
+                        source: 'data',
+                        callback: (val, index, ticks) => {
+                            const date = new Date(ticks[index].value);
+                            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                        }
+                    },
+                    title: { display: true, text: 'Temps' }
+                },
+                y: {
+                    title: { display: true, text: 'Heures' },
+                    beginAtZero: true
+                }
             }
         }
     });

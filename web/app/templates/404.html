@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="gray-box only-center">
+  <div class="big-bold-text gray">Page introuvable :/</div>
+  <img src="{{ url_for('static', filename='images/404.png') }}" 
+                    alt="404" class="error-img">
+  <div class="big-text gray">La page que vous avez recherchée n’a pas été trouvée. Veuillez retourner à la 
+    <a href="{{ url_for('home.home') }}" class="simplelink">page d’accueil</a>.
+  </div>
+</div>
+
+{% endblock %}

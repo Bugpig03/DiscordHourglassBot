@@ -169,9 +169,20 @@ footer {
   font-weight: bold;
 }
 
+.giant-bold-text {
+  margin: 10px 20px;
+  color: white;
+  font-size: clamp(2.2rem, 1.5vw, 5rem);
+  font-weight: bold;
+}
+
 .green {
   color:#4caf50;
   background-color: #5dd260;
+}
+
+.red {
+  color:#f74242;
 }
 
 .gray {
@@ -204,6 +215,16 @@ footer {
   align-items: center;     /* centre verticalement si hauteur définie */
   text-align: center;      /* centre le texte si besoin */
   width: 100%;
+}
+
+.only-center {
+  align-items: center;
+  text-align: center;
+}
+
+.error-img {
+  max-width: 80%;
+  height: auto;
 }
 
 .btn-discord {
@@ -306,7 +327,7 @@ footer {
 
 .username-fixed {
   display: inline-block;
-  width: clamp(130px, 20vw, 280px); /* min = 120px, adaptatif = 20% écran, max = 200px */
+  width: clamp(130px, 20vw, 250px); /* min = 120px, adaptatif = 20% écran, max = 200px */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -457,6 +478,17 @@ footer {
   align-items: center;
   gap: 15px;           /* espace entre les éléments */
 }
+
+.simplelink {
+    display: inline-block;
+    color: #4caf50;
+    font-weight: bold;
+    transition: background 0.3s;
+  }
+
+  .simplelink:hover {
+    color: #5dd260
+  }
 
 /* Adaptation mobile */
 @media (max-width: 768px) {

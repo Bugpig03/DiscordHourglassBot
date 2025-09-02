@@ -1,17 +1,20 @@
 # WEB APP
 
-## DESCRIPTION
+## Description
 
-Website to easily view stats from the discord bot
+A web application to easily view statistics from the Discord bot.
 
-## DOCKER INSTALLATION
+## Deployment
 
-Configuration setup for Docker deployment
+To deploy, use the Docker image: `bugpig/hourglass_web`
 
-### Docker Arguments to Define
+### Environment Variables
 
-- **POSTGRESQL_DBNAME**: → Your PostgreSQL database name
-- **POSTGRESQL_USER**: → Your PostgreSQL user
-- **POSTGRESQL_PASSWORD**: → Your PostgreSQL password
-- **POSTGRESQL_HOST**: → Host of your PostgreSQL server
-- **POSTGRESQL_PORT**: → Port number of your PostgreSQL server
+Set the following environment variables before running the application:
+
+- **POSTGRESQL_DBNAME** → Your PostgreSQL database name
+- **POSTGRESQL_USER** → Your PostgreSQL username
+- **POSTGRESQL_PASSWORD** → Your PostgreSQL password
+- **POSTGRESQL_HOST** → Host of your PostgreSQL server
+- **POSTGRESQL_PORT** → Port number of your PostgreSQL server
+- **SECRET_KEY** → Secret key for Flask

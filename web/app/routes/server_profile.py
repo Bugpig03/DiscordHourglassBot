@@ -6,16 +6,18 @@ server_profile_bp = Blueprint("server_profile", __name__)
 @server_profile_bp.route("/server/<server_id>", methods=["GET"])
 def server(server_id):
     search_query = request.args.get("q", "").strip()
-    #if server_id is None: # check si user_id valide
-    #    return redirect(url_for('home'))
-    
+
+    if get_servername_by_server_id(server_id) is None: # check si server_id valide
+       return redirect(url_for('home.home'))
+
+    get_servername_by_server_id(server_id)
     stats = load(server_id) # si oui alors load stats
     return render_template("server_profile.html", stats=stats)
 
 def load(server_id, search_query=""):
     
     stats = {
-            #"avatar_url": get_user_avatar_url(server_id),
+            "avatar_url": get_server_avatar_url(server_id),
             "servername": get_servername_by_server_id(server_id),
             "rank": get_server_rank(server_id),
             "total_server": get_global_nb_server(),

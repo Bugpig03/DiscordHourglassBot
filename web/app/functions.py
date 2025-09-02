@@ -54,6 +54,12 @@ def get_user_id_by_username(username):
 
 # RECUPERE LE SERVERNAME DEPUIS LE SERVER ID
 def get_servername_by_server_id(server_id):
+    if isinstance(server_id, str):
+        if not server_id.isdigit():
+            return None
+        server_id = int(server_id)
+    elif not isinstance(server_id, int):
+        return None
     server = Servers.select().where(Servers.server_id == server_id).first()
     if server:
         return server.servername
@@ -146,8 +152,14 @@ def get_activity_sum_last_X_days(user_id, days, server_id=None):
         (HistoricalStats.user_id == user_id) &
         (fn.DATE(HistoricalStats.created_at) == oldest_date)
     )
+
+    sum_condition_now = (
+        (Stats.user_id == user_id)
+    )
+
     if server_id is not None:
         sum_condition &= (HistoricalStats.server_id == server_id)
+        sum_condition_now &= (Stats.server_id == server_id)
 
     result = (HistoricalStats
               .select(
@@ -158,9 +170,22 @@ def get_activity_sum_last_X_days(user_id, days, server_id=None):
               .dicts()
               .first())
 
+    result_now = (Stats
+        .select(
+            fn.SUM(Stats.seconds).alias("total_seconds"),
+            fn.SUM(Stats.messages).alias("total_messages")
+        )
+        .where(sum_condition_now)
+        .dicts()
+        .first()
+    )
+
+    seconds = result_now["total_seconds"] - result["total_seconds"]
+    messages = result_now["total_messages"] - result["total_messages"]
+
     return {
-        "seconds": result["total_seconds"] or 0,
-        "messages": result["total_messages"] or 0
+        "seconds": seconds or 0,
+        "messages": messages or 0
     }
 
 
@@ -257,6 +282,10 @@ def get_server_activity_sum_last_X_days(server_id, days):
         (fn.DATE(HistoricalStats.created_at) == oldest_date)
     )
 
+    sum_condition_now = (
+        (Stats.server_id == server_id)
+    )
+
     result = (HistoricalStats
               .select(
                   fn.SUM(HistoricalStats.seconds).alias("total_seconds"),
@@ -266,9 +295,22 @@ def get_server_activity_sum_last_X_days(server_id, days):
               .dicts()
               .first())
 
+    result_now = (Stats
+        .select(
+            fn.SUM(Stats.seconds).alias("total_seconds"),
+            fn.SUM(Stats.messages).alias("total_messages")
+        )
+        .where(sum_condition_now)
+        .dicts()
+        .first()
+    )
+
+    seconds = result_now["total_seconds"] - result["total_seconds"]
+    messages = result_now["total_messages"] - result["total_messages"]
+
     return {
-        "seconds": result["total_seconds"] or 0,
-        "messages": result["total_messages"] or 0
+        "seconds": seconds or 0,
+        "messages": messages or 0
     }
 
 
@@ -343,7 +385,7 @@ def get_first_of_month_hours_sum(server_id=None, user_id=None):
 
     # ajout du debut du bot ici
     result.append({
-            "month": "2024-04-01",
+            "month": "2024-04-28",
             "total_hours": 0.0
         })
     

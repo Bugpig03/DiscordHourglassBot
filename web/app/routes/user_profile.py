@@ -9,7 +9,7 @@ def profile(username):
     user_id = get_user_id_by_username(username)
 
     if user_id is None: # check si l'utilisateur existe
-        return redirect(url_for('home'))
+        return redirect(url_for('home.home'))
     
     stats = load(user_id,username) # si oui alors load stats
     return render_template("user_profile.html", stats=stats)

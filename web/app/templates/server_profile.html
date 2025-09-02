@@ -3,7 +3,8 @@
 {% block content %}
 <br>
 <ul class="horizontal-list">
-    <li><img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp border-server" alt="avatar"></li>
+    <li><img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp border-server" alt="avatar"
+                    onerror="this.onerror=null; this.src='{{ fallback_avatar }}';"></li>
     <li><div class="big-bold-text gray">{{stats.servername}}</div></li>
 </ul>
 <br>
@@ -12,7 +13,7 @@
     <div class="big-bold-text">{{ stats.rank }}/{{ stats.total_server }}</div>
     <div class="medium-bold-text gray">{{ stats.total_time }}</div>
     <div class="medium-bold-text gray">{{ stats.total_message }} messages</div>
-    <div class="medium-bold-text gray">{{ stats.total_time_last_30d.seconds / 3600 }} h les 30 derniers jours</div>
+    <div class="medium-bold-text gray">{{ (stats.total_time_last_30d.seconds / 3600) | round(1)}} h les 30 derniers jours</div>
 </div>
 <div class="medium-bold-text">Utilisateurs</div>
 <div class="continous-container">
