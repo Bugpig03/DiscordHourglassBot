@@ -6,7 +6,7 @@ Hourglass propose une API publique, sans clé afin de récupérer des données (
 ## Base URL
 
 ```http
-https://hourglass.mike-server.fr/api/
+`https://hourglass.mike-server.fr/api/`
 ```
 
 ## Endpoints
@@ -27,7 +27,7 @@ Récuperer tous les Utilisateurs de la base de données
   },
   {
     "avatar": null,
-    "user_id": 0987654321,
+    "user_id": 987654321,
     "username": "username01"
   }
 ]
@@ -84,7 +84,7 @@ GET /api/stats/${user_id}
   "scope": "user:1234567890",
   "score": 0,
   "seconds": 3000,
-  "user_id": 1234567890"
+  "user_id": 1234567890
 }
 ```
 ### Statistiques d'un utilisateur sur un serveur
