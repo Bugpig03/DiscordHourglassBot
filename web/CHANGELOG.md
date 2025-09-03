@@ -1,6 +1,6 @@
 # Hourglass - WEB APP - CHANGELOG
 
-## Version 2.0.1 - API and Fixes - 28/08/2025
+## Version 2.1.0 - API and Fixes - 28/08/2025
 
 ### New Features
 - Added API for Hourglass (because why not?)
