@@ -129,6 +129,11 @@ footer {
     text-decoration: none;
 }
 
+.micro-text {
+  margin: 0px 0px;
+  font-size: clamp(0.3rem, 0.6vw, 0.8rem);
+}
+
 .small-text {
   margin: 10px 20px;
   color: white;
@@ -490,6 +495,9 @@ footer {
     color: #5dd260
   }
 
+  .leftmargin {
+    margin-left: 10px;
+  }
 /* Adaptation mobile */
 @media (max-width: 768px) {
   .main-container {

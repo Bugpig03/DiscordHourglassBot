@@ -399,3 +399,63 @@ def get_first_of_month_hours_sum(server_id=None, user_id=None):
     result = sorted(result, key=lambda x: x["month"])
 
     return result
+
+
+def get_monthly_hours_diff(server_id=None, user_id=None):
+    """
+    Calcule le nombre d'heures passées chaque mois,
+    en prenant la différence entre les totaux du 1er de chaque mois.
+    Exemple : (valeur du 01/02) - (valeur du 01/01)
+    """
+    # Étape 1 : Récupérer les totaux au 1er de chaque mois
+    query = (HistoricalStats
+        .select(
+            fn.DATE_TRUNC('month', HistoricalStats.created_at).alias('month_start'),
+            fn.SUM(HistoricalStats.seconds).alias('total_seconds')
+        )
+        .where(SQL("EXTRACT(DAY FROM created_at) = 1"))
+    )
+
+    if server_id:
+        query = query.where(HistoricalStats.server_id == server_id)
+    if user_id:
+        query = query.where(HistoricalStats.user_id == user_id)
+
+    query = query.group_by(fn.DATE_TRUNC('month', HistoricalStats.created_at)) \
+                 .order_by(fn.DATE_TRUNC('month', HistoricalStats.created_at))
+
+    # Étape 2 : Transformer les résultats en liste triée
+    monthly_data = []
+    for row in query:
+        monthly_data.append({
+            "month": row.month_start.strftime("%Y-%m-%d"),
+            "total_hours": round(row.total_seconds / 3600, 1)
+        })
+
+    # Ajouter la valeur actuelle (aujourd’hui)
+    current_total = (Stats
+        .select(fn.SUM(Stats.seconds))
+        .scalar() or 0)
+
+    monthly_data.append({
+        "month": datetime.now().strftime("%Y-%m-%d"),
+        "total_hours": round(current_total / 3600, 1)
+    })
+
+    # Étape 3 : Trier chronologiquement
+    monthly_data = sorted(monthly_data, key=lambda x: x["month"])
+
+    # Étape 4 : Calculer les différences entre mois consécutifs
+    monthly_differences = []
+    for i in range(1, len(monthly_data)):
+        prev = monthly_data[i - 1]
+        curr = monthly_data[i]
+        diff = round(curr["total_hours"] - prev["total_hours"], 1)
+
+        # On ne garde que les mois avec progression positive
+        monthly_differences.append({
+            "month": curr["month"],
+            "hours_this_month": max(diff, 0)
+        })
+    print(monthly_differences)
+    return monthly_differences

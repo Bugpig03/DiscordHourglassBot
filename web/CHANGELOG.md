@@ -1,5 +1,18 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 2.2.0 - Monthly Charts & Server Pie Charts - 10/11/2025
+
+### New Features
+- AAdded monthly charts based on hours
+- Added server pie charts based on hours
+
+### Minor changes
+- Change some text on the home page
+- Added version number to the web app footer
+
+### Bug Fixes
+- Fixed server profile picture dimensions and shape on the profile page
+
 ## Version 2.1.0 - API and Fixes - 28/08/2025
 
 ### New Features
