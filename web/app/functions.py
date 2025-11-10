@@ -405,7 +405,8 @@ def get_monthly_hours_diff(server_id=None, user_id=None):
     """
     Calcule le nombre d'heures passées chaque mois,
     en prenant la différence entre les totaux du 1er de chaque mois.
-    Exemple : (valeur du 01/02) - (valeur du 01/01)
+    La différence est associée au mois de départ.
+    Exemple : (valeur du 01/02) - (valeur du 01/01) => heures de janvier
     """
     # Étape 1 : Récupérer les totaux au 1er de chaque mois
     query = (HistoricalStats
@@ -452,10 +453,10 @@ def get_monthly_hours_diff(server_id=None, user_id=None):
         curr = monthly_data[i]
         diff = round(curr["total_hours"] - prev["total_hours"], 1)
 
-        # On ne garde que les mois avec progression positive
+        # On associe la différence au mois de départ
         monthly_differences.append({
-            "month": curr["month"],
+            "month": prev["month"],
             "hours_this_month": max(diff, 0)
         })
-    print(monthly_differences)
+
     return monthly_differences

@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 2.2.1 - Fixes montly charts - 10/11/2025
+
+### Bug Fixes
+- Fixed month offset in the monthly charts
+
 ## Version 2.2.0 - Monthly Charts & Server Pie Charts - 10/11/2025
 
 ### New Features
