@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 2.3.2 - Crash profile server - 25/01/2026
+### Bug Fixes
+- Patch for crash when click on server profile
+
+## Version 2.3.1 - Cache Cache - 25/01/2026
+### Bug Fixes
+- Fixed cache update when new version of web app
+
 ## Version 2.3.0 - New Theme New Look ! - 25/01/2026
 ### Changes
 - Updated overall UI theme and design with new info boxes and fresh icons (Blue theme!)

@@ -36,6 +36,8 @@ def format_date_heure_fr(dt):
 
 # CONVERTI LE FORMAT DE DATE BDD EN FORMAT FR
 def format_date_fr(dt):
+    if dt is None:
+        return " "
     mois = [
         "janvier", "février", "mars", "avril", "mai", "juin",
         "juillet", "août", "septembre", "octobre", "novembre", "décembre"

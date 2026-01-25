@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hourglass Bot{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='styles.css', v=3) }}"
+    >
 </head>
 <body>
     <div class="main-container">
@@ -36,7 +39,7 @@
     </div>
     <footer>
         <div class="small-text gray">Hourglass Bot - powered by Mike Server & SnoutLabs</div>
-        <div class="micro-text gray">version 2.3.0 - 25/01/2026</div>
+        <div class="micro-text gray">version 2.3.2 - 25/01/2026</div>
     </footer>
 </body> 
 </html>
