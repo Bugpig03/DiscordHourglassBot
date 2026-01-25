@@ -48,7 +48,7 @@
 <div class="gray-box link">
     <a class="link" href="{{ url_for('user_profile.profile', username=user['username']) }}">
       <div class="stats-box">
-          <div class="big-bold-text rank">{{ loop.index }}</div>
+          <div class="big-bold-text rank">{{ loop.index + ((request.args.get('page', 1)|int - 1) * 20) }}</div>
           <img src="{{ user.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp" alt="avatar"
           onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
           <div class="medium-bold-text username-fixed ">{{ user.username }}</div>
@@ -58,5 +58,28 @@
     </a>
 </div>
 {% endfor %}
+<div class="gray-box page-box">
+{% set current_page = request.args.get('page', 1)|int %}
+{% if current_page > 1 %}
+  <a class="page-link" href="{{ url_for('top.top_users', 
+      page=(request.args.get('page', 1)|int) - 1, 
+      period=request.args.get('period'), 
+      sort_by=request.args.get('sort_by'), 
+      server_id=request.args.get('server_id')
+  ) }}">{{ (request.args.get('page', 1)|int)-1 }}</a>
+{% endif %}
+
+<a class="page-link-selected">{{ (request.args.get('page', 1)|int) }}</a>
+
+{% if current_page < total_pages %}
+<a class="page-link" href="{{ url_for('top.top_users', 
+    page=(request.args.get('page', 1)|int) + 1, 
+    period=request.args.get('period'), 
+    sort_by=request.args.get('sort_by'), 
+    server_id=request.args.get('server_id')
+) }}">{{ (request.args.get('page', 1)|int)+1 }}</a>
+{% endif %}
+</div>
+
 
 {% endblock %}

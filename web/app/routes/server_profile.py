@@ -24,7 +24,8 @@ def load(server_id, search_query=""):
             "total_time": ConvertSecondsToTime(get_total_seconds_by_server_id(server_id)),
             "total_message": get_total_message_by_server_id(server_id),
             "total_time_last_30d": get_server_activity_sum_last_X_days(server_id,30),
-            "users": load_users_from_server(server_id, search_query)
+            "users": load_users_from_server(server_id, search_query),
+            "join_date": get_user_join_date(1210665993328926750,server_id), # ici user_id de hourglass pour savoir date quand il rejoint (donc création du serveur sur le bot)
             }
     return stats
 

@@ -8,19 +8,20 @@ top_bp = Blueprint("top", __name__)
 
 @top_bp.route("/top/users", methods=["GET"])
 def top_users():
-    users = load_users()
+
+    users, total_pages = load_users()
 
     # Récupérer tous les serveurs distincts
     servers = Servers.select().order_by(Servers.servername)
 
-    return render_template("top_users.html", users=users, servers=servers)
+    return render_template("top_users.html", users=users, servers=servers,total_pages=total_pages)
 
 @top_bp.route("/top/servers", methods=["GET"])
 def top_servers():
 
-    servers = load_servers()
+    servers, total_pages = load_servers()
 
-    return render_template("top_servers.html", servers=servers)
+    return render_template("top_servers.html", servers=servers,total_pages=total_pages)
 
 
 
@@ -28,6 +29,7 @@ def load_users():
     period = request.args.get("period", "all")
     sort_by = request.args.get("sort_by", "hours")
     server_id = request.args.get("server_id", "all")
+    page = request.args.get('page', 1, type=int)
 
     # Conversion période -> nombre de jours
     period_map = {
@@ -89,18 +91,33 @@ def load_users():
             "messages": total_messages
         })
 
-    # Tri final
+    # Tri par message ou heures
     if sort_by == "messages":
         results.sort(key=lambda x: x["messages"], reverse=True)
     else:
         results.sort(key=lambda x: x["seconds"], reverse=True)
 
-    return results
+    nb_user_per_page = 20
+
+    # Sécurité page vérifie si pas inf 1 et sup total de page
+    # Formule : (Total + TaillePage - 1) // TaillePage
+    total_pages = (len(results) + nb_user_per_page - 1) // nb_user_per_page
+    if page < 1 :
+        page = 1
+    elif page > total_pages:
+        page = total_pages
+
+    # Tri pages (utilisateur a afficher sur ma page chosi)
+    results = results[(page-1)*nb_user_per_page:page*nb_user_per_page]
+
+
+    return results, total_pages
 
 
 def load_servers():
     period = request.args.get("period", "all")
     sort_by = request.args.get("sort_by", "hours")
+    page = request.args.get('page', 1, type=int)
 
     # Conversion période -> nombre de jours
     period_map = {
@@ -144,10 +161,23 @@ def load_servers():
             "messages": total_messages
         })
 
-    # Tri final
+    # Tri message ou par heure
     if sort_by == "messages":
         results.sort(key=lambda x: x["messages"], reverse=True)
     else:
         results.sort(key=lambda x: x["seconds"], reverse=True)
 
-    return results
+        nb_server_per_page = 20
+    
+    # Sécurité page vérifie si pas inf 1 et sup total de page
+    total_pages = (len(results) + nb_server_per_page - 1) // nb_server_per_page
+    if page < 1 :
+        page = 1
+    elif page > total_pages:
+        page = total_pages
+
+    # Tri page
+    results = results[(page-1)*nb_server_per_page:page*nb_server_per_page]
+
+
+    return results, total_pages

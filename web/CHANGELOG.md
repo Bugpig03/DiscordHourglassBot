@@ -1,5 +1,20 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 2.3.0 - New Theme New Look ! - 25/01/2026
+### Changes
+- Updated overall UI theme and design with new info boxes and fresh icons (Blue theme!)
+- Redesigned the home page for better usability
+- Added pagination to Top, Users, and Servers pages for improved performance and clarity
+
+### Minor changes
+- Renamed “Docs” page to “Support” page
+- Added a link to the Official Discord Server in the new Support page
+- Redesigned user profile page
+- Redesigned server profile page
+- Server lists in user profiles are now sorted by date
+- Added join date information on server and user pages
+- Replaced unknown profile pictures with a dinosaur icon in preparation for incognito mode
+
 ## Version 2.2.1 - Fixes montly charts - 10/11/2025
 
 ### Bug Fixes
@@ -8,7 +23,7 @@
 ## Version 2.2.0 - Monthly Charts & Server Pie Charts - 10/11/2025
 
 ### New Features
-- AAdded monthly charts based on hours
+- Added monthly charts based on hours
 - Added server pie charts based on hours
 
 ### Minor changes

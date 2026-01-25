@@ -5,17 +5,66 @@
 <ul class="horizontal-list">
     <li><img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp border-server" alt="avatar"
                     onerror="this.onerror=null; this.src='{{ fallback_avatar }}';"></li>
-    <li><div class="big-bold-text gray">{{stats.servername}}</div></li>
+    <li><div class="giant-bold-text gray">{{stats.servername}}</div></li>
 </ul>
-<br>
-<div class="medium-bold-text">Statistiques</div>
-<div class="gray-box stats-box">
-    <div class="big-bold-text">{{ stats.rank }}/{{ stats.total_server }}</div>
-    <div class="medium-bold-text gray">{{ stats.total_time }}</div>
-    <div class="medium-bold-text gray">{{ stats.total_message }} messages</div>
-    <div class="medium-bold-text gray">{{ (stats.total_time_last_30d.seconds / 3600) | round(1)}} h les 30 derniers jours</div>
+<div class="big-bold-text more-top-margin">Statistiques</div>
+
+<div class="home-stats-container">
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/rank.png') }}" alt="Icon Rank">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Rang du Serveur</span>
+      <span class="home-stats-value">{{ stats.rank }}/{{ stats.total_server }}</span>
+    </div>
+  </div>
+
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/30day.png') }}" alt="Icon 30days">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Activité les 30 derniers jours</span>
+      <span class="home-stats-value">{{ (stats.total_time_last_30d.seconds / 3600) | round(1)}}</span>
+    </div>
+  </div>
+
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/join.png') }}" alt="Icon join">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Bot présent depuis</span>
+      <span class="home-stats-value">{{ stats.join_date }}</span>
+    </div>
+  </div>
 </div>
-<div class="medium-bold-text">Utilisateurs</div>
+
+
+<div class="home-stats-container">
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/hourglass.png') }}" alt="Icon Hourglass">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Temps</span>
+      <span class="home-stats-value">{{ stats.total_time }}</span>
+    </div>
+  </div>
+
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon messages">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Messages</span>
+      <span class="home-stats-value">{{ stats.total_message }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="big-bold-text more-top-margin">Utilisateurs sur le serveur</div>
 <div class="continous-container">
 {% for user in stats.users %}
     <div class="gray-box dynamic link">

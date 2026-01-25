@@ -5,20 +5,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
-<div class="gray-box">
-    <div class="medium-bold-text">Graphique des heures enregistrées par Hourglass</div>
+<div class="gray-box small-border-radius">
+    <div class="medium-bold-text">Heures enregistrées par Hourglass</div>
     <canvas id="myChart" data-chart='{{ chart_data_json|safe }}' style="width: 80%; max-width: 100%; height: 400px;"></canvas>
 </div>
 
-<div class="gray-box">
-    <div class="medium-bold-text">Heures réalisées chaque mois</div>
+<div class="gray-box small-border-radius">
+    <div class="medium-bold-text">Heures par mois</div>
     <canvas id="monthlyChart"
             data-chart='{{ monthly_chart_data_json|safe }}'
             style="width: 80%; max-width: 100%; height: 400px;"></canvas>
 </div>
 
-<div class="gray-box">
-    <div class="medium-bold-text">Répartition des heures par serveur</div>
+<div class="gray-box small-border-radius">
+    <div class="medium-bold-text">Heures par serveur</div>
     <canvas id="serversPieChart"
             data-chart='{{ chart_data_json_pie_server|safe }}'
             style="width: 400px; max-width: 400px; height: 300px; display: block; margin: auto;"></canvas>
@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Heures',
                 data: chartData.hours,
-                borderColor: '#461f43',
-                backgroundColor: '#2B1329',
+                borderColor: '#3992be',
+                backgroundColor: '#295C70',
                 tension: 0.2,
                 fill: true
             }]
@@ -94,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Heures réalisées par mois',
                     data: monthlyData.hours,
-                    backgroundColor: '#2B1329',
-                    borderColor: '#461f43',
+                    backgroundColor: '#3992be',
+                    borderColor: '#3992be',
                     borderWidth: 1,
                     borderRadius: 6
                 },

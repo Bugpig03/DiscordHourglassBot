@@ -1,28 +1,111 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="gray-box">
-    <div class="big-bold-text">Statistiques</div>
-    <div class="medium-bold-text gray">{{ stats.nb_users }} Utilisateurs</div>
-    <div class="medium-bold-text gray">{{ stats.nb_profiles }} Profils</div>
-    <div class="medium-bold-text gray">{{ stats.nb_servers }} Serveurs</div>
-    <div class="medium-bold-text gray">{{ stats.nb_messages }} Messages</div>
-    <div class="medium-bold-text gray">{{ stats.nb_time }}</div>
-</div>
-<div class="gray-box">
-    <div class="big-bold-text">Base de données</div>
-    <div class="small-bold-text gray">{{ stats.size_db_ko }} Ko données</div>
-    <div class="small-bold-text gray">{{ stats.size_stats_ko }} Ko données journalière</div>
-    <div class="small-bold-text gray">{{ stats.size_hist_ko }} Ko données d'historique</div>
-    <div class="small-bold-text gray">Dernière sauvegarde le {{ stats.last_backup }}</div>
-</div>
-<div class="gray-box">
-    <div class="big-bold-text">Hourglass c'est quoi ?</div>
-    <div class="small-text gray">Hourglass est un bot Discord qui suit les stats du serveur : messages, temps en vocal, 
+<div class="gray-box small-border-radius">
+    <div class="big-bold-text">Bienvenue sur le Dashboard de Hourglass !</div>
+    <div class="center"><img src="{{ url_for('static', filename='icons/favicon.png') }}" class ="home-center-icon" alt="Icon Hourglass"></div>
+    <div class="medium-text gray">Hourglass est un bot Discord qui suit les stats du serveur : messages, temps en vocal, 
         membres actifs, avec une interface web et des graphiques !</div>
-    <br>
-    <div class="small-bold-text">Bot opérationnel depuis le 28/04/2024</div>
-    <di class="center"><a class="btn-discord" href="https://discord.com/oauth2/authorize?client_id=1210665993328926750">Inviter ce bot sur votre serveur Discord</a></di>
+    <div class="small-bold-text more-top-margin">Bot en ligne depuis le 28/04/2024</div>
+    <div class="center">
+        <a
+        class="btn-discord"
+        href="https://discord.com/oauth2/authorize?client_id=1210665993328926750">
+        <img
+        src="{{ url_for('static', filename='icons/discord.png') }}"
+        alt=""
+        class="btn-discord-icon">
+        <span>Inviter le bot</span>
+    </a>
+    </div>
 </div>
 
+<div class="big-bold-text more-top-margin">Statistiques du bot</div>
+<div class="home-stats-container">
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/hourglass.png') }}" alt="Icon Hourglass">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Temps</span>
+      <span class="home-stats-value">{{ stats.nb_time }}</span>
+    </div>
+  </div>
+
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon messages">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Messages</span>
+      <span class="home-stats-value">{{ stats.nb_messages }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="home-stats-container">
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/users_group.png') }}" alt="Icon users_group">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Utilisateurs</span>
+      <span class="home-stats-value">{{ stats.nb_users }}</span>
+    </div>
+  </div>
+
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/profile.png') }}" alt="Icon profil">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Profils</span>
+      <span class="home-stats-value">{{ stats.nb_profiles }}</span>
+    </div>
+  </div>
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/server.png') }}" alt="Icon profil">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Serveurs</span>
+      <span class="home-stats-value">{{ stats.nb_servers }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="big-bold-text more-top-margin">Statistiques base de données</div>
+
+<div class="home-stats-container">
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/database.png') }}" alt="Icon Hourglass">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Base de données</span>
+      <span class="home-stats-value">{{ stats.size_db_ko }} Ko</span>
+    </div>
+  </div>
+
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/calendar.png') }}" alt="Icon messages">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Total Données journalière</span>
+      <span class="home-stats-value">{{ stats.size_stats_ko }} Ko</span>
+    </div>
+  </div>
+</div>
+<div class="home-stats-container">
+  <div class="home-stats-box">
+    <div class="home-stats-icon">
+        <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Icon Hourglass">
+    </div>
+    <div class="home-stats-content">
+      <span class="home-stats-label">Dernière Sauvegarde</span>
+      <span class="home-stats-value">{{ stats.last_backup }}</span>
+    </div>
+  </div>
+</div>
 {% endblock %}

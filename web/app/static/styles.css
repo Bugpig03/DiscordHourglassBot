@@ -1,30 +1,34 @@
 body {
-  background-color: #000000;
-  margin: 0; /* Pour éviter un petit espace par défaut autour */
-  font-family: Arial, sans-serif; /* Optionnel, pour la police */
+  /*background-color: #000000;*/
+  /*background: linear-gradient(135deg, #6d81af 0%, #172554 100%);*/
+  background: radial-gradient(circle at center, #0D1721 25%, #05090D 100%);
+  background-attachment: fixed;
+  margin: 0;
+  font-family: Arial, sans-serif;
 }
 
 .main-container {
-      max-width: 60%;      /* Largeur max fixe */
-      margin: 0 auto;         /* Centre horizontalement */
+      max-width: 60%; /* Largeur max 60% */
+      margin: 0 auto;
       padding: 0px;
-      background-color: #000000; /* Fond gris très foncé */
+      /*background-color: #000000;*/
+      background-color: rgba(0, 0, 0, 0);
       border-radius: 8px;
       box-sizing: border-box;
       min-height: 100vh;
     }
 
 .nav-logo {
-  width: 50px;   /* Largeur souhaitée */
-  height: 50px;  /* Hauteur souhaitée (ou auto pour garder proportions) */
-  image-rendering: pixelated;  /* Utilise nearest neighbor en modern CSS */
+  width: 50px;   /* Largeur*/
+  height: 50px;  /* Hauteur*/
+  image-rendering: pixelated;  /* pixel propre */
   padding : 10px
 }
 
 .nav-brand {
     display: flex;
-    align-items: center; /* aligne verticalement logo et texte */
-    gap: 10px; /* espace entre logo et texte */
+    align-items: center;
+    gap: 10px;
 }
 
 .nav-title {
@@ -36,7 +40,7 @@ body {
 }
 
 .nav-menu-horizontal {
-  background-color: #101013;
+  background-color: #15202e;
   list-style: none;
   padding: 10px;
   margin: 0px;
@@ -51,11 +55,12 @@ body {
   flex: 1; /* chaque bouton prend la même part */
 }
 
+/*Bouton nav bar main (de la base)*/
 .nav-menu-item a {
-  display: block; /* Le lien remplit le li */
-  background-color: #4caf50;
+  display: block;
+  background-color: #3992be;
   color: white;
-  padding: 10px 10px; /* Hauteur uniforme */
+  padding: 10px 10px;
   border-radius: 30px;
   font-weight: bold;
   text-decoration: none;
@@ -63,12 +68,12 @@ body {
   user-select: none;
   transition: background-color 0.3s ease;
   font-size: clamp(1rem, 1vw, 1.2rem);
-  text-align: center; /* Centre le texte */
+  text-align: center;
 }
 
 .nav-menu-item a:hover,
 .nav-menu-item a:focus {
-  background-color: #5dd260;
+  background-color: #42ade2;
   outline: none;
 }
 
@@ -84,7 +89,8 @@ body {
 
 
 footer {
-    background-color: #000000;
+    /*background-color: #000000;*/
+    background-color: rgba(0, 0, 0, 0);
     color: white;
     text-align: center;
     padding: 1rem;
@@ -94,18 +100,23 @@ footer {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 10px;
-  width: 100%;           /* largeur totale du bloc parent */
-  box-sizing: border-box; /* inclut les padding/border dans la largeur */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .gray-box {
-  background-color: #101013;
+  background-color: #15202e;
   padding: 10px 0px;
   margin-top: 20px;
   margin-bottom: 20px;
   display: block;
-  border-radius: 30px; /* Coins arrondis */
-  width: 100%
+  border-radius: 30px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.small-border-radius {
+  border-radius: 15px;
 }
 
 .dynamic {
@@ -125,7 +136,37 @@ footer {
 }
 
 .link:hover {
-    background-color: #461f43; /* #395371fd;*/
+    background-color: #293e5a;
+    text-decoration: none;
+}
+
+.page-link {
+  text-decoration: none;
+  font-weight: bold;
+  color: white;
+  /*border-radius: 15px;*/
+  display: inline-block;
+  text-decoration: none;
+  border-radius: 50px;
+  padding: 10px 15px;
+  margin: 0 5px; 
+}
+
+.page-link-selected {
+  text-decoration: none;
+  font-weight: bold;
+  color: white;
+  border-radius: 15px;
+  background-color: #3992be;
+  display: inline-block;
+  text-decoration: none;
+  border-radius: 50px;
+  padding: 10px 15px;
+  margin: 0 5px; 
+}
+
+.page-link:hover {
+    background-color: #3992be;
     text-decoration: none;
 }
 
@@ -206,19 +247,22 @@ footer {
   padding: 0px;
 }
 
+.more-top-margin{
+  margin-top: 2rem;
+}
 .text-overflow{
-  white-space: nowrap;       /* empêche le passage à la ligne */
-  overflow: hidden;          /* cache le dépassement */
-  text-overflow: ellipsis;   /* ajoute "..." si le texte est trop long */
-  max-width: 100%;           /* s’assure que le texte ne dépasse pas le conteneur */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
   display: block;  
 }
 
 .center {
   display: flex;
-  justify-content: center; /* centre horizontalement */
-  align-items: center;     /* centre verticalement si hauteur définie */
-  text-align: center;      /* centre le texte si besoin */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   width: 100%;
 }
 
@@ -233,7 +277,7 @@ footer {
 }
 
 .btn-discord {
-  display: inline-block;
+  display: inline-flex;
   padding: 10px 20px;
   background-color: #5865F2;
   color: white;
@@ -242,10 +286,18 @@ footer {
   border-radius: 8px;
   transition: background-color 0.2s ease;
   margin: 10px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 .btn-discord:hover {
   background-color: #4752c4;
+}
+
+.btn-discord-icon {
+  margin-right: 1rem;
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .commands-table {
@@ -263,12 +315,12 @@ footer {
 }
 
 .commands-table th {
-  background-color: #202024;
+  background-color: #3383ac;
   font-weight: bold;
 }
 
 .commands-table tr:nth-child(even) {
-  background-color: #151517;
+  background-color: #0f1620;
 }
 
 
@@ -288,8 +340,8 @@ footer {
 }
 
 .horizontal-list li:last-child {
-    flex: 1; /* le texte prend tout l'espace restant */
-    min-width: 0; /* nécessaire pour que le flex shrink fonctionne et ellipsis marche */
+    flex: 1;
+    min-width: 0;
 }
 
 .nowrap{
@@ -323,7 +375,6 @@ footer {
   margin-left: 5px;
 }
 
-/* Rang - largeur fixe pour centrer */
 .rank {
   display: inline-block;
   width: 30px;       
@@ -371,7 +422,7 @@ footer {
 
 .top-select {
   padding: 0.4rem 0.6rem;
-  background-color: #222329;
+  background-color: #15202E;
   border-radius: 15px;
   font-size: 1rem;
   cursor: pointer;
@@ -391,7 +442,7 @@ footer {
 }
 
 .top-button {
-  background-color: #461f43;
+  background-color: #3992be;
   color: white;
   border: none;
   padding: 0.6rem 0.8rem;
@@ -404,12 +455,12 @@ footer {
 }
 
 .top-button:hover {
-  background-color: #6c3167;
+  background-color: #42ade2;
 }
 
 /*NAVIGATION BAR DE SELECTION ENTRE UTILISATEURS ET SERVEURS SUR PAGE TOP*/
 .nav-menu-horizontal-short {
-  background-color: #222329;
+  background-color: #15202E;
   list-style: none;
   padding: 5px;
   margin-bottom: 5px;
@@ -423,9 +474,9 @@ footer {
 
 .nav-menu-item-short a {
   display: inline-flex;
-  background-color: #222329;
-  color: #B0BAC5;
-  padding: 7px 10px; /* Hauteur uniforme */
+  /*background-color: #c206a9;*/
+  color: #ffffff;
+  padding: 7px 10px;
   border-radius: 30px;
   font-weight: 600;
   text-decoration: none;
@@ -433,12 +484,12 @@ footer {
   user-select: none;
   transition: background-color 0.3s ease;
   font-size: 1rem;
-  text-align: center; /* Centre le texte */
+  text-align: center;
 }
 
 .nav-menu-item-short a:hover,
 .nav-menu-item-short a:focus {
-  background-color: #454752;
+  background-color: #45b0e6;
   outline: none;
 }
 
@@ -447,17 +498,17 @@ footer {
 .nav-menu-item-short a:visited, 
 .nav-menu-item-short a:hover, 
 .nav-menu-item-short a:active {
-  color: #B0BAC5;
+  color: #ffffff;
   text-decoration: none;
   font-weight: 600;
 }
 
 .nav-menu-item-short-selected a{
-  background-color: #461f43;
+  background-color: #3992BE;
 }
 
 .nav-menu-item-short-selected a:hover{
-  background-color: #461f43;
+  background-color: #42ade2;
 }
 
 .search-input {
@@ -465,7 +516,7 @@ footer {
     margin-top: 10px;
     margin-bottom: 20px;
     width: 100%;
-    background-color: #222329;
+    background-color: #1B2636;
     border-radius: 15px;
     outline: none;
     border: 0px solid ;
@@ -473,36 +524,121 @@ footer {
 }
 
 .search-input:focus {
-    border: 0px solid ; /* couleur de bordure quand actif */
-    background-color: #2a2d33;
+    border: 0px solid ;
+    background-color: #26354d;
 }
 
 .stats-box {
   display: flex;
-  flex-wrap: wrap;     /* autorise le retour à la ligne */
+  flex-wrap: wrap;
   align-items: center;
-  gap: 15px;           /* espace entre les éléments */
+  gap: 15px;
+}
+
+.page-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
 }
 
 .simplelink {
     display: inline-block;
-    color: #4caf50;
+    color: #3992be;
     font-weight: bold;
     transition: background 0.3s;
   }
 
   .simplelink:hover {
-    color: #5dd260
+    color: #42ade2
   }
 
   .leftmargin {
     margin-left: 10px;
   }
-/* Adaptation mobile */
+
+/* Home stats container*/
+.home-stats-container {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  margin-top: 15px;
+}
+/* Home stats box*/
+.home-stats-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  padding: 20px 24px;
+  border-radius: 15px;
+
+  background: #15202e;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.home-stats-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-stats-label {
+  font-size: 13px;
+  color: #8fa3b8;
+}
+
+.home-stats-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.home-stats-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #293e5a;
+  color: #00ffaa;
+  font-size: 18px;
+}
+
+.home-stats-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* GROSSE IMAGE DU HOME CENTRALE */
+.home-center-icon {
+  width: 96px;
+  height: 96px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  image-rendering: pixelated; /*Nearest en gros*/
+  margin: 10px;
+}
+
+.home-center-icon img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Responsive vite fait */
 @media (max-width: 768px) {
   .main-container {
     max-width: 95%;  /* prend toute la largeur sur téléphone */
-    border-radius: 0; /* optionnel : supprime arrondis sur mobile */
+    border-radius: 0;
   }
   .big-pp {
     max-width: 90px;
@@ -511,5 +647,11 @@ footer {
   .top-button {
     margin: 0rem;
   }
-}
+  .home-stats-container {
+    flex-wrap: wrap;
+  }
 
+  .home-stats-box {
+    flex: 1 1 100%;
+  }
+}

@@ -10,9 +10,9 @@ def home():
     stats = load()
     return render_template("home.html", stats = stats)
 
-@home_bp.route("/docs", methods=["GET"])
-def docs():
-    return render_template("docs.html")
+@home_bp.route("/supports", methods=["GET"])
+def supports():
+    return render_template("supports.html")
     
 def load():
     db.connect()

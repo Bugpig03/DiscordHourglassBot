@@ -313,9 +313,8 @@ def get_server_activity_sum_last_X_days(server_id, days):
         "messages": messages or 0
     }
 
-
+# RECUP TOUT SERVERS ET STATS D UN USER
 def get_user_servers_stats(user_id):
-    # On récupère tous les serveurs où l'utilisateur est présent
     ranked_stats = (
         Stats
         .select(
@@ -333,23 +332,26 @@ def get_user_servers_stats(user_id):
         .join(Servers, on=(Stats.server_id == Servers.server_id))
     )
 
-    # Maintenant, on ne garde que notre utilisateur
-    user_stats = ranked_stats.where(Stats.user_id == user_id)
+    # Filtre pour l'utilisateur
+    query = ranked_stats.where(Stats.user_id == user_id)
 
-    # On transforme en liste de dictionnaires
+
+    # Trie par date du plus récent au plus vieux
+    sorted_stats = sorted(query, key=lambda x: x.joined_at, reverse=True)
+
+    # Dictionnaire pour l'affichage
     return [
         {
             "server_id": stat.server_id,
             "server_name": get_server_name_by_id(stat.server_id),
             "avatar": get_server_avatar_url(stat.server_id),
-            "rank": stat.rank,
             "nb_user": get_user_count_by_server_id(stat.server_id),
-            "time_spent": round(stat.time_spent / 3600, 1),
+            "time_spent": round((stat.time_spent or 0) / 3600, 1),
             "messages_count": stat.messages_count,
             "rank": get_user_rank_in_server(user_id, stat.server_id),
-            "joined_at": format_date_fr(stat.joined_at)
+            "joined_at": format_date_fr(stat.joined_at) 
         }
-        for stat in user_stats
+        for stat in sorted_stats
     ]
 
 
@@ -460,3 +462,23 @@ def get_monthly_hours_diff(server_id=None, user_id=None):
         })
 
     return monthly_differences
+
+def get_user_join_date(user_id, server_id=None):
+    """
+    Retourne la date la plus ancienne (MIN) trouvée dans les stats.
+    - Si server_id est fourni : Date d'arrivée sur ce serveur.
+    - Si server_id est None : Date de la toute première activité connue (global).
+    """
+    query = (Stats
+             .select(fn.MIN(Stats.date_creation))
+             .where(Stats.user_id == user_id))
+    
+    # Si on cherche pour un serveur précis, on ajoute le filtre
+    if server_id:
+        query = query.where(Stats.server_id == server_id)
+    
+    # .scalar() exécute la requête et retourne directement la valeur (la date)
+    # au lieu de retourner un objet ou une liste.
+    date = format_date_fr(query.scalar())
+    print(date)
+    return date

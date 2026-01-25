@@ -21,6 +21,7 @@ def load(user_id,username):
     total_user = get_global_nb_user()
     total_time = ConvertSecondsToTime(get_total_seconds_by_user_id(user_id))
     total_messages = get_total_message_by_user_id(user_id)
+    join_date = get_user_join_date(user_id)
 
     activity = get_activity_sum_last_X_days(user_id,30)
     total_time_last_30d = activity["seconds"]
@@ -34,6 +35,7 @@ def load(user_id,username):
             "total_time": total_time,
             "total_message": total_messages,
             "total_time_last_30d": total_time_last_30d,
-            "user_servers_stats": user_servers_stats
+            "user_servers_stats": user_servers_stats,
+            "join_date": join_date
             }
     return stats

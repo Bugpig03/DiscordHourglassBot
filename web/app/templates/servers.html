@@ -20,4 +20,24 @@
     {% endfor %}
 </div>
 
+<div class="gray-box page-box">
+{% set current_page = request.args.get('page', 1)|int %}
+{% set current_search = request.args.get('q', '') %}
+{% if current_page > 1 %}
+  <a class="page-link" href="{{ url_for('servers.servers', 
+      page=(request.args.get('page', 1)|int) - 1,
+      q=current_search
+  ) }}">{{ (request.args.get('page', 1)|int)-1 }}</a>
+{% endif %}
+
+<a class="page-link-selected">{{ (request.args.get('page', 1)|int) }}</a>
+
+{% if current_page < total_pages %}
+<a class="page-link" href="{{ url_for('servers.servers', 
+    page=(request.args.get('page', 1)|int) + 1,
+    q=current_search
+) }}">{{ (request.args.get('page', 1)|int)+1 }}</a>
+{% endif %}
+</div>
+
 {% endblock %}
