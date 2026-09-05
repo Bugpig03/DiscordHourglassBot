@@ -1,44 +1,46 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+"""Server directory and search routes."""
+
+from flask import Blueprint, render_template, request
 from app.database import Servers
 
 servers_bp = Blueprint("servers", __name__)
 
+SERVERS_PER_PAGE = 100
+
+
 @servers_bp.route("/servers", methods=["GET"])
 def servers():
-    search_query = request.args.get("q", "").strip()  # récupère le paramètre 'q' si présent
-    servers, total_pages = load_servers(search_query)
-    return render_template("servers.html", servers=servers,total_pages=total_pages)
+    """Render the paginated servers list with optional search filtering by server name."""
+    search_query = request.args.get("q", "").strip()
+    servers_list, total_pages = load_servers(search_query)
+    return render_template("servers.html", servers=servers_list, total_pages=total_pages)
 
 
-def load_servers(search_query=""):
-    page = request.args.get('page', 1, type=int)
-    query = (Servers
-             .select(Servers.servername, Servers.avatar, Servers.server_id)
-             .order_by(Servers.servername)
+def load_servers(search_query: str = "") -> tuple[list[dict], int]:
+    """Retrieve and paginate servers from the database based on search criteria."""
+    page = request.args.get("page", 1, type=int)
+
+    base_query = (
+        Servers
+        .select(Servers.servername, Servers.avatar, Servers.server_id)
+        .order_by(Servers.servername)
     )
 
     if search_query:
-        query = query.where(Servers.servername.contains(search_query))
+        base_query = base_query.where(Servers.servername.contains(search_query))
 
+    total_count = base_query.count()
+    total_pages = max(1, (total_count + SERVERS_PER_PAGE - 1) // SERVERS_PER_PAGE)
+    page = max(1, min(page, total_pages))
+
+    paginated_query = base_query.paginate(page, SERVERS_PER_PAGE)
     servers_list = [
         {
             "server_id": server.server_id,
             "servername": server.servername,
             "avatar": server.avatar
-        } for server in query
+        }
+        for server in paginated_query
     ]
-
-    # Trie user a afficher en fonction de la page
-    nb_server_per_page = 30
-    # Sécurité page vérifie si pas inf 1 et sup total de page
-    # Formule : (Total + TaillePage - 1) // TaillePage
-    total_pages = (len(servers_list) + nb_server_per_page - 1) // nb_server_per_page
-    if page < 1 :
-        page = 1
-    elif page > total_pages:
-        page = total_pages
-
-    # Tri pages (utilisateur a afficher sur ma page chosi)
-    servers_list = servers_list[(page-1)*nb_server_per_page:page*nb_server_per_page]
 
     return servers_list, total_pages

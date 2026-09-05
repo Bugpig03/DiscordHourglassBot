@@ -1,57 +1,52 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from app.database import db, Users, Servers, HistoricalStats, Stats
+"""Home dashboard and support routes."""
+
+from flask import Blueprint, render_template, request
 from peewee import fn
-from app.functions import format_date_heure_fr, ConvertSecondsToTime
+from app.database import db, Users, Servers, HistoricalStats, Stats
+from app.functions import format_date_heure_localized, ConvertSecondsToTime
 
 home_bp = Blueprint("home", __name__)
 
+
 @home_bp.route("/", methods=["GET"])
 def home():
-    stats = load()
-    return render_template("home.html", stats = stats)
+    """Render the main dashboard with global application metrics and database statistics."""
+    stats = load_dashboard_stats()
+    return render_template("home.html", stats=stats)
+
 
 @home_bp.route("/supports", methods=["GET"])
 def supports():
+    """Render the project support and help information page."""
     return render_template("supports.html")
-    
-def load():
-    db.connect()
-    
+
+
+def load_dashboard_stats() -> dict:
+    """Collect global metrics: counts, totals, database storage sizes, and last snapshot timestamp."""
     nb_users = Users.select().count()
     nb_profiles = Stats.select().count()
     nb_servers = Servers.select().count()
     nb_messages = Stats.select(fn.SUM(Stats.messages)).scalar() or 0
     nb_time = ConvertSecondsToTime(Stats.select(fn.SUM(Stats.seconds)).scalar() or 0)
 
-    # Taille totale de la base en octets
-    query_db_size = db.execute_sql(
-        "SELECT pg_database_size(current_database())"
-    )
+    # Database total size in KB
+    query_db_size = db.execute_sql("SELECT pg_database_size(current_database())")
     size_db_bytes = query_db_size.fetchone()[0]
-    size_db_ko = size_db_bytes // 1024  # conversion en Ko
+    size_db_ko = size_db_bytes // 1024
 
-    # Taille table stats en octets
-    query_stats_size = db.execute_sql(
-        "SELECT pg_total_relation_size('public.stats')"
-    )
+    # Table sizes in KB
+    query_stats_size = db.execute_sql("SELECT pg_total_relation_size('public.stats')")
     size_stats_bytes = query_stats_size.fetchone()[0]
     size_stats_ko = size_stats_bytes // 1024
 
-    # Taille table historical_stats en octets
-    query_hist_size = db.execute_sql(
-        "SELECT pg_total_relation_size('public.historical_stats')"
-    )
+    query_hist_size = db.execute_sql("SELECT pg_total_relation_size('public.historical_stats')")
     size_hist_bytes = query_hist_size.fetchone()[0]
     size_hist_ko = size_hist_bytes // 1024
 
-    # Date la plus récente dans historical_stats (champ created_at)
-    last_backup = (HistoricalStats
-                   .select(fn.MAX(HistoricalStats.created_at))
-                   .scalar())
-    
-    # Formatte la date en string lisible si pas None
-    last_backup_str = format_date_heure_fr(last_backup)
-    db.close()
+    # Most recent snapshot timestamp in historical_stats
+    last_backup = HistoricalStats.select(fn.MAX(HistoricalStats.created_at)).scalar()
+    lang = request.cookies.get("lang", "fr")
+    last_backup_str = format_date_heure_localized(last_backup, lang=lang)
 
     return {
         "nb_users": nb_users,

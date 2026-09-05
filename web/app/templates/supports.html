@@ -1,57 +1,170 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="big-bold-text">Documentations et support du bot Hourglass</div>
-<div class="gray-box small-border-radius">
-  <div class="medium-bold-text">Listes des commandes</div>
+{% block title %}{{ t('supports.title') }}{% endblock %}
 
-  <table class="commands-table">
-    <tr>
-      <th>Commande</th>
-      <th>Description</th>
-    </tr>
-    <tr>
-      <td>!stats [user]</td>
-      <td>Stats de l'utilisateur sur le serveur</td>
-    </tr>
-    <tr>
-      <td>!allstats [user]</td>
-      <td>Stats de l'utilisateur sur tous les serveurs</td>
-    </tr>
-    <tr>
-      <td>!top</td>
-      <td>Top 10 des utilisateurs en fonction du temps passé sur le serveur</td>
-    </tr>
-    <tr>
-      <td>!alltop</td>
-      <td>Top 10 des utilisateurs en fonction du temps passé sur tous les serveurs</td>
-    </tr>
-    <tr>
-      <td>!server</td>
-      <td>Stats du serveur</td>
-    </tr>
-  </table>
+{% block content %}
+<div class="big-bold-text">{{ t('supports.heading') }}</div>
+
+<!-- Commands Table Card -->
+<div class="gray-box small-border-radius" style="padding: 24px;">
+    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.commands_title') }}</div>
+    <p class="small-text gray" style="margin-top: 4px; margin-bottom: 16px;">
+        {{ t('supports.commands_desc') }}
+    </p>
+
+    <div class="commands-table-wrapper">
+        <table class="commands-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">{{ t('supports.th_command') }}</th>
+                    <th>{{ t('supports.th_description') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>!stats [user]</td>
+                    <td>{{ t('supports.cmd_stats') }}</td>
+                </tr>
+                <tr>
+                    <td>!allstats [user]</td>
+                    <td>{{ t('supports.cmd_allstats') }}</td>
+                </tr>
+                <tr>
+                    <td>!top</td>
+                    <td>{{ t('supports.cmd_top') }}</td>
+                </tr>
+                <tr>
+                    <td>!alltop</td>
+                    <td>{{ t('supports.cmd_alltop') }}</td>
+                </tr>
+                <tr>
+                    <td>!server</td>
+                    <td>{{ t('supports.cmd_server') }}</td>
+                </tr>
+                <tr>
+                    <td>!aide</td>
+                    <td>{{ t('supports.cmd_help') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
-<div class="gray-box small-border-radius">
-  <div class="medium-bold-text">Serveur discord Hourglass</div>
-  <div class="small-text gray">Vous pouvez rejoindre le serveur discord officiel de Hourglass pour signaler des bugs, demander des ajouts 
-    ou demander la suppression de vos données liées au bot.
-    <a href="https://discord.gg/WU3mTwkGZV" class="simplelink">Rejoindre le serveur</a>.
-  </div>
+
+<!-- Experience, Levels & Badges Guide Card -->
+<div class="gray-box small-border-radius" style="padding: 24px;">
+    <div class="medium-bold-text nomargin" style="font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        <span>{{ t('supports.xp_section_title') }}</span>
+    </div>
+    <p class="small-text gray" style="margin-top: 6px; margin-bottom: 20px;">
+        {{ t('supports.xp_section_desc') }}
+    </p>
+
+    <div class="xp-guide-grid">
+        <!-- Voice XP -->
+        <div class="xp-guide-item">
+            <div class="xp-guide-header">
+                <div class="xp-guide-icon-box cyan">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                </div>
+                <div class="xp-guide-meta">
+                    <div class="xp-guide-title">{{ t('supports.xp_voice_title') }}</div>
+                    <span class="xp-guide-chip cyan">{{ t('supports.xp_voice_rate') }}</span>
+                </div>
+            </div>
+            <p class="xp-guide-desc">{{ t('supports.xp_voice_desc') }}</p>
+        </div>
+
+        <!-- Messages XP -->
+        <div class="xp-guide-item">
+            <div class="xp-guide-header">
+                <div class="xp-guide-icon-box blurple">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div class="xp-guide-meta">
+                    <div class="xp-guide-title">{{ t('supports.xp_msg_title') }}</div>
+                    <span class="xp-guide-chip blurple">{{ t('supports.xp_msg_rate') }}</span>
+                </div>
+            </div>
+            <p class="xp-guide-desc">{{ t('supports.xp_msg_desc') }}</p>
+        </div>
+
+        <!-- Level Curve -->
+        <div class="xp-guide-item">
+            <div class="xp-guide-header">
+                <div class="xp-guide-icon-box amber">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div class="xp-guide-meta">
+                    <div class="xp-guide-title">{{ t('supports.xp_curve_title') }}</div>
+                    <span class="xp-guide-chip amber">{{ t('supports.xp_curve_rate') }}</span>
+                </div>
+            </div>
+            <p class="xp-guide-desc">{{ t('supports.xp_curve_desc') }}</p>
+        </div>
+
+        <!-- Badges & Achievements -->
+        <div class="xp-guide-item">
+            <div class="xp-guide-header">
+                <div class="xp-guide-icon-box green">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                </div>
+                <div class="xp-guide-meta">
+                    <div class="xp-guide-title">{{ t('supports.xp_badges_title') }}</div>
+                    <span class="xp-guide-chip green">{{ t('supports.xp_badges_rate') }}</span>
+                </div>
+            </div>
+            <p class="xp-guide-desc">{{ t('supports.xp_badges_desc') }}</p>
+        </div>
+
+        <!-- Exportable Profile Card -->
+        <div class="xp-guide-item full-width">
+            <div class="xp-guide-header">
+                <div class="xp-guide-icon-box purple">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                </div>
+                <div class="xp-guide-meta">
+                    <div class="xp-guide-title">{{ t('supports.xp_card_title') }}</div>
+                    <span class="xp-guide-chip purple">{{ t('supports.xp_card_rate') }}</span>
+                </div>
+            </div>
+            <p class="xp-guide-desc">{{ t('supports.xp_card_desc') }}</p>
+        </div>
+    </div>
 </div>
-<div class="gray-box small-border-radius">
-  <div class="medium-bold-text">API</div>
-  <div class="small-text gray">Ce bot propose une API publique, sans clé afin de récupérer des données(stats) via des endpoints. 
-    Vous pouvez utiliser l'API en vous aidant de la 
-    <a href="https://github.com/Bugpig03/DiscordHourglassBot/blob/main/web/API.md" class="simplelink">Documentation</a>.
-  </div>
+
+<!-- Community & Discord Support Card -->
+<div class="gray-box small-border-radius" style="padding: 24px;">
+    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.discord_title') }}</div>
+    <p class="medium-text gray" style="margin: 10px 0 16px;">
+        {{ t('supports.discord_desc') }}
+    </p>
+    <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="btn-discord" style="margin: 0;">
+        <img src="{{ url_for('static', filename='icons/discord.png') }}" alt="Discord" class="btn-discord-icon">
+        <span>{{ t('supports.discord_btn') }}</span>
+    </a>
 </div>
-<div class="gray-box small-border-radius">
-  <div class="medium-bold-text">Code source</div>
-  <div class="small-text gray">Le projet Hourglass est entièrement open source. 
-    Vous pouvez accéder à son code, proposer des améliorations ou signaler des bugs directement sur le  
-    <a href="https://github.com/Bugpig03/DiscordHourglassBot" class="simplelink">dépôt GitHub</a>.
-  </div>
+
+<!-- REST API Documentation Card -->
+<div class="gray-box small-border-radius" style="padding: 24px;">
+    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.api_title') }}</div>
+    <p class="medium-text gray" style="margin: 10px 0 16px;">
+        {{ t('supports.api_desc') }}
+    </p>
+    <a href="https://github.com/Bugpig03/DiscordHourglassBot/blob/main/web/API.md" target="_blank" rel="noopener noreferrer" class="simplelink" style="font-size: 1.05rem;">
+        {{ t('supports.api_btn') }}
+    </a>
+</div>
+
+<!-- Open Source Card -->
+<div class="gray-box small-border-radius" style="padding: 24px;">
+    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.source_title') }}</div>
+    <p class="medium-text gray" style="margin: 10px 0 16px;">
+        {{ t('supports.source_desc') }}
+    </p>
+    <a href="https://github.com/Bugpig03/DiscordHourglassBot" target="_blank" rel="noopener noreferrer" class="simplelink" style="font-size: 1.05rem;">
+        {{ t('supports.source_btn') }}
+    </a>
 </div>
 
 {% endblock %}

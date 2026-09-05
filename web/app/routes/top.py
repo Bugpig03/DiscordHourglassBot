@@ -1,183 +1,268 @@
-from flask import Blueprint, render_template, request
-from app.database import db, Users, Stats, Servers
-from peewee import fn
+"""Top leaderboard routes for users and servers."""
+
 from datetime import datetime, timedelta
-from app.functions import get_activity_sum_last_X_days, get_server_activity_sum_last_X_days
+from flask import Blueprint, render_template, request
+from peewee import fn
+from app.database import Users, Stats, Servers, HistoricalStats
+from app.gamification import calculate_user_xp_and_level
 
 top_bp = Blueprint("top", __name__)
 
+USERS_PER_PAGE = 20
+SERVERS_PER_PAGE = 20
+
+PERIOD_MAP = {
+    "24h": 1,
+    "7d": 7,
+    "15d": 15,
+    "1m": 30,
+    "6m": 182,
+    "1y": 365
+}
+
+
 @top_bp.route("/top/users", methods=["GET"])
 def top_users():
-
+    """Render the user leaderboard with filtering by period, server, and sorting criterion."""
     users, total_pages = load_users()
-
-    # Récupérer tous les serveurs distincts
     servers = Servers.select().order_by(Servers.servername)
+    return render_template("top_users.html", users=users, servers=servers, total_pages=total_pages)
 
-    return render_template("top_users.html", users=users, servers=servers,total_pages=total_pages)
 
 @top_bp.route("/top/servers", methods=["GET"])
 def top_servers():
-
+    """Render the server leaderboard with filtering by period and sorting criterion."""
     servers, total_pages = load_servers()
-
-    return render_template("top_servers.html", servers=servers,total_pages=total_pages)
-
+    return render_template("top_servers.html", servers=servers, total_pages=total_pages)
 
 
-def load_users():
+def load_users() -> tuple[list[dict], int]:
+    """Load, filter, rank, and paginate users based on query parameters."""
     period = request.args.get("period", "all")
     sort_by = request.args.get("sort_by", "hours")
     server_id = request.args.get("server_id", "all")
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
 
-    # Conversion période -> nombre de jours
-    period_map = {
-        "24h": 1,
-        "7d": 7,
-        "15d": 15,
-        "1m": 30,
-        "6m": 182,
-        "1y": 365
-    }
-    search_day = period_map.get(period)
+    search_day = PERIOD_MAP.get(period)
 
-    # Base query pour récupérer les utilisateurs
-    query = (Users
-             .select(Users.user_id, Users.username, Users.avatar)
-             .join(Stats, on=(Users.user_id == Stats.user_id)))
-    
+    # Base query for all users tracked in stats
+    query = (
+        Users
+        .select(Users.user_id, Users.username, Users.avatar)
+        .join(Stats, on=(Users.user_id == Stats.user_id))
+    )
+
     if server_id != "all":
         query = query.where(Stats.server_id == int(server_id))
 
     query = query.group_by(Users.user_id)
 
-    results = []
+    # Fast batch aggregation when a period filter is requested
+    if search_day:
+        now = datetime.utcnow()
+        since_days = now - timedelta(days=search_day)
 
-    for user in query:
-        if search_day:
+        hist_base = (HistoricalStats.created_at >= since_days) & (HistoricalStats.created_at <= now)
+        if server_id != "all":
+            hist_base &= (HistoricalStats.server_id == int(server_id))
+
+        oldest_record = (
+            HistoricalStats.select(HistoricalStats.created_at)
+            .where(hist_base)
+            .order_by(HistoricalStats.created_at.asc())
+            .first()
+        )
+
+        hist_map = {}
+        if oldest_record:
+            oldest_date = oldest_record.created_at.date()
+            hist_cond = (fn.DATE(HistoricalStats.created_at) == oldest_date)
             if server_id != "all":
-                activity = get_activity_sum_last_X_days(user.user_id, search_day,server_id)
-            else:
-                activity = get_activity_sum_last_X_days(user.user_id, search_day)
-            total_seconds = activity["seconds"]
-            total_messages = activity["messages"]
-        else:
-            if server_id != "all":
-                total_seconds = (Stats
-                                .select(fn.SUM(Stats.seconds))
-                                .where(Stats.user_id == user.user_id)
-                                .where(Stats.server_id == int(server_id))
-                                .scalar()) or 0
-                total_messages = (Stats
-                                .select(fn.SUM(Stats.messages))
-                                .where(Stats.user_id == user.user_id)
-                                .where(Stats.server_id == int(server_id))
-                                .scalar()) or 0
-            else:
-                total_seconds = (Stats
-                                .select(fn.SUM(Stats.seconds))
-                                .where(Stats.user_id == user.user_id)
-                                .scalar()) or 0
-                total_messages = (Stats
-                                .select(fn.SUM(Stats.messages))
-                                .where(Stats.user_id == user.user_id)
-                                .scalar()) or 0
+                hist_cond &= (HistoricalStats.server_id == int(server_id))
 
-        results.append({
-            "username": user.username,
-            "avatar_url": user.avatar,
-            "seconds": total_seconds,
-            "messages": total_messages
-        })
+            hist_data = (
+                HistoricalStats
+                .select(
+                    HistoricalStats.user_id,
+                    fn.SUM(HistoricalStats.seconds).alias("hist_sec"),
+                    fn.SUM(HistoricalStats.messages).alias("hist_msg")
+                )
+                .where(hist_cond)
+                .group_by(HistoricalStats.user_id)
+            )
+            hist_map = {row.user_id: (row.hist_sec or 0, row.hist_msg or 0) for row in hist_data}
 
-    # Tri par message ou heures
-    if sort_by == "messages":
-        results.sort(key=lambda x: x["messages"], reverse=True)
+        # Fetch current totals for all users in one query
+        curr_cond = (Stats.server_id == int(server_id)) if server_id != "all" else None
+        curr_query = (
+            Stats
+            .select(
+                Stats.user_id,
+                fn.SUM(Stats.seconds).alias("curr_sec"),
+                fn.SUM(Stats.messages).alias("curr_msg")
+            )
+        )
+        if curr_cond is not None:
+            curr_query = curr_query.where(curr_cond)
+        curr_data = curr_query.group_by(Stats.user_id)
+        curr_map = {row.user_id: (row.curr_sec or 0, row.curr_msg or 0) for row in curr_data}
+
+        results = []
+        for user in query:
+            curr_sec, curr_msg = curr_map.get(user.user_id, (0, 0))
+            hist_sec, hist_msg = hist_map.get(user.user_id, (0, 0))
+            results.append({
+                "username": user.username,
+                "avatar_url": user.avatar,
+                "seconds": max(0, curr_sec - hist_sec),
+                "messages": max(0, curr_msg - hist_msg)
+            })
     else:
-        results.sort(key=lambda x: x["seconds"], reverse=True)
+        # All-time stats queried in bulk
+        curr_cond = (Stats.server_id == int(server_id)) if server_id != "all" else None
+        curr_query = (
+            Stats
+            .select(
+                Stats.user_id,
+                fn.SUM(Stats.seconds).alias("curr_sec"),
+                fn.SUM(Stats.messages).alias("curr_msg")
+            )
+        )
+        if curr_cond is not None:
+            curr_query = curr_query.where(curr_cond)
+        curr_data = curr_query.group_by(Stats.user_id)
+        curr_map = {row.user_id: (row.curr_sec or 0, row.curr_msg or 0) for row in curr_data}
 
-    nb_user_per_page = 20
+        results = [
+            {
+                "username": user.username,
+                "avatar_url": user.avatar,
+                "seconds": curr_map.get(user.user_id, (0, 0))[0],
+                "messages": curr_map.get(user.user_id, (0, 0))[1]
+            }
+            for user in query
+        ]
 
-    # Sécurité page vérifie si pas inf 1 et sup total de page
-    # Formule : (Total + TaillePage - 1) // TaillePage
-    total_pages = (len(results) + nb_user_per_page - 1) // nb_user_per_page
-    if page < 1 :
-        page = 1
-    elif page > total_pages:
-        page = total_pages
+    # Compute XP and level for all users
+    for r in results:
+        xp_info = calculate_user_xp_and_level(r["seconds"], r["messages"])
+        r["xp"] = xp_info["total_xp"]
+        r["level"] = xp_info["level"]
 
-    # Tri pages (utilisateur a afficher sur ma page chosi)
-    results = results[(page-1)*nb_user_per_page:page*nb_user_per_page]
+    # Sort results
+    if sort_by in ("xp", "level"):
+        results.sort(key=lambda x: (x["xp"], x["seconds"], x["messages"]), reverse=True)
+    elif sort_by == "messages":
+        results.sort(key=lambda x: (x["messages"], x["seconds"]), reverse=True)
+    else:
+        results.sort(key=lambda x: (x["seconds"], x["messages"]), reverse=True)
+
+    # Compute pagination
+    total_items = len(results)
+    total_pages = max(1, (total_items + USERS_PER_PAGE - 1) // USERS_PER_PAGE)
+    page = max(1, min(page, total_pages))
+
+    paginated_results = results[(page - 1) * USERS_PER_PAGE: page * USERS_PER_PAGE]
+    return paginated_results, total_pages
 
 
-    return results, total_pages
-
-
-def load_servers():
+def load_servers() -> tuple[list[dict], int]:
+    """Load, filter, rank, and paginate servers based on query parameters."""
     period = request.args.get("period", "all")
     sort_by = request.args.get("sort_by", "hours")
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
 
-    # Conversion période -> nombre de jours
-    period_map = {
-        "24h": 1,
-        "7d": 7,
-        "15d": 15,
-        "1m": 30,
-        "6m": 182,
-        "1y": 365
-    }
-    search_day = period_map.get(period)
+    search_day = PERIOD_MAP.get(period)
 
-    # Base query pour récupérer les serveurs
-    query = (Servers
-             .select(Servers.server_id, Servers.servername, Servers.avatar)
-             .join(Stats, on=(Servers.server_id == Stats.server_id))
-             .group_by(Servers.server_id))
+    # Base query for all active servers
+    query = (
+        Servers
+        .select(Servers.server_id, Servers.servername, Servers.avatar)
+        .join(Stats, on=(Servers.server_id == Stats.server_id))
+        .group_by(Servers.server_id)
+    )
 
-    results = []
+    if search_day:
+        now = datetime.utcnow()
+        since_days = now - timedelta(days=search_day)
 
-    for server in query:
-        if search_day:
-            activity = get_server_activity_sum_last_X_days(server.server_id, search_day)
-            total_seconds = activity["seconds"]
-            total_messages = activity["messages"]
-        else:
-            total_seconds = (Stats
-                            .select(fn.SUM(Stats.seconds))
-                            .where(Stats.server_id == server.server_id)
-                            .scalar()) or 0
-            total_messages = (Stats
-                            .select(fn.SUM(Stats.messages))
-                            .where(Stats.server_id == server.server_id)
-                            .scalar()) or 0
+        oldest_record = (
+            HistoricalStats.select(HistoricalStats.created_at)
+            .where((HistoricalStats.created_at >= since_days) & (HistoricalStats.created_at <= now))
+            .order_by(HistoricalStats.created_at.asc())
+            .first()
+        )
 
-        results.append({
-            "server_id": server.server_id,
-            "servername": server.servername,
-            "avatar_url": server.avatar,
-            "seconds": total_seconds,
-            "messages": total_messages
-        })
+        hist_map = {}
+        if oldest_record:
+            oldest_date = oldest_record.created_at.date()
+            hist_data = (
+                HistoricalStats
+                .select(
+                    HistoricalStats.server_id,
+                    fn.SUM(HistoricalStats.seconds).alias("hist_sec"),
+                    fn.SUM(HistoricalStats.messages).alias("hist_msg")
+                )
+                .where(fn.DATE(HistoricalStats.created_at) == oldest_date)
+                .group_by(HistoricalStats.server_id)
+            )
+            hist_map = {row.server_id: (row.hist_sec or 0, row.hist_msg or 0) for row in hist_data}
 
-    # Tri message ou par heure
+        curr_data = (
+            Stats
+            .select(
+                Stats.server_id,
+                fn.SUM(Stats.seconds).alias("curr_sec"),
+                fn.SUM(Stats.messages).alias("curr_msg")
+            )
+            .group_by(Stats.server_id)
+        )
+        curr_map = {row.server_id: (row.curr_sec or 0, row.curr_msg or 0) for row in curr_data}
+
+        results = []
+        for server in query:
+            curr_sec, curr_msg = curr_map.get(server.server_id, (0, 0))
+            hist_sec, hist_msg = hist_map.get(server.server_id, (0, 0))
+            results.append({
+                "server_id": server.server_id,
+                "servername": server.servername,
+                "avatar_url": server.avatar,
+                "seconds": max(0, curr_sec - hist_sec),
+                "messages": max(0, curr_msg - hist_msg)
+            })
+    else:
+        curr_data = (
+            Stats
+            .select(
+                Stats.server_id,
+                fn.SUM(Stats.seconds).alias("curr_sec"),
+                fn.SUM(Stats.messages).alias("curr_msg")
+            )
+            .group_by(Stats.server_id)
+        )
+        curr_map = {row.server_id: (row.curr_sec or 0, row.curr_msg or 0) for row in curr_data}
+
+        results = [
+            {
+                "server_id": server.server_id,
+                "servername": server.servername,
+                "avatar_url": server.avatar,
+                "seconds": curr_map.get(server.server_id, (0, 0))[0],
+                "messages": curr_map.get(server.server_id, (0, 0))[1]
+            }
+            for server in query
+        ]
+
+    # Sort results
     if sort_by == "messages":
         results.sort(key=lambda x: x["messages"], reverse=True)
     else:
         results.sort(key=lambda x: x["seconds"], reverse=True)
 
-        nb_server_per_page = 20
-    
-    # Sécurité page vérifie si pas inf 1 et sup total de page
-    total_pages = (len(results) + nb_server_per_page - 1) // nb_server_per_page
-    if page < 1 :
-        page = 1
-    elif page > total_pages:
-        page = total_pages
+    # Compute pagination
+    total_items = len(results)
+    total_pages = max(1, (total_items + SERVERS_PER_PAGE - 1) // SERVERS_PER_PAGE)
+    page = max(1, min(page, total_pages))
 
-    # Tri page
-    results = results[(page-1)*nb_server_per_page:page*nb_server_per_page]
-
-
-    return results, total_pages
+    paginated_results = results[(page - 1) * SERVERS_PER_PAGE: page * SERVERS_PER_PAGE]
+    return paginated_results, total_pages

@@ -1,72 +1,108 @@
 {% extends "base.html" %}
 
+{% block title %}{{ t('top.servers_title') }}{% endblock %}
+
 {% block content %}
-  <ul class="nav-menu-horizontal-short">
-    <li class="nav-menu-item-short"><a href="{{ url_for('top.top_users') }}">Utilisateurs</a></li>
-    <li class="nav-menu-item-short nav-menu-item-short-selected"><a href="{{ url_for('top.top_servers') }}">Serveurs</a></li>
-  </ul>
+<div class="top-tabs-wrapper">
+    <div class="top-tabs">
+        <a href="{{ url_for('top.top_users') }}" class="top-tab-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>{{ t('top.tab_users') }}</span>
+        </a>
+        <a href="{{ url_for('top.top_servers') }}" class="top-tab-btn active">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>
+            </svg>
+            <span>{{ t('top.tab_servers') }}</span>
+        </a>
+    </div>
+</div>
 
 <form method="GET" action="{{ url_for('top.top_servers') }}" id="top-filter-form" class="top-form">
-  
-  <!-- Période -->
-  <div>
-  <label for="top-filter-period" class="top-label">Période :</label>
-  <select name="period" id="top-filter-period" class="top-select">
-    <option value="24h" {% if request.args.get('period') == '24h' %}selected{% endif %}>24 heures</option>
-    <option value="7d" {% if request.args.get('period') == '7d' %}selected{% endif %}>7 jours</option>
-    <option value="15d" {% if request.args.get('period') == '15d' %}selected{% endif %}>15 jours</option>
-    <option value="1m" {% if request.args.get('period') == '1m' %}selected{% endif %}>1 mois</option>
-    <option value="6m" {% if request.args.get('period') == '6m' %}selected{% endif %}>6 mois</option>
-    <option value="1y" {% if request.args.get('period') == '1y' %}selected{% endif %}>1 an</option>
-    <option value="all" {% if request.args.get('period') == 'all' or not request.args.get('period') %}selected{% endif %}>Toujours</option>
-  </select>
-  </div>
+    <div>
+        <label for="top-filter-period" class="top-label">{{ t('top.period_label') }}</label>
+        <select name="period" id="top-filter-period" class="top-select" onchange="this.form.submit()">
+            <option value="24h" {% if request.args.get('period') == '24h' %}selected{% endif %}>{{ t('top.period_24h') }}</option>
+            <option value="7d" {% if request.args.get('period') == '7d' %}selected{% endif %}>{{ t('top.period_7d') }}</option>
+            <option value="15d" {% if request.args.get('period') == '15d' %}selected{% endif %}>{{ t('top.period_15d') }}</option>
+            <option value="1m" {% if request.args.get('period') == '1m' %}selected{% endif %}>{{ t('top.period_1m') }}</option>
+            <option value="6m" {% if request.args.get('period') == '6m' %}selected{% endif %}>{{ t('top.period_6m') }}</option>
+            <option value="1y" {% if request.args.get('period') == '1y' %}selected{% endif %}>{{ t('top.period_1y') }}</option>
+            <option value="all" {% if request.args.get('period') == 'all' or not request.args.get('period') %}selected{% endif %}>{{ t('top.period_all') }}</option>
+        </select>
+    </div>
 
-  <!-- Trier par -->
-   <div>
-  <label for="top-filter-sort" class="top-label">Trier par :</label>
-  <select name="sort_by" id="top-filter-sort" class="top-select">
-    <option value="hours" {% if request.args.get('sort_by') == 'hours' %}selected{% endif %}>Heures</option>
-    <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>Messages</option>
-  </select>
-  </div>
-
-  <button type="submit" id="top-filter-submit" class="top-button">Appliquer</button>
+    <div>
+        <label for="top-filter-sort" class="top-label">{{ t('top.sort_label') }}</label>
+        <select name="sort_by" id="top-filter-sort" class="top-select" onchange="this.form.submit()">
+            <option value="hours" {% if request.args.get('sort_by') == 'hours' or not request.args.get('sort_by') %}selected{% endif %}>{{ t('top.sort_hours') }}</option>
+            <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>{{ t('top.sort_messages') }}</option>
+        </select>
+    </div>
 </form>
-{% for server in servers %}
-<div class="gray-box link">
-    <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
-      <div class="stats-box">
-          <div class="big-bold-text rank">{{ loop.index }}</div>
-          <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp border-server" alt="avatar"
-          onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
-          <div class="medium-bold-text username-fixed ">{{ server.servername }}</div>
-          <div class="medium-bold-text gray hours-fixed ">{{ (server.seconds / 3600) | round(1) }} h</div>
-          <div class="medium-bold-text gray messages-fixed ">{{ server.messages }} messages</div>
-      </div>
-    </a>
-</div>
-{% endfor %}
 
-<div class="gray-box page-box">
-{% set current_page = request.args.get('page', 1)|int %}
-{% if current_page > 1 %}
-  <a class="page-link" href="{{ url_for('top.top_servers', 
-      page=(request.args.get('page', 1)|int) - 1, 
-      period=request.args.get('period'), 
-      sort_by=request.args.get('sort_by')
-  ) }}">{{ (request.args.get('page', 1)|int)-1 }}</a>
+{% if servers %}
+    {% for server in servers %}
+    {% set server_rank = loop.index + ((request.args.get('page', 1)|int - 1) * 20) %}
+    <div class="gray-box link" style="padding: 12px 16px;">
+        <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
+            <div class="stats-box">
+                <span class="rank-badge {% if server_rank == 1 %}rank-1{% elif server_rank == 2 %}rank-2{% elif server_rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+                    #{{ server_rank }}
+                </span>
+                <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
+                     class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                <span class="username-fixed">{{ server.servername }}</span>
+                <span class="hours-fixed">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ (server.seconds / 3600) | round(1) }} {{ t('top.hours_unit') }}
+                </span>
+                <span class="messages-fixed">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ server.messages | thousands_fr }} {{ t('top.msgs_unit') }}
+                </span>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+
+    <!-- Pagination -->
+    <div class="page-box">
+        {% set current_page = request.args.get('page', 1)|int %}
+        {% if current_page > 1 %}
+            <a class="page-link" href="{{ url_for('top.top_servers', 
+                page=current_page - 1, 
+                period=request.args.get('period'), 
+                sort_by=request.args.get('sort_by')
+            )}}">{{ t('top.page_prev') }}</a>
+        {% endif %}
+
+        <span class="page-link-selected">{{ t('top.page_format', current=current_page, total=total_pages) }}</span>
+
+        {% if current_page < total_pages %}
+            <a class="page-link" href="{{ url_for('top.top_servers', 
+                page=current_page + 1, 
+                period=request.args.get('period'), 
+                sort_by=request.args.get('sort_by')
+            )}}">{{ t('top.page_next') }}</a>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="gray-box small-border-radius center" style="padding: 40px 20px;">
+        <p class="medium-text gray">{{ t('top.no_servers') }}</p>
+    </div>
 {% endif %}
 
-<a class="page-link-selected">{{ (request.args.get('page', 1)|int) }}</a>
-
-{% if current_page < total_pages %}
-<a class="page-link" href="{{ url_for('top.top_servers', 
-    page=(request.args.get('page', 1)|int) + 1, 
-    period=request.args.get('period'), 
-    sort_by=request.args.get('sort_by')
-) }}">{{ (request.args.get('page', 1)|int)+1 }}</a>
-{% endif %}
-</div>
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('top-filter-form');
+    if (form) {
+        form.querySelectorAll('select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                form.submit();
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

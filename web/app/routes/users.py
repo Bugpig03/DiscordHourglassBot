@@ -1,43 +1,60 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from app.database import Users
+"""User directory and search routes."""
+
+from flask import Blueprint, render_template, request
+from peewee import fn, JOIN
+from app.database import Users, Stats
+from app.gamification import calculate_user_xp_and_level
 
 users_bp = Blueprint("users", __name__)
 
+USERS_PER_PAGE = 100
+
+
 @users_bp.route("/users", methods=["GET"])
 def users():
-    search_query = request.args.get("q", "").strip()  # récupère le paramètre 'q' si présent
-    users , total_pages = load_users(search_query)
-    return render_template("users.html", users=users, total_pages=total_pages)
+    """Render the paginated users list with optional search filtering by username."""
+    search_query = request.args.get("q", "").strip()
+    users_list, total_pages = load_users(search_query)
+    return render_template("users.html", users=users_list, total_pages=total_pages)
 
 
-def load_users(search_query=""):
-    page = request.args.get('page', 1, type=int)
-    query = (Users
-             .select(Users.username, Users.avatar)
-             .order_by(Users.username)
+def load_users(search_query: str = "") -> tuple[list[dict], int]:
+    """Retrieve and paginate users from the database based on search criteria."""
+    page = request.args.get("page", 1, type=int)
+
+    base_query = (
+        Users
+        .select(
+            Users.user_id,
+            Users.username,
+            Users.avatar,
+            fn.COALESCE(fn.SUM(Stats.seconds), 0).alias("total_seconds"),
+            fn.COALESCE(fn.SUM(Stats.messages), 0).alias("total_messages")
+        )
+        .join(Stats, JOIN.LEFT_OUTER, on=(Users.user_id == Stats.user_id))
+    )
+    if search_query:
+        base_query = base_query.where(Users.username.contains(search_query))
+
+    base_query = (
+        base_query
+        .group_by(Users.user_id, Users.username, Users.avatar)
+        .order_by(Users.username)
     )
 
-    if search_query:
-        query = query.where(Users.username.contains(search_query))
+    total_count = Users.select().where(Users.username.contains(search_query)).count() if search_query else Users.select().count()
+    total_pages = max(1, (total_count + USERS_PER_PAGE - 1) // USERS_PER_PAGE)
+    page = max(1, min(page, total_pages))
 
-    users_list = [
-        {
+    paginated_query = base_query.paginate(page, USERS_PER_PAGE)
+    users_list = []
+    for user in paginated_query:
+        xp_info = calculate_user_xp_and_level(user.total_seconds, user.total_messages)
+        users_list.append({
             "username": user.username,
-            "avatar": user.avatar
-        } for user in query
-    ]
-
-    # Trie user a afficher en fonction de la page
-    nb_user_per_page = 30
-    # Sécurité page vérifie si pas inf 1 et sup total de page
-    # Formule : (Total + TaillePage - 1) // TaillePage
-    total_pages = (len(users_list) + nb_user_per_page - 1) // nb_user_per_page
-    if page < 1 :
-        page = 1
-    elif page > total_pages:
-        page = total_pages
-
-    # Tri pages (utilisateur a afficher sur ma page chosi)
-    users_list = users_list[(page-1)*nb_user_per_page:page*nb_user_per_page]
+            "avatar": user.avatar,
+            "level": xp_info["level"],
+            "total_xp": xp_info["total_xp"]
+        })
 
     return users_list, total_pages

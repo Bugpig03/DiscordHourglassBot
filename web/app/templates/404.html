@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="gray-box only-center">
-  <div class="big-bold-text gray">Page introuvable :/</div>
-  <img src="{{ url_for('static', filename='images/404.png') }}" 
-                    alt="404" class="error-img">
-  <div class="big-text gray">La page que vous avez recherchée n’a pas été trouvée. Veuillez retourner à la 
-    <a href="{{ url_for('home.home') }}" class="simplelink">page d’accueil</a>.
-  </div>
-</div>
+{% block title %}404 - Page Introuvable - Hourglass{% endblock %}
 
+{% block content %}
+<div class="gray-box small-border-radius center" style="flex-direction: column; padding: 50px 20px; text-align: center;">
+    <div class="giant-bold-text" style="color: #38bdf8; font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: 10px;">404</div>
+    <div class="big-bold-text" style="margin-top: 0; margin-bottom: 15px;">Oups ! Page introuvable</div>
+    <img src="{{ url_for('static', filename='images/404.png') }}" alt="404 Error" class="error-img" style="max-width: 280px; margin: 15px auto;">
+    <p class="medium-text gray" style="max-width: 500px; margin: 15px auto 25px;">
+        La ressource que vous recherchez semble introuvable ou a été déplacée.
+    </p>
+    <a href="{{ url_for('home.home') }}" class="btn-discord" style="background-color: #3992be; margin: 0;">
+        <span>Retourner à l'accueil</span>
+    </a>
+</div>
 {% endblock %}

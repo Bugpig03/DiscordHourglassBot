@@ -1,4 +1,14 @@
 # Hourglass - WEB APP - CHANGELOG
+ 
+## Version 2.4 - Gamification & Modern UI - 05/09/2026
+### Features & Improvements
+- Added real-time Gamification engine: Level & XP system computed in memory without DB alterations
+- Added 37 global badges with 100% SVG vector icons (zero emojis) and dynamic rarity styling
+- Added "Niveau & XP" sorting to the Top leaderboard and level badges across all user lists
+- Expanded Users and Servers directories pagination up to 100 items per page
+- Automatic live filter updates across leaderboards (removed manual submit buttons)
+- Cleaned and organized header navigation with Quick Search (Ctrl+K) and interactive live search dropdowns
+- Upgraded number formatting with space separators for improved legibility
 
 ## Version 2.3.2 - Crash profile server - 25/01/2026
 ### Bug Fixes

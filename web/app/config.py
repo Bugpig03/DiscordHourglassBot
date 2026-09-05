@@ -1,10 +1,18 @@
-# Variable environment configuration
+"""Application configuration module."""
+
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if present
+load_dotenv()
+
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY")
-    DB_NAME = os.environ.get("POSTGRESQL_DBNAME")
-    DB_USER = os.environ.get("POSTGRESQL_USER")
-    DB_PASSWORD = os.environ.get("POSTGRESQL_PASSWORD")
-    DB_HOST = os.environ.get("POSTGRESQL_HOST")
-    DB_PORT = int(os.environ.get("POSTGRESQL_PORT"))
+    """Flask application configuration settings loaded from environment variables."""
+
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev_secret_key")
+    DB_NAME = os.environ.get("POSTGRESQL_DBNAME", "devhourglass")
+    DB_USER = os.environ.get("POSTGRESQL_USER", "postgres")
+    DB_PASSWORD = os.environ.get("POSTGRESQL_PASSWORD", "admin")
+    DB_HOST = os.environ.get("POSTGRESQL_HOST", "localhost")
+    DB_PORT = int(os.environ.get("POSTGRESQL_PORT", "5432"))

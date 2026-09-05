@@ -1,43 +1,232 @@
 {% extends "base.html" %}
 
+{% block title %}{{ t('servers.title') }}{% endblock %}
+
 {% block content %}
-<div class="medium-bold-text">Listes des serveurs</div>
-<form method="get" action="{{ url_for('servers.servers') }}">
-    <input type="text" name="q" placeholder="Rechercher un serveur..."
-           value="{{ search_query }}" class="medium-bold-text search-input nomargin">
-</form>
-<div class="continous-container">
-    {% for server in servers %}
-    <div class="gray-box dynamic link">
-        <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
-            <ul class="horizontal-list nowrap">
-                <li><img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="small-pp border-server" alt="avatar"
-                    onerror="this.onerror=null; this.src='{{ fallback_avatar }}';"></li>
-                <li><div class="medium-bold-text text-overflow">{{ server.servername }}</div></li>
-            </ul>
-        </a>
+<div class="big-bold-text">{{ t('servers.heading') }}</div>
+<form method="GET" action="{{ url_for('servers.servers') }}" class="page-search-form" id="serversSearchForm">
+    <div class="page-search-wrap">
+        <div class="page-search-bar">
+            <svg class="page-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
+            </svg>
+            <input type="text" id="serversSearchInput" name="q" placeholder="{{ t('servers.search_placeholder') }}"
+                   value="{{ request.args.get('q', '') }}" class="page-search-input" autocomplete="off" spellcheck="false">
+            {% if request.args.get('q') %}
+                <a href="{{ url_for('servers.servers') }}" class="page-search-clear" title="Effacer la recherche">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </a>
+            {% endif %}
+            <button type="submit" class="page-search-enter-kbd" title="Rechercher (Entrée)">
+                <span>↵</span>
+            </button>
+        </div>
+
+        <!-- Live Dropdown Results (Ctrl+K style) -->
+        <div id="serversSearchDropdown" class="page-search-dropdown" style="display: none;">
+            <div id="serversDropdownResults" class="page-search-dropdown-inner"></div>
+            <div class="page-search-dropdown-footer">
+                <div class="search-hint-item">
+                    <kbd>↑</kbd><kbd>↓</kbd> <span>{{ t('search.hint_navigate') }}</span>
+                </div>
+                <div class="search-hint-item">
+                    <kbd>↵</kbd> <span>{{ t('search.hint_select') }}</span>
+                </div>
+                <div class="search-hint-item">
+                    <kbd>ESC</kbd> <span>{{ t('search.hint_close') }}</span>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endfor %}
-</div>
+</form>
 
-<div class="gray-box page-box">
-{% set current_page = request.args.get('page', 1)|int %}
-{% set current_search = request.args.get('q', '') %}
-{% if current_page > 1 %}
-  <a class="page-link" href="{{ url_for('servers.servers', 
-      page=(request.args.get('page', 1)|int) - 1,
-      q=current_search
-  ) }}">{{ (request.args.get('page', 1)|int)-1 }}</a>
+{% if servers %}
+    <div class="continous-container">
+        {% for server in servers %}
+        <div class="gray-box small-border-radius dynamic link">
+            <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" style="width: 100%;">
+                <div style="display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0;">
+                    <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                         class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                    <span class="medium-bold-text text-overflow nomargin" style="flex: 1; font-size: 1rem;">{{ server.servername }}</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="page-box">
+        {% set current_page = request.args.get('page', 1)|int %}
+        {% set current_search = request.args.get('q', '') %}
+
+        {% if current_page > 1 %}
+            <a class="page-link" href="{{ url_for('servers.servers', page=current_page - 1, q=current_search) }}">{{ t('top.page_prev') }}</a>
+        {% endif %}
+
+        <span class="page-link-selected">{{ t('top.page_format', current=current_page, total=total_pages) }}</span>
+
+        {% if current_page < total_pages %}
+            <a class="page-link" href="{{ url_for('servers.servers', page=current_page + 1, q=current_search) }}">{{ t('top.page_next') }}</a>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="gray-box small-border-radius center" style="padding: 40px 20px;">
+        <p class="medium-text gray">
+            {% if request.args.get('q') %}
+                {{ t('servers.no_match', query=request.args.get('q')) }}
+            {% else %}
+                {{ t('servers.empty') }}
+            {% endif %}
+        </p>
+    </div>
 {% endif %}
 
-<a class="page-link-selected">{{ (request.args.get('page', 1)|int) }}</a>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('serversSearchInput');
+    const dropdown = document.getElementById('serversSearchDropdown');
+    const resultsContainer = document.getElementById('serversDropdownResults');
+    const form = document.getElementById('serversSearchForm');
+    const isEn = '{{ current_lang }}' === 'en';
 
-{% if current_page < total_pages %}
-<a class="page-link" href="{{ url_for('servers.servers', 
-    page=(request.args.get('page', 1)|int) + 1,
-    q=current_search
-) }}">{{ (request.args.get('page', 1)|int)+1 }}</a>
-{% endif %}
-</div>
+    if (!input || !dropdown || !resultsContainer || !form) return;
 
+    let searchTimer = null;
+    let selectedIndex = -1;
+    let currentResults = [];
+
+    function closeDropdown() {
+        dropdown.style.display = 'none';
+        selectedIndex = -1;
+    }
+
+    function openDropdown() {
+        if (input.value.trim().length > 0) {
+            dropdown.style.display = 'block';
+        }
+    }
+
+    function updateHighlight() {
+        const items = resultsContainer.querySelectorAll('.search-result-item');
+        items.forEach((item, idx) => {
+            if (idx === selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    function performSearch(q) {
+        if (!q) {
+            closeDropdown();
+            return;
+        }
+
+        fetch(`/api/search?q=${encodeURIComponent(q)}&type=servers&limit=8`)
+            .then(res => res.json())
+            .then(data => {
+                currentResults = data.servers || [];
+                selectedIndex = -1;
+                dropdown.style.display = 'block';
+
+                if (currentResults.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="search-empty-state" style="padding: 24px 14px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+                            <span>${isEn ? `No servers found for "${q}"` : `Aucun serveur trouvé pour « ${q} »`}</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `<div class="search-group-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${isEn ? 'Servers' : 'Serveurs'} (${currentResults.length})</div>`;
+                currentResults.forEach((s, i) => {
+                    html += `
+                        <a href="${s.url}" class="search-result-item" data-index="${i}">
+                            <img src="${s.avatar}" class="search-item-avatar border-server" alt="${s.servername}" onerror="this.src='/static/icons/server.png'">
+                            <div class="search-item-info">
+                                <span class="search-item-name">${s.servername}</span>
+                                <span class="search-item-sub">ID: ${s.server_id}</span>
+                            </div>
+                            <span class="search-item-badge">${isEn ? 'View' : 'Voir'}</span>
+                        </a>
+                    `;
+                });
+                resultsContainer.innerHTML = html;
+
+                const items = resultsContainer.querySelectorAll('.search-result-item');
+                items.forEach((item, idx) => {
+                    item.addEventListener('mouseenter', () => {
+                        selectedIndex = idx;
+                        updateHighlight();
+                    });
+                });
+            })
+            .catch(() => {
+                resultsContainer.innerHTML = `<div class="search-empty-state" style="padding: 24px 14px;">Erreur de recherche.</div>`;
+            });
+    }
+
+    input.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        const q = this.value.trim();
+        if (q.length === 0) {
+            closeDropdown();
+            return;
+        }
+        searchTimer = setTimeout(() => performSearch(q), 180);
+    });
+
+    input.addEventListener('focus', function() {
+        if (this.value.trim().length > 0) {
+            if (currentResults.length > 0) {
+                dropdown.style.display = 'block';
+            } else {
+                performSearch(this.value.trim());
+            }
+        }
+    });
+
+    input.addEventListener('keydown', function(e) {
+        const items = resultsContainer.querySelectorAll('.search-result-item');
+        const count = items.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (dropdown.style.display === 'none') {
+                openDropdown();
+                return;
+            }
+            if (count > 0) {
+                selectedIndex = (selectedIndex + 1) % count;
+                updateHighlight();
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (count > 0) {
+                selectedIndex = selectedIndex <= 0 ? count - 1 : selectedIndex - 1;
+                updateHighlight();
+            }
+        } else if (e.key === 'Enter') {
+            if (dropdown.style.display !== 'none' && selectedIndex >= 0 && items[selectedIndex]) {
+                e.preventDefault();
+                items[selectedIndex].click();
+            }
+        } else if (e.key === 'Escape') {
+            closeDropdown();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!form.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+});
+</script>
 {% endblock %}
