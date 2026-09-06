@@ -12,6 +12,7 @@ from app.routes.user_profile import user_profile_bp
 from app.routes.server_profile import server_profile_bp
 from app.routes.graphs import graphs_bp
 from app.routes.api import api_bp
+from app.routes.versus import versus_bp
 
 
 
@@ -97,5 +98,6 @@ def create_app():
     app.register_blueprint(server_profile_bp)
     app.register_blueprint(graphs_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(versus_bp)
 
     return app

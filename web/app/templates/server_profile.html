@@ -128,19 +128,31 @@
 <br>
 <!-- Server Header Card -->
 <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
-    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-        <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
-             class="big-pp border-server" alt="icon" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
-        <div style="flex: 1; min-width: 220px;">
-            <div class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.servername }}</div>
-            <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
-                <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
-                    {{ t('server_profile.server_rank', rank=stats.rank, total=stats.total_server) }}
-                </span>
-                <span style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-radius: 20px; padding: 4px 12px; font-size: 0.88rem;">
-                    {{ t('server_profile.active_since') }} {{ stats.join_date }}
-                </span>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
+                 class="big-pp border-server" alt="icon" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+            <div style="flex: 1; min-width: 220px;">
+                <div class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.servername }}</div>
+                <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
+                    <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
+                        {{ t('server_profile.server_rank', rank=stats.rank, total=stats.total_server) }}
+                    </span>
+                    {% if stats.join_date and stats.join_date.strip() %}
+                    <span style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-radius: 20px; padding: 4px 12px; font-size: 0.88rem;">
+                        {{ t('server_profile.active_since') }} {{ stats.join_date }}
+                    </span>
+                    {% endif %}
+                </div>
             </div>
+        </div>
+
+        <!-- Action Button -->
+        <div>
+            <a href="{{ url_for('versus.versus', tab='servers', s1=stats.server_id) }}" class="btn-versus-action" title="{{ t('server_profile.versus_btn') }}">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                <span>{{ t('server_profile.versus_btn') }}</span>
+            </a>
         </div>
     </div>
 </div>

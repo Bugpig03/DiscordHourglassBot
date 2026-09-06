@@ -342,9 +342,27 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
         for row in query
     ]
 
-    # Add bot origin baseline if not already present
-    if not any(r["month"] == "2024-04-28" for r in result):
-        result.append({"month": "2024-04-28", "total_hours": 0.0})
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # Add baseline according to entity scope (user, server, or global bot)
+    if user_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
+        if start_date:
+            start_date_str = start_date.strftime("%Y-%m-%d")
+            result = [r for r in result if r["month"] >= start_date_str]
+            if start_date_str < today_str and not any(r["month"] == start_date_str for r in result):
+                result.append({"month": start_date_str, "total_hours": 0.0})
+    elif server_id:
+        server_min = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
+        if server_min:
+            start_date_str = server_min.strftime("%Y-%m-%d")
+            result = [r for r in result if r["month"] >= start_date_str]
+            if start_date_str < today_str and not any(r["month"] == start_date_str for r in result):
+                result.append({"month": start_date_str, "total_hours": 0.0})
+    else:
+        # Add bot origin baseline if not already present
+        if not any(r["month"] == "2024-04-28" for r in result):
+            result.append({"month": "2024-04-28", "total_hours": 0.0})
 
     # Add latest current total value
     curr_query = Stats.select(fn.SUM(Stats.seconds))
@@ -354,11 +372,16 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
         curr_query = curr_query.where(Stats.user_id == user_id)
     current_total = curr_query.scalar() or 0
 
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    result.append({
-        "month": today_str,
-        "total_hours": round(current_total / 3600, 1)
-    })
+    if any(r["month"] == today_str for r in result):
+        for r in result:
+            if r["month"] == today_str:
+                r["total_hours"] = round(current_total / 3600, 1)
+                break
+    else:
+        result.append({
+            "month": today_str,
+            "total_hours": round(current_total / 3600, 1)
+        })
 
     return sorted(result, key=lambda x: x["month"])
 
@@ -391,9 +414,27 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
         for row in query
     ]
 
-    # Add bot origin baseline if not already present
-    if not any(r["month"] == "2024-04-28" for r in result):
-        result.append({"month": "2024-04-28", "total_messages": 0})
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # Add baseline according to entity scope (user, server, or global bot)
+    if user_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
+        if start_date:
+            start_date_str = start_date.strftime("%Y-%m-%d")
+            result = [r for r in result if r["month"] >= start_date_str]
+            if start_date_str < today_str and not any(r["month"] == start_date_str for r in result):
+                result.append({"month": start_date_str, "total_messages": 0})
+    elif server_id:
+        server_min = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
+        if server_min:
+            start_date_str = server_min.strftime("%Y-%m-%d")
+            result = [r for r in result if r["month"] >= start_date_str]
+            if start_date_str < today_str and not any(r["month"] == start_date_str for r in result):
+                result.append({"month": start_date_str, "total_messages": 0})
+    else:
+        # Add bot origin baseline if not already present
+        if not any(r["month"] == "2024-04-28" for r in result):
+            result.append({"month": "2024-04-28", "total_messages": 0})
 
     # Add latest current total value from Stats table
     curr_query = Stats.select(fn.SUM(Stats.messages))
@@ -403,11 +444,16 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
         curr_query = curr_query.where(Stats.user_id == user_id)
     current_total = curr_query.scalar() or 0
 
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    result.append({
-        "month": today_str,
-        "total_messages": int(current_total)
-    })
+    if any(r["month"] == today_str for r in result):
+        for r in result:
+            if r["month"] == today_str:
+                r["total_messages"] = int(current_total)
+                break
+    else:
+        result.append({
+            "month": today_str,
+            "total_messages": int(current_total)
+        })
 
     return sorted(result, key=lambda x: x["month"])
 
@@ -441,6 +487,22 @@ def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = N
         for row in query
     ]
 
+    # Baseline for user/server join month
+    if user_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
+        if start_date:
+            start_month_str = start_date.strftime("%Y-%m-01")
+            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
+            if not any(r["month"] == start_month_str for r in monthly_data):
+                monthly_data.append({"month": start_month_str, "total_hours": 0.0})
+    elif server_id:
+        server_min = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
+        if server_min:
+            start_month_str = server_min.strftime("%Y-%m-01")
+            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
+            if not any(r["month"] == start_month_str for r in monthly_data):
+                monthly_data.append({"month": start_month_str, "total_hours": 0.0})
+
     # Append current total for today
     curr_query = Stats.select(fn.SUM(Stats.seconds))
     if server_id:
@@ -449,10 +511,17 @@ def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = N
         curr_query = curr_query.where(Stats.user_id == user_id)
     current_total = curr_query.scalar() or 0
 
-    monthly_data.append({
-        "month": datetime.now().strftime("%Y-%m-%d"),
-        "total_hours": round(current_total / 3600, 1)
-    })
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if any(r["month"] == today_str for r in monthly_data):
+        for r in monthly_data:
+            if r["month"] == today_str:
+                r["total_hours"] = round(current_total / 3600, 1)
+                break
+    else:
+        monthly_data.append({
+            "month": today_str,
+            "total_hours": round(current_total / 3600, 1)
+        })
 
     monthly_data = sorted(monthly_data, key=lambda x: x["month"])
 
@@ -470,10 +539,10 @@ def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = N
     return monthly_differences
 
 
-def get_user_join_date(user_id: int, server_id: int | None = None) -> str:
+def get_user_join_date(user_id: int, server_id: int | None = None, lang: str = "fr") -> str:
     """Return the earliest recorded activity date for a user (overall or on a specific server)."""
     min_date = get_user_raw_join_date(user_id, server_id)
-    return format_date_fr(min_date)
+    return format_date_localized(min_date, lang=lang)
 
 
 def get_user_raw_join_date(user_id: int, server_id: int | None = None):
@@ -481,7 +550,30 @@ def get_user_raw_join_date(user_id: int, server_id: int | None = None):
     query = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id)
     if server_id:
         query = query.where(Stats.server_id == server_id)
-    return query.scalar()
+    min_date = query.scalar()
+    if not min_date:
+        hist_query = HistoricalStats.select(fn.MIN(HistoricalStats.created_at)).where(HistoricalStats.user_id == user_id)
+        if server_id:
+            hist_query = hist_query.where(HistoricalStats.server_id == server_id)
+        min_date = hist_query.scalar()
+    return min_date
+
+
+def get_server_raw_join_date(server_id: int | str):
+    """Return the raw earliest recorded activity datetime for a server (oldest registered user on the server)."""
+    int_server_id = int(server_id)
+    min_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == int_server_id).scalar()
+    if not min_date:
+        min_date = HistoricalStats.select(fn.MIN(HistoricalStats.created_at)).where(HistoricalStats.server_id == int_server_id).scalar()
+    return min_date
+
+
+def get_server_join_date(server_id: int | str, lang: str = "fr") -> str:
+    """Return the formatted localized earliest activity date for a server."""
+    min_date = get_server_raw_join_date(server_id)
+    if not min_date:
+        return ""
+    return format_date_localized(min_date, lang=lang)
 
 
 def get_monthly_messages_diff(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
@@ -512,6 +604,22 @@ def get_monthly_messages_diff(server_id: int | None = None, user_id: int | None 
         for row in query
     ]
 
+    # Baseline for user/server join month
+    if user_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
+        if start_date:
+            start_month_str = start_date.strftime("%Y-%m-01")
+            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
+            if not any(r["month"] == start_month_str for r in monthly_data):
+                monthly_data.append({"month": start_month_str, "total_messages": 0})
+    elif server_id:
+        server_min = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
+        if server_min:
+            start_month_str = server_min.strftime("%Y-%m-01")
+            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
+            if not any(r["month"] == start_month_str for r in monthly_data):
+                monthly_data.append({"month": start_month_str, "total_messages": 0})
+
     curr_query = Stats.select(fn.SUM(Stats.messages))
     if server_id:
         curr_query = curr_query.where(Stats.server_id == server_id)
@@ -519,10 +627,17 @@ def get_monthly_messages_diff(server_id: int | None = None, user_id: int | None 
         curr_query = curr_query.where(Stats.user_id == user_id)
     current_total = curr_query.scalar() or 0
 
-    monthly_data.append({
-        "month": datetime.now().strftime("%Y-%m-%d"),
-        "total_messages": int(current_total)
-    })
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if any(r["month"] == today_str for r in monthly_data):
+        for r in monthly_data:
+            if r["month"] == today_str:
+                r["total_messages"] = int(current_total)
+                break
+    else:
+        monthly_data.append({
+            "month": today_str,
+            "total_messages": int(current_total)
+        })
 
     monthly_data = sorted(monthly_data, key=lambda x: x["month"])
 

@@ -244,7 +244,8 @@ def get_user_stat_card(username: str):
     title = xp_info["title_fr"] if lang == "fr" else xp_info["title_en"]
     total_xp = xp_info["total_xp"]
     progress_pct = xp_info["progress_percent"]
-    rank_str = f"#{rank}" if rank else "-"
+    rank_num = rank if isinstance(rank, int) and rank > 0 else (int(rank) if isinstance(rank, str) and rank.strip().isdigit() else None)
+    rank_str = f"#{rank_num}" if rank_num is not None else ("Non classé" if lang == "fr" else "Unranked")
     hours_val = round(total_seconds / 3600, 1)
 
     badge_svg_chips = []

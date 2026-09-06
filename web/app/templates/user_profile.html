@@ -102,7 +102,11 @@
                 <div class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.username }}</div>
                 <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
                     <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
-                        {{ t('user_profile.global_rank', rank=stats.rank, total=stats.total_user) }}
+                        {% if stats.rank and stats.rank is number %}
+                            {{ t('user_profile.global_rank', rank=stats.rank, total=stats.total_user) }}
+                        {% else %}
+                            {{ t('user_profile.unranked') }}
+                        {% endif %}
                     </span>
                     <span style="background: rgba(88, 101, 242, 0.2); color: #818cf8; border: 1px solid rgba(88, 101, 242, 0.4); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
                         {{ t('profile.level_badge', level=gamification.xp_info.level) }} • {{ gamification.xp_info.title_fr if current_lang == 'fr' else gamification.xp_info.title_en }}
@@ -114,8 +118,12 @@
             </div>
         </div>
 
-        <!-- Export Stat Card Button -->
-        <div>
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <a href="{{ url_for('versus.versus', u1=stats.username) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                <span>{{ t('profile.versus_btn') }}</span>
+            </a>
             <button id="openCardModalBtn" class="btn-export-card" onclick="openCardModal()" title="{{ t('profile.export_card_btn') }}">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 <span>{{ t('profile.export_card_btn') }}</span>
@@ -155,7 +163,13 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.global_rank_label') }}</span>
-            <span class="home-stats-value">#{{ stats.rank }} <span style="font-size: 0.85rem; color: #64748b;">/ {{ stats.total_user }}</span></span>
+            <span class="home-stats-value">
+                {% if stats.rank and stats.rank is number %}
+                    #{{ stats.rank }} <span style="font-size: 0.85rem; color: #64748b;">/ {{ stats.total_user }}</span>
+                {% else %}
+                    {{ t('user_profile.unranked') }}
+                {% endif %}
+            </span>
         </div>
     </div>
 

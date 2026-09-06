@@ -1,0 +1,786 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('versus.title') }}{% endblock %}
+
+{% block content %}
+<!-- Chart.js & Adapter -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script type="application/json" id="versusChartData">{{ chart_json|safe }}</script>
+
+<div class="versus-container">
+    <!-- Header Hero -->
+    <div class="versus-hero">
+        <div class="versus-icon-badge">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
+                <line x1="13" y1="19" x2="19" y2="13"/>
+                <line x1="16" y1="16" x2="20" y2="20"/>
+                <line x1="19" y1="21" x2="21" y2="19"/>
+                <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/>
+                <line x1="5" y1="14" x2="9" y2="18"/>
+                <line x1="7" y1="17" x2="4" y2="20"/>
+                <line x1="3" y1="19" x2="5" y2="21"/>
+            </svg>
+        </div>
+        <h1 class="versus-title">{{ t('versus.heading') }}</h1>
+        <p class="versus-subtitle">{{ t('versus.subtitle') }}</p>
+    </div>
+
+    <!-- Mode Tabs (Users vs Servers) -->
+    <div class="top-tabs-wrapper" style="text-align: center; margin-bottom: 22px;">
+        <div class="top-tabs">
+            <a href="{{ url_for('versus.versus', tab='users') }}" class="top-tab-btn {% if tab == 'users' %}active{% endif %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>{{ t('versus.tab_users') }}</span>
+            </a>
+            <a href="{{ url_for('versus.versus', tab='servers') }}" class="top-tab-btn {% if tab == 'servers' %}active{% endif %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                <span>{{ t('versus.tab_servers') }}</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Selection Bar with Live Search Selectors -->
+    <div class="gray-box small-border-radius versus-selector-box">
+        <form method="GET" action="{{ url_for('versus.versus') }}" class="versus-form" id="versusForm">
+            <input type="hidden" name="tab" value="{{ tab }}">
+            {% if srv_val %}
+                <input type="hidden" name="srv" id="srvFilterInput" value="{{ srv_val }}">
+            {% endif %}
+
+            {% if tab == 'users' %}
+                <!-- Player 1 Selector -->
+                <div class="versus-input-group group-p1" id="groupEntity1">
+                    <label class="versus-input-label">
+                        <span class="player-dot dot-1"></span>
+                        <span>{{ t('versus.user1_label') }}</span>
+                    </label>
+                    <div class="page-search-wrap">
+                        <div class="page-search-bar bar-p1">
+                            <svg class="page-search-icon icon-p1" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
+                            </svg>
+                            <input type="text" name="u1" id="inputEntity1" value="{{ u1_val }}" placeholder="{{ t('versus.user1_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
+                            <button type="button" class="page-search-clear" id="clearEntity1" style="display: none;" title="Effacer">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div id="dropdownEntity1" class="page-search-dropdown" style="display: none;">
+                            <div id="resultsEntity1" class="page-search-dropdown-inner"></div>
+                            <div class="page-search-dropdown-footer">
+                                <div class="search-hint-item"><kbd>↑</kbd><kbd>↓</kbd> <span>{{ t('search.hint_navigate') }}</span></div>
+                                <div class="search-hint-item"><kbd>↵</kbd> <span>{{ t('search.hint_select') }}</span></div>
+                                <div class="search-hint-item"><kbd>ESC</kbd> <span>{{ t('search.hint_close') }}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Swap Button -->
+                <button type="button" class="versus-swap-btn" onclick="swapVersusInputs()" title="{{ t('versus.swap_btn') }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+                </button>
+
+                <!-- Player 2 Selector -->
+                <div class="versus-input-group group-p2" id="groupEntity2">
+                    <label class="versus-input-label">
+                        <span class="player-dot dot-2"></span>
+                        <span>{{ t('versus.user2_label') }}</span>
+                    </label>
+                    <div class="page-search-wrap">
+                        <div class="page-search-bar bar-p2">
+                            <svg class="page-search-icon icon-p2" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
+                            </svg>
+                            <input type="text" name="u2" id="inputEntity2" value="{{ u2_val }}" placeholder="{{ t('versus.user2_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
+                            <button type="button" class="page-search-clear" id="clearEntity2" style="display: none;" title="Effacer">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div id="dropdownEntity2" class="page-search-dropdown" style="display: none;">
+                            <div id="resultsEntity2" class="page-search-dropdown-inner"></div>
+                            <div class="page-search-dropdown-footer">
+                                <div class="search-hint-item"><kbd>↑</kbd><kbd>↓</kbd> <span>{{ t('search.hint_navigate') }}</span></div>
+                                <div class="search-hint-item"><kbd>↵</kbd> <span>{{ t('search.hint_select') }}</span></div>
+                                <div class="search-hint-item"><kbd>ESC</kbd> <span>{{ t('search.hint_close') }}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Server 1 Selector -->
+                <div class="versus-input-group group-p1" id="groupEntity1">
+                    <label class="versus-input-label">
+                        <span class="player-dot dot-1"></span>
+                        <span>{{ t('versus.server1_label') }}</span>
+                    </label>
+                    <div class="page-search-wrap">
+                        <div class="page-search-bar bar-p1">
+                            <svg class="page-search-icon icon-p1" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
+                            </svg>
+                            <input type="text" name="s1" id="inputEntity1" value="{{ s1_val }}" placeholder="{{ t('versus.server1_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
+                            <button type="button" class="page-search-clear" id="clearEntity1" style="display: none;" title="Effacer">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div id="dropdownEntity1" class="page-search-dropdown" style="display: none;">
+                            <div id="resultsEntity1" class="page-search-dropdown-inner"></div>
+                            <div class="page-search-dropdown-footer">
+                                <div class="search-hint-item"><kbd>↑</kbd><kbd>↓</kbd> <span>{{ t('search.hint_navigate') }}</span></div>
+                                <div class="search-hint-item"><kbd>↵</kbd> <span>{{ t('search.hint_select') }}</span></div>
+                                <div class="search-hint-item"><kbd>ESC</kbd> <span>{{ t('search.hint_close') }}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Swap Button -->
+                <button type="button" class="versus-swap-btn" onclick="swapVersusInputs()" title="{{ t('versus.swap_btn') }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+                </button>
+
+                <!-- Server 2 Selector -->
+                <div class="versus-input-group group-p2" id="groupEntity2">
+                    <label class="versus-input-label">
+                        <span class="player-dot dot-2"></span>
+                        <span>{{ t('versus.server2_label') }}</span>
+                    </label>
+                    <div class="page-search-wrap">
+                        <div class="page-search-bar bar-p2">
+                            <svg class="page-search-icon icon-p2" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
+                            </svg>
+                            <input type="text" name="s2" id="inputEntity2" value="{{ s2_val }}" placeholder="{{ t('versus.server2_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
+                            <button type="button" class="page-search-clear" id="clearEntity2" style="display: none;" title="Effacer">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div id="dropdownEntity2" class="page-search-dropdown" style="display: none;">
+                            <div id="resultsEntity2" class="page-search-dropdown-inner"></div>
+                            <div class="page-search-dropdown-footer">
+                                <div class="search-hint-item"><kbd>↑</kbd><kbd>↓</kbd> <span>{{ t('search.hint_navigate') }}</span></div>
+                                <div class="search-hint-item"><kbd>↵</kbd> <span>{{ t('search.hint_select') }}</span></div>
+                                <div class="search-hint-item"><kbd>ESC</kbd> <span>{{ t('search.hint_close') }}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <button type="submit" class="versus-submit-btn">
+                <span>{{ t('versus.compare_btn') }}</span>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        </form>
+
+        <!-- Common Servers Filter for Users Mode -->
+        {% if tab == 'users' and entity1 and entity2 %}
+            <div class="versus-common-servers-wrapper">
+                {% if common_servers %}
+                    <div class="common-servers-header">
+                        <div class="common-servers-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                            <span>{{ t('versus.common_servers_heading') }}</span>
+                        </div>
+                    </div>
+                    <div class="common-servers-pills-container">
+                        <a href="{{ url_for('versus.versus', tab='users', u1=u1_val, u2=u2_val) }}" 
+                           class="server-pill {% if not srv_val %}active{% endif %}">
+                            {{ t('versus.all_servers_option') }}
+                        </a>
+                        {% for srv in common_servers %}
+                            <a href="{{ url_for('versus.versus', tab='users', u1=u1_val, u2=u2_val, srv=srv.id) }}" 
+                               class="server-pill {% if srv_val == srv.id %}active{% endif %}" title="{{ srv.name }}">
+                                {% if srv.avatar %}
+                                    <img src="{{ srv.avatar }}" class="pill-avatar" alt="icon" onerror="this.style.display='none'">
+                                {% else %}
+                                    <span class="pill-fallback-icon">🏰</span>
+                                {% endif %}
+                                <span class="pill-text">{{ srv.name }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="common-servers-none">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                        <span>{{ t('versus.no_common_servers') }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if entity1 and entity2 %}
+        <!-- Active Server Filter Banner -->
+        {% if selected_server %}
+            <div class="active-server-banner">
+                <div class="active-server-badge">
+                    <span class="active-server-pulse"></span>
+                    <span>{{ t('versus.server_duel_scope', server_name=selected_server.name) }}</span>
+                </div>
+                <a href="{{ url_for('versus.versus', tab='users', u1=u1_val, u2=u2_val) }}" class="btn-clear-server-filter" title="Retour aux statistiques globales">
+                    ✕ <span>{{ t('versus.all_servers_option') }}</span>
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- Face-to-Face Arena Presentation -->
+        <div class="versus-arena">
+            <!-- Fighter 1 Card -->
+            <div class="versus-fighter-card fighter-1 {% if comparison.overall_winner == '1' %}fighter-winner{% endif %}">
+                {% if comparison.overall_winner == '1' %}
+                    <div class="fighter-champion-ribbon">
+                        <span>🏆 {{ t('versus.winner_badge') }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="fighter-avatar-wrapper">
+                    <img src="{{ entity1.avatar or fallback_avatar }}" alt="Avatar 1" class="fighter-avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                    <div class="fighter-player-tag tag-1">1</div>
+                </div>
+
+                <div class="fighter-name text-overflow">
+                    {% if tab == 'users' %}
+                        <a href="{{ url_for('user_profile.profile', username=entity1.username) }}" class="link-clean" title="{{ entity1.username }}">{{ entity1.username }}</a>
+                    {% else %}
+                        <a href="{{ url_for('server_profile.server', server_id=entity1.id) }}" class="link-clean" title="{{ entity1.name }}">{{ entity1.name }}</a>
+                    {% endif %}
+                </div>
+
+                <div class="fighter-meta">
+                    {% if tab == 'users' %}
+                        <span class="fighter-badge fighter-rank-badge">
+                            {% if entity1.rank %}
+                                #{{ entity1.rank }} <span class="rank-total">/ {{ entity1.total_user }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
+                        <span class="fighter-badge fighter-level-badge">Lv. {{ entity1.level }}</span>
+                    {% else %}
+                        <span class="fighter-badge fighter-rank-badge">#{{ entity1.rank if entity1.rank else '-' }}</span>
+                        <span class="fighter-badge fighter-members-badge">{{ entity1.members_count }} {{ t('top.users_unit') }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="fighter-score-display display-1">
+                    <span class="score-number">{{ comparison.score1 }}</span>
+                    <span class="score-text">{{ t('versus.victory_singular') if comparison.score1 <= 1 else t('versus.victory_plural') }}</span>
+                </div>
+            </div>
+
+            <!-- Central Clash Pillar -->
+            <div class="versus-center-pillar">
+                <div class="versus-neon-badge">
+                    <span>VS</span>
+                </div>
+
+                <!-- Match Scoreboard -->
+                <div class="duel-scoreboard">
+                    <span class="score-digit digit-1 {% if comparison.overall_winner == '1' %}win{% endif %}">{{ comparison.score1 }}</span>
+                    <span class="score-sep">-</span>
+                    <span class="score-digit digit-2 {% if comparison.overall_winner == '2' %}win{% endif %}">{{ comparison.score2 }}</span>
+                </div>
+
+                <!-- Outcome Badge -->
+                <div class="duel-outcome-wrapper">
+                    {% if comparison.overall_winner == '1' %}
+                        <div class="duel-outcome-pill winner-pill-1">
+                            <span>👑 {{ t('versus.overall_winner_title', name=entity1.username if tab == 'users' else entity1.name) }}</span>
+                        </div>
+                    {% elif comparison.overall_winner == '2' %}
+                        <div class="duel-outcome-pill winner-pill-2">
+                            <span>👑 {{ t('versus.overall_winner_title', name=entity2.username if tab == 'users' else entity2.name) }}</span>
+                        </div>
+                    {% else %}
+                        <div class="duel-outcome-pill tie-pill">
+                            <span>🤝 {{ t('versus.overall_tie_title') }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Fighter 2 Card -->
+            <div class="versus-fighter-card fighter-2 {% if comparison.overall_winner == '2' %}fighter-winner{% endif %}">
+                {% if comparison.overall_winner == '2' %}
+                    <div class="fighter-champion-ribbon">
+                        <span>🏆 {{ t('versus.winner_badge') }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="fighter-avatar-wrapper">
+                    <img src="{{ entity2.avatar or fallback_avatar }}" alt="Avatar 2" class="fighter-avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                    <div class="fighter-player-tag tag-2">2</div>
+                </div>
+
+                <div class="fighter-name text-overflow">
+                    {% if tab == 'users' %}
+                        <a href="{{ url_for('user_profile.profile', username=entity2.username) }}" class="link-clean" title="{{ entity2.username }}">{{ entity2.username }}</a>
+                    {% else %}
+                        <a href="{{ url_for('server_profile.server', server_id=entity2.id) }}" class="link-clean" title="{{ entity2.name }}">{{ entity2.name }}</a>
+                    {% endif %}
+                </div>
+
+                <div class="fighter-meta">
+                    {% if tab == 'users' %}
+                        <span class="fighter-badge fighter-rank-badge">
+                            {% if entity2.rank %}
+                                #{{ entity2.rank }} <span class="rank-total">/ {{ entity2.total_user }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
+                        <span class="fighter-badge fighter-level-badge">Lv. {{ entity2.level }}</span>
+                    {% else %}
+                        <span class="fighter-badge fighter-rank-badge">#{{ entity2.rank if entity2.rank else '-' }}</span>
+                        <span class="fighter-badge fighter-members-badge">{{ entity2.members_count }} {{ t('top.users_unit') }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="fighter-score-display display-2">
+                    <span class="score-number">{{ comparison.score2 }}</span>
+                    <span class="score-text">{{ t('versus.victory_singular') if comparison.score2 <= 1 else t('versus.victory_plural') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Duel Breakdown List -->
+        <div class="gray-box small-border-radius versus-metrics-container">
+            <div class="versus-metrics-title-row">
+                <h3 class="versus-metrics-title">📊 {{ 'Comparatif détaillé des métriques' if current_lang == 'fr' else 'Detailed Metric Breakdown' }}</h3>
+                <span class="metrics-count-badge">{{ comparison.metrics|length }} {{ 'catégories' if current_lang == 'fr' else 'categories' }}</span>
+            </div>
+
+            <div class="versus-metrics-list">
+                {% for m in comparison.metrics %}
+                    <div class="versus-metric-row">
+                        <div class="metric-row-header">
+                            <!-- Left Fighter Value -->
+                            <div class="metric-side-val side-left {% if m.winner == '1' %}is-winner{% endif %}">
+                                {% if m.winner == '1' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">👑</span>{% endif %}
+                                <span class="val-number">
+                                    {% if m.unit == 'h' %}
+                                        {{ m.v1 }} h
+                                    {% elif m.key == 'rank' %}
+                                        #{{ m.v1 if m.v1 else '-' }}
+                                    {% elif m.v1 is number %}
+                                        {{ m.v1 | thousands_fr }}
+                                    {% else %}
+                                        {{ m.v1 }}
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <!-- Central Metric Title & Icon -->
+                            <div class="metric-center-label">
+                                <span class="metric-category-icon">
+                                    {% if m.key == 'hours' %}⏱️
+                                    {% elif m.key == 'messages' %}💬
+                                    {% elif m.key == 'level' %}⭐
+                                    {% elif m.key == 'activity_30d' %}⚡
+                                    {% elif m.key == 'rank' %}🏅
+                                    {% elif m.key == 'badges' %}🎖️
+                                    {% elif m.key == 'servers' %}🌐
+                                    {% elif m.key == 'members' %}👥
+                                    {% else %}📊{% endif %}
+                                </span>
+                                <span class="metric-category-name">{{ t(m.label_key) }}</span>
+                            </div>
+
+                            <!-- Right Fighter Value -->
+                            <div class="metric-side-val side-right {% if m.winner == '2' %}is-winner{% endif %}">
+                                <span class="val-number">
+                                    {% if m.unit == 'h' %}
+                                        {{ m.v2 }} h
+                                    {% elif m.key == 'rank' %}
+                                        #{{ m.v2 if m.v2 else '-' }}
+                                    {% elif m.v2 is number %}
+                                        {{ m.v2 | thousands_fr }}
+                                    {% else %}
+                                        {{ m.v2 }}
+                                    {% endif %}
+                                </span>
+                                {% if m.winner == '2' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">👑</span>{% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Duel Gauge Bar -->
+                        <div class="metric-gauge-wrapper">
+                            <div class="gauge-bar gauge-bar-left">
+                                <div class="gauge-fill fill-1 {% if m.winner == '1' %}win-fill{% endif %}" style="width: {{ m.pct1 }}%;"></div>
+                            </div>
+                            <div class="gauge-divider-pin"></div>
+                            <div class="gauge-bar gauge-bar-right">
+                                <div class="gauge-fill fill-2 {% if m.winner == '2' %}win-fill{% endif %}" style="width: {{ m.pct2 }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Superimposed Chart Section -->
+        <div class="gray-box small-border-radius versus-chart-card">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">
+                        {% if selected_server %}
+                            📈 {{ t('versus.chart_title_users') }} ({{ selected_server.name }})
+                        {% elif tab == 'users' %}
+                            📈 {{ t('versus.chart_title_users') }}
+                        {% else %}
+                            📈 {{ t('versus.chart_title_servers') }}
+                        {% endif %}
+                    </div>
+                    <div class="small-text gray" style="margin-top: 4px;">{{ t('versus.chart_desc') }}</div>
+                </div>
+            </div>
+            <div style="position: relative; height: 380px; width: 100%;">
+                <canvas id="versusChart"></canvas>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Empty State / No Match -->
+        <div class="gray-box small-border-radius versus-empty-arena">
+            <div class="empty-swords-icon">⚔️</div>
+            <div class="empty-arena-title">{{ t('versus.no_data') }}</div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Autocomplete & Chart Script -->
+<script>
+function swapVersusInputs() {
+    const i1 = document.getElementById('inputEntity1');
+    const i2 = document.getElementById('inputEntity2');
+    if (i1 && i2) {
+        const tmp = i1.value;
+        i1.value = i2.value;
+        i2.value = tmp;
+        document.getElementById('versusForm').submit();
+    }
+}
+
+function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, groupId, type) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+    const resultsContainer = document.getElementById(resultsId);
+    const clearBtn = document.getElementById(clearBtnId);
+    const group = document.getElementById(groupId);
+    const form = document.getElementById('versusForm');
+
+    if (!input || !dropdown || !resultsContainer) return;
+
+    let searchTimer = null;
+    let selectedIndex = -1;
+    let currentResults = [];
+    const isEn = document.documentElement.lang === 'en' || '{{ current_lang }}' === 'en';
+
+    function updateClearBtn() {
+        if (clearBtn) {
+            clearBtn.style.display = input.value.trim().length > 0 ? 'inline-flex' : 'none';
+        }
+    }
+
+    updateClearBtn();
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            input.value = '';
+            updateClearBtn();
+            closeDropdown();
+            input.focus();
+        });
+    }
+
+    function openDropdown() {
+        document.querySelectorAll('.page-search-dropdown').forEach(d => {
+            if (d !== dropdown) d.style.display = 'none';
+        });
+        document.querySelectorAll('.versus-input-group').forEach(g => {
+            g.style.zIndex = '1';
+        });
+        if (group) group.style.zIndex = '105';
+        dropdown.style.display = 'block';
+    }
+
+    function closeDropdown() {
+        dropdown.style.display = 'none';
+        selectedIndex = -1;
+        if (group) group.style.zIndex = '1';
+    }
+
+    function updateHighlight() {
+        const items = resultsContainer.querySelectorAll('.search-result-item');
+        items.forEach((item, idx) => {
+            if (idx === selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    function selectItem(itemData) {
+        if (type === 'users') {
+            input.value = itemData.username;
+        } else {
+            input.value = itemData.servername || itemData.server_id;
+        }
+        updateClearBtn();
+        closeDropdown();
+
+        // Check if the other input is already filled
+        const otherId = inputId === 'inputEntity1' ? 'inputEntity2' : 'inputEntity1';
+        const otherInput = document.getElementById(otherId);
+        if (otherInput && otherInput.value.trim().length > 0) {
+            form.submit();
+        } else if (otherInput) {
+            otherInput.focus();
+        }
+    }
+
+    function performSearch(q) {
+        if (!q) {
+            closeDropdown();
+            return;
+        }
+
+        fetch(`/api/search?q=${encodeURIComponent(q)}&type=${type}&limit=8`)
+            .then(res => res.json())
+            .then(data => {
+                currentResults = type === 'users' ? (data.users || []) : (data.servers || []);
+                selectedIndex = -1;
+                openDropdown();
+
+                if (currentResults.length === 0) {
+                    const emptyLabel = isEn
+                        ? `No ${type} found for "${q}"`
+                        : `Aucun ${type === 'users' ? 'utilisateur' : 'serveur'} trouvé pour « ${q} »`;
+                    resultsContainer.innerHTML = `
+                        <div class="search-empty-state" style="padding: 22px 14px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+                            <span>${emptyLabel}</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const groupTitle = type === 'users'
+                    ? (isEn ? `Users (${currentResults.length})` : `Utilisateurs (${currentResults.length})`)
+                    : (isEn ? `Servers (${currentResults.length})` : `Serveurs (${currentResults.length})`);
+
+                let html = `<div class="search-group-title">${groupTitle}</div>`;
+                currentResults.forEach((item, i) => {
+                    const avatar = item.avatar || (type === 'users' ? '/static/images/base_avatar_big.png' : '/static/icons/server.png');
+                    const name = type === 'users' ? item.username : item.servername;
+                    const sub = type === 'users'
+                        ? (isEn ? 'User Profile' : 'Profil Utilisateur')
+                        : `ID: ${item.server_id}`;
+                    const badge = isEn ? 'Select' : 'Choisir';
+                    const lvl = (type === 'users' && item.level)
+                        ? `<span class="user-level-tag">${isEn ? 'Lv.' : 'Nv.'} ${item.level}</span>`
+                        : '';
+
+                    html += `
+                        <div class="search-result-item" data-index="${i}" style="cursor: pointer;">
+                            <img src="${avatar}" class="search-item-avatar" alt="${name}" onerror="this.src='${type === 'users' ? '/static/images/base_avatar_big.png' : '/static/icons/server.png'}'">
+                            <div class="search-item-info">
+                                <span class="search-item-name" style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <span>${name}</span>
+                                    ${lvl}
+                                </span>
+                                <span class="search-item-sub">${sub}</span>
+                            </div>
+                            <span class="search-item-badge">${badge}</span>
+                        </div>
+                    `;
+                });
+                resultsContainer.innerHTML = html;
+
+                const renderedItems = resultsContainer.querySelectorAll('.search-result-item');
+                renderedItems.forEach((rendered, idx) => {
+                    rendered.addEventListener('mouseenter', () => {
+                        selectedIndex = idx;
+                        updateHighlight();
+                    });
+                    rendered.addEventListener('click', () => {
+                        selectItem(currentResults[idx]);
+                    });
+                });
+            })
+            .catch(() => {
+                resultsContainer.innerHTML = `<div class="search-empty-state" style="padding: 20px 14px;">Erreur de recherche.</div>`;
+            });
+    }
+
+    input.addEventListener('input', function() {
+        updateClearBtn();
+        clearTimeout(searchTimer);
+        const q = this.value.trim();
+        if (q.length === 0) {
+            closeDropdown();
+            return;
+        }
+        searchTimer = setTimeout(() => performSearch(q), 180);
+    });
+
+    input.addEventListener('focus', function() {
+        if (this.value.trim().length > 0) {
+            if (currentResults.length > 0) {
+                openDropdown();
+            } else {
+                performSearch(this.value.trim());
+            }
+        }
+    });
+
+    input.addEventListener('keydown', function(e) {
+        const items = resultsContainer.querySelectorAll('.search-result-item');
+        const count = items.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (dropdown.style.display === 'none') {
+                openDropdown();
+                return;
+            }
+            if (count > 0) {
+                selectedIndex = (selectedIndex + 1) % count;
+                updateHighlight();
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (count > 0) {
+                selectedIndex = selectedIndex <= 0 ? count - 1 : selectedIndex - 1;
+                updateHighlight();
+            }
+        } else if (e.key === 'Enter') {
+            if (dropdown.style.display !== 'none' && selectedIndex >= 0 && currentResults[selectedIndex]) {
+                e.preventDefault();
+                selectItem(currentResults[selectedIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            closeDropdown();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const searchType = '{{ tab }}';
+    setupVersusAutocomplete('inputEntity1', 'dropdownEntity1', 'resultsEntity1', 'clearEntity1', 'groupEntity1', searchType);
+    setupVersusAutocomplete('inputEntity2', 'dropdownEntity2', 'resultsEntity2', 'clearEntity2', 'groupEntity2', searchType);
+
+    // Initialize Chart.js
+    const rawDataElem = document.getElementById('versusChartData');
+    if (!rawDataElem) return;
+    let chartData = null;
+    try {
+        chartData = JSON.parse(rawDataElem.textContent);
+    } catch(e) {
+        return;
+    }
+    if (!chartData || !chartData.name1) return;
+
+    const ctx = document.getElementById('versusChart');
+    if (!ctx) return;
+
+    const hoursUnit = '{{ t("top.hours_unit") }}';
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: chartData.name1,
+                    data: chartData.data1,
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                    fill: true,
+                    tension: 0.32,
+                    pointBackgroundColor: '#38bdf8',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 2.8,
+                },
+                {
+                    label: chartData.name2,
+                    data: chartData.data2,
+                    borderColor: '#f43f5e',
+                    backgroundColor: 'rgba(244, 63, 94, 0.12)',
+                    fill: true,
+                    tension: 0.32,
+                    pointBackgroundColor: '#f43f5e',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 2.8,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#cbd5e1',
+                        font: { size: 13, weight: 'bold' },
+                        usePointStyle: true,
+                        padding: 16
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.94)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#e2e8f0',
+                    borderColor: 'rgba(255, 255, 255, 0.12)',
+                    borderWidth: 1,
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.dataset.label + ': ' + context.parsed.y + ' ' + hoursUnit;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: { unit: 'month' },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                    ticks: { color: '#94a3b8' }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                    ticks: {
+                        color: '#94a3b8',
+                        callback: function(val) { return val + ' ' + hoursUnit; }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -91,13 +91,31 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
       - target: required threshold
       - progress_percent: completion percentage (0 to 100)
     """
-    total_seconds = stats.get("total_seconds") or 0
+    try:
+        total_seconds = float(stats.get("total_seconds") or 0)
+    except (ValueError, TypeError):
+        total_seconds = 0.0
     total_hours = total_seconds / 3600.0
-    total_messages = stats.get("total_message") or 0
-    rank = stats.get("rank")
-    servers = stats.get("user_servers_stats") or []
-    server_count = len(servers)
-    last_30d_seconds = stats.get("total_time_last_30d") or 0
+
+    try:
+        total_messages = int(stats.get("total_message") or 0)
+    except (ValueError, TypeError):
+        total_messages = 0
+
+    raw_rank = stats.get("rank")
+    rank: int | None = None
+    if isinstance(raw_rank, int) and raw_rank > 0:
+        rank = raw_rank
+    elif isinstance(raw_rank, str) and raw_rank.strip().isdigit():
+        rank = int(raw_rank.strip())
+
+    servers = stats.get("user_servers_stats")
+    server_count = len(servers) if isinstance(servers, list) else 0
+
+    try:
+        last_30d_seconds = float(stats.get("total_time_last_30d") or 0)
+    except (ValueError, TypeError):
+        last_30d_seconds = 0.0
     last_30d_hours = last_30d_seconds / 3600.0
     join_source = stats.get("raw_join_date") or stats.get("join_date")
 

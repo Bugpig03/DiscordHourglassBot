@@ -8,7 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
     <link
     rel="stylesheet"
-    href="{{ url_for('static', filename='styles.css', v=17) }}"
+    href="{{ url_for('static', filename='styles.css', v=18) }}"
     >
 </head>
 <body>
@@ -64,6 +64,12 @@
                             <a href="{{ url_for('servers.servers') }}" class="app-nav-link {% if request.endpoint in ['servers.servers', 'server_profile.server'] %}active{% endif %}">
                                 <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
                                 <span>{{ t('nav.servers') }}</span>
+                            </a>
+                        </li>
+                        <li class="app-nav-item">
+                            <a href="{{ url_for('versus.versus') }}" class="app-nav-link {% if request.endpoint == 'versus.versus' %}active{% endif %}">
+                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                                <span>{{ t('nav.versus') }}</span>
                             </a>
                         </li>
                         <li class="app-nav-item">

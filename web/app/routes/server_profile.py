@@ -15,7 +15,7 @@ from app.functions import (
     get_total_seconds_by_server_id,
     get_total_message_by_server_id,
     get_server_activity_sum_last_X_days,
-    get_user_join_date,
+    get_server_join_date,
     get_first_of_month_hours_sum,
     get_first_of_month_messages_sum,
     get_monthly_hours_diff,
@@ -62,7 +62,7 @@ def load_server_profile_stats(server_id: str | int, search_query: str = "", lang
         "total_message": get_total_message_by_server_id(server_id),
         "total_time_last_30d": get_server_activity_sum_last_X_days(server_id, 30),
         "users": load_users_from_server(server_id, search_query, lang=lang),
-        "join_date": get_user_join_date(HOURGLASS_BOT_ID, server_id),
+        "join_date": get_server_join_date(server_id, lang=lang),
     }
 
 

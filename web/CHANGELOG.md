@@ -1,5 +1,31 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.1 - Rafraîchissement du Cache & Assets - 06/09/2026
+### Bug Fixes & Maintenance
+- **Incrémentation du cache statique (Cache Buster)** :
+  - Passage à `v=18` pour `styles.css` dans `base.html` afin d'éviter les problèmes de cache et de persistance sur les navigateurs des visiteurs, forçant le rechargement immédiat des nouveaux styles et composants sans manipulation manuelle.
+
+## Version 2.5.0 - Mode Versus, Fix Crash Nouveaux Utilisateurs & UI Mobile - 06/09/2026
+### Features & Improvements
+- **Mode Versus (`/versus`)** :
+  - Nouvelle page de confrontation en face-à-face pour comparer deux joueurs (`/versus?tab=users`) ou deux serveurs (`/versus?tab=servers`).
+  - Arène graphique moderne : cartes combattants avec ruban de champion doré `🏆`, grand tableau d'affichage des scores central et jauges de duel bicolores animées pour chaque statistique (vocal, messages, niveau/XP, activité 30 jours, badges, rang).
+  - Barres de recherche élégantes avec autocomplétion dynamique en direct (`/api/search`), affichage des vrais avatars Discord, badges de niveau, navigation complète au clavier (<kbd>↑</kbd><kbd>↓</kbd>, <kbd>↵</kbd>, <kbd>Échap</kbd>), bouton effacer `✕` et lancement automatique du duel.
+  - **Filtre par serveurs en commun** : détection automatique des serveurs partagés entre 2 joueurs avec recalcul instantané des métriques, du rang interne, de la date d'arrivée, de l'activité 30 jours et de la courbe historique sur ce serveur spécifique.
+  - Graphiques temporels superposés comparant l'évolution des deux entités sur la même échelle.
+  - Bouton d'inversion rapide des combattants (`⇄`).
+  - Bouton d'accès direct au mode Versus depuis les profils joueurs et serveurs.
+
+### Bug Fixes & Mobile Optimizations
+- **Correction du crash sur les profils utilisateurs (petit niveau / non classé)** :
+  - Résolution de l'erreur 500 sur les profils de nouveaux joueurs ou à faible activité (`rank is None`, absence d'historique ou utilisateur non confirmé) avec fallback gracieux et affichage sécurisé.
+- **Optimisations visuelles sur mobile (téléphone)** :
+  - Correction du débordement du sélecteur de langue et du bouton Discord sur petit écran en mode portrait.
+  - Adaptation responsive de l'arène de duel Versus et des barres de saisie.
+- **Précision des graphiques historiques & ancienneté des serveurs** :
+  - Les graphiques d'évolution temporelle débutent désormais à la date d'enregistrement réelle du profil ou du serveur (suppression des longues périodes plates inutiles depuis l'origine du bot).
+  - Correction du calcul de date de suivi des serveurs où le bot n'a jamais été sollicité dans le chat (détection par l'utilisateur enregistré le plus ancien).
+
 ## Version 2.4 - Gamification & Modern UI - 05/09/2026
 ### Features & Improvements
 - Added real-time Gamification engine: Level & XP system computed in memory without DB alterations
