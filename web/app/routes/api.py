@@ -823,7 +823,7 @@ def get_server_stat_card(server_id: int):
     return _svg_response(svg_content)
 
 
-# 6. Bot Commands Card (!aide)
+# 6. Bot Commands Card (!help)
 COMMANDS_DATA = {
     "fr": [
         ("!stats [user]", "Affiche les statistiques de l'utilisateur sur le serveur actuel (messages et heures en vocal)."),
@@ -831,7 +831,7 @@ COMMANDS_DATA = {
         ("!top", "Affiche le Top 10 des utilisateurs les plus actifs en vocal sur le serveur actuel."),
         ("!alltop", "Affiche le Top 10 global des utilisateurs les plus actifs sur tous les serveurs."),
         ("!server", "Affiche les métriques globales du serveur (total des messages et heures en vocal)."),
-        ("!aide", "Affiche la liste d'aide et les raccourcis des commandes du bot.")
+        ("!help (ou /help)", "Affiche la liste d'aide et les raccourcis des commandes du bot.")
     ],
     "en": [
         ("!stats [user]", "Displays user statistics on the current server (messages and voice hours)."),
@@ -839,7 +839,7 @@ COMMANDS_DATA = {
         ("!top", "Displays the Top 10 most active voice users on the current server."),
         ("!alltop", "Displays the global Top 10 most active voice users across all servers."),
         ("!server", "Displays global server metrics (total messages and voice hours)."),
-        ("!aide", "Displays the help guide and command shortcuts for the bot.")
+        ("!help (or /help)", "Displays the help guide and command shortcuts for the bot.")
     ]
 }
 

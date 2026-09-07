@@ -280,7 +280,7 @@ GET /api/card/server/{server_id}
 
 ---
 
-### Tableau d'aide des commandes (!aide)
+### Tableau d'aide des commandes (!help / !aide)
 Génère un tableau élégant récapitulant les commandes disponibles du bot, leurs syntaxes dorées et leurs descriptions.
 
 ```http

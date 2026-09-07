@@ -1,5 +1,29 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.6.0 - Commandes Slash Discord & Renommage !aide en !help - 07/09/2026
+
+- **Support complet des commandes Slash (`/`) de Discord** :
+  - Migration vers le système de commandes hybrides de Discord (`@bot.hybrid_command` / `app_commands`).
+  - Toutes les commandes peuvent désormais être invoquées sous forme de commandes slash modernes (`/stats`, `/allstats`, `/top`, `/alltop`, `/server`, `/help`) avec autocomplétion, descriptions intégrées et sélecteur d'utilisateur dans l'interface Discord.
+  - Rétrocompatibilité totale avec les préfixes classiques (`!stats`, `!allstats`, etc.).
+  - Synchronisation automatique des commandes slash auprès de l'API Discord au démarrage (`bot.tree.sync()`).
+  - Prise en charge du différé (`ctx.defer()`) pour éviter toute expiration de l'interaction Discord lors de la génération des cartes.
+- **Renommage de la commande d'aide** :
+  - `!aide` est désormais renommée en `!help` (et `/help`).
+  - L'alias `!aide` reste conservé pour assurer une transition transparente.
+- **Conservation de la logique métier** :
+  - La logique de suivi (temps passé en vocal, messages envoyés, mise à jour des avatars et pseudos) reste 100% inchangée.
+
+## Version 2.5.1 - Affichage graphique PNG natif sur Discord & Correction doublon fallback - 07/09/2026
+
+- **Affichage natif des cartes en image PNG dans Discord** :
+  - Intégration de `resvg-py` pour convertir instantanément le SVG généré par l'API en PNG haute définition.
+  - Résout le comportement de Discord qui affichait le fichier `.svg` sous forme de bloc de code brut (`<svg ...`) au lieu d'une véritable image graphique.
+  - Les cartes (`!stats`, `!allstats`, `!top`, `!alltop`, `!server`, `!aide`) s'affichent désormais directement comme une image dans les salons Discord.
+- **Correction du message texte en double (fallback)** :
+  - Découplage strict de la requête API et de l'envoi Discord pour empêcher l'envoi intempestif du message textuel lorsque la carte est bien récupérée.
+  - Le message texte d'origine n'est désormais envoyé qu'exclusivement si l'API est injoignable ou en cas de panne réseau.
+
 ## Version 2.5.0 - Réponses des commandes en cartes graphiques SVG - 07/09/2026
 
 - **Affichage des réponses en cartes vectorielles SVG** :
