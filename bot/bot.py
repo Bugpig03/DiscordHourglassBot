@@ -4,6 +4,42 @@ from discord.ext import commands
 from database import *
 import datetime
 import os
+import io
+import aiohttp
+
+BOT_VERSION = "2.5.0"
+API_BASE_URL = os.environ.get(
+    'HOURGLASS_API_URL',
+    os.environ.get('API_URL', 'https://hourglass.mike-server.fr')
+).rstrip('/')
+
+async def send_card_or_fallback(ctx, endpoint: str, filename: str, fallback_message: str):
+    """
+    Récupère la carte SVG depuis l'API Hourglass et l'envoie en fichier Discord.
+    En cas d'erreur ou d'indisponibilité de l'API, envoie le message texte de secours.
+    """
+    url = f"{API_BASE_URL}{endpoint}"
+    try:
+        timeout = aiohttp.ClientTimeout(total=8)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(url) as resp:
+                content_type = resp.headers.get("Content-Type", "")
+                if resp.status in (200, 404) and "image/svg+xml" in content_type:
+                    data = await resp.read()
+                    file = discord.File(fp=io.BytesIO(data), filename=filename)
+                    await ctx.send(file=file)
+                    return
+                elif resp.status == 200:
+                    data = await resp.read()
+                    file = discord.File(fp=io.BytesIO(data), filename=filename)
+                    await ctx.send(file=file)
+                    return
+                else:
+                    print(f"[API ERROR] HTTP {resp.status} from {url}")
+    except Exception as e:
+        print(f"[API ERROR] Failed to fetch SVG card from {url}: {e}")
+
+    await ctx.send(fallback_message)
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -85,7 +121,13 @@ async def stats(ctx, user: discord.User = None):
         f"Nombre de messages : {nbr_messages}\n"
         f"Temps passé en vocal : {formatted_time}")
     
-    await ctx.send(message)
+    safe_name = "".join(c for c in user.name if c.isalnum() or c in ('_', '-')) or str(user_id)
+    await send_card_or_fallback(
+        ctx,
+        f"/api/card/user/{user_id}/server/{server_id}",
+        f"stats_{safe_name}_{server_id}.svg",
+        message
+    )
 
 @bot.command()
 async def allstats(ctx, user: discord.User = None):
@@ -94,6 +136,9 @@ async def allstats(ctx, user: discord.User = None):
         user = ctx.author
 
     user_id = user.id
+
+    if user.avatar:
+        SetUserAvatar(user.id, user.avatar.url)
 
     formatted_time = ConvertSecondsToTime(GetSecondsOfUser(user_id))
     nbr_messages = GetMessagesOfUser(user_id)
@@ -104,7 +149,13 @@ async def allstats(ctx, user: discord.User = None):
         f"Temps passé en vocal: {formatted_time}"
     )
         
-    await ctx.send(message)
+    safe_name = "".join(c for c in user.name if c.isalnum() or c in ('_', '-')) or str(user_id)
+    await send_card_or_fallback(
+        ctx,
+        f"/api/card/user/{user_id}",
+        f"allstats_{safe_name}.svg",
+        message
+    )
 
 
 
@@ -134,7 +185,12 @@ async def top(ctx):
         message_lines.append(line)
 
     message = "\n".join(message_lines)
-    await ctx.send(message)
+    await send_card_or_fallback(
+        ctx,
+        f"/api/card/top/server/{ctx.guild.id}",
+        f"top_{ctx.guild.id}.svg",
+        message
+    )
 
 # Commande Discord !top pour afficher le top 10 des utilisateurs en fonction des secondes accumulées
 @bot.command()
@@ -143,7 +199,8 @@ async def alltop(ctx):
     top_users = GetTop10UsersBySeconds()
 
     if not top_users:
-        await ctx.send("Aucun utilisateur trouvé dans les bases de données.")
+        message = "Aucun utilisateur trouvé dans les bases de données."
+        await send_card_or_fallback(ctx, "/api/card/top", "top_global.svg", message)
         return
 
     message_lines = ["__Top 10 **global** :__"]
@@ -164,14 +221,25 @@ async def alltop(ctx):
         top_count = top_count + 1
         message_lines.append(line)
     message = "\n".join(message_lines)
-    await ctx.send(message)
+    await send_card_or_fallback(
+        ctx,
+        "/api/card/top",
+        "top_global.svg",
+        message
+    )
 
 @bot.command()
 async def server(ctx):
     message_count = GetTotalMessagesOnServer(ctx.guild.id)
     seconds_count = GetTotalSecondsOnServer(ctx.guild.id)
     seconds_count = ConvertSecondsToTime(seconds_count)
-    await ctx.send(f"__Statistiques du serveur:__\nNombre de messages au total : {message_count}\nTemps passé en vocal au total : {seconds_count}")
+    message = f"__Statistiques du serveur:__\nNombre de messages au total : {message_count}\nTemps passé en vocal au total : {seconds_count}"
+    await send_card_or_fallback(
+        ctx,
+        f"/api/card/server/{ctx.guild.id}",
+        f"server_{ctx.guild.id}.svg",
+        message
+    )
 
 @bot.command()
 async def aide(ctx):
@@ -180,11 +248,15 @@ async def aide(ctx):
         f"**!stats [user]** - *stats de l'utilisateur sur le serveur*\n"
         f"**!allstats [user]** - *stats de l'utilisateurs sur tous les serveur*\n"
         f"**!top** - *top 10 des utilisateurs en fonction du temps passé sur le serveur*\n"
-        f"**!allstats [user]** - *stats de l'utilisateurs sur tous les serveur*\n"
         f"**!alltop** - *top 10 des utilisateurs en fonction du temps passé sur tous les serveurs*\n"
         f"**!server** - *Informations du serveur*\n"
     )
-    await ctx.send(message)
+    await send_card_or_fallback(
+        ctx,
+        "/api/card/commands",
+        "aide.svg",
+        message
+    )
 
 def ConvertSecondsToTime(seconds):
     # Calcul des heures, minutes et secondes

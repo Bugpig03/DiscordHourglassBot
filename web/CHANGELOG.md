@@ -1,5 +1,30 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.4 - Cartes Statistiques & Commandes SVG dans l'API - 07/09/2026
+### Features & API Enhancements
+- **Cartes Statistiques & Classements au format SVG autonome** :
+  - **Profil utilisateur sur un serveur (`!stats [user]`)** :
+    - Route `/api/card/user/<user_identifier>/server/<server_id>` (alias `/api/card/stats/<user_identifier>/<server_id>`).
+    - Génération d'une carte SVG 540x215 affichant l'avatar utilisateur, le nom et l'icône du serveur, le rang interne, le temps vocal, le volume de messages, le niveau et XP sur ce serveur avec jauge de progression, et la date d'ancienneté.
+  - **Profil utilisateur global (`!allstats [user]`)** :
+    - Route `/api/card/user/<user_identifier>` (alias `/api/card/allstats/<user_identifier>`).
+    - Support transparent des identifiants numériques Discord (`user_id`) et des pseudonymes (`username`).
+  - **Top 10 vocal d'un serveur (`!top`)** :
+    - Route `/api/card/top/server/<server_id>` (alias `/api/card/server/<server_id>/top`).
+    - Carte SVG 560x535 présentant le classement des 10 membres les plus actifs en vocal avec médailles or/argent/bronze, niveaux, temps vocal et messages.
+  - **Top 10 vocal global (`!alltop`)** :
+    - Route `/api/card/top` (alias `/api/card/top/global`, `/api/card/alltop`).
+    - Classement général des 10 meilleurs utilisateurs du bot toutes guildes confondues au format SVG.
+  - **Statistiques globales d'un serveur (`!server`)** :
+    - Route `/api/card/server/<server_id>`.
+    - Carte SVG 540x225 synthétisant l'activité de la guilde : heures vocales cumulées, total messages, membres répertoriés, rang du serveur, date de suivi et mise en avant du champion vocal du serveur.
+  - **Tableau des commandes du bot (`!aide`)** :
+    - Route `/api/card/commands` (alias `/api/card/help`, `/api/card/aide`).
+    - Reproduction SVG fidèle 960x360 du tableau des commandes avec mise en valeur dorée du préfixe et des commandes, descriptions claires et support bilingue (`?lang=fr` / `?lang=en`).
+- **Gestion des erreurs et intégration Discord optimisée** :
+  - En cas d'identifiant introuvable (utilisateur ou serveur inexistant), l'API renvoie désormais une carte d'erreur SVG stylisée (statut 404) évitant l'affichage d'images brisées dans les embeds Discord.
+  - En-tête HTTP `Cache-Control` calibré pour un rafraîchissement dynamique tout en soulageant la charge serveur.
+
 ## Version 2.5.3 - Épuration des Stats 30 Jours sur l'Accueil - 07/09/2026
 ### Improvements & Optimizations
 - **Épuration de la Catégorie « Activité des 30 derniers jours » (`/`)** :

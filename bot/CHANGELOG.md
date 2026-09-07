@@ -1,5 +1,13 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.5.0 - Réponses des commandes en cartes graphiques SVG - 07/09/2026
+
+- **Affichage des réponses en cartes vectorielles SVG** :
+  - Pour chaque commande du bot (`!stats [user]`, `!allstats [user]`, `!top`, `!alltop`, `!server`, `!aide`), le bot renvoie désormais la carte SVG correspondante générée par l'API Hourglass sous forme de fichier attaché plutôt qu'un message textuel brut.
+  - Conservation stricte de l'ensemble de la logique de suivi (comptage de messages, temps vocal, mise à jour des avatars et pseudonymes en base de données).
+  - Gestion de secours (fallback) automatique : en cas de non-disponibilité, d'erreur ou de timeout de l'API Hourglass, le bot renvoie automatiquement le message textuel standard pour garantir une disponibilité 100%.
+  - Configuration de l'URL de l'API via la variable d'environnement `HOURGLASS_API_URL` (défaut : `https://hourglass.mike-server.fr`).
+
 ## Version 2.4.2 - !stats update avatar - 17/01/2025
 
     - Fix duplication bug of users in DB

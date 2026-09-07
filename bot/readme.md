@@ -16,3 +16,4 @@ Configuration setup for Docker deployment
 - **POSTGRESQL_PASSWORD**: → Your PostgreSQL password
 - **POSTGRESQL_HOST**: → Host of your PostgreSQL server
 - **POSTGRESQL_PORT**: → Port number of your PostgreSQL server
+- **HOURGLASS_API_URL**: → URL de l'API Hourglass pour la génération des cartes SVG (défaut: https://hourglass.mike-server.fr)
