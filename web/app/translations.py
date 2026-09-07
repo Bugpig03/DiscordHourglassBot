@@ -20,7 +20,7 @@ TRANSLATIONS = {
 
         # Footer
         "footer.powered_by": "Hourglass Bot - propulsé par Mike Server & SnoutLabs",
-        "footer.version": "version 2.5.2 - 07/09/2026",
+        "footer.version": "version 2.5.3 - 07/09/2026",
 
         # Home Page
         "home.title": "Hourglass - Dashboard & Statistiques Discord",
@@ -370,7 +370,7 @@ TRANSLATIONS = {
 
         # Footer
         "footer.powered_by": "Hourglass Bot - powered by Mike Server & SnoutLabs",
-        "footer.version": "version 2.5.2 - 07/09/2026",
+        "footer.version": "version 2.5.3 - 07/09/2026",
 
         # Home Page
         "home.title": "Hourglass - Dashboard & Discord Analytics",

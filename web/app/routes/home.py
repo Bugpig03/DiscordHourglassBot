@@ -31,25 +31,10 @@ def load_dashboard_stats() -> dict:
     nb_messages = Stats.select(fn.SUM(Stats.messages)).scalar() or 0
     nb_time = ConvertSecondsToTime(Stats.select(fn.SUM(Stats.seconds)).scalar() or 0)
 
-    # 30-Day Activity Delta & Active Counts
+    # 30-Day Activity Delta
     delta_30d = _get_activity_delta(30)
     time_30d = ConvertSecondsToTime(delta_30d["seconds"])
     messages_30d = delta_30d["messages"]
-
-    now = datetime.utcnow()
-    since_30d = now - timedelta(days=30)
-    cur = db.execute_sql("""
-        SELECT 
-            COUNT(DISTINCT user_id) as active_users,
-            COUNT(DISTINCT server_id) as active_servers,
-            COUNT(DISTINCT (user_id, server_id)) as active_profiles
-        FROM historical_stats 
-        WHERE created_at >= %s
-    """, (since_30d,))
-    row_30d = cur.fetchone()
-    active_users_30d = row_30d[0] if row_30d else 0
-    active_servers_30d = row_30d[1] if row_30d else 0
-    active_profiles_30d = row_30d[2] if row_30d else 0
 
     # Database total size in KB
     query_db_size = db.execute_sql("SELECT pg_database_size(current_database())")
@@ -75,9 +60,6 @@ def load_dashboard_stats() -> dict:
         "time_30d": time_30d,
         "seconds_30d": delta_30d["seconds"],
         "messages_30d": messages_30d,
-        "active_users_30d": active_users_30d,
-        "active_servers_30d": active_servers_30d,
-        "active_profiles_30d": active_profiles_30d,
         # All-time global metrics
         "nb_users": nb_users,
         "nb_profiles": nb_profiles,

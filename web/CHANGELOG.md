@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.3 - Épuration des Stats 30 Jours sur l'Accueil - 07/09/2026
+### Improvements & Optimizations
+- **Épuration de la Catégorie « Activité des 30 derniers jours » (`/`)** :
+  - Suppression des cartes d'indicateurs superflues (« Membres actifs », « Profils actifs », « Serveurs actifs ») sur l'accueil pour alléger visuellement l'interface et concentrer l'attention sur les deux métriques d'activité reines : le temps passé en vocal (30j) et les messages envoyés (30j).
+  - Nouvelle grille fluide 2 colonnes (`.home-stats-grid-2cols`) mettant en valeur ces deux cartes clés côte à côte sur écran large, et empilées proprement sur mobile.
+- **Optimisation des performances SQL** :
+  - Élimination des requêtes de décompte distinct lourd (`COUNT(DISTINCT ...)`) sur l'historique des 30 derniers jours, accélérant significativement le temps de chargement de la page d'accueil.
+- **Incrémentation du cache statique (Cache Buster)** :
+  - Passage à `v=24` pour `styles.css` dans `base.html`.
+
 ## Version 2.5.2 - UI Mobile, Stats 30 Jours & Icônes Vectorielles - 07/09/2026
 ### Features & Improvements
 - **Nouvelle Catégorie « Activité des 30 derniers jours » sur l'Accueil (`/`)** :

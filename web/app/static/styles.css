@@ -731,6 +731,16 @@ div.gray-box.link:hover {
   margin-bottom: 15px;
 }
 
+/* 2-column grid for the 30-day activity KPI cards */
+.home-stats-grid-2cols {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  width: 100%;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
 /* Balanced 6-column grid for the 5 bot statistics: Row 1 = 2 featured cards (50% each), Row 2 = 3 cards (33% each) */
 .home-stats-grid-bot {
   display: grid;
@@ -836,6 +846,7 @@ div.gray-box.link:hover {
 
 @media (max-width: 600px) {
   .home-stats-container,
+  .home-stats-grid-2cols,
   .home-stats-grid-bot {
     grid-template-columns: 1fr;
     gap: 10px;

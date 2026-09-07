@@ -38,7 +38,7 @@
     </span>
 </div>
 
-<div class="home-stats-grid-bot">
+<div class="home-stats-grid-2cols">
     <div class="home-stats-box featured-kpi featured-kpi-30d">
         <div class="home-stats-icon icon-accent-amber">
             <img src="{{ url_for('static', filename='icons/30day.png') }}" alt="Icon 30 jours">
@@ -56,36 +56,6 @@
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('home.stats_30d_messages') }}</span>
             <span class="home-stats-value">{{ stats.messages_30d | thousands_fr }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/users_group.png') }}" alt="Icon membres">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.stats_30d_users') }}</span>
-            <span class="home-stats-value">{{ stats.active_users_30d | thousands_fr }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/profile.png') }}" alt="Icon profils">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.stats_30d_profiles') }}</span>
-            <span class="home-stats-value">{{ stats.active_profiles_30d | thousands_fr }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/server.png') }}" alt="Icon serveurs">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.stats_30d_servers') }}</span>
-            <span class="home-stats-value">{{ stats.active_servers_30d | thousands_fr }}</span>
         </div>
     </div>
 </div>
