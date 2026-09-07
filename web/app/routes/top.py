@@ -25,8 +25,22 @@ PERIOD_MAP = {
 def top_users():
     """Render the user leaderboard with filtering by period, server, and sorting criterion."""
     users, total_pages = load_users()
-    servers = Servers.select().order_by(Servers.servername)
-    return render_template("top_users.html", users=users, servers=servers, total_pages=total_pages)
+    servers = list(Servers.select().order_by(Servers.servername))
+    selected_server = None
+    server_id = request.args.get("server_id", "all")
+    if server_id and server_id != "all":
+        try:
+            selected_server = next((s for s in servers if str(s.server_id) == str(server_id)), None)
+        except Exception:
+            selected_server = None
+
+    return render_template(
+        "top_users.html",
+        users=users,
+        servers=servers,
+        total_pages=total_pages,
+        selected_server=selected_server
+    )
 
 
 @top_bp.route("/top/servers", methods=["GET"])

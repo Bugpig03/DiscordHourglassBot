@@ -437,7 +437,7 @@
                     <div class="small-text gray" style="margin-top: 4px;">{{ t('versus.chart_desc') }}</div>
                 </div>
             </div>
-            <div style="position: relative; height: 380px; width: 100%;">
+            <div class="versus-chart-wrapper">
                 <canvas id="versusChart"></canvas>
             </div>
         </div>
@@ -768,13 +768,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'time',
                     time: { unit: 'month' },
                     grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                    ticks: { color: '#94a3b8' }
+                    ticks: {
+                        color: '#94a3b8',
+                        maxRotation: 0,
+                        maxTicksLimit: 6,
+                        autoSkip: true
+                    }
                 },
                 y: {
                     beginAtZero: true,
                     grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
                     ticks: {
                         color: '#94a3b8',
+                        maxTicksLimit: 6,
                         callback: function(val) { return val + ' ' + hoursUnit; }
                     }
                 }

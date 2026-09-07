@@ -20,7 +20,96 @@
     </div>
 </div>
 
-<div class="big-bold-text more-top-margin">{{ t('home.bot_stats') }}</div>
+<!-- Category 1: Last 30 Days Activity -->
+<div class="home-section-header">
+    <div class="home-section-title-wrap">
+        <div class="home-section-icon icon-30d">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+        </div>
+        <h2 class="home-section-title">{{ t('home.stats_30d_title') }}</h2>
+    </div>
+    <span class="home-section-badge badge-30d">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>{{ t('home.stats_30d_badge') }}</span>
+    </span>
+</div>
+
+<div class="home-stats-grid-bot">
+    <div class="home-stats-box featured-kpi featured-kpi-30d">
+        <div class="home-stats-icon icon-accent-amber">
+            <img src="{{ url_for('static', filename='icons/30day.png') }}" alt="Icon 30 jours">
+        </div>
+        <div class="home-stats-content">
+            <span class="home-stats-label">{{ t('home.stats_30d_voice') }}</span>
+            <span class="home-stats-value time-value">{{ stats.time_30d }}</span>
+        </div>
+    </div>
+
+    <div class="home-stats-box featured-kpi featured-kpi-30d">
+        <div class="home-stats-icon icon-accent-amber">
+            <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon messages">
+        </div>
+        <div class="home-stats-content">
+            <span class="home-stats-label">{{ t('home.stats_30d_messages') }}</span>
+            <span class="home-stats-value">{{ stats.messages_30d | thousands_fr }}</span>
+        </div>
+    </div>
+
+    <div class="home-stats-box">
+        <div class="home-stats-icon">
+            <img src="{{ url_for('static', filename='icons/users_group.png') }}" alt="Icon membres">
+        </div>
+        <div class="home-stats-content">
+            <span class="home-stats-label">{{ t('home.stats_30d_users') }}</span>
+            <span class="home-stats-value">{{ stats.active_users_30d | thousands_fr }}</span>
+        </div>
+    </div>
+
+    <div class="home-stats-box">
+        <div class="home-stats-icon">
+            <img src="{{ url_for('static', filename='icons/profile.png') }}" alt="Icon profils">
+        </div>
+        <div class="home-stats-content">
+            <span class="home-stats-label">{{ t('home.stats_30d_profiles') }}</span>
+            <span class="home-stats-value">{{ stats.active_profiles_30d | thousands_fr }}</span>
+        </div>
+    </div>
+
+    <div class="home-stats-box">
+        <div class="home-stats-icon">
+            <img src="{{ url_for('static', filename='icons/server.png') }}" alt="Icon serveurs">
+        </div>
+        <div class="home-stats-content">
+            <span class="home-stats-label">{{ t('home.stats_30d_servers') }}</span>
+            <span class="home-stats-value">{{ stats.active_servers_30d | thousands_fr }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Category 2: Global All-Time Statistics -->
+<div class="home-section-header">
+    <div class="home-section-title-wrap">
+        <div class="home-section-icon icon-alltime">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+        </div>
+        <h2 class="home-section-title">{{ t('home.bot_stats') }}</h2>
+    </div>
+    <span class="home-section-badge badge-alltime">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <span>{{ t('home.all_time_badge') }}</span>
+    </span>
+</div>
+
 <div class="home-stats-grid-bot">
     <div class="home-stats-box featured-kpi">
         <div class="home-stats-icon">
@@ -73,10 +162,32 @@
     </div>
 </div>
 
-<div class="big-bold-text more-top-margin">{{ t('home.db_telemetry') }}</div>
+<!-- Category 3: Database & Telemetry -->
+<div class="home-section-header">
+    <div class="home-section-title-wrap">
+        <div class="home-section-icon icon-db">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+        </div>
+        <h2 class="home-section-title">{{ t('home.db_telemetry') }}</h2>
+    </div>
+    <span class="home-section-badge badge-db">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+            <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+            <line x1="6" x2="6.01" y1="6" y2="6"/>
+            <line x1="6" x2="6.01" y1="18" y2="18"/>
+        </svg>
+        <span>{{ t('home.telemetry_badge') }}</span>
+    </span>
+</div>
+
 <div class="home-stats-container">
     <div class="home-stats-box">
-        <div class="home-stats-icon">
+        <div class="home-stats-icon icon-accent-purple">
             <img src="{{ url_for('static', filename='icons/database.png') }}" alt="Icon Database">
         </div>
         <div class="home-stats-content">
@@ -86,7 +197,7 @@
     </div>
 
     <div class="home-stats-box">
-        <div class="home-stats-icon">
+        <div class="home-stats-icon icon-accent-purple">
             <img src="{{ url_for('static', filename='icons/calendar.png') }}" alt="Icon Table Stats">
         </div>
         <div class="home-stats-content">
@@ -96,7 +207,17 @@
     </div>
 
     <div class="home-stats-box">
-        <div class="home-stats-icon">
+        <div class="home-stats-icon icon-accent-purple">
+            <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Icon Historique">
+        </div>
+        <div class="home-stats-content">
+            <span class="home-stats-label">{{ t('home.hist_table') }}</span>
+            <span class="home-stats-value">{{ stats.size_hist_ko | thousands_fr }} {% if current_lang == 'en' %}KB{% else %}Ko{% endif %}</span>
+        </div>
+    </div>
+
+    <div class="home-stats-box">
+        <div class="home-stats-icon icon-accent-purple">
             <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Icon Snapshot">
         </div>
         <div class="home-stats-content">

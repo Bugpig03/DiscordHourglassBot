@@ -20,7 +20,7 @@ TRANSLATIONS = {
 
         # Footer
         "footer.powered_by": "Hourglass Bot - propulsé par Mike Server & SnoutLabs",
-        "footer.version": "version 2.5.1 - 06/09/2026",
+        "footer.version": "version 2.5.2 - 07/09/2026",
 
         # Home Page
         "home.title": "Hourglass - Dashboard & Statistiques Discord",
@@ -31,15 +31,31 @@ TRANSLATIONS = {
         ),
         "home.online_since": "Bot en ligne depuis le 28/04/2024",
         "home.invite_btn": "Inviter le bot sur Discord",
-        "home.bot_stats": "Statistiques du bot",
+
+        # Category 1: 30-Day Activity
+        "home.stats_30d_title": "Activité des 30 derniers jours",
+        "home.stats_30d_badge": "30 derniers jours",
+        "home.stats_30d_voice": "Temps vocal (30j)",
+        "home.stats_30d_messages": "Messages envoyés (30j)",
+        "home.stats_30d_users": "Membres actifs (30j)",
+        "home.stats_30d_profiles": "Profils actifs (30j)",
+        "home.stats_30d_servers": "Serveurs actifs (30j)",
+
+        # Category 2: Global All-Time
+        "home.bot_stats": "Statistiques globales du bot",
+        "home.all_time_badge": "Depuis l'origine",
         "home.total_voice_time": "Temps total en vocal",
         "home.recorded_messages": "Messages enregistrés",
         "home.unique_users": "Utilisateurs uniques",
         "home.activity_profiles": "Profils d'activité",
         "home.active_servers": "Serveurs actifs",
-        "home.db_telemetry": "Télémétrie base de données",
+
+        # Category 3: Database & Telemetry
+        "home.db_telemetry": "Télémétrie base de données & Stockage",
+        "home.telemetry_badge": "Infrastructure",
         "home.pg_size": "Taille PostgreSQL",
         "home.stats_table": "Table stats principale",
+        "home.hist_table": "Table historique & snapshots",
         "home.last_snapshot": "Dernier snapshot",
 
         # Top Leaderboards
@@ -354,7 +370,7 @@ TRANSLATIONS = {
 
         # Footer
         "footer.powered_by": "Hourglass Bot - powered by Mike Server & SnoutLabs",
-        "footer.version": "version 2.5.1 - 06/09/2026",
+        "footer.version": "version 2.5.2 - 07/09/2026",
 
         # Home Page
         "home.title": "Hourglass - Dashboard & Discord Analytics",
@@ -365,15 +381,31 @@ TRANSLATIONS = {
         ),
         "home.online_since": "Bot online since 04/28/2024",
         "home.invite_btn": "Invite the bot on Discord",
-        "home.bot_stats": "Bot Statistics",
+
+        # Category 1: 30-Day Activity
+        "home.stats_30d_title": "Last 30 Days Activity",
+        "home.stats_30d_badge": "Last 30 days",
+        "home.stats_30d_voice": "Voice time (30d)",
+        "home.stats_30d_messages": "Sent messages (30d)",
+        "home.stats_30d_users": "Active members (30d)",
+        "home.stats_30d_profiles": "Active profiles (30d)",
+        "home.stats_30d_servers": "Active servers (30d)",
+
+        # Category 2: Global All-Time
+        "home.bot_stats": "All-Time Global Statistics",
+        "home.all_time_badge": "All-time",
         "home.total_voice_time": "Total voice time",
         "home.recorded_messages": "Recorded messages",
         "home.unique_users": "Unique users",
         "home.activity_profiles": "Activity profiles",
         "home.active_servers": "Active servers",
-        "home.db_telemetry": "Database Telemetry",
+
+        # Category 3: Database & Telemetry
+        "home.db_telemetry": "Database Telemetry & Storage",
+        "home.telemetry_badge": "Infrastructure",
         "home.pg_size": "PostgreSQL Size",
         "home.stats_table": "Primary stats table",
+        "home.hist_table": "History & snapshots table",
         "home.last_snapshot": "Latest snapshot",
 
         # Top Leaderboards

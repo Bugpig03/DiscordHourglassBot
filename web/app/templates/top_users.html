@@ -21,7 +21,9 @@
 </div>
 
 <form method="GET" action="{{ url_for('top.top_users') }}" id="top-filter-form" class="top-form">
-    <div>
+    <input type="hidden" name="server_id" id="topFilterServerId" value="{{ selected_server.server_id if selected_server else 'all' }}">
+
+    <div class="top-filter-group">
         <label for="top-filter-period" class="top-label">{{ t('top.period_label') }}</label>
         <select name="period" id="top-filter-period" class="top-select" onchange="this.form.submit()">
             <option value="24h" {% if request.args.get('period') == '24h' %}selected{% endif %}>{{ t('top.period_24h') }}</option>
@@ -34,7 +36,7 @@
         </select>
     </div>
 
-    <div>
+    <div class="top-filter-group">
         <label for="top-filter-sort" class="top-label">{{ t('top.sort_label') }}</label>
         <select name="sort_by" id="top-filter-sort" class="top-select" onchange="this.form.submit()">
             <option value="hours" {% if request.args.get('sort_by') == 'hours' or not request.args.get('sort_by') %}selected{% endif %}>{{ t('top.sort_hours') }}</option>
@@ -43,16 +45,52 @@
         </select>
     </div>
 
-    <div>
-        <label for="top-filter-server" class="top-label">{{ t('top.server_label') }}</label>
-        <select name="server_id" id="top-filter-server" class="top-select" onchange="this.form.submit()">
-            <option value="all" {% if request.args.get('server_id') == 'all' or not request.args.get('server_id') %}selected{% endif %}>{{ t('top.all_servers') }}</option>
-            {% for srv in servers %}
-                <option value="{{ srv.server_id }}" {% if request.args.get('server_id') == srv.server_id|string %}selected{% endif %}>{{ srv.servername }}</option>
-            {% endfor %}
-        </select>
+    <div class="top-filter-group top-server-filter-group" id="topServerFilterGroup">
+        <label for="topServerSearchInput" class="top-label">{{ t('top.server_label') }}</label>
+        <div class="page-search-wrap top-server-search-wrap">
+            <div class="page-search-bar top-server-search-bar">
+                <svg class="page-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
+                </svg>
+                <input type="text" id="topServerSearchInput" 
+                       value="{% if selected_server %}{{ selected_server.servername }}{% endif %}" 
+                       placeholder="{% if selected_server %}{{ selected_server.servername }}{% else %}{{ t('top.all_servers') }}{% endif %}" 
+                       class="page-search-input top-server-search-input" 
+                       autocomplete="off" spellcheck="false">
+                <button type="button" class="page-search-clear" id="topServerClearBtn" 
+                        style="{% if selected_server %}display: inline-flex;{% else %}display: none;{% endif %}" 
+                        title="Tous les serveurs">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Server Autocomplete Dropdown -->
+            <div id="topServerDropdown" class="page-search-dropdown top-server-dropdown" style="display: none;">
+                <div id="topServerDropdownResults" class="page-search-dropdown-inner"></div>
+                <div class="page-search-dropdown-footer">
+                    <div class="search-hint-item"><kbd>↑</kbd><kbd>↓</kbd> <span>{{ t('search.hint_navigate') }}</span></div>
+                    <div class="search-hint-item"><kbd>↵</kbd> <span>{{ t('search.hint_select') }}</span></div>
+                    <div class="search-hint-item"><kbd>ESC</kbd> <span>{{ t('search.hint_close') }}</span></div>
+                </div>
+            </div>
+        </div>
     </div>
 </form>
+
+{% if selected_server %}
+<div class="active-server-banner top-active-server-banner">
+    <div class="active-server-badge">
+        <span class="active-server-pulse"></span>
+        <span>{{ t('top.server_label') }} <strong>{{ selected_server.servername }}</strong></span>
+    </div>
+    <a href="{{ url_for('top.top_users', period=request.args.get('period'), sort_by=request.args.get('sort_by'), server_id='all') }}" 
+       class="btn-clear-server-filter" title="{{ t('top.all_servers') }}">
+        ✕ <span>{{ t('top.all_servers') }}</span>
+    </a>
+</div>
+{% endif %}
 
 {% if users %}
     {% for user in users %}
@@ -116,14 +154,225 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var form = document.getElementById('top-filter-form');
-    if (form) {
-        form.querySelectorAll('select').forEach(function(select) {
-            select.addEventListener('change', function() {
-                form.submit();
+    const form = document.getElementById('top-filter-form');
+    if (!form) return;
+
+    // Period and Sort auto-submit
+    form.querySelectorAll('select').forEach(function(select) {
+        select.addEventListener('change', function() {
+            form.submit();
+        });
+    });
+
+    // Server Autocomplete Search
+    const input = document.getElementById('topServerSearchInput');
+    const hiddenId = document.getElementById('topFilterServerId');
+    const clearBtn = document.getElementById('topServerClearBtn');
+    const dropdown = document.getElementById('topServerDropdown');
+    const resultsContainer = document.getElementById('topServerDropdownResults');
+    const isEn = document.documentElement.lang === 'en' || '{{ current_lang }}' === 'en';
+
+    if (!input || !hiddenId || !dropdown || !resultsContainer) return;
+
+    const serverDataset = [
+        {% for srv in servers %}
+        {
+            id: "{{ srv.server_id }}",
+            name: {{ srv.servername|tojson }},
+            avatar: "{{ srv.avatar or url_for('static', filename='icons/server.png') }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let currentList = [];
+    let selectedIndex = -1;
+
+    function updateClearBtn() {
+        if (clearBtn) {
+            const hasVal = input.value.trim().length > 0 || (hiddenId.value && hiddenId.value !== 'all');
+            clearBtn.style.display = hasVal ? 'inline-flex' : 'none';
+        }
+    }
+
+    function openDropdown() {
+        renderResults(input.value.trim());
+        dropdown.style.display = 'block';
+    }
+
+    function closeDropdown() {
+        dropdown.style.display = 'none';
+        selectedIndex = -1;
+    }
+
+    function updateHighlight() {
+        const items = resultsContainer.querySelectorAll('.search-result-item');
+        items.forEach((item, idx) => {
+            if (idx === selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    function selectServer(serverItem) {
+        if (!serverItem || serverItem.id === 'all') {
+            hiddenId.value = 'all';
+            input.value = '';
+        } else {
+            hiddenId.value = serverItem.id;
+            input.value = serverItem.name;
+        }
+        updateClearBtn();
+        closeDropdown();
+        form.submit();
+    }
+
+    function renderResults(q) {
+        const query = q.toLowerCase();
+        currentList = [];
+
+        let html = '';
+
+        // "All Servers" option (always present if query is empty or matches)
+        const allLabel = isEn ? 'All servers' : 'Tous les serveurs';
+        const allSub = isEn ? 'Global leaderboard across all servers' : 'Classement global tous serveurs';
+        if (!query || allLabel.toLowerCase().includes(query) || 'global'.includes(query)) {
+            currentList.push({ id: 'all', name: allLabel });
+            html += `
+                <div class="search-result-item" data-index="0" style="cursor: pointer;">
+                    <div class="all-servers-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </div>
+                    <div class="search-item-info">
+                        <span class="search-item-name">${allLabel}</span>
+                        <span class="search-item-sub">${allSub}</span>
+                    </div>
+                    <span class="search-item-badge">${isEn ? 'Select' : 'Choisir'}</span>
+                </div>
+            `;
+        }
+
+        // Filter server dataset
+        let matched = [];
+        if (!query) {
+            matched = serverDataset.slice(0, 15);
+        } else {
+            matched = serverDataset.filter(s => 
+                (s.name && s.name.toLowerCase().includes(query)) ||
+                (s.id && s.id.includes(query))
+            );
+        }
+
+        if (matched.length > 0) {
+            const groupTitle = isEn ? `Servers (${matched.length})` : `Serveurs (${matched.length})`;
+            html += `<div class="search-group-title">${groupTitle}</div>`;
+
+            matched.forEach(s => {
+                const idx = currentList.length;
+                currentList.push(s);
+                html += `
+                    <div class="search-result-item" data-index="${idx}" style="cursor: pointer;">
+                        <img src="${s.avatar}" class="search-item-avatar border-server" alt="${s.name}" onerror="this.src='/static/icons/server.png'">
+                        <div class="search-item-info">
+                            <span class="search-item-name">${s.name}</span>
+                            <span class="search-item-sub">ID: ${s.id}</span>
+                        </div>
+                        <span class="search-item-badge">${isEn ? 'Select' : 'Choisir'}</span>
+                    </div>
+                `;
+            });
+        }
+
+        if (currentList.length === 0) {
+            const emptyLabel = isEn
+                ? `No server found for "${q}"`
+                : `Aucun serveur trouvé pour « ${q} »`;
+            html = `
+                <div class="search-empty-state" style="padding: 22px 14px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+                    <span>${emptyLabel}</span>
+                </div>
+            `;
+        }
+
+        resultsContainer.innerHTML = html;
+        selectedIndex = -1;
+
+        // Attach item events
+        const renderedItems = resultsContainer.querySelectorAll('.search-result-item');
+        renderedItems.forEach((elem) => {
+            const itemIdx = parseInt(elem.getAttribute('data-index'), 10);
+            elem.addEventListener('mouseenter', () => {
+                selectedIndex = itemIdx;
+                updateHighlight();
+            });
+            elem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectServer(currentList[itemIdx]);
             });
         });
     }
+
+    input.addEventListener('input', function() {
+        updateClearBtn();
+        renderResults(this.value.trim());
+        dropdown.style.display = 'block';
+    });
+
+    input.addEventListener('focus', function() {
+        openDropdown();
+    });
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            hiddenId.value = 'all';
+            input.value = '';
+            updateClearBtn();
+            closeDropdown();
+            form.submit();
+        });
+    }
+
+    input.addEventListener('keydown', function(e) {
+        const items = resultsContainer.querySelectorAll('.search-result-item');
+        const count = items.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (dropdown.style.display === 'none') {
+                openDropdown();
+                return;
+            }
+            if (count > 0) {
+                selectedIndex = (selectedIndex + 1) % count;
+                updateHighlight();
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (count > 0) {
+                selectedIndex = selectedIndex <= 0 ? count - 1 : selectedIndex - 1;
+                updateHighlight();
+            }
+        } else if (e.key === 'Enter') {
+            if (dropdown.style.display !== 'none' && selectedIndex >= 0 && currentList[selectedIndex]) {
+                e.preventDefault();
+                selectServer(currentList[selectedIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            closeDropdown();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            closeDropdown();
+        }
+    });
 });
 </script>
 {% endblock %}

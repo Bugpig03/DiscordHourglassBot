@@ -850,6 +850,111 @@ div.gray-box.link:hover {
   }
 }
 
+/* Home Dashboard Section Headers & Badges */
+.home-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-section-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.home-section-icon svg {
+  display: block;
+}
+
+.home-section-icon.icon-30d {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.home-section-icon.icon-alltime {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.home-section-icon.icon-db {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+}
+
+.home-section-title {
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.home-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.home-section-badge.badge-30d {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+.home-section-badge.badge-alltime {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.home-section-badge.badge-db {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  color: #c084fc;
+}
+
+.home-stats-box.featured-kpi-30d {
+  border-color: rgba(245, 158, 11, 0.25);
+  background: linear-gradient(135deg, rgba(21, 32, 46, 0.95), rgba(35, 28, 16, 0.6));
+}
+
+.home-stats-box.featured-kpi-30d:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.home-stats-icon.icon-accent-amber {
+  background-color: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.home-stats-icon.icon-accent-purple {
+  background-color: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
 /* --------------------------------------------------------------------------
    7. Filter Forms & Controls
    -------------------------------------------------------------------------- */
@@ -936,27 +1041,162 @@ div.gray-box.link:hover {
   transform: translateY(0);
 }
 
+/* Top Leaderboard - Server Search Selector */
+.top-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-server-filter-group {
+  flex: 1 1 240px;
+  min-width: 220px;
+  position: relative;
+}
+
+.top-server-search-wrap {
+  position: relative;
+  flex: 1;
+  width: 100%;
+}
+
+.top-server-search-bar {
+  padding: 8px 12px;
+  height: 40px;
+  background-color: #162436;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.top-server-search-bar:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background-color: #1a2c42;
+}
+
+.top-server-search-bar:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
+  background-color: #1a2c42;
+}
+
+.top-server-search-input {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.top-server-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.top-server-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 280px;
+  background: rgba(17, 27, 39, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.15);
+  z-index: 200;
+  overflow: hidden;
+  animation: dropdownFade 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.top-server-dropdown .page-search-dropdown-inner {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.all-servers-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
 @media (max-width: 640px) {
+  .top-tabs-wrapper {
+    margin: 8px 0 10px;
+  }
   .top-form {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 12px 14px 10px;
+    margin: 8px 0 8px;
   }
-  .top-form > div {
+  .top-filter-group {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    align-items: stretch;
+    gap: 4px;
+    width: 100%;
+    flex: none;
+  }
+  .top-server-filter-group {
+    width: 100%;
+    flex: none;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+  .top-server-search-wrap {
+    flex: none;
+    width: 100%;
+  }
+  .top-server-search-input {
+    font-size: 16px;
+  }
+  .top-server-dropdown {
+    min-width: 100%;
   }
   .top-select {
     width: 100%;
+    padding: 8px 14px;
   }
   .top-button {
     width: 100%;
     justify-content: center;
     margin-left: 0;
+    margin-top: 4px;
+    padding: 10px;
+  }
+
+  /* Remove excessive gap under the form and search bar on mobile */
+  .top-form + .gray-box,
+  .top-form + .active-server-banner,
+  .top-form + .top-active-server-banner {
+    margin-top: 0 !important;
+  }
+
+  .active-server-banner,
+  .top-active-server-banner {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .active-server-banner + .gray-box,
+  .top-active-server-banner + .gray-box {
+    margin-top: 0 !important;
+  }
+
+  .gray-box {
     margin-top: 6px;
-    padding: 12px;
+    margin-bottom: 6px;
+    padding: 12px 14px;
+    border-radius: 14px;
   }
 }
 
@@ -2790,6 +3030,11 @@ footer {
   margin-bottom: 24px;
 }
 
+.top-active-server-banner {
+  margin-top: -14px;
+  margin-bottom: 18px;
+}
+
 .active-server-badge {
   display: flex;
   align-items: center;
@@ -3330,10 +3575,16 @@ footer {
   flex-shrink: 0;
 }
 
-/* Chart Card */
+/* Chart Card & Canvas Wrapper */
 .versus-chart-card {
   padding: 24px;
   background: #111a24;
+}
+
+.versus-chart-wrapper {
+  position: relative;
+  height: 380px;
+  width: 100%;
 }
 
 /* Empty Arena */
@@ -3353,52 +3604,424 @@ footer {
   font-weight: 600;
 }
 
-/* Responsive adjustments */
+/* ==========================================================================
+   VERSUS RESPONSIVE DESIGN (TABLETS & PHONES)
+   ========================================================================== */
+
+/* Medium devices (Tablets <= 860px) */
 @media (max-width: 860px) {
+  .versus-container {
+    padding: 18px 12px 40px;
+  }
+
+  .versus-title {
+    font-size: clamp(1.75rem, 5vw, 2.3rem);
+  }
+
+  .versus-subtitle {
+    font-size: 0.94rem;
+  }
+
   .versus-arena {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
   }
-  .versus-center-pillar {
-    order: 2;
-    margin: 10px 0;
+
+  .versus-fighter-card {
+    padding: 24px 14px 18px;
   }
-  .fighter-1 {
-    order: 1;
-  }
-  .fighter-2 {
-    order: 3;
-  }
-  .metric-row-header {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .metric-side-val {
-    width: 100%;
-  }
-  .side-left {
-    justify-content: center;
-  }
-  .side-right {
-    justify-content: center;
-  }
-  .metric-center-label {
-    order: -1;
+
+  .fighter-avatar {
+    width: 80px;
+    height: 80px;
   }
 }
 
-@media (max-width: 600px) {
+/* Mobile Devices (Phones <= 720px) */
+@media (max-width: 720px) {
+  .versus-container {
+    padding: 8px 0 35px;
+    width: 100%;
+  }
+
+  .versus-hero {
+    margin-bottom: 16px;
+  }
+
+  .versus-icon-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+  }
+
+  .versus-icon-badge svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .versus-title {
+    font-size: 1.55rem;
+    margin-bottom: 4px;
+  }
+
+  .versus-subtitle {
+    font-size: 0.85rem;
+    line-height: 1.35;
+    padding: 0 4px;
+  }
+
+  /* Form & Selectors on phone */
+  .versus-selector-box {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 14px;
+  }
+
+  .versus-selector-box + .versus-arena,
+  .versus-selector-box + .active-server-banner,
+  .versus-selector-box + .versus-empty-arena {
+    margin-top: 0 !important;
+  }
+
+  /* Page search forms on phone (users / servers) */
+  .page-search-form {
+    margin-bottom: 8px;
+  }
+
+  .page-search-form + .gray-box {
+    margin-top: 0 !important;
+  }
+
   .versus-form {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
+
   .versus-input-group {
     width: 100%;
+    flex: 1 1 100%;
   }
+
+  .page-search-bar {
+    padding: 9px 12px;
+    border-radius: 12px;
+  }
+
+  .page-search-input {
+    font-size: 16px; /* Prevents auto-zoom on iOS */
+  }
+
   .versus-swap-btn {
     align-self: center;
+    margin: 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    transform: rotate(90deg);
   }
+
+  .versus-swap-btn:hover {
+    transform: rotate(270deg);
+  }
+
   .versus-submit-btn {
     width: 100%;
+    height: 44px;
+    font-size: 0.92rem;
+    margin-top: 2px;
+  }
+
+  /* Search Dropdown on phone */
+  .page-search-dropdown {
+    border-radius: 12px;
+  }
+
+  .page-search-dropdown-inner {
+    max-height: 250px;
+    padding: 6px;
+  }
+
+  .page-search-dropdown-footer {
+    display: none;
+  }
+
+  .search-result-item {
+    padding: 8px 10px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+
+  .search-item-name {
+    font-size: 0.9rem;
+  }
+
+  .search-item-badge {
+    padding: 2px 8px;
+    font-size: 0.7rem;
+  }
+
+  /* Shared servers */
+  .versus-common-servers-wrapper {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+
+  .common-servers-title {
+    font-size: 0.75rem;
+  }
+
+  .server-pill {
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    max-width: 100%;
+  }
+
+  /* Active server banner */
+  .active-server-banner,
+  .top-active-server-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    margin-top: 0 !important;
+  }
+
+  .active-server-badge {
+    font-size: 0.84rem;
+  }
+
+  .btn-clear-server-filter {
+    align-self: flex-start;
+  }
+
+  /* ARENA: Side-by-side fighters with clash header */
+  .versus-arena {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "center center"
+      "f1     f2";
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .versus-center-pillar {
+    grid-area: center;
+    width: 100%;
+    min-width: unset;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .versus-neon-badge {
+    width: 44px;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .duel-scoreboard {
+    gap: 8px;
+  }
+
+  .score-digit {
+    font-size: 1.85rem;
+  }
+
+  .score-sep {
+    font-size: 1.35rem;
+  }
+
+  .duel-outcome-pill {
+    font-size: 0.78rem;
+    padding: 5px 12px;
+    border-radius: 14px;
+    max-width: 100%;
+    word-break: break-word;
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .fighter-1 {
+    grid-area: f1;
+  }
+
+  .fighter-2 {
+    grid-area: f2;
+  }
+
+  .versus-fighter-card {
+    padding: 20px 6px 12px;
+    border-radius: 14px;
+  }
+
+  .fighter-champion-ribbon {
+    font-size: 0.62rem;
+    padding: 2px 0;
+    letter-spacing: 0.02em;
+  }
+
+  .fighter-avatar-wrapper {
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+
+  .fighter-avatar {
+    width: 58px;
+    height: 58px;
+    border-width: 2px;
+  }
+
+  .fighter-player-tag {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+    bottom: -2px;
+    right: -2px;
+  }
+
+  .fighter-name {
+    font-size: 0.94rem;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    padding: 0 2px;
+  }
+
+  .fighter-meta {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .fighter-badge {
+    padding: 2px 5px;
+    font-size: 0.68rem;
+    border-radius: 6px;
+  }
+
+  .fighter-score-display {
+    padding: 5px 6px;
+    width: 100%;
+    min-width: unset;
+    border-radius: 8px;
+  }
+
+  .score-number {
+    font-size: 1.35rem;
+  }
+
+  .score-text {
+    font-size: 0.62rem;
+  }
+
+  /* METRICS BREAKDOWN: Grid with Centered Category & Side-by-Side Values */
+  .versus-metrics-container {
+    padding: 14px 10px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+  }
+
+  .versus-metrics-title-row {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  .versus-metrics-title {
+    font-size: 0.98rem;
+  }
+
+  .metrics-count-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  .versus-metrics-list {
+    gap: 8px;
+  }
+
+  .versus-metric-row {
+    padding: 10px 10px;
+    border-radius: 10px;
+  }
+
+  .metric-row-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "cat cat"
+      "v1  v2";
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .metric-center-label {
+    grid-area: cat;
+    justify-self: center;
+    font-size: 0.78rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+  }
+
+  .side-left {
+    grid-area: v1;
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 0.92rem;
+  }
+
+  .side-right {
+    grid-area: v2;
+    justify-content: flex-end;
+    text-align: right;
+    font-size: 0.92rem;
+  }
+
+  .metric-win-crown {
+    font-size: 0.88rem;
+  }
+
+  .metric-gauge-wrapper {
+    height: 8px;
+    gap: 6px;
+  }
+
+  .gauge-divider-pin {
+    height: 12px;
+    width: 3px;
+  }
+
+  /* Chart Card */
+  .versus-chart-card {
+    padding: 14px 10px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+  }
+
+  .versus-chart-card .medium-bold-text {
+    font-size: 1rem !important;
+  }
+
+  .versus-chart-wrapper {
+    height: 260px;
+  }
+
+  /* Empty Arena */
+  .versus-empty-arena {
+    padding: 35px 12px;
+  }
+
+  .empty-swords-icon {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+  }
+
+  .empty-arena-title {
+    font-size: 0.94rem;
   }
 }
