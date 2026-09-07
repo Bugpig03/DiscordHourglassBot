@@ -1,22 +1,12 @@
 #Docker file - DISCORD BOT APP
 
-FROM python:3.10
+FROM python:3.12.4
 
 WORKDIR /app
 
-COPY ./bot /app
+# Installer les dépendances
+RUN pip install --no-cache-dir discord.py psycopg2 aiohttp
 
-# Requirement for python
-RUN pip install discord.py
-RUN pip install psycopg2
-
-
-ARG DISCORD_TOKEN
-ARG POSTGRESQL_DBNAME
-ARG POSTGRESQL_USER
-ARG POSTGRESQL_PASSWORD
-ARG POSTGRESQL_HOST
-ARG POSTGRESQL_PORT
-ARG HOURGLASS_API_URL
+COPY . /app
 
 CMD ["python", "main.py"]
