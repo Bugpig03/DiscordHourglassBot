@@ -22,7 +22,7 @@ https://hourglass.mike-server.fr/
    - [Statistiques d'un utilisateur (Global)](#statistiques-dun-utilisateur-global)
    - [Statistiques d'un utilisateur sur un serveur](#statistiques-dun-utilisateur-sur-un-serveur)
    - [Recherche rapide (Ctrl+K)](#recherche-rapide)
-2. [Endpoints Cartes Graphiques SVG (v2.5.4)](#2-endpoints-cartes-graphiques-svg-v254)
+2. [Endpoints Cartes Graphiques SVG (v2.5.5)](#2-endpoints-cartes-graphiques-svg-v255)
    - [Profil utilisateur global (!allstats)](#profil-utilisateur-global-allstats)
    - [Profil utilisateur sur un serveur (!stats)](#profil-utilisateur-sur-un-serveur-stats)
    - [Top 10 vocal d'un serveur (!top)](#top-10-vocal-dun-serveur-top)
@@ -197,27 +197,27 @@ GET /api/search?q={query}&type={all|users|servers}&limit={limit}
 
 ---
 
-## 2. Endpoints Cartes Graphiques SVG (v2.5.4)
+## 2. Endpoints Cartes Graphiques SVG (v2.5.5)
 
 Les endpoints ci-dessous renvoient directement un fichier vectoriel avec l'en-tête HTTP `Content-Type: image/svg+xml`.
 
 > [!TIP]
 > **Résolution flexible** : Pour tous les endpoints utilisateurs, vous pouvez renseigner indifféremment le **pseudonyme Discord** (`hyst3ry`) ou l'**ID numérique** (`303525237012692994`).
 >
-> **Langue** : Ajoutez le paramètre d'URL `?lang=en` pour obtenir le visuel en anglais (par défaut `?lang=fr`).
+> **Langue** : Ajoutez le paramètre d'URL `?lang=en` pour obtenir le visuel en anglais (par défaut `?lang=en` dans le bot, `?lang=fr` également supporté).
 >
 > **Gestion d'erreur 404** : Si l'utilisateur ou le serveur est introuvable, l'API renvoie une carte d'erreur SVG stylisée pour éviter les images brisées dans Discord.
 
 ---
 
 ### Profil utilisateur global (!allstats)
-Génère la carte de profil d'un utilisateur avec ses métriques globales, son rang mondial, son niveau XP, sa barre de progression et ses 3 meilleurs badges SVG.
+Génère la carte de profil d'un utilisateur avec ses métriques globales, son rang mondial (badge empilé sans collision), son niveau XP adaptatif, sa barre de progression et ses 3 meilleurs badges SVG.
 
 ```http
 GET /api/card/user/{user_identifier}
 GET /api/card/allstats/{user_identifier}
 ```
-- **Dimensions** : 540 × 210 px
+- **Dimensions** : 560 × 220 px
 - **Paramètres** :
   - `{user_identifier}` : `username` ou `user_id`.
   - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
@@ -225,13 +225,13 @@ GET /api/card/allstats/{user_identifier}
 ---
 
 ### Profil utilisateur sur un serveur (!stats)
-Génère la carte de profil d'un joueur restreinte à un serveur particulier : rang au sein de la guilde, heures de vocal, messages, niveau / XP serveur et date d'arrivée.
+Génère la carte de profil d'un joueur restreinte à un serveur particulier : rang au sein de la guilde (badge empilé), 4 tuiles métriques équilibrées (heures de vocal, messages, niveau / XP serveur et date d'arrivée).
 
 ```http
 GET /api/card/user/{user_identifier}/server/{server_id}
 GET /api/card/stats/{user_identifier}/{server_id}
 ```
-- **Dimensions** : 540 × 215 px
+- **Dimensions** : 560 × 220 px
 - **Paramètres** :
   - `{user_identifier}` : `username` ou `user_id`.
   - `{server_id}` : Identifiant numérique du serveur.
@@ -240,13 +240,13 @@ GET /api/card/stats/{user_identifier}/{server_id}
 ---
 
 ### Top 10 vocal d'un serveur (!top)
-Génère le classement sous forme de carte SVG des 10 membres les plus actifs en vocal sur le serveur sélectionné (médailles or/argent/bronze, avatars agrandis 32px, niveaux, temps vocal et messages).
+Génère le classement sous forme de carte SVG des 10 membres les plus actifs en vocal sur le serveur sélectionné (médailles or/argent/bronze, avatars agrandis 32px avec liserés de médailles, hauteur dynamique selon le nombre de membres, niveaux, temps vocal et messages).
 
 ```http
 GET /api/card/top/server/{server_id}
 GET /api/card/server/{server_id}/top
 ```
-- **Dimensions** : 620 × 585 px
+- **Dimensions** : 620 × dynamique (max 587 px)
 - **Paramètres** :
   - `{server_id}` : Identifiant numérique du serveur.
   - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
@@ -254,26 +254,26 @@ GET /api/card/server/{server_id}/top
 ---
 
 ### Top 10 vocal global (!alltop)
-Génère le classement général des 10 utilisateurs les plus actifs en vocal sur l'ensemble de tous les serveurs du bot Hourglass (avatars agrandis 32px).
+Génère le classement général des 10 utilisateurs les plus actifs en vocal sur l'ensemble de tous les serveurs du bot Hourglass (avatars agrandis 32px avec liserés de médailles, hauteur dynamique).
 
 ```http
 GET /api/card/top
 GET /api/card/top/global
 GET /api/card/alltop
 ```
-- **Dimensions** : 620 × 585 px
+- **Dimensions** : 620 × dynamique (max 587 px)
 - **Paramètres** :
   - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
 
 ### Statistiques d'un serveur (!server)
-Génère la carte récapitulative des statistiques d'une guilde : temps vocal total cumulé, volume de messages, nombre de membres suivis, rang du serveur, date d'enregistrement et mise en avant du **Champion vocal du serveur**.
+Génère la carte récapitulative des statistiques d'une guilde : temps vocal total cumulé, volume de messages, nombre de membres suivis, rang du serveur (badge empilé), date d'enregistrement et mise en avant du **Champion vocal du serveur**.
 
 ```http
 GET /api/card/server/{server_id}
 ```
-- **Dimensions** : 540 × 225 px
+- **Dimensions** : 560 × 225 px
 - **Paramètres** :
   - `{server_id}` : Identifiant numérique du serveur.
   - `?lang=en` (défaut) ou `?lang=fr` (optionnel).

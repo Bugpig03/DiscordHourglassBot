@@ -84,7 +84,7 @@ L'ensemble des fonctionnalités ci-dessous a été développé sans aucune alté
 
 ### 10. 🌐 Internationalisation Bilingue (FR / EN) & Footer
 - Support bilingue intégral français et anglais géré par cookie avec persistance.
-- Pied de page mis à jour : **`version 2.5.4 - 07/09/2026`**.
+- Pied de page mis à jour : **`version 2.5.5 - 07/09/2026`**.
 
 ---
 

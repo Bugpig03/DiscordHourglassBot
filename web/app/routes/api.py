@@ -259,22 +259,24 @@ def _format_time_short(seconds: int) -> str:
     return f"{m}m"
 
 
-def _render_error_svg(title: str, message: str, width: int = 540, height: int = 180) -> Response:
+def _render_error_svg(title: str, message: str, width: int = 560, height: int = 190) -> Response:
     """Return a stylish standalone SVG error card with 404 status."""
-    escaped_title = html.escape(title)
-    escaped_msg = html.escape(message)
+    escaped_title = html.escape((title or "Error")[:35])
+    escaped_msg = html.escape((message or "Resource not found")[:70])
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
         <linearGradient id="errBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0f172a"/>
-            <stop offset="100%" stop-color="#1e293b"/>
+            <stop offset="0%" stop-color="#080e1a"/>
+            <stop offset="100%" stop-color="#18141f"/>
         </linearGradient>
     </defs>
-    <rect width="{width}" height="{height}" rx="18" fill="url(#errBg)" stroke="#ef4444" stroke-opacity="0.4" stroke-width="1.2"/>
-    <circle cx="50" cy="{height // 2}" r="22" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" stroke-width="1.5"/>
-    <text x="50" y="{height // 2 + 7}" fill="#ef4444" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="900" text-anchor="middle">✕</text>
-    <text x="88" y="{height // 2 - 6}" fill="#f87171" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">{escaped_title}</text>
-    <text x="88" y="{height // 2 + 18}" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="500">{escaped_msg}</text>
+    <rect width="{width}" height="{height}" rx="20" fill="url(#errBg)" stroke="#ef4444" stroke-opacity="0.35" stroke-width="1.2"/>
+    <ellipse cx="140" cy="12" rx="140" ry="24" fill="#ef4444" opacity="0.08"/>
+    <circle cx="56" cy="{height // 2}" r="26" fill="rgba(239, 68, 68, 0.12)" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="56" y="{height // 2 + 8}" fill="#ef4444" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="22" font-weight="900" text-anchor="middle">✕</text>
+    <text x="100" y="{height // 2 - 8}" fill="#f87171" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="17" font-weight="900">{escaped_title}</text>
+    <text x="100" y="{height // 2 + 18}" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="12" font-weight="500">{escaped_msg}</text>
+    <text x="{width - 24}" y="{height - 18}" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" text-anchor="end">HOURGLASS BOT</text>
 </svg>"""
     resp = Response(svg, mimetype="image/svg+xml", status=404)
     resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -301,8 +303,8 @@ def get_user_stat_card(user_identifier: str):
     user_id, username, avatar_url = _resolve_user(user_identifier)
     if user_id is None:
         return _render_error_svg(
-            "Utilisateur introuvable" if lang != "en" else "User not found",
-            f"Aucun utilisateur trouvé pour '{user_identifier}'" if lang != "en" else f"No user found for '{user_identifier}'"
+            "Utilisateur introuvable" if lang == "fr" else "User not found",
+            f"Aucun utilisateur trouvé pour '{user_identifier}'" if lang == "fr" else f"No user found for '{user_identifier}'"
         )
 
     total_seconds = get_total_seconds_by_user_id(user_id) or 0
@@ -335,98 +337,100 @@ def get_user_stat_card(user_identifier: str):
     rank_str = f"#{rank_num}" if rank_num is not None else ("Non classé" if lang == "fr" else "Unranked")
     hours_val = round(total_seconds / 3600, 1)
 
+    clean_uname = html.escape((username or "Unknown")[:16])
+    clean_title = html.escape((title or "")[:20])
+    lvl_text = f"LVL {level} • {clean_title}"
+    lvl_badge_w = max(110, min(290, int(len(lvl_text) * 7.2 + 24)))
+
     badge_svg_chips = []
-    chip_x = 310
+    chip_x = 338
     for b in top_badges:
-        chip = f"""<g transform="translate({chip_x}, 152)">
-            <rect width="66" height="26" rx="6" fill="rgba(56, 189, 248, 0.12)" stroke="rgba(56, 189, 248, 0.35)"/>
-            <g transform="translate(24, 4) scale(0.75)" stroke="#38bdf8" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{b.get('svg_path', '')}</g>
+        chip = f"""<g transform="translate({chip_x}, 148)">
+            <rect width="60" height="26" rx="6" fill="rgba(56, 189, 248, 0.1)" stroke="rgba(56, 189, 248, 0.3)" stroke-width="0.8"/>
+            <g transform="translate(22, 5) scale(0.65)" stroke="#38bdf8" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{b.get('svg_path', '')}</g>
         </g>"""
         badge_svg_chips.append(chip)
-        chip_x += 72
+        chip_x += 66
 
-    badges_rendered = "".join(badge_svg_chips) if badge_svg_chips else f"""<text x="310" y="170" fill="#64748b" font-family="-apple-system, sans-serif" font-size="11" font-style="italic">{'Aucun badge débloqué' if lang == 'fr' else 'No badges unlocked yet'}</text>"""
+    badges_rendered = "".join(badge_svg_chips) if badge_svg_chips else f"""<text x="338" y="166" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-style="italic">{'Aucun badge débloqué' if lang == 'fr' else 'No badges unlocked yet'}</text>"""
     badges_label = "Badges :" if lang == "fr" else "Badges:"
     voice_label = "VOCAL" if lang == "fr" else "VOICE"
     msgs_label = "MESSAGES"
     xp_label = "XP TOTAL" if lang == "fr" else "TOTAL XP"
     next_lvl_label = f"PROCHAIN NIVEAU : {progress_pct}%" if lang == "fr" else f"NEXT LEVEL: {progress_pct}%"
-    rank_label = "RANG" if lang == "fr" else "RANK"
+    rank_label = "RANG GLOBAL" if lang == "fr" else "GLOBAL RANK"
 
-    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="540" height="210" viewBox="0 0 540 210">
+    width = 560
+    height = 220
+
+    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
         <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0f172a"/>
-            <stop offset="100%" stop-color="#1e293b"/>
+            <stop offset="0%" stop-color="#080e1a"/>
+            <stop offset="100%" stop-color="#111d2e"/>
         </linearGradient>
         <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#38bdf8"/>
             <stop offset="100%" stop-color="#818cf8"/>
         </linearGradient>
-        <filter id="cardGlow" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.45"/>
-        </filter>
         <clipPath id="avatarClip">
-            <circle cx="65" cy="65" r="36"/>
+            <circle cx="64" cy="64" r="36"/>
         </clipPath>
     </defs>
 
-    <rect width="540" height="210" rx="20" fill="url(#cardBg)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.2" filter="url(#cardGlow)"/>
-    <ellipse cx="140" cy="15" rx="130" ry="25" fill="#38bdf8" opacity="0.12"/>
+    <rect width="{width}" height="{height}" rx="20" fill="url(#cardBg)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1.2"/>
+    <ellipse cx="140" cy="12" rx="140" ry="24" fill="#38bdf8" opacity="0.12"/>
 
-    <!-- Avatar circle with glow -->
-    <circle cx="65" cy="65" r="39" fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" stroke-width="1.5"/>
-    <circle cx="65" cy="65" r="36" fill="#1e293b"/>
-    <image href="{html.escape(avatar_url)}" x="29" y="29" width="72" height="72" clip-path="url(#avatarClip)" preserveAspectRatio="xMidYMid slice"/>
+    <!-- Avatar with glow -->
+    <circle cx="64" cy="64" r="39" fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" stroke-width="1.5"/>
+    <circle cx="64" cy="64" r="36" fill="#1e293b"/>
+    <image href="{html.escape(avatar_url)}" x="28" y="28" width="72" height="72" clip-path="url(#avatarClip)" preserveAspectRatio="xMidYMid slice"/>
 
     <!-- User Information -->
-    <text x="120" y="55" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800" letter-spacing="-0.3px">{html.escape(username)}</text>
+    <text x="120" y="52" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="20" font-weight="900" letter-spacing="-0.3px">{clean_uname}</text>
     
     <!-- Level Badge -->
-    <g transform="translate(120, 68)">
-        <rect width="180" height="22" rx="6" fill="#5865F2" fill-opacity="0.25" stroke="#5865F2" stroke-width="1"/>
-        <text x="90" y="15" fill="#818cf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" text-anchor="middle">LVL {level} • {html.escape(title)}</text>
+    <g transform="translate(120, 66)">
+        <rect width="{lvl_badge_w}" height="22" rx="6" fill="#5865F2" fill-opacity="0.22" stroke="#5865F2" stroke-width="1"/>
+        <text x="{lvl_badge_w // 2}" y="15" fill="#818cf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">{lvl_text}</text>
     </g>
 
-    <!-- Global Rank Badge -->
-    <g transform="translate(425, 36)">
-        <rect width="85" height="28" rx="8" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1"/>
-        <text x="12" y="18" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="10" font-weight="600">{rank_label}</text>
-        <text x="70" y="19" fill="#38bdf8" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" text-anchor="end">{rank_str}</text>
+    <!-- Global Rank Badge (Stacked Pill - Zero Collision) -->
+    <g transform="translate(440, 32)">
+        <rect width="96" height="38" rx="10" fill="rgba(255, 255, 255, 0.04)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1"/>
+        <text x="48" y="15" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="8.5" font-weight="800" text-anchor="middle" letter-spacing="0.8px">{rank_label}</text>
+        <text x="48" y="31" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="13" font-weight="900" text-anchor="middle">{rank_str}</text>
     </g>
 
     <!-- Divider -->
-    <line x1="28" y1="106" x2="512" y2="106" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+    <line x1="24" y1="106" x2="536" y2="106" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
 
-    <!-- Stats Grid -->
-    <g transform="translate(30, 126)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{voice_label}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{hours_val}h</text>
-    </g>
+    <!-- Stats Cardlets -->
+    <rect x="24" y="118" width="90" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="36" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_label}</text>
+    <text x="36" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{hours_val}h</text>
 
-    <g transform="translate(120, 126)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{msgs_label}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{total_messages:,}</text>
-    </g>
+    <rect x="122" y="118" width="94" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="134" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{msgs_label}</text>
+    <text x="134" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{total_messages:,}</text>
 
-    <g transform="translate(215, 126)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{xp_label}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{total_xp:,}</text>
-    </g>
+    <rect x="224" y="118" width="96" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="236" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{xp_label}</text>
+    <text x="236" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{total_xp:,}</text>
 
     <!-- XP Progress Bar -->
-    <g transform="translate(30, 168)">
-        <rect width="250" height="8" rx="4" fill="rgba(255, 255, 255, 0.08)"/>
-        <rect width="{max(6, int(250 * (progress_pct / 100)))}" height="8" rx="4" fill="url(#cyanGrad)"/>
-        <text x="0" y="22" fill="#64748b" font-family="-apple-system, sans-serif" font-size="10" font-weight="600">{next_lvl_label}</text>
+    <g transform="translate(24, 178)">
+        <rect width="296" height="7" rx="3.5" fill="rgba(255, 255, 255, 0.08)"/>
+        <rect width="{max(6, int(296 * (progress_pct / 100)))}" height="7" rx="3.5" fill="url(#cyanGrad)"/>
+        <text x="0" y="20" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="700">{next_lvl_label}</text>
     </g>
 
     <!-- Badges Area -->
-    <text x="310" y="140" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="600">{badges_label}</text>
+    <text x="338" y="135" fill="#94a3b8" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="11" font-weight="700">{badges_label}</text>
     {badges_rendered}
 
-    <!-- Brand Watermark -->
-    <text x="512" y="196" fill="#475569" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" text-anchor="end">HOURGLASS BOT</text>
+    <!-- Watermark -->
+    <text x="536" y="206" fill="#334155" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" text-anchor="end">HOURGLASS BOT</text>
 </svg>"""
     return _svg_response(svg_content)
 
@@ -440,15 +444,15 @@ def get_user_server_stat_card(user_identifier: str, server_id: int):
     user_id, username, avatar_url = _resolve_user(user_identifier)
     if user_id is None:
         return _render_error_svg(
-            "Utilisateur introuvable" if lang != "en" else "User not found",
-            f"Aucun utilisateur trouvé pour '{user_identifier}'" if lang != "en" else f"No user found for '{user_identifier}'"
+            "Utilisateur introuvable" if lang == "fr" else "User not found",
+            f"Aucun utilisateur trouvé pour '{user_identifier}'" if lang == "fr" else f"No user found for '{user_identifier}'"
         )
 
     server_id, servername, server_avatar = _resolve_server(server_id)
     if server_id is None:
         return _render_error_svg(
-            "Serveur introuvable" if lang != "en" else "Server not found",
-            f"Aucun serveur trouvé avec l'ID {server_id}" if lang != "en" else f"No server found with ID {server_id}"
+            "Serveur introuvable" if lang == "fr" else "Server not found",
+            f"Aucun serveur trouvé avec l'ID {server_id}" if lang == "fr" else f"No server found with ID {server_id}"
         )
 
     stat = Stats.select().where((Stats.user_id == user_id) & (Stats.server_id == server_id)).first()
@@ -469,89 +473,99 @@ def get_user_server_stat_card(user_identifier: str, server_id: int):
     msgs_label = "MESSAGES"
     xp_label = "XP SERVEUR" if lang == "fr" else "SERVER XP"
     next_lvl_label = f"PROCHAIN NIVEAU : {progress_pct}%" if lang == "fr" else f"NEXT LEVEL: {progress_pct}%"
-    rank_label = "RANG" if lang == "fr" else "RANK"
-    active_since_label = f"Sur ce serveur depuis : {join_date}" if lang == "fr" else f"On this server since: {join_date}"
+    rank_label = "RANG SERVEUR" if lang == "fr" else "SERVER RANK"
+    join_lbl = "MEMBRE DEPUIS" if lang == "fr" else "MEMBER SINCE"
+    clean_date = str(join_date).strip() if join_date else ""
+    join_date_val = clean_date if clean_date else ("Inconnue" if lang == "fr" else "Unknown")
 
-    clean_username = html.escape((username or "")[:18])
-    clean_servername = html.escape((servername or "")[:24])
+    clean_username = html.escape((username or "Unknown")[:16])
+    clean_servername = html.escape((servername or "")[:20])
+    clean_title = html.escape((title or "")[:20])
+    lvl_text = f"LVL {level} • {clean_title}"
+    lvl_badge_w = max(110, min(290, int(len(lvl_text) * 7.2 + 24)))
+    srv_chip_w = max(90, min(210, len(clean_servername) * 7 + 34))
 
-    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="540" height="215" viewBox="0 0 540 215">
+    width = 560
+    height = 220
+
+    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
         <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0f172a"/>
-            <stop offset="100%" stop-color="#1e293b"/>
+            <stop offset="0%" stop-color="#080e1a"/>
+            <stop offset="100%" stop-color="#111d2e"/>
         </linearGradient>
         <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#38bdf8"/>
             <stop offset="100%" stop-color="#818cf8"/>
         </linearGradient>
         <clipPath id="avatarClip">
-            <circle cx="65" cy="65" r="36"/>
+            <circle cx="64" cy="64" r="36"/>
         </clipPath>
         <clipPath id="srvIconClip">
-            <circle cx="7" cy="7" r="7"/>
+            <circle cx="10" cy="10" r="7"/>
         </clipPath>
     </defs>
 
-    <rect width="540" height="215" rx="20" fill="url(#cardBg)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.2"/>
-    <ellipse cx="140" cy="15" rx="130" ry="25" fill="#38bdf8" opacity="0.12"/>
+    <rect width="{width}" height="{height}" rx="20" fill="url(#cardBg)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1.2"/>
+    <ellipse cx="140" cy="12" rx="140" ry="24" fill="#38bdf8" opacity="0.12"/>
 
     <!-- User Avatar -->
-    <circle cx="65" cy="65" r="39" fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" stroke-width="1.5"/>
-    <circle cx="65" cy="65" r="36" fill="#1e293b"/>
-    <image href="{html.escape(avatar_url)}" x="29" y="29" width="72" height="72" clip-path="url(#avatarClip)" preserveAspectRatio="xMidYMid slice"/>
+    <circle cx="64" cy="64" r="39" fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" stroke-width="1.5"/>
+    <circle cx="64" cy="64" r="36" fill="#1e293b"/>
+    <image href="{html.escape(avatar_url)}" x="28" y="28" width="72" height="72" clip-path="url(#avatarClip)" preserveAspectRatio="xMidYMid slice"/>
 
     <!-- User Details -->
-    <text x="120" y="48" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800" letter-spacing="-0.3px">{clean_username}</text>
+    <text x="120" y="46" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="20" font-weight="900" letter-spacing="-0.3px">{clean_username}</text>
     
-    <!-- Server Subtitle with Icon -->
-    <g transform="translate(120, 58)">
-        <circle cx="7" cy="7" r="7" fill="#1e293b" stroke="rgba(56, 189, 248, 0.4)" stroke-width="0.8"/>
-        <image href="{html.escape(server_avatar)}" x="0" y="0" width="14" height="14" clip-path="url(#srvIconClip)" preserveAspectRatio="xMidYMid slice"/>
-        <text x="20" y="11" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600">{clean_servername}</text>
+    <!-- Server Subtitle Chip -->
+    <g transform="translate(120, 54)">
+        <rect width="{srv_chip_w}" height="20" rx="5" fill="rgba(56, 189, 248, 0.08)" stroke="rgba(56, 189, 248, 0.25)" stroke-width="0.8"/>
+        <circle cx="10" cy="10" r="7" fill="#1e293b"/>
+        <image href="{html.escape(server_avatar)}" x="3" y="3" width="14" height="14" clip-path="url(#srvIconClip)" preserveAspectRatio="xMidYMid slice"/>
+        <text x="24" y="14" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="700">{clean_servername}</text>
     </g>
 
     <!-- Level Badge -->
     <g transform="translate(120, 78)">
-        <rect width="180" height="20" rx="5" fill="#5865F2" fill-opacity="0.25" stroke="#5865F2" stroke-width="0.8"/>
-        <text x="90" y="14" fill="#818cf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="800" text-anchor="middle">LVL {level} • {html.escape(title)}</text>
+        <rect width="{lvl_badge_w}" height="20" rx="5" fill="#5865F2" fill-opacity="0.22" stroke="#5865F2" stroke-width="0.8"/>
+        <text x="{lvl_badge_w // 2}" y="14" fill="#818cf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="10.5" font-weight="800" text-anchor="middle">{lvl_text}</text>
     </g>
 
-    <!-- Server Rank Badge -->
-    <g transform="translate(425, 30)">
-        <rect width="85" height="28" rx="8" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1"/>
-        <text x="12" y="18" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="10" font-weight="600">{rank_label}</text>
-        <text x="70" y="19" fill="#38bdf8" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" text-anchor="end">{rank_str}</text>
+    <!-- Server Rank Badge (Stacked Pill) -->
+    <g transform="translate(440, 32)">
+        <rect width="96" height="38" rx="10" fill="rgba(255, 255, 255, 0.04)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1"/>
+        <text x="48" y="15" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="8.5" font-weight="800" text-anchor="middle" letter-spacing="0.8px">{rank_label}</text>
+        <text x="48" y="31" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="13" font-weight="900" text-anchor="middle">{rank_str}</text>
     </g>
 
-    <line x1="28" y1="112" x2="512" y2="112" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+    <line x1="24" y1="106" x2="536" y2="106" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
 
-    <!-- Stats Row -->
-    <g transform="translate(30, 132)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{voice_label}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{hours_val}h</text>
-    </g>
+    <!-- 4 Balanced Stats Cardlets -->
+    <rect x="24" y="118" width="92" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="36" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_label}</text>
+    <text x="36" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{hours_val}h</text>
 
-    <g transform="translate(140, 132)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{msgs_label}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{messages:,}</text>
-    </g>
+    <rect x="124" y="118" width="94" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="136" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{msgs_label}</text>
+    <text x="136" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{messages:,}</text>
 
-    <g transform="translate(250, 132)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{xp_label}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{total_xp:,}</text>
-    </g>
+    <rect x="226" y="118" width="96" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="238" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{xp_label}</text>
+    <text x="238" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{total_xp:,}</text>
+
+    <rect x="330" y="118" width="206" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="342" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{join_lbl}</text>
+    <text x="342" y="154" fill="#38bdf8" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="13" font-weight="700">{join_date_val}</text>
 
     <!-- Progress Bar -->
-    <g transform="translate(30, 172)">
-        <rect width="250" height="7" rx="3.5" fill="rgba(255, 255, 255, 0.08)"/>
-        <rect width="{max(6, int(250 * (progress_pct / 100)))}" height="7" rx="3.5" fill="url(#cyanGrad)"/>
-        <text x="0" y="20" fill="#64748b" font-family="-apple-system, sans-serif" font-size="9.5" font-weight="600">{next_lvl_label}</text>
+    <g transform="translate(24, 178)">
+        <rect width="298" height="7" rx="3.5" fill="rgba(255, 255, 255, 0.08)"/>
+        <rect width="{max(6, int(298 * (progress_pct / 100)))}" height="7" rx="3.5" fill="url(#cyanGrad)"/>
+        <text x="0" y="20" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="700">{next_lvl_label}</text>
     </g>
 
-    <!-- Join Date & Watermark -->
-    <text x="310" y="172" fill="#64748b" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500">{active_since_label}</text>
-    <text x="512" y="196" fill="#475569" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" text-anchor="end">HOURGLASS BOT</text>
+    <!-- Watermark -->
+    <text x="536" y="202" fill="#334155" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" text-anchor="end">HOURGLASS BOT</text>
 </svg>"""
     return _svg_response(svg_content)
 
@@ -581,17 +595,18 @@ def get_server_top_card(server_id: int):
     )
 
     width = 620
-    height = 585
-    rows_xml = []
-    y_start = 125
     row_height = 42
+    y_start = 125
+    user_count = len(top_users)
+    height = y_start + max(1, user_count) * row_height + 42 if user_count > 0 else 240
+    rows_xml = []
 
     for i, r in enumerate(top_users):
         rank = i + 1
         y = y_start + i * row_height
         medal_color = "#f59e0b" if rank == 1 else ("#94a3b8" if rank == 2 else ("#d97706" if rank == 3 else "rgba(255, 255, 255, 0.08)"))
         text_color = "#0f172a" if rank in (1, 2, 3) else "#94a3b8"
-        uname = html.escape((r['username'] or ('Inconnu' if lang == 'fr' else 'Unknown'))[:16])
+        uname = html.escape((r['username'] or ('Inconnu' if lang == 'fr' else 'Unknown'))[:15])
         avatar_url = r['avatar'] or "https://cdn.discordapp.com/embed/avatars/0.png"
         time_str = _format_time_short(r['seconds'])
         msgs_str = f"{r['messages']:,}" if lang == 'en' else f"{r['messages']:,}".replace(",", " ")
@@ -599,6 +614,8 @@ def get_server_top_card(server_id: int):
         lvl = xp_info['level']
         bg_bar = f'<rect x="16" y="{y - 23}" width="{width - 32}" height="38" rx="8" fill="rgba(255, 255, 255, 0.025)"/>' if rank % 2 == 0 else ""
         
+        av_border = "#f59e0b" if rank == 1 else ("#94a3b8" if rank == 2 else ("#d97706" if rank == 3 else "rgba(56, 189, 248, 0.4)"))
+        av_stroke_w = "1.8" if rank in (1, 2, 3) else "1.2"
         av_clip = f"srvTopAvClip_{rank}"
         row = f"""{bg_bar}
         <g transform="translate(0, 0)">
@@ -606,11 +623,11 @@ def get_server_top_card(server_id: int):
             <circle cx="28" cy="{y - 4}" r="12" fill="{medal_color}"/>
             <text x="28" y="{y}" fill="{text_color}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="900" text-anchor="middle">{rank}</text>
             
-            <!-- Enlarged Avatar (32px) -->
+            <!-- Enlarged Avatar (32px) with medal accent -->
             <clipPath id="{av_clip}">
                 <circle cx="64" cy="{y - 4}" r="16"/>
             </clipPath>
-            <circle cx="64" cy="{y - 4}" r="17" fill="#1e293b" stroke="rgba(56, 189, 248, 0.45)" stroke-width="1.2"/>
+            <circle cx="64" cy="{y - 4}" r="17" fill="#1e293b" stroke="{av_border}" stroke-width="{av_stroke_w}"/>
             <image href="{html.escape(avatar_url)}" x="48" y="{y - 20}" width="32" height="32" clip-path="url(#{av_clip})" preserveAspectRatio="xMidYMid slice"/>
             
             <!-- Username -->
@@ -628,22 +645,22 @@ def get_server_top_card(server_id: int):
         </g>"""
         rows_xml.append(row)
 
-    rows_str = "".join(rows_xml) if rows_xml else f'<text x="{width // 2}" y="240" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" text-anchor="middle">{"Aucune activité enregistrée sur ce serveur" if lang == "fr" else "No activity recorded on this server yet"}</text>'
-    clean_srvname = html.escape((servername or '')[:30])
+    rows_str = "".join(rows_xml) if rows_xml else f'<text x="{width // 2}" y="175" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, \'DejaVu Sans\', sans-serif" font-size="13" font-weight="600" text-anchor="middle">{"Aucune activité enregistrée sur ce serveur" if lang == "fr" else "No activity recorded on this server yet"}</text>'
+    clean_srvname = html.escape((servername or '')[:28])
     title_text = "TOP 10 • VOCAL" if lang == "fr" else "TOP 10 • VOICE LEADERBOARD"
     footer_text = "HOURGLASS BOT • CLASSEMENT SERVEUR" if lang == "fr" else "HOURGLASS BOT • SERVER LEADERBOARD"
 
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
         <linearGradient id="topBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0b1320"/>
+            <stop offset="0%" stop-color="#080e1a"/>
             <stop offset="100%" stop-color="#111d2e"/>
         </linearGradient>
         <clipPath id="srvTopClip">
             <circle cx="48" cy="46" r="20"/>
         </clipPath>
     </defs>
-    <rect width="{width}" height="{height}" rx="20" fill="url(#topBg)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.2"/>
+    <rect width="{width}" height="{height}" rx="20" fill="url(#topBg)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1.2"/>
     
     <!-- Server Avatar & Header -->
     <circle cx="48" cy="46" r="21" fill="none" stroke="#38bdf8" stroke-width="1.5"/>
@@ -653,15 +670,15 @@ def get_server_top_card(server_id: int):
 
     <!-- Table Header -->
     <rect x="16" y="80" width="{width - 32}" height="28" rx="6" fill="rgba(255, 255, 255, 0.04)"/>
-    <text x="28" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">#</text>
-    <text x="92" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800">{"MEMBRE" if lang == "fr" else "MEMBER"}</text>
-    <text x="300" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">{"NIVEAU" if lang == "fr" else "LEVEL"}</text>
-    <text x="460" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">{"VOCAL" if lang == "fr" else "VOICE"}</text>
-    <text x="580" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">MESSAGES</text>
+    <text x="28" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">#</text>
+    <text x="92" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800">{"MEMBRE" if lang == "fr" else "MEMBER"}</text>
+    <text x="300" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">{"NIVEAU" if lang == "fr" else "LEVEL"}</text>
+    <text x="460" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">{"VOCAL" if lang == "fr" else "VOICE"}</text>
+    <text x="580" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">MESSAGES</text>
 
     {rows_str}
 
-    <text x="{width // 2}" y="{height - 20}" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">{footer_text}</text>
+    <text x="{width // 2}" y="{height - 18}" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">{footer_text}</text>
 </svg>"""
     return _svg_response(svg_content)
 
@@ -690,17 +707,18 @@ def get_global_top_card():
     )
 
     width = 620
-    height = 585
-    rows_xml = []
-    y_start = 125
     row_height = 42
+    y_start = 125
+    user_count = len(top_users)
+    height = y_start + max(1, user_count) * row_height + 42 if user_count > 0 else 240
+    rows_xml = []
 
     for i, r in enumerate(top_users):
         rank = i + 1
         y = y_start + i * row_height
         medal_color = "#f59e0b" if rank == 1 else ("#94a3b8" if rank == 2 else ("#d97706" if rank == 3 else "rgba(255, 255, 255, 0.08)"))
         text_color = "#0f172a" if rank in (1, 2, 3) else "#94a3b8"
-        uname = html.escape((r['username'] or ('Inconnu' if lang == 'fr' else 'Unknown'))[:16])
+        uname = html.escape((r['username'] or ('Inconnu' if lang == 'fr' else 'Unknown'))[:15])
         avatar_url = r['avatar'] or "https://cdn.discordapp.com/embed/avatars/0.png"
         time_str = _format_time_short(r['total_seconds'])
         msgs_str = f"{r['total_messages']:,}" if lang == 'en' else f"{r['total_messages']:,}".replace(",", " ")
@@ -708,6 +726,8 @@ def get_global_top_card():
         lvl = xp_info['level']
         bg_bar = f'<rect x="16" y="{y - 23}" width="{width - 32}" height="38" rx="8" fill="rgba(255, 255, 255, 0.025)"/>' if rank % 2 == 0 else ""
         
+        av_border = "#f59e0b" if rank == 1 else ("#94a3b8" if rank == 2 else ("#d97706" if rank == 3 else "rgba(56, 189, 248, 0.4)"))
+        av_stroke_w = "1.8" if rank in (1, 2, 3) else "1.2"
         av_clip = f"globTopAvClip_{rank}"
         row = f"""{bg_bar}
         <g transform="translate(0, 0)">
@@ -715,11 +735,11 @@ def get_global_top_card():
             <circle cx="28" cy="{y - 4}" r="12" fill="{medal_color}"/>
             <text x="28" y="{y}" fill="{text_color}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="900" text-anchor="middle">{rank}</text>
             
-            <!-- Enlarged Avatar (32px) -->
+            <!-- Enlarged Avatar (32px) with medal accent -->
             <clipPath id="{av_clip}">
                 <circle cx="64" cy="{y - 4}" r="16"/>
             </clipPath>
-            <circle cx="64" cy="{y - 4}" r="17" fill="#1e293b" stroke="rgba(56, 189, 248, 0.45)" stroke-width="1.2"/>
+            <circle cx="64" cy="{y - 4}" r="17" fill="#1e293b" stroke="{av_border}" stroke-width="{av_stroke_w}"/>
             <image href="{html.escape(avatar_url)}" x="48" y="{y - 20}" width="32" height="32" clip-path="url(#{av_clip})" preserveAspectRatio="xMidYMid slice"/>
             
             <!-- Username -->
@@ -737,7 +757,7 @@ def get_global_top_card():
         </g>"""
         rows_xml.append(row)
 
-    rows_str = "".join(rows_xml) if rows_xml else f'<text x="{width // 2}" y="240" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" text-anchor="middle">{"Aucune activité globale enregistrée" if lang == "fr" else "No global activity recorded yet"}</text>'
+    rows_str = "".join(rows_xml) if rows_xml else f'<text x="{width // 2}" y="175" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, \'DejaVu Sans\', sans-serif" font-size="13" font-weight="600" text-anchor="middle">{"Aucune activité globale enregistrée" if lang == "fr" else "No global activity recorded yet"}</text>'
     title_text = "TOP 10 GLOBAL • VOCAL" if lang == "fr" else "TOP 10 • GLOBAL VOICE LEADERBOARD"
     subtitle_text = "Classement général sur l'ensemble des serveurs" if lang == "fr" else "Cross-server all-time voice leaderboard"
     footer_text = "HOURGLASS BOT • CLASSEMENT MONDIAL" if lang == "fr" else "HOURGLASS BOT • GLOBAL LEADERBOARD"
@@ -745,11 +765,11 @@ def get_global_top_card():
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
         <linearGradient id="topBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0b1320"/>
+            <stop offset="0%" stop-color="#080e1a"/>
             <stop offset="100%" stop-color="#111d2e"/>
         </linearGradient>
     </defs>
-    <rect width="{width}" height="{height}" rx="20" fill="url(#topBg)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.2"/>
+    <rect width="{width}" height="{height}" rx="20" fill="url(#topBg)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1.2"/>
     
     <!-- Header -->
     <g transform="translate(24, 26)">
@@ -761,15 +781,15 @@ def get_global_top_card():
 
     <!-- Table Header -->
     <rect x="16" y="80" width="{width - 32}" height="28" rx="6" fill="rgba(255, 255, 255, 0.04)"/>
-    <text x="28" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">#</text>
-    <text x="92" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800">{"MEMBRE" if lang == "fr" else "MEMBER"}</text>
-    <text x="300" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">{"NIVEAU" if lang == "fr" else "LEVEL"}</text>
-    <text x="460" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">{"VOCAL" if lang == "fr" else "VOICE"}</text>
-    <text x="580" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">MESSAGES</text>
+    <text x="28" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">#</text>
+    <text x="92" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800">{"MEMBRE" if lang == "fr" else "MEMBER"}</text>
+    <text x="300" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="middle">{"NIVEAU" if lang == "fr" else "LEVEL"}</text>
+    <text x="460" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">{"VOCAL" if lang == "fr" else "VOICE"}</text>
+    <text x="580" y="98" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="11" font-weight="800" text-anchor="end">MESSAGES</text>
 
     {rows_str}
 
-    <text x="{width // 2}" y="{height - 20}" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">{footer_text}</text>
+    <text x="{width // 2}" y="{height - 18}" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">{footer_text}</text>
 </svg>"""
     return _svg_response(svg_content)
 
@@ -782,8 +802,8 @@ def get_server_stat_card(server_id: int):
     server_id, servername, server_avatar = _resolve_server(server_id)
     if server_id is None:
         return _render_error_svg(
-            "Serveur introuvable" if lang != "en" else "Server not found",
-            f"Aucun serveur trouvé avec l'ID {server_id}" if lang != "en" else f"No server found with ID {server_id}"
+            "Serveur introuvable" if lang == "fr" else "Server not found",
+            f"Aucun serveur trouvé avec l'ID {server_id}" if lang == "fr" else f"No server found with ID {server_id}"
         )
 
     total_seconds = get_total_seconds_by_server_id(server_id) or 0
@@ -803,69 +823,72 @@ def get_server_stat_card(server_id: int):
         .dicts()
         .first()
     )
-    champ_name = html.escape(champ["username"][:16]) if champ else ("Aucun" if lang == "fr" else "None")
+    champ_name = html.escape(champ["username"][:14]) if champ else ("Aucun" if lang == "fr" else "None")
     champ_hours = round(champ["seconds"] / 3600, 1) if champ else 0
 
-    clean_srvname = html.escape((servername or '')[:24])
-    voice_lbl = "VOCAL TOTAL" if lang == "fr" else "TOTAL VOICE"
+    clean_srvname = html.escape((servername or '')[:26])
+    voice_lbl = "TOTAL VOCAL" if lang == "fr" else "TOTAL VOICE"
     msgs_lbl = "MESSAGES"
     members_lbl = "MEMBRES SUIVIS" if lang == "fr" else "TRACKED MEMBERS"
-    rank_lbl = "RANG" if lang == "fr" else "RANK"
-    tracked_lbl = f"Suivi depuis le {join_date}" if lang == "fr" else f"Tracked since {join_date}"
+    rank_lbl = "RANG SERVEUR" if lang == "fr" else "SERVER RANK"
+    
+    clean_date = str(join_date).strip() if join_date else ""
+    join_date_val = clean_date if clean_date else ("Inconnue" if lang == "fr" else "Unknown")
+    tracked_lbl = f"Suivi depuis le {join_date_val}" if lang == "fr" else f"Tracked since {join_date_val}"
     champ_lbl = f"Champion vocal : {champ_name} ({champ_hours}h)" if lang == "fr" else f"Voice champion: {champ_name} ({champ_hours}h)"
 
-    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="540" height="225" viewBox="0 0 540 225">
+    width = 560
+    height = 225
+
+    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
         <linearGradient id="srvBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0f172a"/>
-            <stop offset="100%" stop-color="#1e293b"/>
+            <stop offset="0%" stop-color="#080e1a"/>
+            <stop offset="100%" stop-color="#111d2e"/>
         </linearGradient>
         <clipPath id="srvAvatarClip">
-            <circle cx="65" cy="65" r="36"/>
+            <circle cx="64" cy="64" r="36"/>
         </clipPath>
     </defs>
-    <rect width="540" height="225" rx="20" fill="url(#srvBg)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.2"/>
-    <ellipse cx="140" cy="15" rx="130" ry="25" fill="#818cf8" opacity="0.12"/>
+    <rect width="{width}" height="{height}" rx="20" fill="url(#srvBg)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1.2"/>
+    <ellipse cx="140" cy="12" rx="140" ry="24" fill="#818cf8" opacity="0.12"/>
 
     <!-- Server Avatar -->
-    <circle cx="65" cy="65" r="39" fill="rgba(129, 140, 248, 0.2)" stroke="#818cf8" stroke-width="1.5"/>
-    <circle cx="65" cy="65" r="36" fill="#1e293b"/>
-    <image href="{html.escape(server_avatar)}" x="29" y="29" width="72" height="72" clip-path="url(#srvAvatarClip)" preserveAspectRatio="xMidYMid slice"/>
+    <circle cx="64" cy="64" r="39" fill="rgba(129, 140, 248, 0.2)" stroke="#818cf8" stroke-width="1.5"/>
+    <circle cx="64" cy="64" r="36" fill="#1e293b"/>
+    <image href="{html.escape(server_avatar)}" x="28" y="28" width="72" height="72" clip-path="url(#srvAvatarClip)" preserveAspectRatio="xMidYMid slice"/>
 
     <!-- Title & Details -->
-    <text x="120" y="48" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800">{clean_srvname}</text>
-    <text x="120" y="70" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11.5">{tracked_lbl}</text>
-    <text x="120" y="86" fill="#64748b" font-family="-apple-system, sans-serif" font-size="10.5">ID: {server_id}</text>
+    <text x="120" y="46" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="20" font-weight="900">{clean_srvname}</text>
+    <text x="120" y="68" fill="#94a3b8" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="500">{tracked_lbl}</text>
+    <text x="120" y="85" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="10.5" font-weight="600">ID: {server_id}</text>
 
-    <!-- Server Rank Badge -->
-    <g transform="translate(425, 30)">
-        <rect width="85" height="28" rx="8" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1"/>
-        <text x="12" y="18" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="10" font-weight="600">{rank_lbl}</text>
-        <text x="70" y="19" fill="#38bdf8" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" text-anchor="end">{server_rank_str}</text>
+    <!-- Server Rank Badge (Stacked Pill) -->
+    <g transform="translate(440, 32)">
+        <rect width="96" height="38" rx="10" fill="rgba(255, 255, 255, 0.04)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1"/>
+        <text x="48" y="15" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="8.5" font-weight="800" text-anchor="middle" letter-spacing="0.8px">{rank_lbl}</text>
+        <text x="48" y="31" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="13" font-weight="900" text-anchor="middle">{server_rank_str}</text>
     </g>
 
-    <line x1="28" y1="106" x2="512" y2="106" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+    <line x1="24" y1="106" x2="536" y2="106" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
 
-    <!-- Stats KPI -->
-    <g transform="translate(30, 128)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{voice_lbl}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{hours_val}h</text>
-    </g>
+    <!-- Stats KPI Tiles -->
+    <rect x="24" y="118" width="160" height="48" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="36" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_lbl}</text>
+    <text x="36" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="16" font-weight="900">{hours_val}h</text>
 
-    <g transform="translate(195, 128)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{msgs_lbl}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{total_messages:,}</text>
-    </g>
+    <rect x="192" y="118" width="160" height="48" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="204" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{msgs_lbl}</text>
+    <text x="204" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="16" font-weight="900">{total_messages:,}</text>
 
-    <g transform="translate(360, 128)">
-        <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5px">{members_lbl}</text>
-        <text x="0" y="20" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="16" font-weight="800">{user_count:,}</text>
-    </g>
+    <rect x="360" y="118" width="176" height="48" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="372" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{members_lbl}</text>
+    <text x="372" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="16" font-weight="900">{user_count:,}</text>
 
     <!-- Champion Banner -->
-    <rect x="28" y="166" width="484" height="32" rx="8" fill="rgba(245, 158, 11, 0.08)" stroke="rgba(245, 158, 11, 0.25)"/>
-    <text x="42" y="186" fill="#f59e0b" font-family="-apple-system, sans-serif" font-size="12" font-weight="700">👑 {champ_lbl}</text>
-    <text x="512" y="214" fill="#475569" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" text-anchor="end">HOURGLASS BOT</text>
+    <rect x="24" y="176" width="512" height="34" rx="9" fill="rgba(245, 158, 11, 0.08)" stroke="rgba(245, 158, 11, 0.25)" stroke-width="1"/>
+    <text x="40" y="198" fill="#f59e0b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700">👑 {champ_lbl}</text>
+    <text x="520" y="198" fill="#334155" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" text-anchor="end">HOURGLASS BOT</text>
 </svg>"""
     return _svg_response(svg_content)
 
@@ -933,21 +956,21 @@ COMMANDS_DATA = {
         },
         {
             "col": 0, "row": 1,
-            "name": "/top", "param": "", "tag": "CLASSEMENT SERVEUR",
+            "name": "/top", "param": "", "tag": "TOP SERVEUR",
             "tag_color": "#f59e0b", "tag_bg": "rgba(245, 158, 11, 0.15)",
             "desc": "Top 10 des membres les plus actifs en vocal sur ce serveur.",
             "prefix": "!top"
         },
         {
             "col": 1, "row": 1,
-            "name": "/alltop", "param": "", "tag": "CLASSEMENT GLOBAL",
+            "name": "/alltop", "param": "", "tag": "TOP GLOBAL",
             "tag_color": "#ec4899", "tag_bg": "rgba(236, 72, 153, 0.15)",
             "desc": "Top 10 mondial des membres vocaux sur l'ensemble des serveurs.",
             "prefix": "!alltop"
         },
         {
             "col": 0, "row": 2,
-            "name": "/server", "param": "", "tag": "MÉTRIQUES SERVEUR",
+            "name": "/server", "param": "", "tag": "INFOS SERVEUR",
             "tag_color": "#10b981", "tag_bg": "rgba(16, 185, 129, 0.15)",
             "desc": "Aperçu du temps vocal total, des messages et du champion vocal.",
             "prefix": "!server"
@@ -983,7 +1006,7 @@ def get_bot_commands_card():
     for c in commands:
         x = start_x + c["col"] * (card_w + gap_x)
         y = start_y + c["row"] * (card_h + gap_y)
-        param_xml = f'<text x="100" y="16" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, \'DejaVu Sans\', sans-serif" font-size="12" font-weight="600">{html.escape(c["param"])}</text>' if c['param'] else ''
+        param_xml = f'<text x="96" y="16" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, \'DejaVu Sans\', sans-serif" font-size="11.5" font-weight="600">{html.escape(c["param"])}</text>' if c['param'] else ''
         legacy_label = "Legacy:" if lang == "en" else "Ancien :"
 
         card = f"""
@@ -994,19 +1017,19 @@ def get_bot_commands_card():
             <!-- Header: Command Chip + Tag -->
             <g transform="translate(14, 14)">
                 <!-- Command Chip -->
-                <rect width="90" height="24" rx="6" fill="#5865F2" fill-opacity="0.25" stroke="#5865F2" stroke-width="1"/>
-                <text x="45" y="16" fill="#c7d2fe" font-family="'Consolas', 'Courier New', monospace" font-size="13" font-weight="800" text-anchor="middle">{c['name']}</text>
+                <rect width="84" height="24" rx="6" fill="#5865F2" fill-opacity="0.25" stroke="#5865F2" stroke-width="1"/>
+                <text x="42" y="16" fill="#c7d2fe" font-family="'Consolas', 'Courier New', monospace" font-size="13" font-weight="800" text-anchor="middle">{c['name']}</text>
                 
                 <!-- Parameter if present -->
                 {param_xml}
                 
                 <!-- Tag Badge right aligned -->
-                <rect x="{card_w - 28 - 110}" y="0" width="110" height="20" rx="5" fill="{c['tag_bg']}"/>
-                <text x="{card_w - 28 - 55}" y="14" fill="{c['tag_color']}" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="9" font-weight="800" text-anchor="middle" letter-spacing="0.5px">{c['tag']}</text>
+                <rect x="{card_w - 28 - 104}" y="0" width="104" height="20" rx="5" fill="{c['tag_bg']}"/>
+                <text x="{card_w - 28 - 52}" y="14" fill="{c['tag_color']}" font-family="-apple-system, BlinkMacSystemFont, 'DejaVu Sans', sans-serif" font-size="8.5" font-weight="800" text-anchor="middle" letter-spacing="0.5px">{c['tag']}</text>
             </g>
             
             <!-- Description -->
-            <text x="14" y="62" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11.8" font-weight="400">{c['desc']}</text>
+            <text x="14" y="62" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="400">{c['desc']}</text>
             
             <!-- Prefix shortcut hint -->
             <text x="14" y="88" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif" font-size="10.5" font-weight="500">{legacy_label} <tspan fill="#94a3b8" font-family="'Consolas', monospace">{html.escape(c['prefix'])}</tspan></text>
@@ -1014,7 +1037,7 @@ def get_bot_commands_card():
         cards_xml.append(card)
 
     subtitle_text = "Official Command Reference &amp; Slash Guide" if lang == "en" else "Référence officielle des commandes &amp; guide slash"
-    badge_text = "v2.6.2 • SLASH ACTIVE" if lang == "en" else "v2.6.2 • SLASH ACTIF"
+    badge_text = "v2.5.5 • SLASH ACTIVE" if lang == "en" else "v2.5.5 • SLASH ACTIF"
     footer_text = "Tip: Use / slash commands in any channel  •  hourglass.mike-server.fr" if lang == "en" else "Astuce : Utilisez les commandes slash / dans vos salons  •  hourglass.mike-server.fr"
 
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
@@ -1030,7 +1053,7 @@ def get_bot_commands_card():
     </defs>
 
     <!-- Outer Frame -->
-    <rect width="{width}" height="{height}" rx="20" fill="url(#cmdBgGrad)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.2"/>
+    <rect width="{width}" height="{height}" rx="20" fill="url(#cmdBgGrad)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1.2"/>
 
     <!-- Top Header -->
     <g transform="translate(24, 24)">

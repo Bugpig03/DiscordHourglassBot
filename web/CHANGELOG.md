@@ -1,5 +1,22 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.5 - Refonte Visuelle des Cartes SVG, Harmonisation & Zéro Chevauchement - 07/09/2026
+### Improvements & UI Redesign
+- **Harmonisation visuelle et refonte complète des Cartes SVG de l'API** :
+  - **Élimination définitive des collisions de texte (Zero Collision)** :
+    - Remplacement du badge de rang horizontal à coordonnées fixes par une pilule verticale empilée (*Stacked Rank Badge*) de 96×38 px avec libellé supérieur centré (`GLOBAL RANK` / `SERVER RANK`) et rang inférieur centré (`#1`, `Unranked`, `Non classé`), garantissant l'absence totale de chevauchement quelle que soit la longueur du texte.
+    - Largeur adaptative dynamique du badge de niveau (`lvl_badge_w = max(110, min(290, ...))`) et sécurisation du titre à 20 caractères, prévenant tout débordement hors du conteneur ou collision avec le badge de rang.
+    - Équilibrage parfait de la carte utilisateur serveur (`!stats`) avec 4 tuiles métriques alignées (`VOCAL`, `MESSAGES`, `XP SERVEUR`, `MEMBRE DEPUIS`), comblant l'ancien vide latéral.
+    - Gestion sécurisée de la date d'arrivée avec valeur par défaut propre (`Inconnue` / `Unknown`) évitant les chaînes pendantes sans date.
+  - **Classements Top 10 Vocal à hauteur dynamique & bordures de médailles** :
+    - Calcul automatique de la hauteur du classement (`y_start + max(1, count) * row_height + 42`) supprimant l'espace vide noir lorsque le serveur ou le bot compte moins de 10 membres actifs.
+    - Avatars agrandis à 32px (rayon 16px) avec cerclage distinctif aux couleurs des médailles : Or (`#f59e0b`) pour le 1er, Argent (`#94a3b8`) pour le 2e, Bronze (`#d97706`) pour le 3e, et Cyan subtil pour les suivants.
+  - **Carte d'Aide & Référence des Commandes (`/help` / `!help` / `!aide`)** :
+    - Badge de version actualisé à `v2.5.5 • SLASH ACTIVE` / `v2.5.5 • SLASH ACTIF`.
+    - Harmonisation complète des tags et descriptions en anglais et en français (tags `SERVER RANKING`, `GLOBAL RANKING`, `SERVER METRICS` en anglais).
+  - **Carte d'erreur 404 modernisée** :
+    - Arrondis 20px, halo carmin élégant et troncature de sécurité à 70 caractères pour les messages d'erreur.
+
 ## Version 2.5.4 - Cartes Statistiques & Commandes SVG dans l'API - 07/09/2026
 ### Features & API Enhancements
 - **Cartes Statistiques & Classements au format SVG autonome** :
