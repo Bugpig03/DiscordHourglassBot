@@ -8,17 +8,89 @@ import os
 import io
 import aiohttp
 
+import re
+import base64
+
 try:
     import resvg_py
     HAS_RESVG = True
 except ImportError:
     HAS_RESVG = False
 
-BOT_VERSION = "2.6.0"
+BOT_VERSION = "2.6.2"
 API_BASE_URL = os.environ.get(
     'HOURGLASS_API_URL',
     os.environ.get('API_URL', 'https://hourglass.mike-server.fr')
 ).rstrip('/')
+
+FONTS_DIR = os.path.join(os.path.dirname(__file__), "fonts")
+FONTS_DIRS = [
+    d for d in [
+        FONTS_DIR,
+        "/usr/share/fonts",
+        "/usr/local/share/fonts",
+        "/usr/share/fonts/truetype",
+        "/usr/share/fonts/truetype/dejavu",
+        "C:/Windows/Fonts",
+        os.path.expanduser("~/AppData/Local/Microsoft/Windows/Fonts"),
+        "/System/Library/Fonts",
+        "/Library/Fonts",
+    ] if os.path.exists(d)
+]
+
+_AVATAR_CACHE = {}
+DEFAULT_AVATAR_URL = "https://cdn.discordapp.com/embed/avatars/0.png"
+
+async def _get_default_avatar_data_uri(session: aiohttp.ClientSession) -> str:
+    """Récupère et met en cache l'avatar Discord par défaut en Base64."""
+    if DEFAULT_AVATAR_URL in _AVATAR_CACHE:
+        return _AVATAR_CACHE[DEFAULT_AVATAR_URL]
+    try:
+        async with session.get(DEFAULT_AVATAR_URL, timeout=aiohttp.ClientTimeout(total=2)) as resp:
+            if resp.status == 200:
+                raw = await resp.read()
+                mime = resp.headers.get("Content-Type", "image/png").split(";")[0].strip()
+                b64 = base64.b64encode(raw).decode("ascii")
+                data_uri = f"data:{mime};base64,{b64}"
+                _AVATAR_CACHE[DEFAULT_AVATAR_URL] = data_uri
+                return data_uri
+    except Exception as e:
+        print(f"[IMAGE INLINE] Failed to fetch default avatar: {e}")
+    return ""
+
+async def _inline_remote_images(session: aiohttp.ClientSession, svg: str) -> str:
+    """Remplace les URLs (distantes ou relatives) des images par des Data URIs base64 pour resvg."""
+    urls = list(set(re.findall(r'href=["\']([^"\']+)["\']', svg)))
+    if not urls:
+        return svg
+    for u in urls:
+        if u.startswith("data:"):
+            continue
+        if u in _AVATAR_CACHE:
+            svg = svg.replace(u, _AVATAR_CACHE[u])
+            continue
+        fetch_url = u if u.startswith("http") else f"{API_BASE_URL}{u}"
+        try:
+            async with session.get(fetch_url, timeout=aiohttp.ClientTimeout(total=2)) as resp:
+                if resp.status == 200:
+                    raw = await resp.read()
+                    mime = resp.headers.get("Content-Type", "image/png").split(";")[0].strip()
+                    b64 = base64.b64encode(raw).decode("ascii")
+                    data_uri = f"data:{mime};base64,{b64}"
+                    _AVATAR_CACHE[u] = data_uri
+                    svg = svg.replace(u, data_uri)
+                else:
+                    fallback_uri = await _get_default_avatar_data_uri(session)
+                    if fallback_uri:
+                        _AVATAR_CACHE[u] = fallback_uri
+                        svg = svg.replace(u, fallback_uri)
+        except Exception as e:
+            print(f"[IMAGE INLINE] Could not fetch avatar {u}: {e}")
+            fallback_uri = await _get_default_avatar_data_uri(session)
+            if fallback_uri:
+                _AVATAR_CACHE[u] = fallback_uri
+                svg = svg.replace(u, fallback_uri)
+    return svg
 
 async def send_card_or_fallback(ctx, endpoint: str, filename_base: str, fallback_message: str):
     """
@@ -29,21 +101,28 @@ async def send_card_or_fallback(ctx, endpoint: str, filename_base: str, fallback
     """
     url = f"{API_BASE_URL}{endpoint}"
     raw_data = None
+    svg_text = None
 
     try:
         timeout = aiohttp.ClientTimeout(total=8)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; DiscordHourglassBot/2.6.2)"}
+        async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
             async with session.get(url) as resp:
                 content_type = resp.headers.get("Content-Type", "")
                 if (resp.status in (200, 404) and "image/svg+xml" in content_type) or resp.status == 200:
                     raw_data = await resp.read()
                 else:
                     print(f"[API ERROR] HTTP {resp.status} from {url}")
+
+            if raw_data:
+                svg_text = raw_data.decode("utf-8", errors="replace")
+                # Intégrer les images d'avatars distants en base64 pour que resvg les dessine
+                svg_text = await _inline_remote_images(session, svg_text)
     except Exception as e:
         print(f"[API ERROR] Failed to fetch card from {url}: {e}")
 
     # Si l'API n'a pas renvoyé de données, on bascule vers le message texte de secours
-    if not raw_data:
+    if not raw_data or not svg_text:
         await ctx.send(fallback_message)
         return
 
@@ -51,8 +130,14 @@ async def send_card_or_fallback(ctx, endpoint: str, filename_base: str, fallback
     file_to_send = None
     if HAS_RESVG:
         try:
-            svg_text = raw_data.decode("utf-8", errors="replace")
-            png_bytes = resvg_py.svg_to_bytes(svg_text)
+            png_bytes = resvg_py.svg_to_bytes(
+                svg_text,
+                font_dirs=FONTS_DIRS if FONTS_DIRS else None,
+                font_family="DejaVu Sans",
+                sans_serif_family="DejaVu Sans",
+                monospace_family="DejaVu Sans Mono",
+                serif_family="DejaVu Serif",
+            )
             file_to_send = discord.File(fp=io.BytesIO(png_bytes), filename=f"{filename_base}.png")
         except Exception as conv_err:
             print(f"[CONVERT ERROR] Could not convert SVG to PNG: {conv_err}")
@@ -130,12 +215,12 @@ async def on_voice_state_update(member, before, after):
         users_activity[member.id] = now.strftime("%Y-%m-%d %H:%M:%S")
         print(f'{member} has joined a voice channel: {after.channel.name}')
 
-@bot.hybrid_command(name="stats", description="Affiche les statistiques d'un utilisateur sur ce serveur.")
-@app_commands.describe(user="L'utilisateur ciblé (par défaut vous-même)")
+@bot.hybrid_command(name="stats", description="Displays a user's statistics on this server.")
+@app_commands.describe(user="Target member (defaults to yourself)")
 async def stats(ctx: commands.Context, user: discord.User = None):
     await ctx.defer()
     if ctx.guild is None:
-        await ctx.send("Cette commande doit être exécutée sur un serveur Discord.")
+        await ctx.send("This command must be executed within a Discord server.")
         return
 
     if user is None:
@@ -151,23 +236,23 @@ async def stats(ctx: commands.Context, user: discord.User = None):
 
     formatted_time = ConvertSecondsToTime(GetSecondsOfUserOnServer(user_id,server_id))
     nbr_messages = GetMessagesOfUserOnServer(user_id,server_id)
-    
 
     message = (
-        f"__Statistiques de {user.display_name} sur le serveur **{server_name}** :__\n"
-        f"Nombre de messages : {nbr_messages}\n"
-        f"Temps passé en vocal : {formatted_time}")
+        f"__Statistics for {user.display_name} on server **{server_name}**:__\n"
+        f"Messages sent: {nbr_messages}\n"
+        f"Time spent in voice: {formatted_time}"
+    )
     
     safe_name = "".join(c for c in user.name if c.isalnum() or c in ('_', '-')) or str(user_id)
     await send_card_or_fallback(
         ctx,
-        f"/api/card/user/{user_id}/server/{server_id}",
+        f"/api/card/user/{user_id}/server/{server_id}?lang=en",
         f"stats_{safe_name}_{server_id}",
         message
     )
 
-@bot.hybrid_command(name="allstats", description="Affiche les statistiques globales d'un utilisateur sur tous les serveurs.")
-@app_commands.describe(user="L'utilisateur ciblé (par défaut vous-même)")
+@bot.hybrid_command(name="allstats", description="Displays global statistics for a user across all servers.")
+@app_commands.describe(user="Target member (defaults to yourself)")
 async def allstats(ctx: commands.Context, user: discord.User = None):
     await ctx.defer()
     if user is None:
@@ -182,31 +267,30 @@ async def allstats(ctx: commands.Context, user: discord.User = None):
     nbr_messages = GetMessagesOfUser(user_id)
 
     message = (
-        f"__Statistiques **globales** de {user.display_name} :__\n"
-        f"Nombre de messages: {nbr_messages}\n"
-        f"Temps passé en vocal: {formatted_time}"
+        f"__**Global** statistics for {user.display_name}:__\n"
+        f"Total messages: {nbr_messages}\n"
+        f"Time spent in voice: {formatted_time}"
     )
         
     safe_name = "".join(c for c in user.name if c.isalnum() or c in ('_', '-')) or str(user_id)
     await send_card_or_fallback(
         ctx,
-        f"/api/card/user/{user_id}",
+        f"/api/card/user/{user_id}?lang=en",
         f"allstats_{safe_name}",
         message
     )
 
 
-
-@bot.hybrid_command(name="top", description="Affiche le Top 10 des utilisateurs les plus actifs en vocal sur ce serveur.")
+@bot.hybrid_command(name="top", description="Displays the Top 10 most active voice users on this server.")
 async def top(ctx: commands.Context):
     await ctx.defer()
     if ctx.guild is None:
-        await ctx.send("Cette commande doit être exécutée sur un serveur Discord.")
+        await ctx.send("This command must be executed within a Discord server.")
         return
 
     top_users = GetTop10UsersBySecondsOnServer(ctx.guild.id)
 
-    message_lines = [f"__Top 10 **{ctx.guild.name}** :__"]
+    message_lines = [f"__Top 10 Voice Members on **{ctx.guild.name}**:__"]
 
     top_count = 1
 
@@ -227,23 +311,23 @@ async def top(ctx: commands.Context):
     message = "\n".join(message_lines)
     await send_card_or_fallback(
         ctx,
-        f"/api/card/top/server/{ctx.guild.id}",
+        f"/api/card/top/server/{ctx.guild.id}?lang=en",
         f"top_{ctx.guild.id}",
         message
     )
 
 # Commande Discord !top pour afficher le top 10 des utilisateurs en fonction des secondes accumulées
-@bot.hybrid_command(name="alltop", description="Affiche le Top 10 global des utilisateurs les plus actifs en vocal.")
+@bot.hybrid_command(name="alltop", description="Displays the global Top 10 most active voice users across all servers.")
 async def alltop(ctx: commands.Context):
     await ctx.defer()
     top_users = GetTop10UsersBySeconds()
 
     if not top_users:
-        message = "Aucun utilisateur trouvé dans les bases de données."
-        await send_card_or_fallback(ctx, "/api/card/top", "top_global", message)
+        message = "No voice users found in database."
+        await send_card_or_fallback(ctx, "/api/card/top?lang=en", "top_global", message)
         return
 
-    message_lines = ["__Top 10 **global** :__"]
+    message_lines = ["__Global Top 10 Voice Members:__"]
 
     top_count = 1
 
@@ -263,44 +347,44 @@ async def alltop(ctx: commands.Context):
     message = "\n".join(message_lines)
     await send_card_or_fallback(
         ctx,
-        "/api/card/top",
+        "/api/card/top?lang=en",
         "top_global",
         message
     )
 
-@bot.hybrid_command(name="server", description="Affiche les statistiques globales de ce serveur.")
+@bot.hybrid_command(name="server", description="Displays global statistics for this server.")
 async def server(ctx: commands.Context):
     await ctx.defer()
     if ctx.guild is None:
-        await ctx.send("Cette commande doit être exécutée sur un serveur Discord.")
+        await ctx.send("This command must be executed within a Discord server.")
         return
 
     message_count = GetTotalMessagesOnServer(ctx.guild.id)
     seconds_count = GetTotalSecondsOnServer(ctx.guild.id)
     seconds_count = ConvertSecondsToTime(seconds_count)
-    message = f"__Statistiques du serveur:__\nNombre de messages au total : {message_count}\nTemps passé en vocal au total : {seconds_count}"
+    message = f"__Server Statistics:__\nTotal messages: {message_count}\nTotal voice time: {seconds_count}"
     await send_card_or_fallback(
         ctx,
-        f"/api/card/server/{ctx.guild.id}",
+        f"/api/card/server/{ctx.guild.id}?lang=en",
         f"server_{ctx.guild.id}",
         message
     )
 
-@bot.hybrid_command(name="help", aliases=["aide"], description="Affiche la liste et l'aide des commandes de Hourglass BOT.")
+@bot.hybrid_command(name="help", aliases=["aide"], description="Displays the command list and help guide for Hourglass BOT.")
 async def help(ctx: commands.Context):
     await ctx.defer()
     message = (
-        f"__**Commandes de Hourglass BOT:**__\n"
-        f"**!stats [user]** ou **/stats** - *stats de l'utilisateur sur le serveur*\n"
-        f"**!allstats [user]** ou **/allstats** - *stats de l'utilisateurs sur tous les serveur*\n"
-        f"**!top** ou **/top** - *top 10 des utilisateurs en vocal sur le serveur*\n"
-        f"**!alltop** ou **/alltop** - *top 10 des utilisateurs en vocal sur tous les serveurs*\n"
-        f"**!server** ou **/server** - *Informations du serveur*\n"
-        f"**!help** ou **/help** - *affiche cette aide*\n"
+        f"__**Hourglass BOT Commands:**__\n"
+        f"**/stats [user]** or **!stats** - *User stats on this server*\n"
+        f"**/allstats [user]** or **!allstats** - *Global user stats across all servers*\n"
+        f"**/top** or **!top** - *Top 10 voice users on this server*\n"
+        f"**/alltop** or **!alltop** - *Global Top 10 voice users across all servers*\n"
+        f"**/server** or **!server** - *Server statistics and voice metrics*\n"
+        f"**/help** or **!help** - *Display this command guide*\n"
     )
     await send_card_or_fallback(
         ctx,
-        "/api/card/commands",
+        "/api/card/commands?lang=en",
         "help",
         message
     )
@@ -311,9 +395,7 @@ def ConvertSecondsToTime(seconds):
     minutes = (seconds % 3600) // 60
     seconds = seconds % 60
     
-    # Formatage du temps
-    #time_format = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
-    return f"{hours} h {minutes} min {seconds} s"
+    return f"{hours}h {minutes}m {seconds}s"
 
 def runBot():
     discord_token = os.environ.get('DISCORD_TOKEN')

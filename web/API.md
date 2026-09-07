@@ -220,7 +220,7 @@ GET /api/card/allstats/{user_identifier}
 - **Dimensions** : 540 × 210 px
 - **Paramètres** :
   - `{user_identifier}` : `username` ou `user_id`.
-  - `?lang=fr` ou `?lang=en` (optionnel).
+  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
 
@@ -235,35 +235,35 @@ GET /api/card/stats/{user_identifier}/{server_id}
 - **Paramètres** :
   - `{user_identifier}` : `username` ou `user_id`.
   - `{server_id}` : Identifiant numérique du serveur.
-  - `?lang=fr` ou `?lang=en` (optionnel).
+  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
 
 ### Top 10 vocal d'un serveur (!top)
-Génère le classement sous forme de tableau SVG des 10 membres les plus actifs en vocal sur le serveur sélectionné (médailles or/argent/bronze, avatars, niveaux, temps et messages).
+Génère le classement sous forme de carte SVG des 10 membres les plus actifs en vocal sur le serveur sélectionné (médailles or/argent/bronze, avatars agrandis 32px, niveaux, temps vocal et messages).
 
 ```http
 GET /api/card/top/server/{server_id}
 GET /api/card/server/{server_id}/top
 ```
-- **Dimensions** : 560 × 535 px
+- **Dimensions** : 620 × 585 px
 - **Paramètres** :
   - `{server_id}` : Identifiant numérique du serveur.
-  - `?lang=fr` ou `?lang=en` (optionnel).
+  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
 
 ### Top 10 vocal global (!alltop)
-Génère le classement général des 10 utilisateurs les plus actifs en vocal sur l'ensemble de tous les serveurs du bot Hourglass.
+Génère le classement général des 10 utilisateurs les plus actifs en vocal sur l'ensemble de tous les serveurs du bot Hourglass (avatars agrandis 32px).
 
 ```http
 GET /api/card/top
 GET /api/card/top/global
 GET /api/card/alltop
 ```
-- **Dimensions** : 560 × 535 px
+- **Dimensions** : 620 × 585 px
 - **Paramètres** :
-  - `?lang=fr` ou `?lang=en` (optionnel).
+  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
 
@@ -276,21 +276,21 @@ GET /api/card/server/{server_id}
 - **Dimensions** : 540 × 225 px
 - **Paramètres** :
   - `{server_id}` : Identifiant numérique du serveur.
-  - `?lang=fr` ou `?lang=en` (optionnel).
+  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
 
-### Tableau d'aide des commandes (!help / !aide)
-Génère un tableau élégant récapitulant les commandes disponibles du bot, leurs syntaxes dorées et leurs descriptions.
+### Guide d'aide des commandes (!help / /help)
+Génère une carte moderne en grille 2 colonnes récapitulant les commandes disponibles du bot, leurs puces de commandes slash, leurs badges de catégorie, descriptions complètes et rappels de préfixes classiques (legacy).
 
 ```http
 GET /api/card/commands
 GET /api/card/help
 GET /api/card/aide
 ```
-- **Dimensions** : 960 × 360 px
+- **Dimensions** : 820 × 490 px
 - **Paramètres** :
-  - `?lang=fr` ou `?lang=en` (optionnel).
+  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
 

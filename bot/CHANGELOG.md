@@ -1,5 +1,31 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 2.6.2 - Cartes en anglais par défaut, avatars agrandis dans le top et refonte de /help - 07/09/2026
+
+- **Langue anglaise par défaut (`en`) pour toutes les cartes et commandes** :
+  - L'ensemble des requêtes de cartes émises par le bot (`stats`, `allstats`, `top`, `alltop`, `server`, `help`) transmettent explicitement le paramètre `?lang=en` à l'API.
+  - L'API Hourglass a été mise à jour pour définir l'anglais (`en`) comme langue par défaut sur l'intégralité des routes de génération de cartes.
+  - Tous les messages textuels de secours (fallback) ainsi que les descriptions et paramètres des commandes slash sont désormais rédigés en anglais.
+- **Avatars agrandis et fiabilisés dans les classements Top 10 (`/top` et `/alltop`)** :
+  - Intégration des photos de profil (avatars) de chaque membre du classement avec un diamètre agrandi à 32px dans un cercle net et bordé.
+  - Attribution automatique d'un avatar Discord officiel par défaut pour les membres sans photo de profil afin d'assurer l'affichage systématique de l'image.
+  - Élargissement de la carte du top à 620px et hauteur de ligne à 42px pour une lisibilité parfaite des pseudos, niveaux, temps vocal et messages.
+- **Refonte graphique complète et moderne de la carte `/help`** :
+  - Nouveau design épuré en grille 2 colonnes (820×490px) présentant les 6 commandes principales (`/stats`, `/allstats`, `/top`, `/alltop`, `/server`, `/help`).
+  - Chaque bloc comprend un badge de catégorie coloré, la puce de la commande slash, la description détaillée et le rappel du préfixe classique (legacy).
+  - En-tête modernisé avec icône de sablier luisante, titre Hourglass Bot et badge d'état interactif (`v2.6.2 • SLASH ACTIVE`).
+- **Conservation intégrale de la logique métier** :
+  - Aucun changement apporté au suivi des temps vocaux, au comptage des messages, ni aux opérations de base de données.
+
+## Version 2.6.1 - Rendu des polices et avatars dans les cartes PNG - 07/09/2026
+
+- **Résolution du problème de texte manquant dans les cartes** :
+  - Embarquement direct des polices vectorielles TrueType DejaVu (`DejaVuSans.ttf`, `DejaVuSans-Bold.ttf`, `DejaVuSansMono.ttf`, etc.) dans le dossier `bot/fonts/` du projet.
+  - Configuration explicite du dossier de polices (`FONTS_DIRS`) et des familles génériques dans `resvg_py.svg_to_bytes` pour garantir un rendu parfait des textes (niveaux, temps vocal, messages, pseudonymes, titres) dans tous les environnements (Docker Linux, Windows, macOS).
+- **Intégration et affichage des avatars distants** :
+  - Ajout d'une fonction asynchrone `_inline_remote_images` avec cache mémoire pour convertir à la volée les URLs HTTP/HTTPS des avatars et icônes en Data URIs Base64 (`data:image/png;base64,...`).
+  - Permet à `resvg` de dessiner les photos de profil des utilisateurs et les icônes de serveur sans restriction réseau.
+
 ## Version 2.6.0 - Commandes Slash Discord & Renommage !aide en !help - 07/09/2026
 
 - **Support complet des commandes Slash (`/`) de Discord** :
