@@ -1,5 +1,24 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.6 - Correctif Crash Profil, Optimisations Mobile Versus & Prévention Débordements Cartes SVG - 08/09/2026
+### Bug Fixes & Responsive Optimizations
+- **Correctif Crash Serveur Profil Utilisateur (`/profile/<username>`)** :
+  - Résolution de l'exception Flask `BuildError: Could not build url for endpoint 'api.get_user_stat_card' with values ['lang', 'username']` causée par le renommage du paramètre de route en `<user_identifier>`.
+  - Restauration de la signature d'endpoint standard `username: str` sur les routes `/api/card/user/<username>` et `/api/card/user/<username>/server/<int:server_id>`.
+  - Maintien de la flexibilité de recherche transparente : la fonction `_resolve_user` continue d'accepter aussi bien un pseudonyme (`username`) qu'un ID numérique Discord (`user_id`).
+- **Optimisation Mobile Avancée de la Page Versus (`/versus`)** :
+  - **Correction du débordement en grille CSS (Blowout)** : ajout de `min-width: 0;` sur `.versus-fighter-card` et d'une troncature avec ellipse (`text-overflow: ellipsis; white-space: nowrap;`) sur les pseudonymes des combattants, empêchant l'élargissement indésirable de la page au-delà de 100vw sur mobile.
+  - **Panneau de duel central affiné** : stylisation du pilier central (`.versus-center-pillar`) en panneau vitré compact (`background: rgba(255, 255, 255, 0.025); border-radius: 14px;`) avec espacements optimisés pour une intégration fluide entre les cartes de combattants.
+  - **Repères colorés des métriques de duel** : ajout d'indicateurs visuels bleu ciel (`#93c5fd` - Joueur 1) et rose (`#fda4af` - Joueur 2) sur les valeurs numériques de chaque métrique.
+  - **Support ultra-mobile (écrans <= 480px)** : masquage automatique du total de membres dans le badge de rang (`.rank-total`) pour éviter tout saut de ligne, réduction proportionnée des avatars (48px), des tags joueurs (16px), des scores et des textes de victoires.
+  - **Rafraîchissement du cache CSS** : incrémentation de la version des styles à `v=25` dans `base.html`.
+- **Prévention des Débordements de Texte sur les Cartes SVG & PNG** :
+  - **Taille de police adaptative pour les métriques** : introduction de la fonction `_metric_font_size(text)` réduisant dynamiquement la taille de police (15px -> 13.5px -> 12px) dès que les nombres ou heures formatées dépassent 7 ou 9 caractères (ex: `1,450,890`, `125,890h`).
+  - **Formatage compact des heures élevées** : conversion automatique en entier sans décimale (`1,250h`) au-delà de 1 000 heures vocales.
+  - **Descriptions concises des commandes (`/help`)** : réécriture et calibrage des 6 descriptions en anglais et français pour tenir confortablement dans les tuiles de 380px sans risque de troncature ni de chevauchement sur les polices système.
+  - **Sécurisation des bannières et titres** : troncature avec ellipse sur les noms de serveurs (`clean_srvname`), les pseudonymes des champions vocaux (`champ_name`) et les messages d'erreur 404 (`_render_error_svg`).
+  - **Badge de version actualisé** : mise à jour du badge en haut à droite à `v2.5.6 • SLASH ACTIVE` / `v2.5.6 • SLASH ACTIF`.
+
 ## Version 2.5.5 - Refonte Visuelle des Cartes SVG, Harmonisation & Zéro Chevauchement - 07/09/2026
 ### Improvements & UI Redesign
 - **Harmonisation visuelle et refonte complète des Cartes SVG de l'API** :

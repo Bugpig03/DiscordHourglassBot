@@ -3114,6 +3114,7 @@ footer {
   align-items: center;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  min-width: 0;
 }
 
 .fighter-1 {
@@ -3212,6 +3213,11 @@ footer {
   color: inherit;
   text-decoration: none;
   transition: color 0.18s ease;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fighter-1 .fighter-name a:hover {
@@ -3823,8 +3829,12 @@ footer {
     grid-area: center;
     width: 100%;
     min-width: unset;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 8px 10px;
   }
 
   .versus-neon-badge {
@@ -3864,7 +3874,8 @@ footer {
   }
 
   .versus-fighter-card {
-    padding: 20px 6px 12px;
+    min-width: 0;
+    padding: 22px 6px 12px;
     border-radius: 14px;
   }
 
@@ -3901,6 +3912,14 @@ footer {
     text-overflow: ellipsis;
     width: 100%;
     padding: 0 2px;
+  }
+
+  .fighter-name a {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .fighter-meta {
@@ -3984,6 +4003,7 @@ footer {
     justify-content: flex-start;
     text-align: left;
     font-size: 0.92rem;
+    color: #93c5fd;
   }
 
   .side-right {
@@ -3991,6 +4011,7 @@ footer {
     justify-content: flex-end;
     text-align: right;
     font-size: 0.92rem;
+    color: #fda4af;
   }
 
   .metric-win-crown {
@@ -4034,5 +4055,89 @@ footer {
 
   .empty-arena-title {
     font-size: 0.94rem;
+  }
+}
+
+/* Extra Small Mobile Devices (Phones <= 480px) */
+@media (max-width: 480px) {
+  .versus-arena {
+    gap: 6px;
+  }
+
+  .versus-center-pillar {
+    padding: 6px 8px;
+  }
+
+  .versus-neon-badge {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .score-digit {
+    font-size: 1.55rem;
+  }
+
+  .score-sep {
+    font-size: 1.15rem;
+  }
+
+  .duel-outcome-pill {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+
+  .versus-fighter-card {
+    padding: 20px 4px 10px;
+  }
+
+  .fighter-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .fighter-player-tag {
+    width: 16px;
+    height: 16px;
+    font-size: 0.6rem;
+  }
+
+  .fighter-name {
+    font-size: 0.85rem;
+  }
+
+  .fighter-meta {
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  .fighter-badge {
+    padding: 1.5px 4px;
+    font-size: 0.62rem;
+  }
+
+  /* Hide / total in rank badge on small screens to prevent layout wrap */
+  .fighter-rank-badge .rank-total {
+    display: none;
+  }
+
+  .score-number {
+    font-size: 1.15rem;
+  }
+
+  .score-text {
+    font-size: 0.58rem;
+  }
+
+  .val-number {
+    font-size: 0.84rem;
+  }
+
+  .metric-category-name {
+    font-size: 0.74rem;
+  }
+
+  .side-left, .side-right {
+    font-size: 0.85rem;
   }
 }

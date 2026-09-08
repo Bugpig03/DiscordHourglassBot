@@ -259,10 +259,19 @@ def _format_time_short(seconds: int) -> str:
     return f"{m}m"
 
 
+def _metric_font_size(text: str) -> str:
+    """Return an adaptive font size to prevent cardlet text overflow."""
+    if len(text) >= 9:
+        return "12"
+    if len(text) >= 7:
+        return "13.5"
+    return "15"
+
+
 def _render_error_svg(title: str, message: str, width: int = 560, height: int = 190) -> Response:
     """Return a stylish standalone SVG error card with 404 status."""
-    escaped_title = html.escape((title or "Error")[:35])
-    escaped_msg = html.escape((message or "Resource not found")[:70])
+    escaped_title = html.escape((title or "Error")[:30])
+    escaped_msg = html.escape((message or "Resource not found")[:55])
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
         <linearGradient id="errBg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -295,16 +304,16 @@ def _svg_response(svg_content: str, max_age: int = 180) -> Response:
 # ==========================================
 
 # 1. Global User Stat Card (!allstats [user])
-@api_bp.route("/api/card/user/<user_identifier>", methods=["GET"])
-@api_bp.route("/api/card/allstats/<user_identifier>", methods=["GET"])
-def get_user_stat_card(user_identifier: str):
+@api_bp.route("/api/card/user/<username>", methods=["GET"])
+@api_bp.route("/api/card/allstats/<username>", methods=["GET"])
+def get_user_stat_card(username: str):
     """Generate and return a stylish standalone SVG stat card for a user across all servers."""
     lang = request.args.get("lang", "en")
-    user_id, username, avatar_url = _resolve_user(user_identifier)
+    user_id, resolved_username, avatar_url = _resolve_user(username)
     if user_id is None:
         return _render_error_svg(
             "Utilisateur introuvable" if lang == "fr" else "User not found",
-            f"Aucun utilisateur trouvé pour '{user_identifier}'" if lang == "fr" else f"No user found for '{user_identifier}'"
+            f"Aucun utilisateur trouvé pour '{username}'" if lang == "fr" else f"No user found for '{username}'"
         )
 
     total_seconds = get_total_seconds_by_user_id(user_id) or 0
@@ -336,9 +345,12 @@ def get_user_stat_card(user_identifier: str):
     rank_num = rank if isinstance(rank, int) and rank > 0 else (int(rank) if isinstance(rank, str) and rank.strip().isdigit() else None)
     rank_str = f"#{rank_num}" if rank_num is not None else ("Non classé" if lang == "fr" else "Unranked")
     hours_val = round(total_seconds / 3600, 1)
+    hours_str = f"{int(hours_val):,}h" if hours_val >= 1000 else f"{hours_val}h"
+    msgs_str = f"{total_messages:,}"
+    xp_str = f"{total_xp:,}"
 
-    clean_uname = html.escape((username or "Unknown")[:16])
-    clean_title = html.escape((title or "")[:20])
+    clean_uname = html.escape((resolved_username or "Unknown")[:16])
+    clean_title = html.escape((title or "")[:18])
     lvl_text = f"LVL {level} • {clean_title}"
     lvl_badge_w = max(110, min(290, int(len(lvl_text) * 7.2 + 24)))
 
@@ -406,22 +418,22 @@ def get_user_stat_card(user_identifier: str):
     <line x1="24" y1="106" x2="536" y2="106" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
 
     <!-- Stats Cardlets -->
-    <rect x="24" y="118" width="90" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
-    <text x="36" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_label}</text>
-    <text x="36" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{hours_val}h</text>
+    <rect x="24" y="118" width="92" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="34" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_label}</text>
+    <text x="34" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(hours_str)}" font-weight="900">{hours_str}</text>
 
-    <rect x="122" y="118" width="94" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <rect x="124" y="118" width="94" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
     <text x="134" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{msgs_label}</text>
-    <text x="134" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{total_messages:,}</text>
+    <text x="134" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(msgs_str)}" font-weight="900">{msgs_str}</text>
 
-    <rect x="224" y="118" width="96" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <rect x="226" y="118" width="98" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
     <text x="236" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{xp_label}</text>
-    <text x="236" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{total_xp:,}</text>
+    <text x="236" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(xp_str)}" font-weight="900">{xp_str}</text>
 
     <!-- XP Progress Bar -->
     <g transform="translate(24, 178)">
-        <rect width="296" height="7" rx="3.5" fill="rgba(255, 255, 255, 0.08)"/>
-        <rect width="{max(6, int(296 * (progress_pct / 100)))}" height="7" rx="3.5" fill="url(#cyanGrad)"/>
+        <rect width="298" height="7" rx="3.5" fill="rgba(255, 255, 255, 0.08)"/>
+        <rect width="{max(6, int(298 * (progress_pct / 100)))}" height="7" rx="3.5" fill="url(#cyanGrad)"/>
         <text x="0" y="20" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="700">{next_lvl_label}</text>
     </g>
 
@@ -436,16 +448,16 @@ def get_user_stat_card(user_identifier: str):
 
 
 # 2. User Stat Card on a Specific Server (!stats [user])
-@api_bp.route("/api/card/user/<user_identifier>/server/<int:server_id>", methods=["GET"])
-@api_bp.route("/api/card/stats/<user_identifier>/<int:server_id>", methods=["GET"])
-def get_user_server_stat_card(user_identifier: str, server_id: int):
+@api_bp.route("/api/card/user/<username>/server/<int:server_id>", methods=["GET"])
+@api_bp.route("/api/card/stats/<username>/<int:server_id>", methods=["GET"])
+def get_user_server_stat_card(username: str, server_id: int):
     """Generate and return an SVG stat card for a user on a specific server."""
     lang = request.args.get("lang", "en")
-    user_id, username, avatar_url = _resolve_user(user_identifier)
+    user_id, resolved_username, avatar_url = _resolve_user(username)
     if user_id is None:
         return _render_error_svg(
             "Utilisateur introuvable" if lang == "fr" else "User not found",
-            f"Aucun utilisateur trouvé pour '{user_identifier}'" if lang == "fr" else f"No user found for '{user_identifier}'"
+            f"Aucun utilisateur trouvé pour '{username}'" if lang == "fr" else f"No user found for '{username}'"
         )
 
     server_id, servername, server_avatar = _resolve_server(server_id)
@@ -468,6 +480,9 @@ def get_user_server_stat_card(user_identifier: str, server_id: int):
     total_xp = xp_info["total_xp"]
     progress_pct = xp_info["progress_percent"]
     hours_val = round(seconds / 3600, 1)
+    hours_str = f"{int(hours_val):,}h" if hours_val >= 1000 else f"{hours_val}h"
+    msgs_str = f"{messages:,}"
+    xp_str = f"{total_xp:,}"
 
     voice_label = "VOCAL" if lang == "fr" else "VOICE"
     msgs_label = "MESSAGES"
@@ -478,9 +493,9 @@ def get_user_server_stat_card(user_identifier: str, server_id: int):
     clean_date = str(join_date).strip() if join_date else ""
     join_date_val = clean_date if clean_date else ("Inconnue" if lang == "fr" else "Unknown")
 
-    clean_username = html.escape((username or "Unknown")[:16])
-    clean_servername = html.escape((servername or "")[:20])
-    clean_title = html.escape((title or "")[:20])
+    clean_username = html.escape((resolved_username or "Unknown")[:16])
+    clean_servername = html.escape((servername or "")[:18])
+    clean_title = html.escape((title or "")[:18])
     lvl_text = f"LVL {level} • {clean_title}"
     lvl_badge_w = max(110, min(290, int(len(lvl_text) * 7.2 + 24)))
     srv_chip_w = max(90, min(210, len(clean_servername) * 7 + 34))
@@ -542,16 +557,16 @@ def get_user_server_stat_card(user_identifier: str, server_id: int):
 
     <!-- 4 Balanced Stats Cardlets -->
     <rect x="24" y="118" width="92" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
-    <text x="36" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_label}</text>
-    <text x="36" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{hours_val}h</text>
+    <text x="34" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_label}</text>
+    <text x="34" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(hours_str)}" font-weight="900">{hours_str}</text>
 
     <rect x="124" y="118" width="94" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
-    <text x="136" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{msgs_label}</text>
-    <text x="136" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{messages:,}</text>
+    <text x="134" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{msgs_label}</text>
+    <text x="134" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(msgs_str)}" font-weight="900">{msgs_str}</text>
 
     <rect x="226" y="118" width="96" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
-    <text x="238" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{xp_label}</text>
-    <text x="238" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="15" font-weight="900">{total_xp:,}</text>
+    <text x="236" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{xp_label}</text>
+    <text x="236" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(xp_str)}" font-weight="900">{xp_str}</text>
 
     <rect x="330" y="118" width="206" height="46" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
     <text x="342" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{join_lbl}</text>
@@ -813,6 +828,9 @@ def get_server_stat_card(server_id: int):
     server_rank_str = f"#{server_rank}" if server_rank else ("Non classé" if lang == "fr" else "Unranked")
     join_date = get_server_join_date(server_id, lang=lang)
     hours_val = round(total_seconds / 3600, 1)
+    hours_str = f"{int(hours_val):,}h" if hours_val >= 1000 else f"{hours_val}h"
+    msgs_str = f"{total_messages:,}"
+    members_str = f"{user_count:,}"
 
     champ = (
         Stats
@@ -823,10 +841,13 @@ def get_server_stat_card(server_id: int):
         .dicts()
         .first()
     )
-    champ_name = html.escape(champ["username"][:14]) if champ else ("Aucun" if lang == "fr" else "None")
+    champ_uname = champ["username"] if champ else ""
+    champ_name = html.escape((champ_uname[:12] + '…') if len(champ_uname) > 12 else champ_uname) if champ else ("Aucun" if lang == "fr" else "None")
     champ_hours = round(champ["seconds"] / 3600, 1) if champ else 0
+    champ_hours_str = f"{int(champ_hours):,}h" if champ_hours >= 1000 else f"{champ_hours}h"
 
-    clean_srvname = html.escape((servername or '')[:26])
+    srv_raw = servername or ""
+    clean_srvname = html.escape((srv_raw[:20] + '…') if len(srv_raw) > 20 else srv_raw)
     voice_lbl = "TOTAL VOCAL" if lang == "fr" else "TOTAL VOICE"
     msgs_lbl = "MESSAGES"
     members_lbl = "MEMBRES SUIVIS" if lang == "fr" else "TRACKED MEMBERS"
@@ -835,7 +856,7 @@ def get_server_stat_card(server_id: int):
     clean_date = str(join_date).strip() if join_date else ""
     join_date_val = clean_date if clean_date else ("Inconnue" if lang == "fr" else "Unknown")
     tracked_lbl = f"Suivi depuis le {join_date_val}" if lang == "fr" else f"Tracked since {join_date_val}"
-    champ_lbl = f"Champion vocal : {champ_name} ({champ_hours}h)" if lang == "fr" else f"Voice champion: {champ_name} ({champ_hours}h)"
+    champ_lbl = f"Champion vocal : {champ_name} ({champ_hours_str})" if lang == "fr" else f"Voice champion: {champ_name} ({champ_hours_str})"
 
     width = 560
     height = 225
@@ -875,19 +896,19 @@ def get_server_stat_card(server_id: int):
     <!-- Stats KPI Tiles -->
     <rect x="24" y="118" width="160" height="48" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
     <text x="36" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{voice_lbl}</text>
-    <text x="36" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="16" font-weight="900">{hours_val}h</text>
+    <text x="36" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(hours_str)}" font-weight="900">{hours_str}</text>
 
     <rect x="192" y="118" width="160" height="48" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
     <text x="204" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{msgs_lbl}</text>
-    <text x="204" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="16" font-weight="900">{total_messages:,}</text>
+    <text x="204" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(msgs_str)}" font-weight="900">{msgs_str}</text>
 
     <rect x="360" y="118" width="176" height="48" rx="8" fill="rgba(255, 255, 255, 0.025)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
     <text x="372" y="134" fill="#64748b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" letter-spacing="0.5px">{members_lbl}</text>
-    <text x="372" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="16" font-weight="900">{user_count:,}</text>
+    <text x="372" y="154" fill="#ffffff" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="{_metric_font_size(members_str)}" font-weight="900">{members_str}</text>
 
     <!-- Champion Banner -->
     <rect x="24" y="176" width="512" height="34" rx="9" fill="rgba(245, 158, 11, 0.08)" stroke="rgba(245, 158, 11, 0.25)" stroke-width="1"/>
-    <text x="40" y="198" fill="#f59e0b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="12" font-weight="700">👑 {champ_lbl}</text>
+    <text x="40" y="198" fill="#f59e0b" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="700">👑 {champ_lbl}</text>
     <text x="520" y="198" fill="#334155" font-family="-apple-system, 'DejaVu Sans', sans-serif" font-size="9.5" font-weight="800" text-anchor="end">HOURGLASS BOT</text>
 </svg>"""
     return _svg_response(svg_content)
@@ -900,35 +921,35 @@ COMMANDS_DATA = {
             "col": 0, "row": 0,
             "name": "/stats", "param": "[user]", "tag": "SERVER STATS",
             "tag_color": "#38bdf8", "tag_bg": "rgba(56, 189, 248, 0.15)",
-            "desc": "Voice hours, messages &amp; server rank for you or another member.",
+            "desc": "Voice hours, messages and rank for a server member.",
             "prefix": "!stats [user]"
         },
         {
             "col": 1, "row": 0,
             "name": "/allstats", "param": "[user]", "tag": "GLOBAL STATS",
             "tag_color": "#818cf8", "tag_bg": "rgba(129, 140, 248, 0.15)",
-            "desc": "Cumulative stats across all servers, total XP &amp; worldwide level.",
+            "desc": "Cumulative stats across servers, total XP and global rank.",
             "prefix": "!allstats [user]"
         },
         {
             "col": 0, "row": 1,
             "name": "/top", "param": "", "tag": "SERVER RANKING",
             "tag_color": "#f59e0b", "tag_bg": "rgba(245, 158, 11, 0.15)",
-            "desc": "Top 10 leaderboard of the most active voice members on this server.",
+            "desc": "Leaderboard of the most active voice members on this server.",
             "prefix": "!top"
         },
         {
             "col": 1, "row": 1,
             "name": "/alltop", "param": "", "tag": "GLOBAL RANKING",
             "tag_color": "#ec4899", "tag_bg": "rgba(236, 72, 153, 0.15)",
-            "desc": "Worldwide Top 10 leaderboard across all registered Discord servers.",
+            "desc": "Global ranking of top vocal members across all servers.",
             "prefix": "!alltop"
         },
         {
             "col": 0, "row": 2,
             "name": "/server", "param": "", "tag": "SERVER METRICS",
             "tag_color": "#10b981", "tag_bg": "rgba(16, 185, 129, 0.15)",
-            "desc": "Overview of total server voice time, messages &amp; voice champion.",
+            "desc": "Server voice time, messages and voice champion.",
             "prefix": "!server"
         },
         {
@@ -944,42 +965,42 @@ COMMANDS_DATA = {
             "col": 0, "row": 0,
             "name": "/stats", "param": "[user]", "tag": "STATS SERVEUR",
             "tag_color": "#38bdf8", "tag_bg": "rgba(56, 189, 248, 0.15)",
-            "desc": "Heures en vocal, messages et rang pour vous ou un autre membre.",
+            "desc": "Heures vocales, messages et rang d'un membre sur le serveur.",
             "prefix": "!stats [user]"
         },
         {
             "col": 1, "row": 0,
             "name": "/allstats", "param": "[user]", "tag": "STATS GLOBALES",
             "tag_color": "#818cf8", "tag_bg": "rgba(129, 140, 248, 0.15)",
-            "desc": "Stats cumulées tous serveurs, XP total et niveau mondial.",
+            "desc": "Stats cumulées tous serveurs, XP total et rang mondial.",
             "prefix": "!allstats [user]"
         },
         {
             "col": 0, "row": 1,
             "name": "/top", "param": "", "tag": "TOP SERVEUR",
             "tag_color": "#f59e0b", "tag_bg": "rgba(245, 158, 11, 0.15)",
-            "desc": "Top 10 des membres les plus actifs en vocal sur ce serveur.",
+            "desc": "Classement des membres les plus actifs en vocal sur le serveur.",
             "prefix": "!top"
         },
         {
             "col": 1, "row": 1,
             "name": "/alltop", "param": "", "tag": "TOP GLOBAL",
             "tag_color": "#ec4899", "tag_bg": "rgba(236, 72, 153, 0.15)",
-            "desc": "Top 10 mondial des membres vocaux sur l'ensemble des serveurs.",
+            "desc": "Classement mondial des membres les plus actifs en vocal.",
             "prefix": "!alltop"
         },
         {
             "col": 0, "row": 2,
             "name": "/server", "param": "", "tag": "INFOS SERVEUR",
             "tag_color": "#10b981", "tag_bg": "rgba(16, 185, 129, 0.15)",
-            "desc": "Aperçu du temps vocal total, des messages et du champion vocal.",
+            "desc": "Aperçu du temps vocal total, des messages et champion vocal.",
             "prefix": "!server"
         },
         {
             "col": 1, "row": 2,
             "name": "/help", "param": "", "tag": "SYSTÈME",
             "tag_color": "#a855f7", "tag_bg": "rgba(168, 85, 247, 0.15)",
-            "desc": "Affiche cet aperçu des commandes et le guide des commandes slash.",
+            "desc": "Affiche cet aperçu des commandes et le guide slash.",
             "prefix": "!help  •  !aide"
         },
     ]
@@ -1037,7 +1058,7 @@ def get_bot_commands_card():
         cards_xml.append(card)
 
     subtitle_text = "Official Command Reference &amp; Slash Guide" if lang == "en" else "Référence officielle des commandes &amp; guide slash"
-    badge_text = "v2.5.5 • SLASH ACTIVE" if lang == "en" else "v2.5.5 • SLASH ACTIF"
+    badge_text = "v2.5.6 • SLASH ACTIVE" if lang == "en" else "v2.5.6 • SLASH ACTIF"
     footer_text = "Tip: Use / slash commands in any channel  •  hourglass.mike-server.fr" if lang == "en" else "Astuce : Utilisez les commandes slash / dans vos salons  •  hourglass.mike-server.fr"
 
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">

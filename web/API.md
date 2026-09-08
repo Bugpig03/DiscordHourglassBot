@@ -22,7 +22,7 @@ https://hourglass.mike-server.fr/
    - [Statistiques d'un utilisateur (Global)](#statistiques-dun-utilisateur-global)
    - [Statistiques d'un utilisateur sur un serveur](#statistiques-dun-utilisateur-sur-un-serveur)
    - [Recherche rapide (Ctrl+K)](#recherche-rapide)
-2. [Endpoints Cartes Graphiques SVG (v2.5.5)](#2-endpoints-cartes-graphiques-svg-v255)
+2. [Endpoints Cartes Graphiques SVG (v2.5.6)](#2-endpoints-cartes-graphiques-svg-v256)
    - [Profil utilisateur global (!allstats)](#profil-utilisateur-global-allstats)
    - [Profil utilisateur sur un serveur (!stats)](#profil-utilisateur-sur-un-serveur-stats)
    - [Top 10 vocal d'un serveur (!top)](#top-10-vocal-dun-serveur-top)
@@ -197,7 +197,7 @@ GET /api/search?q={query}&type={all|users|servers}&limit={limit}
 
 ---
 
-## 2. Endpoints Cartes Graphiques SVG (v2.5.5)
+## 2. Endpoints Cartes Graphiques SVG (v2.5.6)
 
 Les endpoints ci-dessous renvoient directement un fichier vectoriel avec l'en-tête HTTP `Content-Type: image/svg+xml`.
 
@@ -214,12 +214,12 @@ Les endpoints ci-dessous renvoient directement un fichier vectoriel avec l'en-t�
 Génère la carte de profil d'un utilisateur avec ses métriques globales, son rang mondial (badge empilé sans collision), son niveau XP adaptatif, sa barre de progression et ses 3 meilleurs badges SVG.
 
 ```http
-GET /api/card/user/{user_identifier}
-GET /api/card/allstats/{user_identifier}
+GET /api/card/user/{username}
+GET /api/card/allstats/{username}
 ```
 - **Dimensions** : 560 × 220 px
 - **Paramètres** :
-  - `{user_identifier}` : `username` ou `user_id`.
+  - `{username}` : Pseudonyme ou `user_id` numérique Discord.
   - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
 ---
@@ -228,12 +228,12 @@ GET /api/card/allstats/{user_identifier}
 Génère la carte de profil d'un joueur restreinte à un serveur particulier : rang au sein de la guilde (badge empilé), 4 tuiles métriques équilibrées (heures de vocal, messages, niveau / XP serveur et date d'arrivée).
 
 ```http
-GET /api/card/user/{user_identifier}/server/{server_id}
-GET /api/card/stats/{user_identifier}/{server_id}
+GET /api/card/user/{username}/server/{server_id}
+GET /api/card/stats/{username}/{server_id}
 ```
 - **Dimensions** : 560 × 220 px
 - **Paramètres** :
-  - `{user_identifier}` : `username` ou `user_id`.
+  - `{username}` : Pseudonyme ou `user_id` numérique Discord.
   - `{server_id}` : Identifiant numérique du serveur.
   - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
 
