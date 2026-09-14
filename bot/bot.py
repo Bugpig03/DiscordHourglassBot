@@ -20,7 +20,7 @@ except ImportError:
 BOT_VERSION = "2.6.2"
 API_BASE_URL = os.environ.get(
     'HOURGLASS_API_URL',
-    os.environ.get('API_URL', 'https://hourglass.mike-server.fr')
+    os.environ.get('API_URL', 'https://hourglassbot.net')
 ).rstrip('/')
 
 FONTS_DIR = os.path.join(os.path.dirname(__file__), "fonts")

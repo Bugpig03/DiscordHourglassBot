@@ -19,8 +19,21 @@ TRANSLATIONS = {
         "nav.invite_title": "Inviter le bot Hourglass sur votre serveur",
 
         # Footer
-        "footer.powered_by": "Hourglass Bot - propulsé par Mike Server & SnoutLabs",
-        "footer.version": "version 2.5.6 - 08/09/2026",
+        "footer.privacy": "Politique de confidentialité",
+        "footer.terms": "Conditions d'utilisation",
+        "footer.support": "Serveur Discord & Données",
+        "footer.powered_by": "Hourglass Bot - propulsé par SnoutLabs",
+        "footer.version": "version 2.5.7 - 15/09/2026",
+
+        # Legal & Privacy (RGPD)
+        "privacy.title": "Hourglass - Politique de Confidentialité & RGPD",
+        "privacy.heading": "Politique de Confidentialité & Protection des Données (RGPD)",
+        "privacy.subtitle": "Transparence totale sur la collecte, l'utilisation et la suppression de vos données personnelles sur Hourglass.",
+        "privacy.last_updated": "Dernière mise à jour : 15 septembre 2026",
+        "terms.title": "Hourglass - Conditions Générales d'Utilisation",
+        "terms.heading": "Conditions Générales d'Utilisation",
+        "terms.subtitle": "Règles d'utilisation du bot Discord et du dashboard web Hourglass.",
+        "terms.last_updated": "Dernière mise à jour : 15 septembre 2026",
 
         # Home Page
         "home.title": "Hourglass - Dashboard & Statistiques Discord",
@@ -369,8 +382,21 @@ TRANSLATIONS = {
         "nav.invite_title": "Invite Hourglass Bot to your server",
 
         # Footer
-        "footer.powered_by": "Hourglass Bot - powered by Mike Server & SnoutLabs",
-        "footer.version": "version 2.5.6 - 08/09/2026",
+        "footer.privacy": "Privacy Policy",
+        "footer.terms": "Terms of Service",
+        "footer.support": "Discord Support & Data",
+        "footer.powered_by": "Hourglass Bot - powered by SnoutLabs",
+        "footer.version": "version 2.5.7 - 15/09/2026",
+
+        # Legal & Privacy (RGPD)
+        "privacy.title": "Hourglass - Privacy Policy & GDPR",
+        "privacy.heading": "Privacy Policy & Data Protection (GDPR)",
+        "privacy.subtitle": "Full transparency on personal data collection, usage, and deletion on Hourglass.",
+        "privacy.last_updated": "Last updated: September 15, 2026",
+        "terms.title": "Hourglass - Terms of Service",
+        "terms.heading": "Terms of Service",
+        "terms.subtitle": "Rules and conditions for using Hourglass Discord Bot and Web Dashboard.",
+        "terms.last_updated": "Last updated: September 15, 2026",
 
         # Home Page
         "home.title": "Hourglass - Dashboard & Discord Analytics",

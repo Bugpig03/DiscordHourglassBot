@@ -84,7 +84,11 @@ L'ensemble des fonctionnalités ci-dessous a été développé sans aucune alté
 
 ### 10. 🌐 Internationalisation Bilingue (FR / EN) & Footer
 - Support bilingue intégral français et anglais géré par cookie avec persistance.
-- Pied de page mis à jour : **`version 2.5.6 - 08/09/2026`**.
+- Pied de page mis à jour : **`version 2.5.7 - 15/09/2026`** avec liens rapides vers la politique de confidentialité, les CGU et le support Discord.
+
+### 11. ⚖️ Conformité RGPD & Conditions d'Utilisation
+- Pages dédiées bilingues `/privacy` (et alias `/privacy-policy`, `/confidentialite`) et `/terms` (et alias `/terms-of-service`, `/terms-of-services`, `/cgu`).
+- Transparence totale sur la minimisation des données, les droits d'accès/suppression et les conditions d'utilisation conformes aux politiques Discord et RGPD (SnoutLabs).
 
 ---
 

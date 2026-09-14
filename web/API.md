@@ -6,7 +6,7 @@ Hourglass propose une API publique et sans clé d'authentification afin de récu
 ## Base URL
 
 ```http
-https://hourglass.mike-server.fr/
+https://hourglassbot.net/
 ```
 *(ou `http://localhost:5002/` en environnement de développement local)*
 
@@ -22,7 +22,7 @@ https://hourglass.mike-server.fr/
    - [Statistiques d'un utilisateur (Global)](#statistiques-dun-utilisateur-global)
    - [Statistiques d'un utilisateur sur un serveur](#statistiques-dun-utilisateur-sur-un-serveur)
    - [Recherche rapide (Ctrl+K)](#recherche-rapide)
-2. [Endpoints Cartes Graphiques SVG (v2.5.6)](#2-endpoints-cartes-graphiques-svg-v256)
+2. [Endpoints Cartes Graphiques SVG (v2.5.7)](#2-endpoints-cartes-graphiques-svg-v257)
    - [Profil utilisateur global (!allstats)](#profil-utilisateur-global-allstats)
    - [Profil utilisateur sur un serveur (!stats)](#profil-utilisateur-sur-un-serveur-stats)
    - [Top 10 vocal d'un serveur (!top)](#top-10-vocal-dun-serveur-top)
@@ -197,7 +197,7 @@ GET /api/search?q={query}&type={all|users|servers}&limit={limit}
 
 ---
 
-## 2. Endpoints Cartes Graphiques SVG (v2.5.6)
+## 2. Endpoints Cartes Graphiques SVG (v2.5.7)
 
 Les endpoints ci-dessous renvoient directement un fichier vectoriel avec l'en-tête HTTP `Content-Type: image/svg+xml`.
 
@@ -305,7 +305,7 @@ from discord.ext import commands
 
 bot = commands.Bot(command_prefix="!")
 
-BASE_API = "https://hourglass.mike-server.fr/api/card"
+BASE_API = "https://hourglassbot.net/api/card"
 
 @bot.command(name="allstats")
 async def allstats_cmd(ctx, user: discord.Member = None):
@@ -358,7 +358,7 @@ async def aide_cmd(ctx):
 ```javascript
 const { EmbedBuilder } = require('discord.js');
 
-const BASE_API = 'https://hourglass.mike-server.fr/api/card';
+const BASE_API = 'https://hourglassbot.net/api/card';
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;

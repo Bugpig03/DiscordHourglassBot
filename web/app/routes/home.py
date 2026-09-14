@@ -22,6 +22,23 @@ def supports():
     return render_template("supports.html")
 
 
+@home_bp.route("/confidentialite", methods=["GET"])
+@home_bp.route("/privacy-policy", methods=["GET"])
+@home_bp.route("/privacy", methods=["GET"])
+def privacy():
+    """Render the Privacy Policy / RGPD compliance page."""
+    return render_template("privacy.html")
+
+
+@home_bp.route("/cgu", methods=["GET"])
+@home_bp.route("/terms-of-services", methods=["GET"])
+@home_bp.route("/terms-of-service", methods=["GET"])
+@home_bp.route("/terms", methods=["GET"])
+def terms():
+    """Render the Terms of Service (CGU) page."""
+    return render_template("terms.html")
+
+
 def load_dashboard_stats() -> dict:
     """Collect global metrics: 30-day activity delta, all-time totals, database storage sizes, and last snapshot timestamp."""
     # All-time totals

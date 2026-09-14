@@ -1,5 +1,29 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.7 - Conformité RGPD, Nouvelles Pages Légales & Alias Discord - 15/09/2026
+### Features & Legal Compliance
+- **Conformité RGPD & Respect de la Vie Privée** :
+  - Création de la page dédiée `/privacy` (et `/confidentialite`) bilingue (Français & Anglais) détaillant la politique de confidentialité, la minimisation des données (compteurs d'activité, pseudonymes, avatars et identifiants Discord publics sans stockage de contenus de messages ni de flux vocaux), la finalité légitime de gamification et la procédure d'exercice des droits (accès, rectification, suppression).
+  - Identification explicite de l'organisme responsable du traitement des données : **SnoutLabs**.
+- **Conditions Générales d'Utilisation (CGU / Terms of Service)** :
+  - Création de la page dédiée `/terms` (et `/cgu`) bilingue définissant les règles d'utilisation, l'interdiction de fraude ou saturation d'API, le respect des *Discord Developer Terms of Service* et les limites de responsabilité.
+- **Support des Alias d'URL Recommandés par Discord Developer Portal** :
+  - Ajout des alias de routes normalisés pour une intégration optimale avec le portail développeur Discord et la certification de bots :
+    - `/terms-of-service` et `/terms-of-services` servant les CGU.
+    - `/privacy-policy` servant la politique de confidentialité.
+    - Conservation des URLs canoniques et francophones (`/terms`, `/privacy`, `/cgu`, `/confidentialite`).
+- **Transition de Marque & Domaine Officiel** :
+  - Migration complète de l'ensemble des références vers le nouveau nom de domaine officiel : `hourglassbot.net`.
+  - Suppression intégrale des anciennes mentions de marque Mike Server dans le code, la documentation et les templates.
+  - Mise en avant exclusive de **SnoutLabs** dans le pied de page (`footer.powered_by`) et les mentions légales.
+- **Pied de Page (Footer) Enrichi** :
+  - Ajout de liens de navigation rapides vers la Politique de confidentialité, les Conditions d'utilisation et le serveur Discord d'assistance et de gestion des données.
+  - Actualisation de la version affichée : `version 2.5.7 - 15/09/2026`.
+- **Cartes SVG & API** :
+  - Actualisation du badge de statut sur la carte `/help` à `v2.5.7 • SLASH ACTIVE` / `v2.5.7 • SLASH ACTIF`.
+  - Mise à jour du nom de domaine officiel dans le footer des cartes SVG vers `hourglassbot.net`.
+  - Documentation de l'API (`API.md`) actualisée en v2.5.7.
+
 ## Version 2.5.6 - Correctif Crash Profil, Optimisations Mobile Versus & Prévention Débordements Cartes SVG - 08/09/2026
 ### Bug Fixes & Responsive Optimizations
 - **Correctif Crash Serveur Profil Utilisateur (`/profile/<username>`)** :

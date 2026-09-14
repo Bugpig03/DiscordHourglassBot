@@ -1058,8 +1058,8 @@ def get_bot_commands_card():
         cards_xml.append(card)
 
     subtitle_text = "Official Command Reference &amp; Slash Guide" if lang == "en" else "Référence officielle des commandes &amp; guide slash"
-    badge_text = "v2.5.6 • SLASH ACTIVE" if lang == "en" else "v2.5.6 • SLASH ACTIF"
-    footer_text = "Tip: Use / slash commands in any channel  •  hourglass.mike-server.fr" if lang == "en" else "Astuce : Utilisez les commandes slash / dans vos salons  •  hourglass.mike-server.fr"
+    badge_text = "v2.5.7 • SLASH ACTIVE" if lang == "en" else "v2.5.7 • SLASH ACTIF"
+    footer_text = "Tip: Use / slash commands in any channel  •  hourglassbot.net" if lang == "en" else "Astuce : Utilisez les commandes slash / dans vos salons  •  hourglassbot.net"
 
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
     <defs>
