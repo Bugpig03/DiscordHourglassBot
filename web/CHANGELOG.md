@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.9 - Refonte Visuelle des Graphiques & Épuration des Libellés - 21/09/2026
+### UI & Visual Enhancements
+- **Épuration des graphiques analytiques (`/graphs#tab-community`)** :
+  - Suppression de toutes les explications et notes entre parenthèses dans les titres, sous-titres, axes, légendes et boutons (`Vocal`, `Messages`, `Combiné`, `Logarithmique`, `Linéaire`).
+  - Remplacement intégral des emojis par des icônes vectorielles SVG intégrées (Feather/Lucide) adaptées au thème sombre.
+  - Épuration des libellés du Top 10 des membres et des profils comportementaux de la matrice de corrélation.
+- **Maintenance & Versioning** :
+  - Actualisation du pied de page du tableau de bord : `version 2.5.9 - 21/09/2026` (FR / EN).
+  - Mise à jour du badge de version de la carte d'aide SVG (`/api/card/help`) : `v2.5.9 • SLASH ACTIVE` / `v2.5.9 • SLASH ACTIF`.
+  - Synchronisation de la documentation technique (`API.md` et `README.md`).
+
 ## Version 2.5.8 - Test des Workflows & Déploiement CI/CD - 21/09/2026
 ### Maintenance & CI/CD
 - **Incrémentation de version pour validation des workflows** :

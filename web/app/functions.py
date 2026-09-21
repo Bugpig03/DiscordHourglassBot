@@ -734,8 +734,39 @@ def get_top_10_users_by_hours() -> list[dict]:
     return top_users
 
 
+def get_top_10_users_by_messages() -> list[dict]:
+    """Retrieve the top 10 most active members by total written messages across all servers (excluding bot)."""
+    HOURGLASS_BOT_ID = 1210665993328926750
+    query = (
+        Stats
+        .select(
+            Stats.user_id,
+            Users.username,
+            fn.SUM(Stats.seconds).alias("total_seconds"),
+            fn.SUM(Stats.messages).alias("total_messages")
+        )
+        .join(Users, JOIN.LEFT_OUTER, on=(Stats.user_id == Users.user_id))
+        .where(Stats.user_id != HOURGLASS_BOT_ID)
+        .group_by(Stats.user_id, Users.username)
+        .order_by(fn.SUM(Stats.messages).desc())
+        .limit(10)
+        .dicts()
+    )
+
+    top_users = []
+    for row in query:
+        name = row["username"] if row["username"] else f"Membre {row['user_id']}"
+        top_users.append({
+            "user_id": row["user_id"],
+            "username": name,
+            "hours": round((row["total_seconds"] or 0) / 3600, 1),
+            "messages": int(row["total_messages"] or 0)
+        })
+    return top_users
+
+
 def get_vocal_vs_messages_scatter(limit: int = 40) -> list[dict]:
-    """Retrieve top active members formatted as (x: vocal hours, y: messages) for scatter plot analysis."""
+    """Retrieve top active members formatted as (x: vocal hours, y: messages) with archetypes for matrix analysis."""
     HOURGLASS_BOT_ID = 1210665993328926750
     query = (
         Stats
@@ -756,10 +787,30 @@ def get_vocal_vs_messages_scatter(limit: int = 40) -> list[dict]:
     scatter_data = []
     for row in query:
         name = row["username"] if row["username"] else f"Membre {row['user_id']}"
+        hours = round((row["total_seconds"] or 0) / 3600, 1)
+        msgs = int(row["total_messages"] or 0)
+
+        # Relative engagement weights (1 hour vocal ~ 10 text messages in server activity)
+        vocal_score = hours * 10
+        text_score = msgs
+        total_score = vocal_score + text_score
+        vocal_ratio = (vocal_score / total_score * 100) if total_score > 0 else 50.0
+
+        if vocal_ratio >= 70:
+            archetype = "voice"       # Focus Vocal
+        elif vocal_ratio <= 35:
+            archetype = "text"        # Focus Écrit
+        elif hours >= 200 and msgs >= 1500:
+            archetype = "hybrid"      # Membres Hybrides (piliers complets)
+        else:
+            archetype = "balanced"    # Membres Polyvalents
+
         scatter_data.append({
             "username": name,
-            "x": round((row["total_seconds"] or 0) / 3600, 1),
-            "y": int(row["total_messages"] or 0)
+            "x": hours,
+            "y": msgs,
+            "vocal_ratio": round(vocal_ratio, 1),
+            "archetype": archetype
         })
     return scatter_data
 

@@ -12,6 +12,7 @@ from app.functions import (
     get_monthly_messages_diff,
     get_daily_activity_last_30_days,
     get_top_10_users_by_hours,
+    get_top_10_users_by_messages,
     get_vocal_vs_messages_scatter,
     get_monthly_new_users_growth,
     get_month_abbr
@@ -145,17 +146,34 @@ def graphs():
         "messages": server_msg_vals
     })
 
-    # 8. Top 10 active users horizontal leaderboard
-    top_users_data = get_top_10_users_by_hours()
+    # 8. Top 10 active users horizontal leaderboard (Vocal & Messages)
+    top_users_hours = get_top_10_users_by_hours()
+    top_users_msgs = get_top_10_users_by_messages()
     top_users_chart_json = json.dumps({
-        "labels": [row["username"] for row in top_users_data],
-        "hours": [row["hours"] for row in top_users_data],
-        "messages": [row["messages"] for row in top_users_data]
+        "vocal": {
+            "labels": [row["username"] for row in top_users_hours],
+            "hours": [row["hours"] for row in top_users_hours],
+            "messages": [row["messages"] for row in top_users_hours]
+        },
+        "messages": {
+            "labels": [row["username"] for row in top_users_msgs],
+            "hours": [row["hours"] for row in top_users_msgs],
+            "messages": [row["messages"] for row in top_users_msgs]
+        }
     })
 
-    # 9. Voice vs Messages scatter matrix (Top 40 active users)
+    # 9. Voice vs Messages scatter matrix with behavioral archetypes (Top 40 active users)
     scatter_data = get_vocal_vs_messages_scatter(40)
     scatter_chart_json = json.dumps(scatter_data)
+
+    # Behavioral archetype summary counts
+    archetype_stats = {
+        "voice": sum(1 for s in scatter_data if s.get("archetype") == "voice"),
+        "text": sum(1 for s in scatter_data if s.get("archetype") == "text"),
+        "hybrid": sum(1 for s in scatter_data if s.get("archetype") == "hybrid"),
+        "balanced": sum(1 for s in scatter_data if s.get("archetype") == "balanced"),
+        "total": len(scatter_data)
+    }
 
     # 10. Community growth: new users cohort by month
     user_growth_data = get_monthly_new_users_growth()
@@ -196,6 +214,7 @@ def graphs():
         server_messages_pie_json=server_messages_pie_json,
         top_users_chart_json=top_users_chart_json,
         scatter_chart_json=scatter_chart_json,
+        archetype_stats=archetype_stats,
         user_growth_chart_json=user_growth_chart_json,
         summary_stats=summary_stats
     )

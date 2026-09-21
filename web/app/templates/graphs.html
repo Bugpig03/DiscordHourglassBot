@@ -101,6 +101,52 @@
         transform: translateY(0);
     }
 }
+/* Mode and Scale Toggle Button Group */
+.chart-btn-group {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 3px;
+}
+.chart-toggle-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+.chart-toggle-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.07);
+}
+.chart-toggle-btn.active {
+    background: rgba(56, 189, 248, 0.18);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.chart-toggle-btn.active-teal {
+    background: rgba(20, 184, 166, 0.2);
+    color: #2dd4bf;
+    border: 1px solid rgba(20, 184, 166, 0.4);
+}
+.chart-toggle-btn.active-purple {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.chart-toggle-btn.active-amber {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
 </style>
 
 <br>
@@ -358,32 +404,107 @@
 
     <!-- Graphique 8 : Top 10 des utilisateurs les plus actifs -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
             <div>
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.top_users_title') }}</div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.top_users_desc') }}</div>
             </div>
-            <span style="background: rgba(20, 184, 166, 0.15); color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.badge_leaderboard') }}
-            </span>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="chart-btn-group">
+                    <button type="button" id="btnTopVocal" class="chart-toggle-btn active-teal" onclick="switchTopUsersMode('vocal')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                        <span>{{ t('graphs.btn_vocal') }}</span>
+                    </button>
+                    <button type="button" id="btnTopMessages" class="chart-toggle-btn" onclick="switchTopUsersMode('messages')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span>{{ t('graphs.btn_messages') }}</span>
+                    </button>
+                    <button type="button" id="btnTopDual" class="chart-toggle-btn" onclick="switchTopUsersMode('dual')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        <span>{{ t('graphs.btn_dual') }}</span>
+                    </button>
+                </div>
+                <span style="background: rgba(20, 184, 166, 0.15); color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                    {{ t('graphs.badge_leaderboard') }}
+                </span>
+            </div>
         </div>
-        <div style="position: relative; height: 400px; width: 100%;">
+        <div style="position: relative; height: 440px; width: 100%;">
             <canvas id="topUsersHorizontalChart"></canvas>
         </div>
     </div>
 
     <!-- Graphique 9 : Matrice Vocal vs Écrit (Scatter plot) -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
             <div>
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.scatter_title') }}</div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.scatter_desc') }}</div>
             </div>
-            <span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.badge_behavior') }}
-            </span>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="chart-btn-group">
+                    <button type="button" id="btnScatterLog" class="chart-toggle-btn active-amber" onclick="switchScatterScale('logarithmic')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                        <span>{{ t('graphs.scale_log') }}</span>
+                    </button>
+                    <button type="button" id="btnScatterLin" class="chart-toggle-btn" onclick="switchScatterScale('linear')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        <span>{{ t('graphs.scale_linear') }}</span>
+                    </button>
+                </div>
+                <span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                    {{ t('graphs.badge_behavior') }}
+                </span>
+            </div>
         </div>
-        <div style="position: relative; height: 420px; width: 100%;">
+
+        {% if archetype_stats %}
+        <!-- Mini-KPIs des profils comportementaux -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px;">
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 12px; padding: 12px 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #34d399; font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                        {{ t('graphs.archetype_voice') }}
+                    </span>
+                    <span style="color: #ffffff; font-weight: 700; font-size: 1.1rem;">{{ archetype_stats.voice }}</span>
+                </div>
+                <div class="micro-text gray" style="margin-top: 4px;">{{ t('graphs.archetype_voice_sub') }}</div>
+            </div>
+            <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.22); border-radius: 12px; padding: 12px 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #f472b6; font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        {{ t('graphs.archetype_text') }}
+                    </span>
+                    <span style="color: #ffffff; font-weight: 700; font-size: 1.1rem;">{{ archetype_stats.text }}</span>
+                </div>
+                <div class="micro-text gray" style="margin-top: 4px;">{{ t('graphs.archetype_text_sub') }}</div>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.22); border-radius: 12px; padding: 12px 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #fbbf24; font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        {{ t('graphs.archetype_hybrid') }}
+                    </span>
+                    <span style="color: #ffffff; font-weight: 700; font-size: 1.1rem;">{{ archetype_stats.hybrid }}</span>
+                </div>
+                <div class="micro-text gray" style="margin-top: 4px;">{{ t('graphs.archetype_hybrid_sub') }}</div>
+            </div>
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 12px; padding: 12px 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #38bdf8; font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                        {{ t('graphs.archetype_balanced') }}
+                    </span>
+                    <span style="color: #ffffff; font-weight: 700; font-size: 1.1rem;">{{ archetype_stats.balanced }}</span>
+                </div>
+                <div class="micro-text gray" style="margin-top: 4px;">{{ t('graphs.archetype_balanced_sub') }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="position: relative; height: 460px; width: 100%;">
             <canvas id="scatterChart"></canvas>
         </div>
     </div>
@@ -1082,29 +1203,181 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // -------------------------------------------------------------------
-    // 8. Horizontal Bar Chart: Top 10 Users by Hours
+    // 8. Horizontal Bar Chart: Top 10 Users by Hours / Messages / Dual
     // -------------------------------------------------------------------
+    let c8Instance = null;
     const topUsersEl = document.getElementById('topUsersData');
     if (topUsersEl) {
-        const topUsersData = JSON.parse(topUsersEl.textContent);
+        const topUsersRaw = JSON.parse(topUsersEl.textContent);
         const topUsersCtx = document.getElementById('topUsersHorizontalChart').getContext('2d');
 
-        const revLabels = [...topUsersData.labels].reverse();
-        const revHours = [...topUsersData.hours].reverse();
-        const revMsgs = [...topUsersData.messages].reverse();
+        const vocalSet = topUsersRaw.vocal || topUsersRaw;
+        const messagesSet = topUsersRaw.messages || topUsersRaw;
 
-        const c8 = new Chart(topUsersCtx, {
+        function formatRankLabel(name, index) {
+            return `#${index + 1}  ${name}`;
+        }
+
+        function getPodiumColor(index, alpha = 0.85) {
+            if (index === 0) return `rgba(245, 158, 11, ${alpha})`; // Gold
+            if (index === 1) return `rgba(148, 163, 184, ${alpha})`; // Silver
+            if (index === 2) return `rgba(217, 119, 6, ${alpha})`; // Bronze
+            return `rgba(20, 184, 166, ${alpha})`; // Teal/Emerald
+        }
+
+        function getPodiumBorder(index) {
+            if (index === 0) return '#fbbf24';
+            if (index === 1) return '#cbd5e1';
+            if (index === 2) return '#f97316';
+            return '#2dd4bf';
+        }
+
+        function getMessageColor(index, alpha = 0.85) {
+            if (index === 0) return `rgba(245, 158, 11, ${alpha})`;
+            if (index === 1) return `rgba(148, 163, 184, ${alpha})`;
+            if (index === 2) return `rgba(217, 119, 6, ${alpha})`;
+            return `rgba(168, 85, 247, ${alpha})`; // Purple/Violet
+        }
+
+        function getMessageBorder(index) {
+            if (index === 0) return '#fbbf24';
+            if (index === 1) return '#cbd5e1';
+            if (index === 2) return '#f97316';
+            return '#c084fc';
+        }
+
+        function buildTopUsersConfig(mode) {
+            if (mode === 'messages') {
+                const labels = messagesSet.labels.map((n, i) => formatRankLabel(n, i));
+                return {
+                    labels: labels,
+                    datasets: [{
+                        label: isEn ? 'Messages sent' : 'Messages envoyés',
+                        data: messagesSet.messages,
+                        backgroundColor: messagesSet.messages.map((_, i) => getMessageColor(i, 0.85)),
+                        borderColor: messagesSet.messages.map((_, i) => getMessageBorder(i)),
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }],
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            position: 'bottom',
+                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
+                            }
+                        },
+                        y: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
+                        }
+                    }
+                };
+            } else if (mode === 'dual') {
+                const labels = vocalSet.labels.map((n, i) => formatRankLabel(n, i));
+                return {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: isEn ? 'Voice hours' : 'Heures en vocal',
+                            data: vocalSet.hours,
+                            xAxisID: 'x',
+                            backgroundColor: 'rgba(20, 184, 166, 0.85)',
+                            borderColor: '#2dd4bf',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        },
+                        {
+                            label: isEn ? 'Messages sent' : 'Messages envoyés',
+                            data: vocalSet.messages,
+                            xAxisID: 'x1',
+                            backgroundColor: 'rgba(236, 72, 153, 0.85)',
+                            borderColor: '#f472b6',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }
+                    ],
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: isEn ? 'Voice hours' : 'Heures en vocal',
+                                color: '#2dd4bf',
+                                font: { weight: '600' }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                            ticks: {
+                                color: '#2dd4bf',
+                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
+                            }
+                        },
+                        x1: {
+                            beginAtZero: true,
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: isEn ? 'Messages sent' : 'Messages envoyés',
+                                color: '#f472b6',
+                                font: { weight: '600' }
+                            },
+                            grid: { display: false },
+                            ticks: {
+                                color: '#f472b6',
+                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
+                            }
+                        },
+                        y: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
+                        }
+                    }
+                };
+            } else {
+                // vocal mode (default)
+                const labels = vocalSet.labels.map((n, i) => formatRankLabel(n, i));
+                return {
+                    labels: labels,
+                    datasets: [{
+                        label: isEn ? 'Voice hours' : 'Heures en vocal',
+                        data: vocalSet.hours,
+                        backgroundColor: vocalSet.hours.map((_, i) => getPodiumColor(i, 0.85)),
+                        borderColor: vocalSet.hours.map((_, i) => getPodiumBorder(i)),
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }],
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            position: 'bottom',
+                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
+                            }
+                        },
+                        y: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
+                        }
+                    }
+                };
+            }
+        }
+
+        const initialCfg = buildTopUsersConfig('vocal');
+        c8Instance = new Chart(topUsersCtx, {
             type: 'bar',
             data: {
-                labels: revLabels,
-                datasets: [{
-                    label: isEn ? 'Voice hours' : 'Heures en vocal',
-                    data: revHours,
-                    backgroundColor: '#14b8a6',
-                    hoverBackgroundColor: '#0d9488',
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
+                labels: initialCfg.labels,
+                datasets: initialCfg.datasets
             },
             options: {
                 indexAxis: 'y',
@@ -1121,69 +1394,186 @@ document.addEventListener('DOMContentLoaded', function() {
                     tooltip: {
                         backgroundColor: 'rgba(15, 23, 42, 0.95)',
                         titleColor: '#ffffff',
-                        bodyColor: '#2dd4bf',
+                        bodyColor: '#e2e8f0',
                         borderColor: 'rgba(20, 184, 166, 0.4)',
                         borderWidth: 1,
                         padding: 12,
                         boxPadding: 6,
                         callbacks: {
                             title: function(items) {
-                                return items.length ? ((isEn ? 'Member: ' : 'Membre : ') + items[0].label) : '';
+                                return items.length ? items[0].label : '';
                             },
                             label: function(context) {
-                                const msgs = revMsgs[context.dataIndex] || 0;
+                                const ds = context.dataset;
+                                const isMsgs = ds.label && ds.label.toLowerCase().includes('message');
+                                if (isMsgs) {
+                                    return isEn ? ` Messages: ${context.parsed.x.toLocaleString(langLocale)}` : ` Messages : ${context.parsed.x.toLocaleString(langLocale)}`;
+                                }
+                                const msgsVal = vocalSet.messages[context.dataIndex] || 0;
                                 return isEn ? [
                                     ` Voice time: ${context.parsed.x.toLocaleString(langLocale)} hours`,
-                                    ` Messages sent: ${msgs.toLocaleString(langLocale)}`
+                                    ` Messages sent: ${msgsVal.toLocaleString(langLocale)}`
                                 ] : [
                                     ` Temps vocal : ${context.parsed.x.toLocaleString(langLocale)} heures`,
-                                    ` Messages envoyés : ${msgs.toLocaleString(langLocale)}`
+                                    ` Messages envoyés : ${msgsVal.toLocaleString(langLocale)}`
                                 ];
                             }
                         }
                     }
                 },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
-                        }
-                    },
-                    y: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: '#e2e8f0', font: { weight: '600' } }
-                    }
-                }
+                scales: initialCfg.scales
             }
         });
-        activeChartInstances.push(c8);
+        activeChartInstances.push(c8Instance);
+
+        window.switchTopUsersMode = function(mode) {
+            const btnVocal = document.getElementById('btnTopVocal');
+            const btnMessages = document.getElementById('btnTopMessages');
+            const btnDual = document.getElementById('btnTopDual');
+
+            if (btnVocal) btnVocal.className = 'chart-toggle-btn' + (mode === 'vocal' ? ' active-teal' : '');
+            if (btnMessages) btnMessages.className = 'chart-toggle-btn' + (mode === 'messages' ? ' active-purple' : '');
+            if (btnDual) btnDual.className = 'chart-toggle-btn' + (mode === 'dual' ? ' active' : '');
+
+            const nextCfg = buildTopUsersConfig(mode);
+            c8Instance.data.labels = nextCfg.labels;
+            c8Instance.data.datasets = nextCfg.datasets;
+            c8Instance.options.scales = nextCfg.scales;
+            c8Instance.update();
+        };
     }
 
     // -------------------------------------------------------------------
     // 9. Scatter Plot: Vocal vs Written Messages Matrix
     // -------------------------------------------------------------------
+    let c9Instance = null;
     const scatterEl = document.getElementById('scatterData');
     if (scatterEl) {
         const scatterData = JSON.parse(scatterEl.textContent);
         const scatterCtx = document.getElementById('scatterChart').getContext('2d');
 
-        const c9 = new Chart(scatterCtx, {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: isEn ? 'Active members' : 'Membres actifs',
-                    data: scatterData,
-                    backgroundColor: 'rgba(245, 158, 11, 0.85)',
+        // Split into 4 archetype groups
+        const hybridGroup = scatterData.filter(d => d.archetype === 'hybrid');
+        const voiceGroup = scatterData.filter(d => d.archetype === 'voice');
+        const textGroup = scatterData.filter(d => d.archetype === 'text');
+        const balancedGroup = scatterData.filter(d => d.archetype === 'balanced');
+
+        function mapScatterPoints(arr, isLog) {
+            return arr.map(d => ({
+                x: d.x,
+                // In log scale, clamp y to at least 10 so 0 doesn't crash or collapse
+                y: isLog ? Math.max(10, d.y) : d.y,
+                rawY: d.y,
+                rawX: d.x,
+                username: d.username,
+                vocal_ratio: d.vocal_ratio,
+                archetype: d.archetype
+            }));
+        }
+
+        const archetypeLabels = {
+            hybrid: isEn ? 'Hybrid Members' : 'Membres Hybrides',
+            voice: isEn ? 'Voice Pillars' : 'Piliers Vocaux',
+            text: isEn ? 'Top Writers' : 'Grands Rédacteurs',
+            balanced: isEn ? 'All-Rounders' : 'Polyvalents'
+        };
+
+        function buildScatterDatasets(isLog) {
+            return [
+                {
+                    label: archetypeLabels.hybrid,
+                    data: mapScatterPoints(hybridGroup, isLog),
+                    backgroundColor: 'rgba(245, 158, 11, 0.82)',
                     borderColor: '#fbbf24',
-                    borderWidth: 1.5,
-                    pointRadius: 6,
-                    pointHoverRadius: 9,
+                    borderWidth: 2,
+                    pointRadius: 8.5,
+                    pointHoverRadius: 13,
                     pointHoverBackgroundColor: '#fbbf24',
                     pointHoverBorderColor: '#ffffff'
-                }]
+                },
+                {
+                    label: archetypeLabels.voice,
+                    data: mapScatterPoints(voiceGroup, isLog),
+                    backgroundColor: 'rgba(16, 185, 129, 0.82)',
+                    borderColor: '#34d399',
+                    borderWidth: 2,
+                    pointRadius: 8,
+                    pointHoverRadius: 12,
+                    pointHoverBackgroundColor: '#34d399',
+                    pointHoverBorderColor: '#ffffff'
+                },
+                {
+                    label: archetypeLabels.text,
+                    data: mapScatterPoints(textGroup, isLog),
+                    backgroundColor: 'rgba(236, 72, 153, 0.82)',
+                    borderColor: '#f472b6',
+                    borderWidth: 2,
+                    pointRadius: 8,
+                    pointHoverRadius: 12,
+                    pointHoverBackgroundColor: '#f472b6',
+                    pointHoverBorderColor: '#ffffff'
+                },
+                {
+                    label: archetypeLabels.balanced,
+                    data: mapScatterPoints(balancedGroup, isLog),
+                    backgroundColor: 'rgba(56, 189, 248, 0.82)',
+                    borderColor: '#7dd3fc',
+                    borderWidth: 2,
+                    pointRadius: 7,
+                    pointHoverRadius: 11,
+                    pointHoverBackgroundColor: '#7dd3fc',
+                    pointHoverBorderColor: '#ffffff'
+                }
+            ].filter(ds => ds.data.length > 0);
+        }
+
+        let currentScaleType = 'logarithmic';
+
+        function getScatterYScale(scaleType) {
+            if (scaleType === 'logarithmic') {
+                return {
+                    type: 'logarithmic',
+                    min: 10,
+                    title: {
+                        display: true,
+                        text: isEn ? 'Written messages' : 'Messages envoyés',
+                        color: '#fbbf24',
+                        font: { weight: '600' }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                    ticks: {
+                        color: '#94a3b8',
+                        callback: function(val) {
+                            if ([10, 50, 100, 500, 1000, 5000, 10000, 25000, 50000].includes(val)) {
+                                return val.toLocaleString(langLocale) + ' ' + msgsUnit;
+                            }
+                            return null;
+                        }
+                    }
+                };
+            } else {
+                return {
+                    type: 'linear',
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: isEn ? 'Written messages' : 'Messages envoyés',
+                        color: '#94a3b8',
+                        font: { weight: '600' }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                    ticks: {
+                        color: '#94a3b8',
+                        callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
+                    }
+                };
+            }
+        }
+
+        c9Instance = new Chart(scatterCtx, {
+            type: 'scatter',
+            data: {
+                datasets: buildScatterDatasets(true)
             },
             options: {
                 responsive: true,
@@ -1191,18 +1581,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: {
                     legend: {
                         display: true,
+                        position: 'top',
                         labels: {
                             color: '#e2e8f0',
-                            font: { weight: 'bold' }
+                            font: { weight: 'bold', size: 12 },
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 15
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        backgroundColor: 'rgba(15, 23, 42, 0.96)',
                         titleColor: '#ffffff',
-                        bodyColor: '#fbbf24',
-                        borderColor: 'rgba(245, 158, 11, 0.4)',
+                        bodyColor: '#e2e8f0',
+                        borderColor: 'rgba(255, 255, 255, 0.15)',
                         borderWidth: 1,
-                        padding: 12,
+                        padding: 13,
                         boxPadding: 6,
                         callbacks: {
                             title: function(items) {
@@ -1212,12 +1606,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             },
                             label: function(context) {
                                 const raw = context.raw;
+                                const archText = archetypeLabels[raw.archetype] || raw.archetype;
                                 return isEn ? [
-                                    ` Voice time: ${raw.x.toLocaleString(langLocale)} hours`,
-                                    ` Written messages: ${raw.y.toLocaleString(langLocale)}`
+                                    ` Profile: ${archText}`,
+                                    ` Voice time: ${raw.rawX.toLocaleString(langLocale)} hours`,
+                                    ` Messages written: ${raw.rawY.toLocaleString(langLocale)} msgs`,
+                                    ` Vocal ratio: ${raw.vocal_ratio}%`
                                 ] : [
-                                    ` Temps vocal : ${raw.x.toLocaleString(langLocale)} heures`,
-                                    ` Messages écrits : ${raw.y.toLocaleString(langLocale)}`
+                                    ` Profil : ${archText}`,
+                                    ` Temps vocal : ${raw.rawX.toLocaleString(langLocale)} heures`,
+                                    ` Messages écrits : ${raw.rawY.toLocaleString(langLocale)} msgs`,
+                                    ` Ratio vocal : ${raw.vocal_ratio}%`
                                 ];
                             }
                         }
@@ -1237,23 +1636,25 @@ document.addEventListener('DOMContentLoaded', function() {
                             callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
                         }
                     },
-                    y: {
-                        title: {
-                            display: true,
-                            text: isEn ? 'Number of messages sent' : 'Nombre de messages envoyés',
-                            color: '#94a3b8',
-                            font: { weight: '600' }
-                        },
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
-                        }
-                    }
+                    y: getScatterYScale('logarithmic')
                 }
             }
         });
-        activeChartInstances.push(c9);
+        activeChartInstances.push(c9Instance);
+
+        window.switchScatterScale = function(scaleType) {
+            currentScaleType = scaleType;
+            const btnLog = document.getElementById('btnScatterLog');
+            const btnLin = document.getElementById('btnScatterLin');
+
+            if (btnLog) btnLog.className = 'chart-toggle-btn' + (scaleType === 'logarithmic' ? ' active-amber' : '');
+            if (btnLin) btnLin.className = 'chart-toggle-btn' + (scaleType === 'linear' ? ' active' : '');
+
+            const isLog = scaleType === 'logarithmic';
+            c9Instance.data.datasets = buildScatterDatasets(isLog);
+            c9Instance.options.scales.y = getScatterYScale(scaleType);
+            c9Instance.update();
+        };
     }
 
     // -------------------------------------------------------------------
