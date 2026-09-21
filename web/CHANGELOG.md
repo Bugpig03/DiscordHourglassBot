@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.8 - Test des Workflows & Déploiement CI/CD - 21/09/2026
+### Maintenance & CI/CD
+- **Incrémentation de version pour validation des workflows** :
+  - Déclenchement et validation des pipelines automatisés de tests, de build Docker et de déploiement continu (CI/CD workflows).
+  - Actualisation de la version du pied de page du tableau de bord : `version 2.5.8 - 21/09/2026` (FR / EN).
+  - Mise à jour du badge de version dans la carte d'aide vectorielle SVG (`/api/card/help`) : `v2.5.8 • SLASH ACTIVE` / `v2.5.8 • SLASH ACTIF`.
+  - Documentation de l'API (`API.md`) et guide du projet (`README.md`) synchronisés en v2.5.8.
+
 ## Version 2.5.7 - Conformité RGPD, Nouvelles Pages Légales & Alias Discord - 15/09/2026
 ### Features & Legal Compliance
 - **Conformité RGPD & Respect de la Vie Privée** :
