@@ -1,0 +1,45 @@
+name: Build and Push Hourglass Web
+
+on:
+  push:
+    tags:
+      # Se déclenche dès que tu pousses un tag pour le web (ex: web-v1.0.0 ou hourglass-v1.0.0)
+      - 'web-v*.*.*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Configurer Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Connexion à Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Nettoie le tag pour retirer "web-v" et générer les tags Docker (1.0.0, 1.0, latest)
+      - name: Extraire les métadonnées Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: bugpig/hourglass_web
+          flavor: |
+            latest=auto
+          tags: |
+            type=semver,pattern={{version}},prefix=,strip=web-v
+            type=semver,pattern={{major}}.{{minor}},prefix=,strip=web-v
+
+      - name: Compiler et publier l'image Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
