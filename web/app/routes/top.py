@@ -126,6 +126,7 @@ def load_users() -> tuple[list[dict], int]:
             curr_sec, curr_msg = curr_map.get(user.user_id, (0, 0))
             hist_sec, hist_msg = hist_map.get(user.user_id, (0, 0))
             results.append({
+                "user_id": str(user.user_id),
                 "username": user.username,
                 "avatar_url": user.avatar,
                 "seconds": max(0, curr_sec - hist_sec),
@@ -149,6 +150,7 @@ def load_users() -> tuple[list[dict], int]:
 
         results = [
             {
+                "user_id": str(user.user_id),
                 "username": user.username,
                 "avatar_url": user.avatar,
                 "seconds": curr_map.get(user.user_id, (0, 0))[0],

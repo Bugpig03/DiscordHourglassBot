@@ -186,7 +186,7 @@ def search_global():
                 "username": u.username,
                 "avatar": u.avatar or "/static/images/default_avatar.png",
                 "level": xp_info["level"],
-                "url": f"/profile/{u.username}"
+                "url": f"/profile/{u.user_id}"
             })
 
     # Search Servers
@@ -1058,7 +1058,7 @@ def get_bot_commands_card():
         cards_xml.append(card)
 
     subtitle_text = "Official Command Reference &amp; Slash Guide" if lang == "en" else "Référence officielle des commandes &amp; guide slash"
-    badge_text = "v2.5.9 • SLASH ACTIVE" if lang == "en" else "v2.5.9 • SLASH ACTIF"
+    badge_text = "v2.5.10 • SLASH ACTIVE" if lang == "en" else "v2.5.10 • SLASH ACTIF"
     footer_text = "Tip: Use / slash commands in any channel  •  hourglassbot.net" if lang == "en" else "Astuce : Utilisez les commandes slash / dans vos salons  •  hourglassbot.net"
 
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">

@@ -96,7 +96,7 @@
     {% for user in users %}
     {% set user_rank = loop.index + ((request.args.get('page', 1)|int - 1) * 20) %}
     <div class="gray-box link" style="padding: 12px 16px;">
-        <a class="link" href="{{ url_for('user_profile.profile', username=user['username']) }}">
+        <a class="link" href="{{ url_for('user_profile.profile', username=user.user_id or user['username']) }}">
             <div class="stats-box">
                 <span class="rank-badge {% if user_rank == 1 %}rank-1{% elif user_rank == 2 %}rank-2{% elif user_rank == 3 %}rank-3{% else %}rank-other{% endif %}">
                     #{{ user_rank }}

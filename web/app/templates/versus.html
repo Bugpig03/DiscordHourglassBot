@@ -243,7 +243,7 @@
 
                 <div class="fighter-name text-overflow">
                     {% if tab == 'users' %}
-                        <a href="{{ url_for('user_profile.profile', username=entity1.username) }}" class="link-clean" title="{{ entity1.username }}">{{ entity1.username }}</a>
+                        <a href="{{ url_for('user_profile.profile', username=entity1.id or entity1.username) }}" class="link-clean" title="{{ entity1.username }}">{{ entity1.username }}</a>
                     {% else %}
                         <a href="{{ url_for('server_profile.server', server_id=entity1.id) }}" class="link-clean" title="{{ entity1.name }}">{{ entity1.name }}</a>
                     {% endif %}
@@ -317,7 +317,7 @@
 
                 <div class="fighter-name text-overflow">
                     {% if tab == 'users' %}
-                        <a href="{{ url_for('user_profile.profile', username=entity2.username) }}" class="link-clean" title="{{ entity2.username }}">{{ entity2.username }}</a>
+                        <a href="{{ url_for('user_profile.profile', username=entity2.id or entity2.username) }}" class="link-clean" title="{{ entity2.username }}">{{ entity2.username }}</a>
                     {% else %}
                         <a href="{{ url_for('server_profile.server', server_id=entity2.id) }}" class="link-clean" title="{{ entity2.name }}">{{ entity2.name }}</a>
                     {% endif %}

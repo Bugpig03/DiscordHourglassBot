@@ -1,15 +1,31 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.5.10 - Granularité Dynamique des Graphiques & Gestion des Homonymes - 22/09/2026
+### Features & Architecture
+- **Granularité Temporelle des Graphiques (`/server` et `/profile`)** :
+  - Ajout d'un sélecteur de granularité interactif : `Mois par mois` vs `30 derniers jours (par jour)`.
+  - Détection et sélection automatique par défaut pour les nouveaux profils et serveurs avec peu de recul historique (< 3 points mensuels) afin d'offrir une courbe riche jour par jour plutôt qu'une ligne bipoint.
+  - Bascule dynamique et instantanée sans rechargement de page pour l'ensemble des 4 graphiques d'activité (heures cumulées, messages cumulés, heures par période, messages par période) avec mise à jour automatique des moyennes et des libellés.
+- **Gestion Robuste des Homonymes & Résolution par ID Discord (`/profile`)** :
+  - Support natif et prioritaire du `user_id` Snowflake Discord dans les routes de profil : `/profile/<user_id>`.
+  - Mise à jour de l'ensemble des liens internes du site (classements `/top`, liste `/users`, fiche serveur `/server/<id>`, recherche Ctrl+K, duels Versus) pour pointer directement vers le `user_id` unique, éliminant tout risque de conflit ou de mélange de statistiques entre utilisateurs portant le même pseudo.
+  - Page de désambiguïsation propre (`user_disambiguation.html`) lorsqu'un utilisateur accède manuellement à un pseudo partagé par plusieurs comptes (ex: `/profile/Kiro`), permettant de sélectionner le bon compte avec badges, dates d'arrivée et statistiques distinctes.
+  - Affichage épuré du profil utilisateur avec badge discret d'identifiant Discord (`ID : <user_id>`), sans message d'avertissement perturbateur.
+- **Maintenance & Versioning** :
+  - Actualisation du pied de page du tableau de bord : `version 2.5.10 - 22/09/2026` (FR / EN).
+  - Mise à jour du badge de version de la carte d'aide SVG (`/api/card/help`) : `v2.5.10 • SLASH ACTIVE` / `v2.5.10 • SLASH ACTIF`.
+  - Synchronisation de la documentation technique (`API.md` et `README.md`).
+
 ## Version 2.5.9 - Refonte Visuelle des Graphiques & Épuration des Libellés - 21/09/2026
 ### UI & Visual Enhancements
 - **Épuration des graphiques analytiques (`/graphs#tab-community`)** :
   - Suppression de toutes les explications et notes entre parenthèses dans les titres, sous-titres, axes, légendes et boutons (`Vocal`, `Messages`, `Combiné`, `Logarithmique`, `Linéaire`).
   - Remplacement intégral des emojis par des icônes vectorielles SVG intégrées (Feather/Lucide) adaptées au thème sombre.
   - Épuration des libellés du Top 10 des membres et des profils comportementaux de la matrice de corrélation.
-- **Maintenance & Versioning** :
-  - Actualisation du pied de page du tableau de bord : `version 2.5.9 - 21/09/2026` (FR / EN).
-  - Mise à jour du badge de version de la carte d'aide SVG (`/api/card/help`) : `v2.5.9 • SLASH ACTIVE` / `v2.5.9 • SLASH ACTIF`.
-  - Synchronisation de la documentation technique (`API.md` et `README.md`).
+- **Sécurité & Dépendances (`requirements.txt`)** :
+  - Résolution intégrale des alertes de vulnérabilités (CVE-2025-66221, CVE-2026-27199, CVE-2026-21860, CVE-2026-28684, CVE-2026-27205).
+  - Retrait de `Werkzeug` direct dans `requirements.txt` (délégué automatiquement aux versions validées de Flask).
+  - Actualisation de l'ensemble des paquets vers leurs dernières versions PyPI : `Flask==3.1.3`, `python-dotenv==1.2.3`, `peewee==4.5.1`, `psycopg2==2.9.13`, `click==8.5.0`, `MarkupSafe==3.0.3`.
 
 ## Version 2.5.8 - Test des Workflows & Déploiement CI/CD - 21/09/2026
 ### Maintenance & CI/CD

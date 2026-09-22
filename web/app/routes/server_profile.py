@@ -20,6 +20,10 @@ from app.functions import (
     get_first_of_month_messages_sum,
     get_monthly_hours_diff,
     get_monthly_messages_diff,
+    get_daily_hours_progression,
+    get_daily_messages_progression,
+    get_daily_hours_diff,
+    get_daily_messages_diff,
     get_month_abbr,
 )
 
@@ -138,18 +142,32 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
     """Compile chart data for a specific server: cumulative curves, monthly deltas, and top members doughnut."""
     int_server_id = int(server_id)
 
-    # 1. Cumulative voice hours progression
+    # 1. Cumulative voice hours progression (Monthly)
     hours_data = get_first_of_month_hours_sum(server_id=int_server_id)
     chart_data_json = json.dumps({
         "labels": [row["month"] for row in hours_data],
         "hours": [row["total_hours"] for row in hours_data]
     })
 
-    # 2. Cumulative messages progression
+    # 1b. Cumulative voice hours progression (Daily - last 30 days)
+    daily_hours_data = get_daily_hours_progression(server_id=int_server_id, days=30)
+    daily_chart_data_json = json.dumps({
+        "labels": [row["date"] for row in daily_hours_data],
+        "hours": [row["total_hours"] for row in daily_hours_data]
+    })
+
+    # 2. Cumulative messages progression (Monthly)
     messages_data = get_first_of_month_messages_sum(server_id=int_server_id)
     messages_chart_data_json = json.dumps({
         "labels": [row["month"] for row in messages_data],
         "messages": [row["total_messages"] for row in messages_data]
+    })
+
+    # 2b. Cumulative messages progression (Daily - last 30 days)
+    daily_messages_data = get_daily_messages_progression(server_id=int_server_id, days=30)
+    daily_messages_chart_data_json = json.dumps({
+        "labels": [row["date"] for row in daily_messages_data],
+        "messages": [row["total_messages"] for row in daily_messages_data]
     })
 
     # 3. Monthly voice hours deltas
@@ -162,6 +180,16 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
         "hours": [row["hours_this_month"] for row in monthly_diff_data]
     })
 
+    # 3b. Daily voice hours deltas (last 30 days)
+    daily_hours_diff_data = get_daily_hours_diff(server_id=int_server_id, days=30)
+    daily_hours_chart_data_json = json.dumps({
+        "labels": [
+            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            for row in daily_hours_diff_data
+        ],
+        "hours": [row["hours_this_day"] for row in daily_hours_diff_data]
+    })
+
     # 4. Monthly messages deltas
     monthly_messages_diff_data = get_monthly_messages_diff(server_id=int_server_id)
     monthly_messages_chart_data_json = json.dumps({
@@ -170,6 +198,16 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
             for row in monthly_messages_diff_data
         ],
         "messages": [row["messages_this_month"] for row in monthly_messages_diff_data]
+    })
+
+    # 4b. Daily messages deltas (last 30 days)
+    daily_messages_diff_data = get_daily_messages_diff(server_id=int_server_id, days=30)
+    daily_messages_chart_diff_data_json = json.dumps({
+        "labels": [
+            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            for row in daily_messages_diff_data
+        ],
+        "messages": [row["messages_this_day"] for row in daily_messages_diff_data]
     })
 
     # 5. Top 10 members distribution doughnut
@@ -197,12 +235,29 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
     full_msgs = monthly_messages_diff_data[:-1] if len(monthly_messages_diff_data) > 1 else monthly_messages_diff_data
     avg_msgs = int(sum(r["messages_this_month"] for r in full_msgs) / max(1, len(full_msgs))) if full_msgs else 0
 
+    # Average daily metrics (last 30 days)
+    full_daily_hours = daily_hours_diff_data[:-1] if len(daily_hours_diff_data) > 1 else daily_hours_diff_data
+    avg_daily_hours = round(sum(r["hours_this_day"] for r in full_daily_hours) / max(1, len(full_daily_hours)), 1) if full_daily_hours else 0.0
+
+    full_daily_msgs = daily_messages_diff_data[:-1] if len(daily_messages_diff_data) > 1 else daily_messages_diff_data
+    avg_daily_msgs = int(sum(r["messages_this_day"] for r in full_daily_msgs) / max(1, len(full_daily_msgs))) if full_daily_msgs else 0
+
+    # Default to daily view if monthly data has less than 3 points (e.g. newly registered server)
+    default_granularity = "day" if len(hours_data) < 3 else "month"
+
     return {
         "chart_data_json": chart_data_json,
         "messages_chart_data_json": messages_chart_data_json,
         "monthly_chart_data_json": monthly_chart_data_json,
         "monthly_messages_chart_data_json": monthly_messages_chart_data_json,
+        "daily_chart_data_json": daily_chart_data_json,
+        "daily_messages_chart_data_json": daily_messages_chart_data_json,
+        "daily_hours_chart_data_json": daily_hours_chart_data_json,
+        "daily_messages_chart_diff_data_json": daily_messages_chart_diff_data_json,
         "top_members_pie_json": top_members_pie_json,
         "avg_hours": avg_hours,
         "avg_msgs": avg_msgs,
+        "avg_daily_hours": avg_daily_hours,
+        "avg_daily_msgs": avg_daily_msgs,
+        "default_granularity": default_granularity,
     }

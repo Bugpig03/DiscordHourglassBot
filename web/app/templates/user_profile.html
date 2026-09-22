@@ -10,12 +10,51 @@
 
 <!-- Embedded Chart Data for User -->
 <script type="application/json" id="userHoursProgressionData">{{ charts.chart_data_json|safe }}</script>
+<script type="application/json" id="userHoursDailyProgressionData">{{ charts.daily_chart_data_json|safe }}</script>
 <script type="application/json" id="userMessagesProgressionData">{{ charts.messages_chart_data_json|safe }}</script>
+<script type="application/json" id="userMessagesDailyProgressionData">{{ charts.daily_messages_chart_data_json|safe }}</script>
 <script type="application/json" id="userMonthlyHoursData">{{ charts.monthly_chart_data_json|safe }}</script>
+<script type="application/json" id="userDailyHoursData">{{ charts.daily_hours_chart_data_json|safe }}</script>
 <script type="application/json" id="userMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe }}</script>
+<script type="application/json" id="userDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe }}</script>
 <script type="application/json" id="userServersPieData">{{ charts.user_servers_pie_json|safe }}</script>
 
 <style>
+/* Granularity Toggle Group Styles */
+.granularity-toggle-group {
+    display: inline-flex;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 4px;
+}
+.granularity-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    user-select: none;
+}
+.granularity-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+.granularity-btn.active {
+    background: #38bdf8;
+    color: #0b1120;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+}
+
 /* Tab Navigation Styles */
 .graphs-tabs-wrapper {
     margin: 25px 0 25px;
@@ -114,13 +153,16 @@
                     <span style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-radius: 20px; padding: 4px 12px; font-size: 0.88rem;">
                         {{ t('user_profile.member_since') }} {{ stats.join_date }}
                     </span>
+                    <span style="background: rgba(255, 255, 255, 0.04); color: #64748b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; font-family: monospace;">
+                        ID : {{ stats.user_id }}
+                    </span>
                 </div>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ url_for('versus.versus', u1=stats.username) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
+            <a href="{{ url_for('versus.versus', u1=stats.user_id) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
                 <span>{{ t('profile.versus_btn') }}</span>
             </a>
@@ -131,6 +173,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- User Level & XP Progression Card -->
 <div class="user-level-card" style="margin-bottom: 25px;">
@@ -348,12 +391,25 @@
 <!-- ONGLET 3 : Graphiques & Statistiques de l'utilisateur               -->
 <!-- =================================================================== -->
 <div id="tab-charts" class="graphs-tab-pane">
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('user_profile.progression_title', username=stats.username) }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
+    <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
+            <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
+                {{ t('user_profile.progression_title', username=stats.username) }}
+            </h2>
+        </div>
+
+        <!-- Granularity Selector Toggle -->
+        <div class="granularity-toggle-group">
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'month' %}active{% endif %}" data-granularity="month" onclick="switchUserGranularity('month')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <span>{{ t('charts.mode_monthly') }}</span>
+            </button>
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'day' %}active{% endif %}" data-granularity="day" onclick="switchUserGranularity('day')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>{{ t('charts.mode_daily') }}</span>
+            </button>
+        </div>
     </div>
 
     <!-- Graphique 1 : Progression Cumulative des Heures -->
@@ -396,14 +452,14 @@
         <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
     </div>
 
-    <!-- Graphique 3 : Heures par mois -->
+    <!-- Graphique 3 : Heures par mois / jour -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.monthly_hours_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('user_profile.monthly_hours_desc') }}</div>
+                <div class="medium-bold-text" id="userHoursBarTitle" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.monthly_hours_title') }}</div>
+                <div class="small-text gray" id="userHoursBarDesc" style="margin-top: 4px;">{{ t('user_profile.monthly_hours_desc') }}</div>
             </div>
-            <span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+            <span id="userHoursBarBadge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
                 {{ t('user_profile.avg_label') }} {{ charts.avg_hours }} {{ t('graphs.unit_hours_per_month') }}
             </span>
         </div>
@@ -412,14 +468,14 @@
         </div>
     </div>
 
-    <!-- Graphique 4 : Messages par mois -->
+    <!-- Graphique 4 : Messages par mois / jour -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.monthly_msgs_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('user_profile.monthly_msgs_desc') }}</div>
+                <div class="medium-bold-text" id="userMessagesBarTitle" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.monthly_msgs_title') }}</div>
+                <div class="small-text gray" id="userMessagesBarDesc" style="margin-top: 4px;">{{ t('user_profile.monthly_msgs_desc') }}</div>
             </div>
-            <span style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+            <span id="userMessagesBarBadge" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
                 {{ t('user_profile.avg_label') }} {{ charts.avg_msgs | thousands_fr }} {{ t('graphs.unit_msgs_per_month') }}
             </span>
         </div>
@@ -458,6 +514,94 @@
 <!-- =================================================================== -->
 <script>
 const userChartInstances = [];
+let userHoursChartInstance = null;
+let userMsgsChartInstance = null;
+let userMonthlyHoursChartInstance = null;
+let userMonthlyMsgsChartInstance = null;
+
+let uHoursMonthlyData = null;
+let uHoursDailyData = null;
+let uMsgsMonthlyData = null;
+let uMsgsDailyData = null;
+let uMonthlyHoursBarData = null;
+let uDailyHoursBarData = null;
+let uMonthlyMsgsBarData = null;
+let uDailyMsgsBarData = null;
+
+let userGranularity = '{{ charts.default_granularity }}';
+
+function switchUserGranularity(mode) {
+    userGranularity = mode;
+    document.querySelectorAll('.granularity-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-granularity') === mode);
+    });
+
+    const isDay = (mode === 'day');
+    const isEn = '{{ current_lang }}' === 'en';
+    const langLocale = isEn ? 'en-US' : 'fr-FR';
+    const hoursUnit = '{{ t("top.hours_unit") }}';
+    const msgsUnit = '{{ t("top.msgs_unit") }}';
+
+    // 1. Hours line chart
+    if (userHoursChartInstance && uHoursDailyData && uHoursMonthlyData) {
+        const data = isDay ? uHoursDailyData : uHoursMonthlyData;
+        userHoursChartInstance.data.labels = data.labels;
+        userHoursChartInstance.data.datasets[0].data = data.hours;
+        userHoursChartInstance.options.scales.x.time.unit = isDay ? 'day' : 'month';
+        userHoursChartInstance.update();
+    }
+
+    // 2. Messages line chart
+    if (userMsgsChartInstance && uMsgsDailyData && uMsgsMonthlyData) {
+        const data = isDay ? uMsgsDailyData : uMsgsMonthlyData;
+        userMsgsChartInstance.data.labels = data.labels;
+        userMsgsChartInstance.data.datasets[0].data = data.messages;
+        userMsgsChartInstance.options.scales.x.time.unit = isDay ? 'day' : 'month';
+        userMsgsChartInstance.update();
+    }
+
+    // 3. Periodic hours bar chart
+    if (userMonthlyHoursChartInstance && uDailyHoursBarData && uMonthlyHoursBarData) {
+        const data = isDay ? uDailyHoursBarData : uMonthlyHoursBarData;
+        const avg = isDay ? Number('{{ charts.avg_daily_hours }}') : Number('{{ charts.avg_hours }}');
+        const unit = isDay ? '{{ t("charts.unit_hours_per_day") }}' : '{{ t("graphs.unit_hours_per_month") }}';
+
+        userMonthlyHoursChartInstance.data.labels = data.labels;
+        userMonthlyHoursChartInstance.data.datasets[0].data = data.hours;
+        userMonthlyHoursChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily hours' : 'Heures du jour') : (isEn ? 'Monthly hours' : 'Heures du mois');
+        userMonthlyHoursChartInstance.data.datasets[1].data = Array(data.hours.length).fill(avg);
+        userMonthlyHoursChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')';
+        userMonthlyHoursChartInstance.update();
+
+        const hTitle = document.getElementById('userHoursBarTitle');
+        if (hTitle) hTitle.textContent = isDay ? '{{ t("charts.daily_hours_title") }}' : '{{ t("user_profile.monthly_hours_title") }}';
+        const hDesc = document.getElementById('userHoursBarDesc');
+        if (hDesc) hDesc.textContent = isDay ? '{{ t("charts.daily_hours_desc") }}' : '{{ t("user_profile.monthly_hours_desc") }}';
+        const hBadge = document.getElementById('userHoursBarBadge');
+        if (hBadge) hBadge.textContent = `${isEn ? 'Average' : 'Moyenne'} : ${avg} ${unit}`;
+    }
+
+    // 4. Periodic messages bar chart
+    if (userMonthlyMsgsChartInstance && uDailyMsgsBarData && uMonthlyMsgsBarData) {
+        const data = isDay ? uDailyMsgsBarData : uMonthlyMsgsBarData;
+        const avg = isDay ? Number('{{ charts.avg_daily_msgs }}') : Number('{{ charts.avg_msgs }}');
+        const unit = isDay ? '{{ t("charts.unit_msgs_per_day") }}' : '{{ t("graphs.unit_msgs_per_month") }}';
+
+        userMonthlyMsgsChartInstance.data.labels = data.labels;
+        userMonthlyMsgsChartInstance.data.datasets[0].data = data.messages;
+        userMonthlyMsgsChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily messages' : 'Messages du jour') : (isEn ? 'Monthly messages' : 'Messages du mois');
+        userMonthlyMsgsChartInstance.data.datasets[1].data = Array(data.messages.length).fill(Math.round(avg));
+        userMonthlyMsgsChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + Math.round(avg).toLocaleString(langLocale) + ' ' + msgsUnit + ')';
+        userMonthlyMsgsChartInstance.update();
+
+        const mTitle = document.getElementById('userMessagesBarTitle');
+        if (mTitle) mTitle.textContent = isDay ? '{{ t("charts.daily_msgs_title") }}' : '{{ t("user_profile.monthly_msgs_title") }}';
+        const mDesc = document.getElementById('userMessagesBarDesc');
+        if (mDesc) mDesc.textContent = isDay ? '{{ t("charts.daily_msgs_desc") }}' : '{{ t("user_profile.monthly_msgs_desc") }}';
+        const mBadge = document.getElementById('userMessagesBarBadge');
+        if (mBadge) mBadge.textContent = `${isEn ? 'Average' : 'Moyenne'} : ${Math.round(avg).toLocaleString(langLocale)} ${unit}`;
+    }
+}
 
 function switchUserProfileTab(tabId) {
     document.querySelectorAll('.graphs-tab-btn').forEach(btn => {
@@ -500,22 +644,41 @@ document.addEventListener('DOMContentLoaded', function() {
         '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#64748b'
     ];
 
-    // 1. User Hours Progression
+    // Load data from JSON elements
     const uHoursEl = document.getElementById('userHoursProgressionData');
-    if (uHoursEl) {
-        const uHoursData = JSON.parse(uHoursEl.textContent);
+    const uHoursDailyEl = document.getElementById('userHoursDailyProgressionData');
+    if (uHoursEl) uHoursMonthlyData = JSON.parse(uHoursEl.textContent);
+    if (uHoursDailyEl) uHoursDailyData = JSON.parse(uHoursDailyEl.textContent);
+
+    const uMsgsEl = document.getElementById('userMessagesProgressionData');
+    const uMsgsDailyEl = document.getElementById('userMessagesDailyProgressionData');
+    if (uMsgsEl) uMsgsMonthlyData = JSON.parse(uMsgsEl.textContent);
+    if (uMsgsDailyEl) uMsgsDailyData = JSON.parse(uMsgsDailyEl.textContent);
+
+    const uMonthlyHoursEl = document.getElementById('userMonthlyHoursData');
+    const uDailyHoursEl = document.getElementById('userDailyHoursData');
+    if (uMonthlyHoursEl) uMonthlyHoursBarData = JSON.parse(uMonthlyHoursEl.textContent);
+    if (uDailyHoursEl) uDailyHoursBarData = JSON.parse(uDailyHoursEl.textContent);
+
+    const uMonthlyMsgsEl = document.getElementById('userMonthlyMessagesData');
+    const uDailyMsgsEl = document.getElementById('userDailyMessagesData');
+    if (uMonthlyMsgsEl) uMonthlyMsgsBarData = JSON.parse(uMonthlyMsgsEl.textContent);
+    if (uDailyMsgsEl) uDailyMsgsBarData = JSON.parse(uDailyMsgsEl.textContent);
+
+    // 1. User Hours Progression
+    if (uHoursMonthlyData) {
         const ctx = document.getElementById('userHoursChart').getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 320);
         gradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
         gradient.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
 
-        const c1 = new Chart(ctx, {
+        userHoursChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: uHoursData.labels,
+                labels: uHoursMonthlyData.labels,
                 datasets: [{
                     label: isEn ? 'Cumulative hours' : 'Heures cumulées',
-                    data: uHoursData.hours,
+                    data: uHoursMonthlyData.hours,
                     borderColor: '#38bdf8',
                     backgroundColor: gradient,
                     borderWidth: 3,
@@ -559,25 +722,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        userChartInstances.push(c1);
+        userChartInstances.push(userHoursChartInstance);
     }
 
     // 2. User Messages Progression
-    const uMsgsEl = document.getElementById('userMessagesProgressionData');
-    if (uMsgsEl) {
-        const uMsgsData = JSON.parse(uMsgsEl.textContent);
+    if (uMsgsMonthlyData) {
         const ctx = document.getElementById('userMessagesChart').getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 320);
         gradient.addColorStop(0, 'rgba(88, 101, 242, 0.35)');
         gradient.addColorStop(1, 'rgba(88, 101, 242, 0.00)');
 
-        const c2 = new Chart(ctx, {
+        userMsgsChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: uMsgsData.labels,
+                labels: uMsgsMonthlyData.labels,
                 datasets: [{
                     label: isEn ? 'Cumulative messages' : 'Messages cumulés',
-                    data: uMsgsData.messages,
+                    data: uMsgsMonthlyData.messages,
                     borderColor: '#5865F2',
                     backgroundColor: gradient,
                     borderWidth: 3,
@@ -598,6 +759,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: { display: true, labels: { color: '#e2e8f0', font: { weight: 'bold' } } },
                     tooltip: {
                         backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#a5b4fc',
+                        borderColor: 'rgba(88, 101, 242, 0.4)',
+                        borderWidth: 1,
+                        padding: 12,
                         callbacks: {
                             label: function(ctx) { return ` ${ctx.parsed.y.toLocaleString(langLocale)} messages`; }
                         }
@@ -621,32 +787,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        userChartInstances.push(c2);
+        userChartInstances.push(userMsgsChartInstance);
     }
 
     // 3. User Monthly Hours
-    const uMonthlyHoursEl = document.getElementById('userMonthlyHoursData');
-    if (uMonthlyHoursEl) {
-        const data = JSON.parse(uMonthlyHoursEl.textContent);
+    if (uMonthlyHoursBarData) {
         const ctx = document.getElementById('userMonthlyHoursChart').getContext('2d');
-        const completed = data.hours.length > 1 ? data.hours.slice(0, -1) : data.hours;
+        const completed = uMonthlyHoursBarData.hours.length > 1 ? uMonthlyHoursBarData.hours.slice(0, -1) : uMonthlyHoursBarData.hours;
         const avg = completed.reduce((a, b) => a + b, 0) / Math.max(1, completed.length);
 
-        const c3 = new Chart(ctx, {
+        userMonthlyHoursChartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.labels,
+                labels: uMonthlyHoursBarData.labels,
                 datasets: [
                     {
                         label: isEn ? 'Monthly hours' : 'Heures du mois',
-                        data: data.hours,
+                        data: uMonthlyHoursBarData.hours,
                         backgroundColor: '#38bdf8',
                         borderRadius: 6,
                         order: 2
                     },
                     {
                         label: (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')',
-                        data: Array(data.hours.length).fill(Number(avg.toFixed(1))),
+                        data: Array(uMonthlyHoursBarData.hours.length).fill(Number(avg.toFixed(1))),
                         type: 'line',
                         borderColor: '#fbbf24',
                         borderWidth: 2.5,
@@ -679,32 +843,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        userChartInstances.push(c3);
+        userChartInstances.push(userMonthlyHoursChartInstance);
     }
 
     // 4. User Monthly Messages
-    const uMonthlyMsgsEl = document.getElementById('userMonthlyMessagesData');
-    if (uMonthlyMsgsEl) {
-        const data = JSON.parse(uMonthlyMsgsEl.textContent);
+    if (uMonthlyMsgsBarData) {
         const ctx = document.getElementById('userMonthlyMessagesChart').getContext('2d');
-        const completed = data.messages.length > 1 ? data.messages.slice(0, -1) : data.messages;
+        const completed = uMonthlyMsgsBarData.messages.length > 1 ? uMonthlyMsgsBarData.messages.slice(0, -1) : uMonthlyMsgsBarData.messages;
         const avg = completed.reduce((a, b) => a + b, 0) / Math.max(1, completed.length);
 
-        const c4 = new Chart(ctx, {
+        userMonthlyMsgsChartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.labels,
+                labels: uMonthlyMsgsBarData.labels,
                 datasets: [
                     {
                         label: isEn ? 'Monthly messages' : 'Messages du mois',
-                        data: data.messages,
+                        data: uMonthlyMsgsBarData.messages,
                         backgroundColor: '#5865F2',
                         borderRadius: 6,
                         order: 2
                     },
                     {
                         label: (isEn ? 'Average (' : 'Moyenne (') + Math.round(avg).toLocaleString(langLocale) + ' ' + msgsUnit + ')',
-                        data: Array(data.messages.length).fill(Math.round(avg)),
+                        data: Array(uMonthlyMsgsBarData.messages.length).fill(Math.round(avg)),
                         type: 'line',
                         borderColor: '#f472b6',
                         borderWidth: 2.5,
@@ -737,7 +899,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        userChartInstances.push(c4);
+        userChartInstances.push(userMonthlyMsgsChartInstance);
+    }
+
+    // Apply default granularity if day
+    if (userGranularity === 'day') {
+        switchUserGranularity('day');
     }
 
     // 5. User Servers Donut

@@ -23,7 +23,7 @@ TRANSLATIONS = {
         "footer.terms": "Conditions d'utilisation",
         "footer.support": "Serveur Discord & Données",
         "footer.powered_by": "Hourglass Bot - propulsé par SnoutLabs",
-        "footer.version": "version 2.5.9 - 21/09/2026",
+        "footer.version": "version 2.5.10 - 22/09/2026",
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Politique de Confidentialité & RGPD",
@@ -182,6 +182,17 @@ TRANSLATIONS = {
         "server_profile.top_members_title": "Part des membres les plus actifs",
         "server_profile.top_members_desc": "Distribution du temps vocal entre les 10 principaux contributeurs",
         "server_profile.top_10_others": "Top 10 + Autres",
+        "charts.view_mode": "Période",
+        "charts.mode_monthly": "Mois par mois",
+        "charts.mode_daily": "30 derniers jours (par jour)",
+        "charts.daily_hours_title": "Heures vocales par jour (30 derniers jours)",
+        "charts.daily_hours_desc": "Activité vocale quotidienne et repère moyen",
+        "charts.daily_msgs_title": "Messages par jour (30 derniers jours)",
+        "charts.daily_msgs_desc": "Volume quotidien de messages et repère moyen",
+        "charts.unit_hours_per_day": "h/jour",
+        "charts.unit_msgs_per_day": "msgs/jour",
+        "charts.daily_cumulative_badge": "30 jours",
+        "charts.monthly_cumulative_badge": "Par mois",
 
         # Supports Page
         "supports.title": "Documentation & Support - Hourglass",
@@ -321,6 +332,12 @@ TRANSLATIONS = {
         "profile.card_html_embed": "Intégration HTML",
         "profile.download_svg": "Télécharger le SVG",
         "profile.copied_toast": "Copié dans le presse-papier !",
+        "profile.disambiguation_title": "Plusieurs profils trouvés pour « {username} »",
+        "profile.disambiguation_desc": "Plusieurs comptes Discord partagent ce pseudo dans la base de données. Sélectionnez le profil que vous souhaitez consulter :",
+        "profile.disambiguation_view_btn": "Consulter ce profil",
+        "profile.disambiguation_back": "Retour aux classements",
+        "profile.homonym_notice": "Un autre compte partage le pseudo « {username} ».",
+        "profile.homonym_view_others": "Voir les profils homonymes",
 
         # Global Search (Ctrl+K)
         "search.modal_title": "Recherche Rapide",
@@ -399,7 +416,7 @@ TRANSLATIONS = {
         "footer.terms": "Terms of Service",
         "footer.support": "Discord Support & Data",
         "footer.powered_by": "Hourglass Bot - powered by SnoutLabs",
-        "footer.version": "version 2.5.9 - 21/09/2026",
+        "footer.version": "version 2.5.10 - 22/09/2026",
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Privacy Policy & GDPR",
@@ -558,6 +575,17 @@ TRANSLATIONS = {
         "server_profile.top_members_title": "Share of most active members",
         "server_profile.top_members_desc": "Distribution of voice time among top 10 contributors",
         "server_profile.top_10_others": "Top 10 + Others",
+        "charts.view_mode": "Period",
+        "charts.mode_monthly": "Month by month",
+        "charts.mode_daily": "Last 30 days (daily)",
+        "charts.daily_hours_title": "Daily voice hours (Last 30 days)",
+        "charts.daily_hours_desc": "Daily voice activity and baseline average",
+        "charts.daily_msgs_title": "Daily messages (Last 30 days)",
+        "charts.daily_msgs_desc": "Daily message volume and baseline average",
+        "charts.unit_hours_per_day": "h/day",
+        "charts.unit_msgs_per_day": "msgs/day",
+        "charts.daily_cumulative_badge": "30 days",
+        "charts.monthly_cumulative_badge": "Monthly",
 
         # Supports Page
         "supports.title": "Documentation & Support - Hourglass",
@@ -697,6 +725,12 @@ TRANSLATIONS = {
         "profile.card_html_embed": "HTML Embed",
         "profile.download_svg": "Download SVG",
         "profile.copied_toast": "Copied to clipboard!",
+        "profile.disambiguation_title": "Multiple profiles found for '{username}'",
+        "profile.disambiguation_desc": "Multiple Discord accounts share this username in the database. Select which profile you wish to view:",
+        "profile.disambiguation_view_btn": "View this profile",
+        "profile.disambiguation_back": "Back to Leaderboards",
+        "profile.homonym_notice": "Another account shares the username '{username}'.",
+        "profile.homonym_view_others": "View duplicate profiles",
 
         # Global Search (Ctrl+K)
         "search.modal_title": "Quick Search",

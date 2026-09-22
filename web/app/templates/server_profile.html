@@ -10,12 +10,51 @@
 
 <!-- Embedded Chart Data for Server -->
 <script type="application/json" id="serverHoursProgressionData">{{ charts.chart_data_json|safe }}</script>
+<script type="application/json" id="serverHoursDailyProgressionData">{{ charts.daily_chart_data_json|safe }}</script>
 <script type="application/json" id="serverMessagesProgressionData">{{ charts.messages_chart_data_json|safe }}</script>
+<script type="application/json" id="serverMessagesDailyProgressionData">{{ charts.daily_messages_chart_data_json|safe }}</script>
 <script type="application/json" id="serverMonthlyHoursData">{{ charts.monthly_chart_data_json|safe }}</script>
+<script type="application/json" id="serverDailyHoursData">{{ charts.daily_hours_chart_data_json|safe }}</script>
 <script type="application/json" id="serverMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe }}</script>
+<script type="application/json" id="serverDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe }}</script>
 <script type="application/json" id="serverTopMembersPieData">{{ charts.top_members_pie_json|safe }}</script>
 
 <style>
+/* Granularity Toggle Group Styles */
+.granularity-toggle-group {
+    display: inline-flex;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 4px;
+}
+.granularity-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    user-select: none;
+}
+.granularity-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+.granularity-btn.active {
+    background: #38bdf8;
+    color: #0b1120;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+}
+
 /* Tab Navigation Styles */
 .graphs-tabs-wrapper {
     margin: 25px 0 25px;
@@ -253,7 +292,7 @@
         <div style="display: flex; flex-direction: column; gap: 10px;">
             {% for user in stats.users %}
             <div class="gray-box small-border-radius dynamic link" style="padding: 14px 18px; margin: 0;">
-                <a class="link" href="{{ url_for('user_profile.profile', username=user.username) }}" style="width: 100%;">
+                <a class="link" href="{{ url_for('user_profile.profile', username=user.user_id or user.username) }}" style="width: 100%;">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                         
                         <!-- Rank & User Info -->
@@ -305,12 +344,25 @@
 <!-- ONGLET 2 : Graphiques & Statistiques du serveur                     -->
 <!-- =================================================================== -->
 <div id="tab-charts" class="graphs-tab-pane">
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('server_profile.history_section_title') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
+    <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
+            <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
+                {{ t('server_profile.history_section_title') }}
+            </h2>
+        </div>
+
+        <!-- Granularity Selector Toggle -->
+        <div class="granularity-toggle-group">
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'month' %}active{% endif %}" data-granularity="month" onclick="switchServerGranularity('month')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <span>{{ t('charts.mode_monthly') }}</span>
+            </button>
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'day' %}active{% endif %}" data-granularity="day" onclick="switchServerGranularity('day')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>{{ t('charts.mode_daily') }}</span>
+            </button>
+        </div>
     </div>
 
     <!-- Graphique 1 : Progression Cumulative des Heures -->
@@ -353,14 +405,14 @@
         <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
     </div>
 
-    <!-- Graphique 3 : Heures par mois -->
+    <!-- Graphique 3 : Heures par mois / jour -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('server_profile.monthly_hours_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('server_profile.monthly_hours_desc') }}</div>
+                <div class="medium-bold-text" id="serverHoursBarTitle" style="color: #ffffff; font-size: 1.2rem;">{{ t('server_profile.monthly_hours_title') }}</div>
+                <div class="small-text gray" id="serverHoursBarDesc" style="margin-top: 4px;">{{ t('server_profile.monthly_hours_desc') }}</div>
             </div>
-            <span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+            <span id="serverHoursBarBadge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
                 {{ t('server_profile.avg_label') }} {{ charts.avg_hours }} {{ t('graphs.unit_hours_per_month') }}
             </span>
         </div>
@@ -369,14 +421,14 @@
         </div>
     </div>
 
-    <!-- Graphique 4 : Messages par mois -->
+    <!-- Graphique 4 : Messages par mois / jour -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('server_profile.monthly_msgs_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('server_profile.monthly_msgs_desc') }}</div>
+                <div class="medium-bold-text" id="serverMessagesBarTitle" style="color: #ffffff; font-size: 1.2rem;">{{ t('server_profile.monthly_msgs_title') }}</div>
+                <div class="small-text gray" id="serverMessagesBarDesc" style="margin-top: 4px;">{{ t('server_profile.monthly_msgs_desc') }}</div>
             </div>
-            <span style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+            <span id="serverMessagesBarBadge" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
                 {{ t('server_profile.avg_label') }} {{ charts.avg_msgs | thousands_fr }} {{ t('graphs.unit_msgs_per_month') }}
             </span>
         </div>
@@ -415,6 +467,94 @@
 <!-- =================================================================== -->
 <script>
 const serverChartInstances = [];
+let serverHoursChartInstance = null;
+let serverMsgsChartInstance = null;
+let serverMonthlyHoursChartInstance = null;
+let serverMonthlyMsgsChartInstance = null;
+
+let sHoursMonthlyData = null;
+let sHoursDailyData = null;
+let sMsgsMonthlyData = null;
+let sMsgsDailyData = null;
+let sMonthlyHoursBarData = null;
+let sDailyHoursBarData = null;
+let sMonthlyMsgsBarData = null;
+let sDailyMsgsBarData = null;
+
+let serverGranularity = '{{ charts.default_granularity }}';
+
+function switchServerGranularity(mode) {
+    serverGranularity = mode;
+    document.querySelectorAll('.granularity-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-granularity') === mode);
+    });
+
+    const isDay = (mode === 'day');
+    const isEn = '{{ current_lang }}' === 'en';
+    const langLocale = isEn ? 'en-US' : 'fr-FR';
+    const hoursUnit = '{{ t("top.hours_unit") }}';
+    const msgsUnit = '{{ t("top.msgs_unit") }}';
+
+    // 1. Hours line chart
+    if (serverHoursChartInstance && sHoursDailyData && sHoursMonthlyData) {
+        const data = isDay ? sHoursDailyData : sHoursMonthlyData;
+        serverHoursChartInstance.data.labels = data.labels;
+        serverHoursChartInstance.data.datasets[0].data = data.hours;
+        serverHoursChartInstance.options.scales.x.time.unit = isDay ? 'day' : 'month';
+        serverHoursChartInstance.update();
+    }
+
+    // 2. Messages line chart
+    if (serverMsgsChartInstance && sMsgsDailyData && sMsgsMonthlyData) {
+        const data = isDay ? sMsgsDailyData : sMsgsMonthlyData;
+        serverMsgsChartInstance.data.labels = data.labels;
+        serverMsgsChartInstance.data.datasets[0].data = data.messages;
+        serverMsgsChartInstance.options.scales.x.time.unit = isDay ? 'day' : 'month';
+        serverMsgsChartInstance.update();
+    }
+
+    // 3. Periodic hours bar chart
+    if (serverMonthlyHoursChartInstance && sDailyHoursBarData && sMonthlyHoursBarData) {
+        const data = isDay ? sDailyHoursBarData : sMonthlyHoursBarData;
+        const avg = isDay ? Number('{{ charts.avg_daily_hours }}') : Number('{{ charts.avg_hours }}');
+        const unit = isDay ? '{{ t("charts.unit_hours_per_day") }}' : '{{ t("graphs.unit_hours_per_month") }}';
+        
+        serverMonthlyHoursChartInstance.data.labels = data.labels;
+        serverMonthlyHoursChartInstance.data.datasets[0].data = data.hours;
+        serverMonthlyHoursChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily hours' : 'Heures du jour') : (isEn ? 'Monthly hours' : 'Heures du mois');
+        serverMonthlyHoursChartInstance.data.datasets[1].data = Array(data.hours.length).fill(avg);
+        serverMonthlyHoursChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')';
+        serverMonthlyHoursChartInstance.update();
+
+        const hTitle = document.getElementById('serverHoursBarTitle');
+        if (hTitle) hTitle.textContent = isDay ? '{{ t("charts.daily_hours_title") }}' : '{{ t("server_profile.monthly_hours_title") }}';
+        const hDesc = document.getElementById('serverHoursBarDesc');
+        if (hDesc) hDesc.textContent = isDay ? '{{ t("charts.daily_hours_desc") }}' : '{{ t("server_profile.monthly_hours_desc") }}';
+        const hBadge = document.getElementById('serverHoursBarBadge');
+        if (hBadge) hBadge.textContent = `${isEn ? 'Average' : 'Moyenne'} : ${avg} ${unit}`;
+    }
+
+    // 4. Periodic messages bar chart
+    if (serverMonthlyMsgsChartInstance && sDailyMsgsBarData && sMonthlyMsgsBarData) {
+        const data = isDay ? sDailyMsgsBarData : sMonthlyMsgsBarData;
+        const avg = isDay ? Number('{{ charts.avg_daily_msgs }}') : Number('{{ charts.avg_msgs }}');
+        const unit = isDay ? '{{ t("charts.unit_msgs_per_day") }}' : '{{ t("graphs.unit_msgs_per_month") }}';
+
+        serverMonthlyMsgsChartInstance.data.labels = data.labels;
+        serverMonthlyMsgsChartInstance.data.datasets[0].data = data.messages;
+        serverMonthlyMsgsChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily messages' : 'Messages du jour') : (isEn ? 'Monthly messages' : 'Messages du mois');
+        serverMonthlyMsgsChartInstance.data.datasets[1].data = Array(data.messages.length).fill(Math.round(avg));
+        serverMonthlyMsgsChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + Math.round(avg).toLocaleString(langLocale) + ' ' + msgsUnit + ')';
+        serverMonthlyMsgsChartInstance.update();
+
+        const mTitle = document.getElementById('serverMessagesBarTitle');
+        if (mTitle) mTitle.textContent = isDay ? '{{ t("charts.daily_msgs_title") }}' : '{{ t("server_profile.monthly_msgs_title") }}';
+        const mDesc = document.getElementById('serverMessagesBarDesc');
+        if (mDesc) mDesc.textContent = isDay ? '{{ t("charts.daily_msgs_desc") }}' : '{{ t("server_profile.monthly_msgs_desc") }}';
+        const mBadge = document.getElementById('serverMessagesBarBadge');
+        if (mBadge) mBadge.textContent = `${isEn ? 'Average' : 'Moyenne'} : ${Math.round(avg).toLocaleString(langLocale)} ${unit}`;
+    }
+}
 
 function switchServerProfileTab(tabId) {
     document.querySelectorAll('.graphs-tab-btn').forEach(btn => {
@@ -457,22 +597,41 @@ document.addEventListener('DOMContentLoaded', function() {
         '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#64748b'
     ];
 
-    // 1. Server Hours Progression
+    // Load data from JSON elements
     const sHoursEl = document.getElementById('serverHoursProgressionData');
-    if (sHoursEl) {
-        const sHoursData = JSON.parse(sHoursEl.textContent);
+    const sHoursDailyEl = document.getElementById('serverHoursDailyProgressionData');
+    if (sHoursEl) sHoursMonthlyData = JSON.parse(sHoursEl.textContent);
+    if (sHoursDailyEl) sHoursDailyData = JSON.parse(sHoursDailyEl.textContent);
+
+    const sMsgsEl = document.getElementById('serverMessagesProgressionData');
+    const sMsgsDailyEl = document.getElementById('serverMessagesDailyProgressionData');
+    if (sMsgsEl) sMsgsMonthlyData = JSON.parse(sMsgsEl.textContent);
+    if (sMsgsDailyEl) sMsgsDailyData = JSON.parse(sMsgsDailyEl.textContent);
+
+    const sMonthlyHoursEl = document.getElementById('serverMonthlyHoursData');
+    const sDailyHoursEl = document.getElementById('serverDailyHoursData');
+    if (sMonthlyHoursEl) sMonthlyHoursBarData = JSON.parse(sMonthlyHoursEl.textContent);
+    if (sDailyHoursEl) sDailyHoursBarData = JSON.parse(sDailyHoursEl.textContent);
+
+    const sMonthlyMsgsEl = document.getElementById('serverMonthlyMessagesData');
+    const sDailyMsgsEl = document.getElementById('serverDailyMessagesData');
+    if (sMonthlyMsgsEl) sMonthlyMsgsBarData = JSON.parse(sMonthlyMsgsEl.textContent);
+    if (sDailyMsgsEl) sDailyMsgsBarData = JSON.parse(sDailyMsgsEl.textContent);
+
+    // 1. Server Hours Progression
+    if (sHoursMonthlyData) {
         const ctx = document.getElementById('serverHoursChart').getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 320);
         gradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
         gradient.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
 
-        const c1 = new Chart(ctx, {
+        serverHoursChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: sHoursData.labels,
+                labels: sHoursMonthlyData.labels,
                 datasets: [{
                     label: isEn ? 'Cumulative hours' : 'Heures cumulées',
-                    data: sHoursData.hours,
+                    data: sHoursMonthlyData.hours,
                     borderColor: '#38bdf8',
                     backgroundColor: gradient,
                     borderWidth: 3,
@@ -521,25 +680,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        serverChartInstances.push(c1);
+        serverChartInstances.push(serverHoursChartInstance);
     }
 
     // 2. Server Messages Progression
-    const sMsgsEl = document.getElementById('serverMessagesProgressionData');
-    if (sMsgsEl) {
-        const sMsgsData = JSON.parse(sMsgsEl.textContent);
+    if (sMsgsMonthlyData) {
         const ctx = document.getElementById('serverMessagesChart').getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 320);
         gradient.addColorStop(0, 'rgba(88, 101, 242, 0.35)');
         gradient.addColorStop(1, 'rgba(88, 101, 242, 0.00)');
 
-        const c2 = new Chart(ctx, {
+        serverMsgsChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: sMsgsData.labels,
+                labels: sMsgsMonthlyData.labels,
                 datasets: [{
                     label: isEn ? 'Cumulative messages' : 'Messages cumulés',
-                    data: sMsgsData.messages,
+                    data: sMsgsMonthlyData.messages,
                     borderColor: '#5865F2',
                     backgroundColor: gradient,
                     borderWidth: 3,
@@ -588,32 +745,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        serverChartInstances.push(c2);
+        serverChartInstances.push(serverMsgsChartInstance);
     }
 
     // 3. Server Monthly Hours
-    const sMonthlyHoursEl = document.getElementById('serverMonthlyHoursData');
-    if (sMonthlyHoursEl) {
-        const data = JSON.parse(sMonthlyHoursEl.textContent);
+    if (sMonthlyHoursBarData) {
         const ctx = document.getElementById('serverMonthlyHoursChart').getContext('2d');
-        const completed = data.hours.length > 1 ? data.hours.slice(0, -1) : data.hours;
+        const completed = sMonthlyHoursBarData.hours.length > 1 ? sMonthlyHoursBarData.hours.slice(0, -1) : sMonthlyHoursBarData.hours;
         const avg = completed.reduce((a, b) => a + b, 0) / Math.max(1, completed.length);
 
-        const c3 = new Chart(ctx, {
+        serverMonthlyHoursChartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.labels,
+                labels: sMonthlyHoursBarData.labels,
                 datasets: [
                     {
                         label: isEn ? 'Monthly hours' : 'Heures du mois',
-                        data: data.hours,
+                        data: sMonthlyHoursBarData.hours,
                         backgroundColor: '#38bdf8',
                         borderRadius: 6,
                         order: 2
                     },
                     {
                         label: (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')',
-                        data: Array(data.hours.length).fill(Number(avg.toFixed(1))),
+                        data: Array(sMonthlyHoursBarData.hours.length).fill(Number(avg.toFixed(1))),
                         type: 'line',
                         borderColor: '#fbbf24',
                         borderWidth: 2.5,
@@ -646,32 +801,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        serverChartInstances.push(c3);
+        serverChartInstances.push(serverMonthlyHoursChartInstance);
     }
 
     // 4. Server Monthly Messages
-    const sMonthlyMsgsEl = document.getElementById('serverMonthlyMessagesData');
-    if (sMonthlyMsgsEl) {
-        const data = JSON.parse(sMonthlyMsgsEl.textContent);
+    if (sMonthlyMsgsBarData) {
         const ctx = document.getElementById('serverMonthlyMessagesChart').getContext('2d');
-        const completed = data.messages.length > 1 ? data.messages.slice(0, -1) : data.messages;
+        const completed = sMonthlyMsgsBarData.messages.length > 1 ? sMonthlyMsgsBarData.messages.slice(0, -1) : sMonthlyMsgsBarData.messages;
         const avg = completed.reduce((a, b) => a + b, 0) / Math.max(1, completed.length);
 
-        const c4 = new Chart(ctx, {
+        serverMonthlyMsgsChartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.labels,
+                labels: sMonthlyMsgsBarData.labels,
                 datasets: [
                     {
                         label: isEn ? 'Monthly messages' : 'Messages du mois',
-                        data: data.messages,
+                        data: sMonthlyMsgsBarData.messages,
                         backgroundColor: '#5865F2',
                         borderRadius: 6,
                         order: 2
                     },
                     {
                         label: (isEn ? 'Average (' : 'Moyenne (') + Math.round(avg).toLocaleString(langLocale) + ' ' + msgsUnit + ')',
-                        data: Array(data.messages.length).fill(Math.round(avg)),
+                        data: Array(sMonthlyMsgsBarData.messages.length).fill(Math.round(avg)),
                         type: 'line',
                         borderColor: '#f472b6',
                         borderWidth: 2.5,
@@ -704,7 +857,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        serverChartInstances.push(c4);
+        serverChartInstances.push(serverMonthlyMsgsChartInstance);
+    }
+
+    // Apply default granularity if day
+    if (serverGranularity === 'day') {
+        switchServerGranularity('day');
     }
 
     // 5. Server Top Members Donut

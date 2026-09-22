@@ -458,6 +458,176 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
     return sorted(result, key=lambda x: x["month"])
 
 
+def get_daily_hours_progression(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
+    """Calculate daily cumulative voice hours progression over the last X days."""
+    cutoff = datetime.now() - timedelta(days=days + 2)
+    query = (
+        HistoricalStats
+        .select(
+            fn.DATE(HistoricalStats.created_at).alias("day_date"),
+            fn.SUM(HistoricalStats.seconds).alias("total_seconds")
+        )
+        .where(HistoricalStats.created_at >= cutoff)
+    )
+    if server_id:
+        query = query.where(HistoricalStats.server_id == server_id)
+    if user_id:
+        query = query.where(HistoricalStats.user_id == user_id)
+
+    query = query.group_by(fn.DATE(HistoricalStats.created_at)).order_by(
+        fn.DATE(HistoricalStats.created_at)
+    )
+
+    result = [
+        {
+            "date": row.day_date.strftime("%Y-%m-%d"),
+            "total_hours": round((row.total_seconds or 0) / 3600, 1)
+        }
+        for row in query
+    ]
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    cutoff_str = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+
+    # Add baseline according to entity scope if joined within range
+    start_date = None
+    if user_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
+    elif server_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
+
+    if start_date:
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        if start_date_str >= cutoff_str and start_date_str < today_str and not any(r["date"] == start_date_str for r in result):
+            result.append({"date": start_date_str, "total_hours": 0.0})
+
+    # Add latest current total value from Stats table
+    curr_query = Stats.select(fn.SUM(Stats.seconds))
+    if server_id:
+        curr_query = curr_query.where(Stats.server_id == server_id)
+    if user_id:
+        curr_query = curr_query.where(Stats.user_id == user_id)
+    current_total = curr_query.scalar() or 0
+
+    if any(r["date"] == today_str for r in result):
+        for r in result:
+            if r["date"] == today_str:
+                r["total_hours"] = round(current_total / 3600, 1)
+                break
+    else:
+        result.append({
+            "date": today_str,
+            "total_hours": round(current_total / 3600, 1)
+        })
+
+    result = sorted(result, key=lambda x: x["date"])
+    return result[-days:]
+
+
+def get_daily_messages_progression(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
+    """Calculate daily cumulative messages progression over the last X days."""
+    cutoff = datetime.now() - timedelta(days=days + 2)
+    query = (
+        HistoricalStats
+        .select(
+            fn.DATE(HistoricalStats.created_at).alias("day_date"),
+            fn.SUM(HistoricalStats.messages).alias("total_messages")
+        )
+        .where(HistoricalStats.created_at >= cutoff)
+    )
+    if server_id:
+        query = query.where(HistoricalStats.server_id == server_id)
+    if user_id:
+        query = query.where(HistoricalStats.user_id == user_id)
+
+    query = query.group_by(fn.DATE(HistoricalStats.created_at)).order_by(
+        fn.DATE(HistoricalStats.created_at)
+    )
+
+    result = [
+        {
+            "date": row.day_date.strftime("%Y-%m-%d"),
+            "total_messages": int(row.total_messages or 0)
+        }
+        for row in query
+    ]
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    cutoff_str = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+
+    start_date = None
+    if user_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
+    elif server_id:
+        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
+
+    if start_date:
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        if start_date_str >= cutoff_str and start_date_str < today_str and not any(r["date"] == start_date_str for r in result):
+            result.append({"date": start_date_str, "total_messages": 0})
+
+    curr_query = Stats.select(fn.SUM(Stats.messages))
+    if server_id:
+        curr_query = curr_query.where(Stats.server_id == server_id)
+    if user_id:
+        curr_query = curr_query.where(Stats.user_id == user_id)
+    current_total = curr_query.scalar() or 0
+
+    if any(r["date"] == today_str for r in result):
+        for r in result:
+            if r["date"] == today_str:
+                r["total_messages"] = int(current_total)
+                break
+    else:
+        result.append({
+            "date": today_str,
+            "total_messages": int(current_total)
+        })
+
+    result = sorted(result, key=lambda x: x["date"])
+    return result[-days:]
+
+
+def get_daily_hours_diff(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
+    """Calculate incremental hours spent each day over the last X days."""
+    cumul = get_daily_hours_progression(server_id=server_id, user_id=user_id, days=days + 1)
+    if len(cumul) <= 1:
+        if cumul:
+            return [{"date": cumul[0]["date"], "hours_this_day": cumul[0]["total_hours"]}]
+        return []
+
+    diffs = []
+    for i in range(1, len(cumul)):
+        prev = cumul[i - 1]
+        curr = cumul[i]
+        diff = round(max(0.0, curr["total_hours"] - prev["total_hours"]), 1)
+        diffs.append({
+            "date": curr["date"],
+            "hours_this_day": diff
+        })
+    return diffs[-days:]
+
+
+def get_daily_messages_diff(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
+    """Calculate incremental messages sent each day over the last X days."""
+    cumul = get_daily_messages_progression(server_id=server_id, user_id=user_id, days=days + 1)
+    if len(cumul) <= 1:
+        if cumul:
+            return [{"date": cumul[0]["date"], "messages_this_day": cumul[0]["total_messages"]}]
+        return []
+
+    diffs = []
+    for i in range(1, len(cumul)):
+        prev = cumul[i - 1]
+        curr = cumul[i]
+        diff = max(0, curr["total_messages"] - prev["total_messages"])
+        diffs.append({
+            "date": curr["date"],
+            "messages_this_day": diff
+        })
+    return diffs[-days:]
+
+
 def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Calculate the incremental hours spent each month by computing the difference between month-start totals."""
     # Retrieve month-start totals from HistoricalStats

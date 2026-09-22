@@ -51,6 +51,7 @@ def load_users(search_query: str = "") -> tuple[list[dict], int]:
     for user in paginated_query:
         xp_info = calculate_user_xp_and_level(user.total_seconds, user.total_messages)
         users_list.append({
+            "user_id": str(user.user_id),
             "username": user.username,
             "avatar": user.avatar,
             "level": xp_info["level"],

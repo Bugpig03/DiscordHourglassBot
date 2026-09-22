@@ -22,7 +22,7 @@ https://hourglassbot.net/
    - [Statistiques d'un utilisateur (Global)](#statistiques-dun-utilisateur-global)
    - [Statistiques d'un utilisateur sur un serveur](#statistiques-dun-utilisateur-sur-un-serveur)
    - [Recherche rapide (Ctrl+K)](#recherche-rapide)
-2. [Endpoints Cartes Graphiques SVG (v2.5.9)](#2-endpoints-cartes-graphiques-svg-v259)
+2. [Endpoints Cartes Graphiques SVG (v2.5.10)](#2-endpoints-cartes-graphiques-svg-v2510)
    - [Profil utilisateur global (!allstats)](#profil-utilisateur-global-allstats)
    - [Profil utilisateur sur un serveur (!stats)](#profil-utilisateur-sur-un-serveur-stats)
    - [Top 10 vocal d'un serveur (!top)](#top-10-vocal-dun-serveur-top)
@@ -197,7 +197,7 @@ GET /api/search?q={query}&type={all|users|servers}&limit={limit}
 
 ---
 
-## 2. Endpoints Cartes Graphiques SVG (v2.5.9)
+## 2. Endpoints Cartes Graphiques SVG (v2.5.10)
 
 Les endpoints ci-dessous renvoient directement un fichier vectoriel avec l'en-tête HTTP `Content-Type: image/svg+xml`.
 
