@@ -40,7 +40,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "versus",
-		Description: "Compare les statistiques de deux membres en duel direct.",
+		Description: "Compare les statistiques de deux membres en duel direct avec carte visuelle.",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionUser,
@@ -58,7 +58,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "server",
-		Description: "Affiche les statistiques globales de ce serveur Discord.",
+		Description: "Affiche les statistiques globales de ce serveur Discord avec carte visuelle.",
 	},
 	{
 		Name:        "top",
@@ -99,18 +99,27 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "alltop",
-		Description: "Classement des membres les plus actifs en vocal globalement.",
+		Description: "Classement Top 10 des membres les plus actifs globalement sur tous les serveurs.",
+	},
+	{
+		Name:        "help",
+		Description: "Guide officiel des commandes et fonctionnalités d'Hourglass Bot avec carte visuelle.",
 	},
 }
 
 func (h *BotHandler) RegisterSlashCommands(s *discordgo.Session) {
-	for _, cmd := range Commands {
-		_, err := s.ApplicationCommandCreate(s.State.User.ID, "", cmd)
-		if err != nil {
-			log.Printf("Impossible d'enregistrer la commande /%s: %v", cmd.Name, err)
+	_, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", Commands)
+	if err != nil {
+		log.Printf("ApplicationCommandBulkOverwrite a échoué: %v, bascule vers enregistrement individuel...", err)
+		for _, cmd := range Commands {
+			_, errCreate := s.ApplicationCommandCreate(s.State.User.ID, "", cmd)
+			if errCreate != nil {
+				log.Printf("Impossible d'enregistrer la commande /%s: %v", cmd.Name, errCreate)
+			}
 		}
+	} else {
+		log.Printf("✅ %d commandes slash synchronisées avec Discord (BulkOverwrite).", len(Commands))
 	}
-	log.Printf("✅ %d commandes slash enregistrées sur Discord.", len(Commands))
 }
 
 func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -118,8 +127,13 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 		return
 	}
 
+	// Réponse différée IMMÉDIATE pour respecter la fenêtre stricte de 3 secondes de Discord
+	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+	})
+
 	data := i.ApplicationCommandData()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	switch data.Name {
@@ -132,17 +146,15 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 	case "server":
 		h.handleServerStats(ctx, s, i)
 	case "top":
-		h.handleTopFiltered(ctx, s, i)
+		h.handleTopFiltered(ctx, s, i, false)
 	case "alltop":
-		h.handleTop(ctx, s, i, true)
+		h.handleTopFiltered(ctx, s, i, true)
+	case "help":
+		h.handleHelp(ctx, s, i)
 	}
 }
 
 func (h *BotHandler) handleStats(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate, isGlobal bool) {
-	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-
 	targetUser := i.Member.User
 	data := i.ApplicationCommandData()
 	for _, opt := range data.Options {
@@ -279,10 +291,6 @@ func (h *BotHandler) handleStats(ctx context.Context, s *discordgo.Session, i *d
 }
 
 func (h *BotHandler) handleVersus(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
-	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-
 	data := i.ApplicationCommandData()
 	var u1, u2 *discordgo.User
 
@@ -296,7 +304,7 @@ func (h *BotHandler) handleVersus(ctx context.Context, s *discordgo.Session, i *
 
 	if u1 == nil || u2 == nil {
 		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: "Veuillez designer deux membres valides pour le duel.",
+			Content: "Veuillez désigner deux membres valides pour le duel.",
 		})
 		return
 	}
@@ -406,29 +414,73 @@ func (h *BotHandler) handleServerStats(ctx context.Context, s *discordgo.Session
 		WHERE server_id = $1
 	`, serverID).Scan(&totalMessages)
 
-	hours := float64(totalSeconds) / 3600.0
+	serverName := "Serveur Discord"
+	iconURL := ""
+	memberCount := 0
+	voiceCount := 0
+	onlineCount := 0
 
-	content := fmt.Sprintf(
-		"**Statistiques du serveur** :\n• Temps vocal total : **%.1fh**\n• Messages au total : **%d**\n[View server dashboard](https://hourglassbot.net/server/%d)",
-		hours, totalMessages, serverID,
-	)
+	guild, err := s.State.Guild(i.GuildID)
+	if err != nil || guild == nil {
+		guild, _ = s.Guild(i.GuildID)
+	}
 
-	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: content,
-		},
+	if guild != nil {
+		serverName = guild.Name
+		iconURL = guild.IconURL("256")
+		memberCount = guild.MemberCount
+		voiceCount = len(guild.VoiceStates)
+		for _, p := range guild.Presences {
+			if p.Status != discordgo.StatusOffline {
+				onlineCount++
+			}
+		}
+	}
+
+	pngBytes, err := card.GenerateServerCard(card.ServerCardParams{
+		ServerID:      serverID,
+		ServerName:    serverName,
+		IconURL:       iconURL,
+		TotalSeconds:  totalSeconds,
+		TotalMessages: totalMessages,
+		MemberCount:   memberCount,
+		VoiceCount:    voiceCount,
+		OnlineCount:   onlineCount,
 	})
+
+	hours := float64(totalSeconds) / 3600.0
+	dashLink := fmt.Sprintf("[View server dashboard](https://hourglassbot.net/server/%d)", serverID)
+
+	if err == nil && len(pngBytes) > 0 {
+		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			Content: dashLink,
+			Files: []*discordgo.File{
+				{
+					Name:        fmt.Sprintf("server_%d.png", serverID),
+					ContentType: "image/png",
+					Reader:      bytes.NewReader(pngBytes),
+				},
+			},
+		})
+	} else {
+		log.Printf("Erreur génération carte serveur: %v", err)
+		fallback := fmt.Sprintf(
+			"**Statistiques du serveur %s** :\n• Temps vocal total : **%.1fh** (%s)\n• Messages au total : **%s**\n• Membres : **%d**\n%s",
+			serverName, hours, card.FormatDuration(totalSeconds), card.FormatNumber(totalMessages), memberCount, dashLink,
+		)
+		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			Content: fallback,
+		})
+	}
 }
 
-func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
-	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-
+func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate, forceGlobal bool) {
 	rankingType := "vocal"
 	period := "all"
 	scope := "server"
+	if forceGlobal {
+		scope = "global"
+	}
 
 	data := i.ApplicationCommandData()
 	for _, opt := range data.Options {
@@ -443,7 +495,7 @@ func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session
 	}
 
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
-	isGlobal := scope == "global"
+	isGlobal := forceGlobal || scope == "global"
 
 	var query string
 	var args []interface{}
@@ -601,5 +653,38 @@ func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session
 }
 
 func (h *BotHandler) handleTop(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate, isGlobal bool) {
-	h.handleTopFiltered(ctx, s, i)
+	h.handleTopFiltered(ctx, s, i, isGlobal)
+}
+
+func (h *BotHandler) handleHelp(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
+	pngBytes, err := card.GenerateHelpCard()
+
+	webLink := "Découvrez le dashboard complet sur : https://hourglassbot.net"
+
+	if err == nil && len(pngBytes) > 0 {
+		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			Content: webLink,
+			Files: []*discordgo.File{
+				{
+					Name:        "hourglass_help.png",
+					ContentType: "image/png",
+					Reader:      bytes.NewReader(pngBytes),
+				},
+			},
+		})
+	} else {
+		log.Printf("Erreur génération help card: %v", err)
+		fallback := "**Guide des commandes Hourglass Bot** :\n" +
+			"• `/stats [utilisateur]` : Statistiques vocales & messages sur le serveur\n" +
+			"• `/allstats [utilisateur]` : Statistiques globales consolidées (tous serveurs)\n" +
+			"• `/top [type] [periode] [portee]` : Classement Top 10 filtré\n" +
+			"• `/alltop` : Classement Top 10 vocal global\n" +
+			"• `/versus <j1> <j2>` : Duel comparatif en face à face\n" +
+			"• `/server` : Statistiques & membres en direct du serveur\n" +
+			"• `/help` : Affiche ce guide\n\n" +
+			webLink
+		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			Content: fallback,
+		})
+	}
 }

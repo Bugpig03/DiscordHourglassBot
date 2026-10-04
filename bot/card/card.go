@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/fogleman/gg"
@@ -22,6 +23,8 @@ import (
 var (
 	fontRegular = "fonts/DejaVuSans.ttf"
 	fontBold    = "fonts/DejaVuSans-Bold.ttf"
+	avatarCache sync.Map
+	imgClient   = &http.Client{Timeout: 1500 * time.Millisecond}
 )
 
 func init() {
@@ -141,8 +144,13 @@ func fetchImage(url string) (image.Image, error) {
 		}
 	}
 
-	client := &http.Client{Timeout: 3 * time.Second}
-	resp, err := client.Get(url)
+	if val, ok := avatarCache.Load(url); ok {
+		if cached, ok := val.(image.Image); ok {
+			return cached, nil
+		}
+	}
+
+	resp, err := imgClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -153,6 +161,9 @@ func fetchImage(url string) (image.Image, error) {
 	}
 
 	img, _, err := image.Decode(resp.Body)
+	if err == nil && img != nil {
+		avatarCache.Store(url, img)
+	}
 	return img, err
 }
 
@@ -556,6 +567,27 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 	dc.DrawLine(20, 84, float64(W)-20, 84)
 	dc.Stroke()
 
+	// Téléchargement parallèle ultra-rapide de tous les avatars du Top 10
+	avatarMap := make(map[string]image.Image)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	for _, entry := range entries {
+		if entry.Avatar == "" {
+			continue
+		}
+		wg.Add(1)
+		go func(u string) {
+			defer wg.Done()
+			img, err := fetchImage(u)
+			if err == nil && img != nil {
+				mu.Lock()
+				avatarMap[u] = img
+				mu.Unlock()
+			}
+		}(entry.Avatar)
+	}
+	wg.Wait()
+
 	// Rendu des lignes du Leaderboard
 	for i, entry := range entries {
 		if i >= 10 {
@@ -609,7 +641,7 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 		dc.DrawStringAnchored(fmt.Sprintf("%d", rank), 36, y, 0.5, 0.42)
 
 		// 2. Avatar du membre (32px, r=15)
-		avImg, _ := fetchImage(entry.Avatar)
+		avImg := avatarMap[entry.Avatar]
 		drawAvatar(dc, avImg, entry.Username, 72, y, 15, avBorder, 1.8)
 
 		// 3. Pseudo
@@ -881,6 +913,258 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 	_ = dc.LoadFontFace(fontBold, 9.5)
 	dc.SetRGB255(51, 65, 85)
 	dc.DrawStringAnchored("HOURGLASS BOT", float64(W)-24, float64(H)-14, 1.0, 0.5)
+
+	var buf bytes.Buffer
+	if err := dc.EncodePNG(&buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// =============================================================
+// 4. CARTE DE STATISTIQUES SERVEUR (600 × 280) - DA OFFICIELLE
+// =============================================================
+
+type ServerCardParams struct {
+	ServerID      int64
+	ServerName    string
+	IconURL       string
+	TotalSeconds  int64
+	TotalMessages int64
+	MemberCount   int
+	VoiceCount    int
+	OnlineCount   int
+}
+
+func GenerateServerCard(p ServerCardParams) ([]byte, error) {
+	const (
+		W = 600
+		H = 280
+	)
+
+	dc := gg.NewContext(W, H)
+
+	// Fond dégradé sombre (#080e1a -> #0f172a)
+	bgGrad := gg.NewLinearGradient(0, 0, float64(W), float64(H))
+	bgGrad.AddColorStop(0, color.RGBA{R: 8, G: 14, B: 26, A: 255})
+	bgGrad.AddColorStop(1, color.RGBA{R: 15, G: 23, B: 42, A: 255})
+	dc.SetFillStyle(bgGrad)
+	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
+	dc.Fill()
+
+	// Bordure externe
+	dc.SetRGBA255(255, 255, 255, 26)
+	dc.SetLineWidth(1.2)
+	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
+	dc.Stroke()
+
+	// Lueur d'ambiance (#38bdf8 / cyan)
+	dc.Push()
+	dc.DrawCircle(60, 60, 90)
+	dc.SetRGBA255(56, 189, 248, 18)
+	dc.Fill()
+	dc.Pop()
+
+	// Icône du serveur
+	var iconImg image.Image
+	if p.IconURL != "" {
+		iconImg, _ = fetchImage(p.IconURL)
+	}
+	drawAvatar(dc, iconImg, p.ServerName, 64, 64, 34, color.RGBA{R: 56, G: 189, B: 248, A: 200}, 2.0)
+
+	// Nom du serveur
+	_ = dc.LoadFontFace(fontBold, 21)
+	dc.SetRGB255(255, 255, 255)
+	cleanName := truncate(p.ServerName, 26)
+	dc.DrawString(cleanName, 116, 56)
+
+	// Sous-titre
+	_ = dc.LoadFontFace(fontRegular, 11)
+	dc.SetRGB255(148, 163, 184)
+	subStr := fmt.Sprintf("ID: %d • STATISTIQUES DU SERVEUR", p.ServerID)
+	dc.DrawString(subStr, 116, 76)
+
+	// Badge "DISCORD GUILD" en haut à droite
+	_ = dc.LoadFontFace(fontBold, 10.5)
+	dc.SetRGBA255(56, 189, 248, 30)
+	dc.DrawRoundedRectangle(float64(W)-130, 30, 106, 26, 13)
+	dc.Fill()
+	dc.SetRGBA255(56, 189, 248, 140)
+	dc.SetLineWidth(1.0)
+	dc.DrawRoundedRectangle(float64(W)-130, 30, 106, 26, 13)
+	dc.Stroke()
+	dc.SetRGB255(56, 189, 248)
+	dc.DrawStringAnchored("DISCORD GUILD", float64(W)-77, 43, 0.5, 0.45)
+
+	// 2 Boîtes principales de stats (Temps Vocal & Messages)
+	drawStatBox := func(x, y, w, h float64, label, mainVal, subVal string, accent color.Color) {
+		dc.SetRGBA255(255, 255, 255, 7)
+		dc.DrawRoundedRectangle(x, y, w, h, 12)
+		dc.Fill()
+		dc.SetRGBA255(255, 255, 255, 22)
+		dc.SetLineWidth(1.0)
+		dc.DrawRoundedRectangle(x, y, w, h, 12)
+		dc.Stroke()
+
+		// Titre
+		_ = dc.LoadFontFace(fontBold, 10.5)
+		dc.SetRGB255(148, 163, 184)
+		dc.DrawString(label, x+16, y+24)
+
+		// Valeur principale
+		_ = dc.LoadFontFace(fontBold, 22)
+		dc.SetColor(accent)
+		dc.DrawString(mainVal, x+16, y+58)
+
+		// Sous-valeur
+		if subVal != "" {
+			_ = dc.LoadFontFace(fontRegular, 11)
+			dc.SetRGB255(148, 163, 184)
+			dc.DrawString(subVal, x+16, y+82)
+		}
+	}
+
+	hours := float64(p.TotalSeconds) / 3600.0
+	drawStatBox(24, 118, 266, 100, "TEMPS VOCAL CUMULÉ", fmt.Sprintf("%.1fh", hours), fmt.Sprintf("%s au total", FormatDuration(p.TotalSeconds)), color.RGBA{R: 56, G: 189, B: 248, A: 255})
+	drawStatBox(310, 118, 266, 100, "VOLUME DE MESSAGES", FormatNumber(p.TotalMessages), "Messages enregistrés", color.RGBA{R: 192, G: 132, B: 252, A: 255})
+
+	// Présence en direct en bas à gauche
+	_ = dc.LoadFontFace(fontRegular, 10.5)
+	dc.SetRGB255(148, 163, 184)
+	liveStr := fmt.Sprintf("Membres suivis : %d", p.MemberCount)
+	if p.VoiceCount > 0 || p.OnlineCount > 0 {
+		liveStr = fmt.Sprintf("En direct : %d en vocal • %d en ligne • %d membres", p.VoiceCount, p.OnlineCount, p.MemberCount)
+	}
+	dc.DrawString(liveStr, 28, float64(H)-20)
+
+	// Watermark / lien en bas à droite
+	_ = dc.LoadFontFace(fontBold, 9.5)
+	dc.SetRGB255(71, 85, 105)
+	dc.DrawStringAnchored(fmt.Sprintf("HOURGLASS • server/%d", p.ServerID), float64(W)-24, float64(H)-20, 1.0, 0.5)
+
+	var buf bytes.Buffer
+	if err := dc.EncodePNG(&buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// =============================================================
+// 5. CARTE D'AIDE ET COMMANDES /HELP (640 × 380) - DA OFFICIELLE
+// =============================================================
+
+func GenerateHelpCard() ([]byte, error) {
+	const (
+		W = 640
+		H = 380
+	)
+
+	dc := gg.NewContext(W, H)
+
+	// Fond dégradé sombre (#080e1a -> #0f172a)
+	bgGrad := gg.NewLinearGradient(0, 0, float64(W), float64(H))
+	bgGrad.AddColorStop(0, color.RGBA{R: 8, G: 14, B: 26, A: 255})
+	bgGrad.AddColorStop(1, color.RGBA{R: 15, G: 23, B: 42, A: 255})
+	dc.SetFillStyle(bgGrad)
+	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
+	dc.Fill()
+
+	// Bordure externe
+	dc.SetRGBA255(255, 255, 255, 26)
+	dc.SetLineWidth(1.2)
+	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
+	dc.Stroke()
+
+	// Header Lueur
+	dc.Push()
+	dc.DrawCircle(60, 40, 80)
+	dc.SetRGBA255(56, 189, 248, 22)
+	dc.Fill()
+	dc.Pop()
+
+	// Titre
+	_ = dc.LoadFontFace(fontBold, 20)
+	dc.SetRGB255(255, 255, 255)
+	dc.DrawString("HOURGLASS BOT — COMMAND GUIDE", 26, 42)
+
+	_ = dc.LoadFontFace(fontRegular, 11)
+	dc.SetRGB255(148, 163, 184)
+	dc.DrawString("Bot d'analyse d'activité communautaire & statistiques Discord (v3.0)", 26, 62)
+
+	// Ligne de séparation
+	dc.SetRGBA255(255, 255, 255, 20)
+	dc.SetLineWidth(1.0)
+	dc.DrawLine(24, 76, float64(W)-24, 76)
+	dc.Stroke()
+
+	// Liste des commandes avec badges
+	type cmdHelp struct {
+		Name string
+		Desc string
+		Tag  string
+	}
+
+	cmds := []cmdHelp{
+		{Name: "/stats [user]", Desc: "Statistiques vocales & messages sur le serveur actuel", Tag: "CARTE"},
+		{Name: "/allstats [user]", Desc: "Statistiques globales consolidées sur tous les serveurs", Tag: "CARTE"},
+		{Name: "/top [type] [periode]", Desc: "Classement Top 10 du serveur actuel (vocal ou messages)", Tag: "LEADERBOARD"},
+		{Name: "/alltop", Desc: "Classement Top 10 global de tous les serveurs suivis", Tag: "LEADERBOARD"},
+		{Name: "/versus <j1> <j2>", Desc: "Duel comparatif direct entre deux membres en 1v1", Tag: "DUEL"},
+		{Name: "/server", Desc: "Statistiques détaillées et membres en direct du serveur", Tag: "SERVEUR"},
+		{Name: "/help", Desc: "Affiche ce guide officiel des commandes interactives", Tag: "AIDE"},
+	}
+
+	yStart := 104.0
+	rowH := 35.0
+
+	for i, c := range cmds {
+		y := yStart + float64(i)*rowH
+
+		// Fond alterné discret
+		if i%2 == 0 {
+			dc.SetRGBA255(255, 255, 255, 5)
+			dc.DrawRoundedRectangle(20, y-16, float64(W)-40, 30, 6)
+			dc.Fill()
+		}
+
+		// Commande
+		_ = dc.LoadFontFace(fontBold, 13)
+		dc.SetRGB255(56, 189, 248)
+		dc.DrawString(c.Name, 28, y+4)
+
+		// Description
+		_ = dc.LoadFontFace(fontRegular, 11.5)
+		dc.SetRGB255(203, 213, 225)
+		dc.DrawString(c.Desc, 205, y+4)
+
+		// Badge tag à droite
+		_ = dc.LoadFontFace(fontBold, 9)
+		tw, _ := dc.MeasureString(c.Tag)
+		tBoxW := tw + 12
+		tBoxH := 16.0
+		tBoxX := float64(W) - 34 - tBoxW
+		tBoxY := y - 7.0
+
+		dc.SetRGBA255(148, 163, 184, 30)
+		dc.DrawRoundedRectangle(tBoxX, tBoxY, tBoxW, tBoxH, 4)
+		dc.Fill()
+		dc.SetRGBA255(148, 163, 184, 160)
+		dc.SetLineWidth(0.8)
+		dc.DrawRoundedRectangle(tBoxX, tBoxY, tBoxW, tBoxH, 4)
+		dc.Stroke()
+
+		dc.SetRGB255(148, 163, 184)
+		dc.DrawStringAnchored(c.Tag, tBoxX+tBoxW/2, tBoxY+tBoxH/2, 0.5, 0.45)
+	}
+
+	// Footer
+	_ = dc.LoadFontFace(fontBold, 10)
+	dc.SetRGB255(56, 189, 248)
+	dc.DrawString("https://hourglassbot.net", 28, float64(H)-16)
+
+	_ = dc.LoadFontFace(fontRegular, 9.5)
+	dc.SetRGB255(100, 116, 139)
+	dc.DrawStringAnchored("RGPD Compliant • Aucune captation audio", float64(W)-28, float64(H)-16, 1.0, 0.5)
 
 	var buf bytes.Buffer
 	if err := dc.EncodePNG(&buf); err != nil {
