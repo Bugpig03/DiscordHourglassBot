@@ -22,8 +22,14 @@ def load_servers(search_query: str = "") -> tuple[list[dict], int]:
 
     base_query = (
         Servers
-        .select(Servers.servername, Servers.avatar, Servers.server_id)
-        .order_by(Servers.servername)
+        .select(
+            Servers.servername,
+            Servers.avatar,
+            Servers.server_id,
+            Servers.is_bot_present,
+            Servers.first_tracked_at
+        )
+        .order_by(Servers.is_bot_present.desc(), Servers.servername)
     )
 
     if search_query:
@@ -38,7 +44,9 @@ def load_servers(search_query: str = "") -> tuple[list[dict], int]:
         {
             "server_id": server.server_id,
             "servername": server.servername,
-            "avatar": server.avatar
+            "avatar": server.avatar,
+            "is_bot_present": getattr(server, "is_bot_present", True),
+            "first_tracked_at": server.first_tracked_at.strftime("%d/%m/%Y") if getattr(server, "first_tracked_at", None) else None
         }
         for server in paginated_query
     ]

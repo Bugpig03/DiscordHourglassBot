@@ -18,13 +18,17 @@
 <script type="application/json" id="userMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe }}</script>
 <script type="application/json" id="userDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe }}</script>
 <script type="application/json" id="userServersPieData">{{ charts.user_servers_pie_json|safe }}</script>
+<script type="application/json" id="userFavoriteChannelsData">{{ charts.favorite_channels_pie_json|safe }}</script>
+<script type="application/json" id="userHourlyActivityData">{{ charts.hourly_activity_json|safe }}</script>
 
 <style>
 /* Granularity Toggle Group Styles */
 .granularity-toggle-group {
     display: inline-flex;
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-radius: 10px;
     padding: 3px;
     gap: 4px;
@@ -128,6 +132,117 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Cadre Vert (Discord speaking) autour de l'avatar quand le membre est en vocal */
+.pp-in-voice {
+    border: 3.5px solid #23a55a !important;
+    box-shadow: 0 0 16px rgba(35, 165, 90, 0.55), inset 0 0 8px rgba(35, 165, 90, 0.25) !important;
+    animation: voicePulse 2s infinite ease-in-out;
+}
+@keyframes voicePulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(35, 165, 90, 0.45); }
+    50% { box-shadow: 0 0 24px rgba(35, 165, 90, 0.85); }
+}
+
+/* Pastille de statut Discord sur l'avatar */
+.status-indicator-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3.5px solid #141f2e;
+    box-sizing: border-box;
+    z-index: 3;
+}
+.status-indicator-badge.status-online {
+    background-color: #10b981;
+}
+.status-indicator-badge.status-idle {
+    background-color: #f59e0b;
+}
+.status-indicator-badge.status-dnd {
+    background-color: #ef4444;
+}
+.status-indicator-badge.status-offline {
+    background-color: #64748b;
+}
+
+/* Heatmap Styles (GitHub Style) */
+.heatmap-calendar-wrap {
+    overflow-x: auto;
+    padding: 12px 0 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.heatmap-grid-annual {
+    display: grid;
+    grid-template-rows: repeat(7, 13px);
+    grid-auto-flow: column;
+    grid-auto-columns: 13px;
+    gap: 3.5px;
+    width: max-content;
+}
+.heatmap-cell {
+    width: 13px;
+    height: 13px;
+    border-radius: 2.5px;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    cursor: pointer;
+}
+.heatmap-cell:hover {
+    transform: scale(1.4);
+    z-index: 10;
+    filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.7));
+}
+.heatmap-level-0 { background: rgba(255, 255, 255, 0.05); }
+.heatmap-level-1 { background: #0e4429; }
+.heatmap-level-2 { background: #006d32; }
+.heatmap-level-3 { background: #26a641; }
+.heatmap-level-4 { background: #39d353; box-shadow: 0 0 6px rgba(57, 211, 83, 0.5); }
+
+/* Monthly Heatmap Grid */
+.heatmap-grid-monthly {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+}
+.heatmap-month-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.heatmap-month-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(56, 189, 248, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Companion Cards */
+.companion-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+}
+.companion-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
 </style>
 
 <br>
@@ -135,8 +250,17 @@
 <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-            <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" 
-                 class="big-pp" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+            <!-- Avatar avec cadre rouge si vocal et pastille de statut -->
+            <div style="position: relative; display: inline-block;">
+                <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" 
+                     class="big-pp {% if stats.active_voice %}pp-in-voice{% else %}border-user{% endif %}" 
+                     alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                {% if stats.presence %}
+                <span class="status-indicator-badge status-{{ stats.presence.status }}" 
+                      title="{{ stats.presence.label_fr if current_lang == 'fr' else stats.presence.label_en }}"></span>
+                {% endif %}
+            </div>
+
             <div style="flex: 1; min-width: 220px;">
                 <div class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.username }}</div>
                 <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
@@ -156,6 +280,14 @@
                     <span style="background: rgba(255, 255, 255, 0.04); color: #64748b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; font-family: monospace;">
                         ID : {{ stats.user_id }}
                     </span>
+
+                    <!-- Live Active Voice Indicator -->
+                    {% if stats.active_voice %}
+                    <span style="background: rgba(35, 165, 90, 0.15); color: #4ade80; border: 1px solid #23a55a; border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #23a55a; display: inline-block;"></span>
+                        <span>🎙️ En vocal : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }})</span>
+                    </span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -252,143 +384,296 @@
 <!-- =================================================================== -->
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs">
-        <button class="graphs-tab-btn active" data-tab="tab-servers" onclick="switchUserProfileTab('tab-servers')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
-            <span>{{ t('user_profile.tab_servers') }}</span>
-            <span class="tab-badge">{{ stats.user_servers_stats|length }}</span>
-        </button>
-        <button class="graphs-tab-btn" data-tab="tab-badges" onclick="switchUserProfileTab('tab-badges')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-            <span>{{ t('profile.badges_section_title') }}</span>
-            <span class="tab-badge">{{ gamification.unlocked_count }}/{{ gamification.total_badges }}</span>
+        <button class="graphs-tab-btn active" data-tab="tab-activity" onclick="switchUserProfileTab('tab-activity')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span>{{ t('user_profile.tab_activity') }}</span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-charts" onclick="switchUserProfileTab('tab-charts')">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             <span>{{ t('user_profile.tab_graphs') }}</span>
-            <span class="tab-badge">5</span>
+        </button>
+        <button class="graphs-tab-btn" data-tab="tab-servers" onclick="switchUserProfileTab('tab-servers')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+            <span>{{ t('user_profile.tab_servers') }}</span>
+        </button>
+        <button class="graphs-tab-btn" data-tab="tab-badges" onclick="switchUserProfileTab('tab-badges')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            <span>{{ t('user_profile.tab_badges') }}</span>
         </button>
     </div>
 </div>
 
 <!-- =================================================================== -->
-<!-- ONGLET 1 : Serveurs fréquentés (Classés par temps en vocal)         -->
+<!-- ONGLET 1 : Activité, Heatmap & Compagnons Vocaux                    -->
 <!-- =================================================================== -->
-<div id="tab-servers" class="graphs-tab-pane active">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
-        <div class="big-bold-text nomargin" style="font-size: 1.25rem;">
-            {{ t('user_profile.servers_heading') }} ({{ stats.user_servers_stats|length }})
+<div id="tab-activity" class="graphs-tab-pane active">
+
+    <!-- KPI Streaks & Assiduité -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 25px;">
+        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(249, 115, 22, 0.15); display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            </div>
+            <div>
+                <div class="small-text gray">{{ 'Série actuelle' if current_lang == 'fr' else 'Current streak' }}</div>
+                <div class="big-bold-text" style="color: #fb923c; font-size: 1.45rem;">
+                    {{ heatmap_annual.current_streak }} {{ 'jour' if heatmap_annual.current_streak <= 1 else 'jours' if current_lang == 'fr' else 'days' }}
+                </div>
+            </div>
         </div>
-        <span class="small-text gray">{{ t('user_profile.ranked_by_voice') }}</span>
+
+        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(234, 179, 8, 0.15); display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div>
+                <div class="small-text gray">{{ 'Record de série' if current_lang == 'fr' else 'Best streak' }}</div>
+                <div class="big-bold-text" style="color: #facc15; font-size: 1.45rem;">
+                    {{ heatmap_annual.max_streak }} {{ 'jours' if current_lang == 'fr' else 'days' }}
+                </div>
+            </div>
+        </div>
+
+        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            </div>
+            <div>
+                <div class="small-text gray">{{ 'Jours actifs (1 an)' if current_lang == 'fr' else 'Active days (1 yr)' }}</div>
+                <div class="big-bold-text" style="color: #4ade80; font-size: 1.45rem;">
+                    {{ heatmap_annual.total_active_days }} <span style="font-size: 0.85rem; color: #64748b;">/ 365</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div>
+                <div class="small-text gray">{{ 'Journée record' if current_lang == 'fr' else 'Peak day' }}</div>
+                <div class="big-bold-text" style="color: #38bdf8; font-size: 1.35rem;">
+                    {% if heatmap_annual.best_day %}
+                        {{ heatmap_annual.best_day.hours }}h <span style="font-size: 0.75rem; color: #94a3b8;">({{ heatmap_annual.best_day.date }})</span>
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 
-    {% if stats.user_servers_stats %}
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            {% for server in stats.user_servers_stats %}
-            <div class="gray-box small-border-radius dynamic link" style="padding: 16px 20px; margin: 0;">
-                <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" style="width: 100%;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-                        
-                        <!-- Server info & icon -->
-                        <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
-                            <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                                 class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
-                            <div style="min-width: 0;">
-                                <div class="medium-bold-text nomargin text-overflow" style="font-size: 1.1rem;">{{ server.server_name }}</div>
-                                <div class="small-text gray nomargin" style="font-size: 0.85rem; margin-top: 3px;">
-                                    {{ t('user_profile.joined_at') }} {{ server.joined_at }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Server metrics badges -->
-                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.85rem;">
-                                {{ t('user_profile.server_rank', rank=server.rank, total=server.nb_user) }}
-                            </span>
-                            <span class="hours-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ server.time_spent }} {{ t('top.hours_unit') }}
-                            </span>
-                            <span class="messages-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ server.messages_count | thousands_fr }} {{ t('top.msgs_unit') }}
-                            </span>
-                        </div>
-
-                    </div>
-                </a>
+    <!-- GitHub-Style Heatmap Box -->
+    <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    <span>{{ 'Calendrier d’activité' if current_lang == 'fr' else 'Activity Calendar' }}</span>
+                </div>
+                <div class="small-text gray" style="margin-top: 4px;">
+                    {{ 'Nuances basées sur le temps vocal et les messages envoyés.' if current_lang == 'fr' else 'Activity intensity based on voice time and message counts.' }}
+                </div>
             </div>
+
+            <!-- Toggle Mensuel vs Annuel -->
+            <div class="granularity-toggle-group">
+                <button type="button" class="granularity-btn active" id="btnHeatmapAnnual" onclick="toggleHeatmapView('annual')">
+                    {{ 'Annuel (12 mois)' if current_lang == 'fr' else 'Annual (12 mos)' }}
+                </button>
+                <button type="button" class="granularity-btn" id="btnHeatmapMonthly" onclick="toggleHeatmapView('monthly')">
+                    {{ 'Mensuel (30 jours)' if current_lang == 'fr' else 'Monthly (30 days)' }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Vue 1: Grille Annuelle (52 colonnes x 7 lignes GitHub-style) -->
+        <div id="heatmapAnnualContainer" style="display: block;">
+            <div class="heatmap-calendar-wrap">
+                <div class="heatmap-grid-annual">
+                    {% for day in heatmap_annual.days %}
+                    <div class="heatmap-cell heatmap-level-{{ day.level }}" 
+                         title="{{ day.date }} : {{ day.voice_hours }}h vocal ({{ day.formatted_time }}) • {{ day.messages }} msgs"></div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Légende -->
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 0.78rem; color: #64748b;">
+                <span>{{ 'Moins' if current_lang == 'fr' else 'Less' }}</span>
+                <span class="heatmap-cell heatmap-level-0" style="width: 11px; height: 11px; cursor: default;"></span>
+                <span class="heatmap-cell heatmap-level-1" style="width: 11px; height: 11px; cursor: default;"></span>
+                <span class="heatmap-cell heatmap-level-2" style="width: 11px; height: 11px; cursor: default;"></span>
+                <span class="heatmap-cell heatmap-level-3" style="width: 11px; height: 11px; cursor: default;"></span>
+                <span class="heatmap-cell heatmap-level-4" style="width: 11px; height: 11px; cursor: default;"></span>
+                <span>{{ 'Plus' if current_lang == 'fr' else 'More' }}</span>
+            </div>
+        </div>
+
+        <!-- Vue 2: Grille Mensuelle (30 jours détaillés) -->
+        <div id="heatmapMonthlyContainer" style="display: none;">
+            <div class="heatmap-grid-monthly">
+                {% for day in heatmap_monthly.days %}
+                <div class="heatmap-month-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">{{ day.date[-5:] }}</span>
+                        <span class="heatmap-cell heatmap-level-{{ day.level }}" style="width: 10px; height: 10px; cursor: default;"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #38bdf8; font-weight: 600;">
+                        <span>{{ day.voice_hours }}h vocal</span>
+                        <span style="color: #a78bfa;">{{ day.messages }} msgs</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Affluence & Rythme Horaire Personnel (24h) -->
+    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{{ t('channels.hourly_title') }}</span>
+                </div>
+                <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.hourly_desc') }}</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                    <span>{{ 'Pic vocal' if current_lang == 'fr' else 'Voice peak' }} : {{ charts.peak_voice_hour }}</span>
+                </span>
+                <span style="background: rgba(129, 140, 248, 0.15); color: #a5b4fc; border: 1px solid rgba(129, 140, 248, 0.3); padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>{{ 'Pic messages' if current_lang == 'fr' else 'Messages peak' }} : {{ charts.peak_messages_hour }}</span>
+                </span>
+            </div>
+        </div>
+        <div style="position: relative; height: 320px; width: 100%;">
+            <canvas id="userHourlyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Section : Compagnons Vocaux Fréquents -->
+    <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
+        <div style="margin-bottom: 18px;">
+            <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>{{ 'Compagnons Vocaux Fréquents' if current_lang == 'fr' else 'Frequent Voice Companions' }}</span>
+            </div>
+            <div class="small-text gray" style="margin-top: 4px;">
+                {{ 'Membres avec qui ' ~ stats.username ~ ' passe le plus de temps en vocal dans les mêmes salons.' if current_lang == 'fr' else 'Users who spent the most simultaneous voice time with ' ~ stats.username ~ '.' }}
+            </div>
+        </div>
+
+        {% if voice_companions %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            {% for buddy in voice_companions %}
+            <a href="{{ url_for('user_profile.profile', username=buddy.user_id) }}" class="companion-card">
+                <img src="{{ buddy.avatar_url }}" alt="avatar" class="small-pp" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ buddy.username }}
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; align-items: center;">
+                        <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 2px 8px; font-size: 0.78rem; font-weight: 700;">
+                            {{ buddy.shared_hours }}h ensemble
+                        </span>
+                        <span style="font-size: 0.78rem; color: #94a3b8;">
+                            {{ buddy.session_count }} {{ 'sessions' if current_lang == 'fr' else 'sessions' }}
+                        </span>
+                    </div>
+                </div>
+            </a>
             {% endfor %}
         </div>
-    {% else %}
-        <div class="gray-box small-border-radius center" style="padding: 35px 20px;">
-            <p class="medium-text gray">{{ t('user_profile.no_servers') }}</p>
+        {% else %}
+        <div style="padding: 30px; text-align: center; color: #64748b;">
+            {{ 'Aucun compagnon vocal identifié pour le moment. Rejoignez des salons vocaux avec d\'autres membres !' if current_lang == 'fr' else 'No voice companions recorded yet. Join voice channels with other members!' }}
         </div>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
 
-<!-- =================================================================== -->
-<!-- ONGLET 2 : Succès & Badges Débloqués                                -->
-<!-- =================================================================== -->
-<div id="tab-badges" class="graphs-tab-pane">
-    <div class="badges-summary-banner gray-box small-border-radius" style="padding: 20px 24px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+    <!-- Section : Journal des Sessions Vocales Récentes -->
+    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div>
-                <div class="big-bold-text nomargin" style="font-size: 1.3rem;">
-                    {{ t('profile.badges_section_title') }}
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{{ t('channels.recent_sessions_title') }}</span>
                 </div>
-                <div class="small-text gray" style="margin-top: 5px;">
-                    {{ t('profile.badges_unlocked_summary', unlocked=gamification.unlocked_count, total=gamification.total_badges) }}
-                </div>
+                <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.recent_sessions_desc') }}</div>
             </div>
-            <div class="badges-unlocked-ratio">
-                <span class="ratio-pct">{{ ((gamification.unlocked_count / gamification.total_badges) * 100) | round(0) | int }}%</span>
-                <span class="ratio-label">{{ 'complété' if current_lang == 'fr' else 'completed' }}</span>
-            </div>
+            <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold;">
+                {{ charts.recent_sessions|length }} {{ 'sessions' if current_lang == 'fr' else 'sessions' }}
+            </span>
         </div>
-        <div class="user-xp-bar-bg" style="margin-top: 14px; height: 6px;">
-            <div class="user-xp-bar-fill" style="width: {{ ((gamification.unlocked_count / gamification.total_badges) * 100) | round(1) }}%;"></div>
+
+        {% if charts.recent_sessions %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #64748b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <th style="padding: 10px 14px;">{{ t('channels.th_server') }}</th>
+                        <th style="padding: 10px 14px;">{{ t('channels.th_channel') }}</th>
+                        <th style="padding: 10px 14px;">{{ t('channels.th_date') }}</th>
+                        <th style="padding: 10px 14px;">{{ t('channels.th_duration') }}</th>
+                        <th style="padding: 10px 14px; text-align: right;">{{ t('channels.th_status') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in charts.recent_sessions %}
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 12px 14px;">
+                            <a href="{{ url_for('server_profile.server', server_id=session.server_id) }}" style="display: inline-flex; align-items: center; gap: 8px; color: #ffffff; text-decoration: none; font-weight: 600;">
+                                <span>{{ session.servername }}</span>
+                            </a>
+                        </td>
+                        <td style="padding: 12px 14px; color: #cbd5e1; font-weight: 500;">
+                            {{ session.channel_name }}
+                        </td>
+                        <td style="padding: 12px 14px; color: #94a3b8; font-size: 0.85rem;">
+                            <span style="font-weight: 600; color: #e2e8f0;">{{ session.joined_at_str }}</span>
+                            {% if session.is_legacy %}
+                            <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">{{ t('channels.legacy_date_note') }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 14px; color: #38bdf8; font-weight: 700;">
+                            {{ session.duration_str }}
+                        </td>
+                        <td style="padding: 12px 14px; text-align: right;">
+                            {% if session.is_active %}
+                            <span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+                                {{ t('channels.status_live') }}
+                            </span>
+                            {% elif session.is_legacy %}
+                            <span style="background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
+                                {{ t('channels.status_legacy') }}
+                            </span>
+                            {% else %}
+                            <span style="background: rgba(255, 255, 255, 0.06); color: #94a3b8; border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
+                                {{ t('channels.status_ended') }}
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <div style="padding: 30px; text-align: center; color: #64748b;">
+            {{ t('channels.no_sessions') }}
+        </div>
+        {% endif %}
     </div>
 
-    <!-- Badges Grid -->
-    <div class="badges-grid">
-        {% for badge in gamification.badges %}
-        <div class="badge-card {% if badge.unlocked %}unlocked rarity-{{ badge.rarity }}{% else %}locked{% endif %}">
-            <div class="badge-card-icon-wrap">
-                <span class="badge-card-icon">{{ badge.icon | safe }}</span>
-                {% if not badge.unlocked %}
-                <span class="badge-card-lock" title="{{ t('profile.locked_badge') }}">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                </span>
-                {% endif %}
-            </div>
-            <div class="badge-card-body">
-                <div class="badge-card-header">
-                    <span class="badge-card-name">{{ badge.name }}</span>
-                    <span class="badge-rarity-pill rarity-{{ badge.rarity }}">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
-                </div>
-                <div class="badge-card-desc">{{ badge.description }}</div>
-                
-                {% if not badge.unlocked %}
-                <div class="badge-progress-wrap">
-                    <div class="badge-progress-bar">
-                        <div class="badge-progress-fill" style="width: {{ badge.progress_percent }}%;"></div>
-                    </div>
-                    <span class="badge-progress-label">{{ badge.current }} / {{ badge.target }} {{ badge.unit }}</span>
-                </div>
-                {% else %}
-                <div class="badge-unlocked-tag">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>{{ 'Débloqué' if current_lang == 'fr' else 'Unlocked' }}</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
 </div>
 
 <!-- =================================================================== -->
-<!-- ONGLET 3 : Graphiques & Statistiques de l'utilisateur               -->
+<!-- ONGLET 2 : Graphiques & Statistiques de l'utilisateur               -->
 <!-- =================================================================== -->
 <div id="tab-charts" class="graphs-tab-pane">
     <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
@@ -506,6 +791,161 @@
         <div style="position: relative; min-height: 380px; width: 100%; display: flex; justify-content: center; align-items: center;">
             <canvas id="userServersPieChart" style="max-height: 360px; width: 100%;"></canvas>
         </div>
+    </div>
+    <!-- Section : Salons Vocaux Favoris & Sessions Récentes -->
+    <div style="margin: 30px 0 20px; display: flex; align-items: center; gap: 14px;">
+        <div style="width: 4px; height: 24px; background: #10b981; border-radius: 4px;"></div>
+        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
+            {{ t('channels.user_favorite_title') }}
+        </h2>
+        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
+    </div>
+
+    <!-- Graphique 6 : Salons Vocaux Favoris -->
+    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
+        <div style="margin-bottom: 15px;">
+            <div class="medium-bold-text" style="color: #ffffff; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                <span>{{ t('channels.user_favorite_title') }}</span>
+            </div>
+            <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.user_favorite_desc') }}</div>
+        </div>
+        <div style="position: relative; height: 280px; width: 100%; margin-bottom: 15px;">
+            <canvas id="userFavoriteChannelsChart"></canvas>
+        </div>
+        <!-- Tableau des salons favoris -->
+        {% if charts.favorite_channels_table %}
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            {% for ch in charts.favorite_channels_table %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: 0.85rem;">
+                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <span style="font-weight: 600; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ch.name }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                    <span style="color: #38bdf8; font-weight: 700;">{{ ch.hours }} h</span>
+                    <span style="color: #64748b; font-size: 0.78rem;">({{ ch.percent }}%)</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- =================================================================== -->
+<!-- ONGLET 4 : Serveurs fréquentés (Classés par temps en vocal)         -->
+<!-- =================================================================== -->
+<div id="tab-servers" class="graphs-tab-pane">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <div class="big-bold-text nomargin" style="font-size: 1.25rem;">
+            {{ t('user_profile.servers_heading') }} ({{ stats.user_servers_stats|length }})
+        </div>
+        <span class="small-text gray">{{ t('user_profile.ranked_by_voice') }}</span>
+    </div>
+
+    {% if stats.user_servers_stats %}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% for server in stats.user_servers_stats %}
+            <div class="gray-box small-border-radius dynamic link" style="padding: 16px 20px; margin: 0;">
+                <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" style="width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+                        
+                        <!-- Server info & icon -->
+                        <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
+                            <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                                 class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                            <div style="min-width: 0;">
+                                <div class="medium-bold-text nomargin text-overflow" style="font-size: 1.1rem;">{{ server.server_name }}</div>
+                                <div class="small-text gray nomargin" style="font-size: 0.85rem; margin-top: 3px;">
+                                    {{ t('user_profile.joined_at') }} {{ server.joined_at }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Server metrics badges -->
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.85rem;">
+                                {{ t('user_profile.server_rank', rank=server.rank, total=server.nb_user) }}
+                            </span>
+                            <span class="hours-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ server.time_spent }} {{ t('top.hours_unit') }}
+                            </span>
+                            <span class="messages-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ server.messages_count | thousands_fr }} {{ t('top.msgs_unit') }}
+                            </span>
+                        </div>
+
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="gray-box small-border-radius center" style="padding: 35px 20px;">
+            <p class="medium-text gray">{{ t('user_profile.no_servers') }}</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- =================================================================== -->
+<!-- ONGLET 5 : Succès & Badges Débloqués                                -->
+<!-- =================================================================== -->
+<div id="tab-badges" class="graphs-tab-pane">
+    <div class="badges-summary-banner gray-box small-border-radius" style="padding: 20px 24px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+            <div>
+                <div class="big-bold-text nomargin" style="font-size: 1.3rem;">
+                    {{ t('profile.badges_section_title') }}
+                </div>
+                <div class="small-text gray" style="margin-top: 5px;">
+                    {{ t('profile.badges_unlocked_summary', unlocked=gamification.unlocked_count, total=gamification.total_badges) }}
+                </div>
+            </div>
+            <div class="badges-unlocked-ratio">
+                <span class="ratio-pct">{{ ((gamification.unlocked_count / gamification.total_badges) * 100) | round(0) | int }}%</span>
+                <span class="ratio-label">{{ 'complété' if current_lang == 'fr' else 'completed' }}</span>
+            </div>
+        </div>
+        <div class="user-xp-bar-bg" style="margin-top: 14px; height: 6px;">
+            <div class="user-xp-bar-fill" style="width: {{ ((gamification.unlocked_count / gamification.total_badges) * 100) | round(1) }}%;"></div>
+        </div>
+    </div>
+
+    <!-- Badges Grid -->
+    <div class="badges-grid">
+        {% for badge in gamification.badges %}
+        <div class="badge-card {% if badge.unlocked %}unlocked rarity-{{ badge.rarity }}{% else %}locked{% endif %}">
+            <div class="badge-card-icon-wrap">
+                <span class="badge-card-icon">{{ badge.icon | safe }}</span>
+                {% if not badge.unlocked %}
+                <span class="badge-card-lock" title="{{ t('profile.locked_badge') }}">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                {% endif %}
+            </div>
+            <div class="badge-card-body">
+                <div class="badge-card-header">
+                    <span class="badge-card-name">{{ badge.name }}</span>
+                    <span class="badge-rarity-pill rarity-{{ badge.rarity }}">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
+                </div>
+                <div class="badge-card-desc">{{ badge.description }}</div>
+                
+                {% if not badge.unlocked %}
+                <div class="badge-progress-wrap">
+                    <div class="badge-progress-bar">
+                        <div class="badge-progress-fill" style="width: {{ badge.progress_percent }}%;"></div>
+                    </div>
+                    <span class="badge-progress-label">{{ badge.current }} / {{ badge.target }} {{ badge.unit }}</span>
+                </div>
+                {% else %}
+                <div class="badge-unlocked-tag">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>{{ 'Débloqué' if current_lang == 'fr' else 'Unlocked' }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
@@ -958,13 +1398,164 @@ document.addEventListener('DOMContentLoaded', function() {
         userChartInstances.push(c5);
     }
 
+    // 6. User Hourly Activity (24h)
+    const uHourlyEl = document.getElementById('userHourlyActivityData');
+    if (uHourlyEl) {
+        const hourlyData = JSON.parse(uHourlyEl.textContent);
+        const ctxH = document.getElementById('userHourlyChart').getContext('2d');
+        const gradV = ctxH.createLinearGradient(0, 0, 0, 300);
+        gradV.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+        gradV.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
+
+        const cH = new Chart(ctxH, {
+            type: 'line',
+            data: {
+                labels: hourlyData.labels,
+                datasets: [
+                    {
+                        label: isEn ? 'Voice Hours' : 'Heures en vocal',
+                        data: hourlyData.voice_hours,
+                        borderColor: '#38bdf8',
+                        backgroundColor: gradV,
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        fill: true,
+                        yAxisID: 'y',
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#38bdf8'
+                    },
+                    {
+                        label: isEn ? 'Messages Sent' : 'Messages envoyés',
+                        data: hourlyData.messages_count,
+                        borderColor: '#818cf8',
+                        backgroundColor: 'rgba(129, 140, 248, 0.08)',
+                        borderWidth: 2,
+                        tension: 0.35,
+                        borderDash: [4, 4],
+                        fill: false,
+                        yAxisID: 'y1',
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#818cf8'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#cbd5e1', usePointStyle: true, boxWidth: 8, padding: 16 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        callbacks: {
+                            label: function(ctx) {
+                                if (ctx.datasetIndex === 0) {
+                                    return ` 🎙️ ${ctx.parsed.y} ${hoursUnit}`;
+                                } else {
+                                    return ` 💬 ${ctx.parsed.y.toLocaleString(langLocale)} ${msgsUnit}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                        ticks: { color: '#38bdf8', callback: v => v + ' ' + hoursUnit }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#818cf8', callback: v => v.toLocaleString(langLocale) }
+                    }
+                }
+            }
+        });
+        userChartInstances.push(cH);
+    }
+
+    // 7. User Favorite Channels Doughnut
+    const uFavChEl = document.getElementById('userFavoriteChannelsData');
+    if (uFavChEl) {
+        const favChData = JSON.parse(uFavChEl.textContent);
+        const ctxFC = document.getElementById('userFavoriteChannelsChart').getContext('2d');
+        const cFC = new Chart(ctxFC, {
+            type: 'doughnut',
+            data: {
+                labels: favChData.labels,
+                datasets: [{
+                    data: favChData.hours,
+                    backgroundColor: modernPalette.slice(0, favChData.labels.length),
+                    borderColor: '#15202e',
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '58%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#cbd5e1', font: { size: 11 }, usePointStyle: true, padding: 10 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const val = ctx.parsed;
+                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        userChartInstances.push(cFC);
+    }
+
     // Check URL Hash
-    const validTabs = ['tab-servers', 'tab-badges', 'tab-charts'];
+    const validTabs = ['tab-activity', 'tab-charts', 'tab-servers', 'tab-badges'];
     const currentHash = window.location.hash ? window.location.hash.replace('#', '') : '';
     if (validTabs.includes(currentHash)) {
         switchUserProfileTab(currentHash);
     }
 });
+
+function toggleHeatmapView(mode) {
+    const annualCont = document.getElementById('heatmapAnnualContainer');
+    const monthlyCont = document.getElementById('heatmapMonthlyContainer');
+    const btnAnn = document.getElementById('btnHeatmapAnnual');
+    const btnMon = document.getElementById('btnHeatmapMonthly');
+
+    if (mode === 'monthly') {
+        if (annualCont) annualCont.style.display = 'none';
+        if (monthlyCont) monthlyCont.style.display = 'block';
+        if (btnAnn) btnAnn.classList.remove('active');
+        if (btnMon) btnMon.classList.add('active');
+    } else {
+        if (annualCont) annualCont.style.display = 'block';
+        if (monthlyCont) monthlyCont.style.display = 'none';
+        if (btnAnn) btnAnn.classList.add('active');
+        if (btnMon) btnMon.classList.remove('active');
+    }
+}
 
 function openCardModal() {
     const modal = document.getElementById('cardExportModal');

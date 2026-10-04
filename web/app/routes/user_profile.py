@@ -26,6 +26,13 @@ from app.functions import (
     get_daily_hours_diff,
     get_daily_messages_diff,
     get_month_abbr,
+    get_user_presence,
+    get_user_active_voice,
+    get_hourly_activity_distribution,
+    get_user_favorite_voice_channels,
+    get_recent_voice_sessions,
+    get_user_heatmap_data,
+    get_user_voice_companions,
 )
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges
 
@@ -141,11 +148,19 @@ def profile(username: str):
         "total_badges": len(badges),
     }
 
+    # Données Heatmap GitHub-style et Compagnons vocaux
+    heatmap_annual = get_user_heatmap_data(user_id, days=365)
+    heatmap_monthly = get_user_heatmap_data(user_id, days=30)
+    voice_companions = get_user_voice_companions(user_id, limit=6)
+
     return render_template(
         "user_profile.html",
         stats=stats,
         charts=charts,
         gamification=gamification,
+        heatmap_annual=heatmap_annual,
+        heatmap_monthly=heatmap_monthly,
+        voice_companions=voice_companions,
         has_homonyms=(homonyms_count > 0),
         homonyms_count=homonyms_count
     )
@@ -166,6 +181,9 @@ def load_user_profile_stats(user_id: int, username: str) -> dict:
 
     user_servers_stats = get_user_servers_stats(user_id)
 
+    presence = get_user_presence(user_id)
+    active_voice = get_user_active_voice(user_id)
+
     return {
         "user_id": str(user_id),
         "avatar_url": avatar_url,
@@ -180,6 +198,8 @@ def load_user_profile_stats(user_id: int, username: str) -> dict:
         "user_servers_stats": user_servers_stats,
         "join_date": join_date,
         "raw_join_date": get_user_raw_join_date(user_id),
+        "presence": presence,
+        "active_voice": active_voice,
     }
 
 
@@ -287,6 +307,24 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
     # Default to daily view if monthly data has less than 3 points (e.g. newly registered user)
     default_granularity = "day" if len(hours_data) < 3 else "month"
 
+    # 6. User's favorite voice channels
+    favorite_channels = get_user_favorite_voice_channels(user_id, limit=6, lang=lang)
+    favorite_channels_pie_json = json.dumps({
+        "labels": favorite_channels["labels"],
+        "hours": favorite_channels["hours"]
+    })
+
+    # 7. User's hourly activity distribution (24h)
+    hourly_activity = get_hourly_activity_distribution(user_id=user_id, lang=lang)
+    hourly_activity_json = json.dumps({
+        "labels": hourly_activity["labels"],
+        "voice_hours": hourly_activity["voice_hours"],
+        "messages_count": hourly_activity["messages_count"]
+    })
+
+    # 8. User's recent voice sessions log
+    recent_sessions = get_recent_voice_sessions(user_id=user_id, limit=10, lang=lang)
+
     return {
         "chart_data_json": chart_data_json,
         "messages_chart_data_json": messages_chart_data_json,
@@ -302,4 +340,12 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
         "avg_daily_hours": avg_daily_hours,
         "avg_daily_msgs": avg_daily_msgs,
         "default_granularity": default_granularity,
+        # New Session & Channel Analytics
+        "favorite_channels_pie_json": favorite_channels_pie_json,
+        "favorite_channels_table": favorite_channels["channels"],
+        "has_favorite_channels": favorite_channels["has_data"],
+        "hourly_activity_json": hourly_activity_json,
+        "peak_voice_hour": hourly_activity["peak_voice_hour"],
+        "peak_messages_hour": hourly_activity["peak_messages_hour"],
+        "recent_sessions": recent_sessions,
     }

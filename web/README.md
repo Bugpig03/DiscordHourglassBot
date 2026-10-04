@@ -6,9 +6,28 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.4 - 05/09/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.6.0 - 04/10/2026)
 
-L'ensemble des fonctionnalités ci-dessous a été développé sans aucune altération du schéma de la base de données (calculs purs en mémoire et temps réel) :
+### 1. 🎙️ Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)
+- **Tracking Temporel Précis** : Horodatage d'arrivée (`joined_at`) et de départ (`left_at`) avec durée exacte en secondes.
+- **Punchcard Horaire 24h & 7j/7** : Grille matricielle d'activité vocale heure par heure pour chaque membre et serveur.
+- **Heatmap d'Activité Annuelle & Mensuelle** : Calendrier dynamique d'assiduité vocale style GitHub.
+- **Compagnons Vocaux Fréquents** : Détection des personnes partageant le plus de temps en vocal avec calcul des heures communes.
+- **Journal des Sessions Vocales Récentes** : Tableau interactif avec statut direct (`LIVE`), terminé ou archive (`LEGACY`).
+
+### 2. 🗂️ Navigation par Onglets Épurée & Zéro Badge Numérique
+- **Profil Utilisateur** : 4 onglets ordonnés (*Activité*, *Graphiques*, *Serveurs fréquentés*, *Badges*). Le journal des sessions récentes est désormais placé à la fin de l'onglet Activité. Suppression totale des badges numériques sur les boutons d'onglets.
+- **Profil Serveur** : 3 onglets limpides (*Activité*, *Graphiques*, *Membres*).
+- **Graphiques Globaux** : Retrait de l'onglet redondant et simplification du titre en *Activité*.
+
+### 3. 🎨 Identité Visuelle Vectorielle & Conformité RGPD (v2.6.0)
+- Remplacement intégral des émojis par des icônes SVG vectorielles Lucide/Feather.
+- Pied de page et API actualisés en **`version 2.6.0 - 04/10/2026`**.
+- Politique de confidentialité (`/privacy`) et CGU (`/terms`) mises à niveau au 04/10/2026.
+
+---
+
+## 📜 Historique des Versions Précédentes (Version 2.4 - 05/09/2026)
 
 ### 1. ⚡ Système de Gamification en Temps Réel (Niveaux & XP)
 - **Moteur d'Expérience** (`app/gamification.py`) :

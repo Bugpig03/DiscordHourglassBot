@@ -47,8 +47,10 @@
             <ul class="legal-list">
                 <li><strong>Identifiant Discord unique (<code>user_id</code>) :</strong> Numéro technique fourni par Discord, indispensable pour relier vos statistiques à votre profil.</li>
                 <li><strong>Pseudonyme Discord (<code>username</code>) & Avatar :</strong> Utilisés pour afficher vos statistiques de manière conviviale sur le dashboard et les cartes d'export.</li>
-                <li><strong>Compteurs d'activité numérique :</strong> Temps cumulé passé en salon vocal (en secondes) et nombre total de messages envoyés sur les serveurs où le bot est actif.</li>
-                <li><strong>Identifiants de serveur (<code>server_id</code>) :</strong> Nom, identifiant et icône du serveur pour établir les classements locaux.</li>
+                <li><strong>Sessions vocales & Salons (<code>voice_sessions</code>) :</strong> Horodatage d'entrée et de sortie des salons vocaux (début, fin, durée calculée), identifiant et nom du salon vocal, et indicateurs techniques d'activité (partage d'écran ou caméra activée à titre de simple état booléen).</li>
+                <li><strong>Événements de messages (<code>message_events</code>) :</strong> Horodatage et identifiant du salon lors de l'envoi d'un message afin d'alimenter les courbes d'affluence et de rythme horaire.</li>
+                <li><strong>Statuts de présence et de serveur :</strong> Compteurs agrégés d'utilisateurs connectés, inactifs ou en vocal sur le serveur (<code>live_server_status</code>).</li>
+                <li><strong>Identifiants de serveur (<code>server_id</code>) :</strong> Nom, identifiant et icône du serveur pour établir les classements et profils communautaires.</li>
             </ul>
 
             <div class="legal-highlight-box positive">
@@ -57,10 +59,11 @@
                     <span>Ce que nous ne collectons JAMAIS</span>
                 </div>
                 <ul class="legal-sublist">
-                    <li>❌ <strong>Aucun contenu de message textuel</strong> n'est lu, analysé, indexé ni enregistré. Seul le compteur numérique est incrémenté.</li>
-                    <li>❌ <strong>Aucun enregistrement, écoute ou flux audio vocal</strong> n'est capté. Seul le temps passé connecté au salon vocal est calculé.</li>
-                    <li>❌ <strong>Aucune donnée personnelle sensible :</strong> Aucun nom réel, adresse email, mot de passe ou coordonnée bancaire.</li>
-                    <li>❌ <strong>Aucune donnée de messagerie privée (DM) :</strong> Le bot n'interagit que dans les serveurs où il est invité.</li>
+                    <li>❌ <strong>Aucun contenu de message textuel :</strong> Aucun message n'est lu, analysé, indexé ni stocké. Seul le signal de l'événement et son salon sont pris en compte.</li>
+                    <li>❌ <strong>Aucun enregistrement ni écoute audio :</strong> Aucun flux vocal n'est capté, enregistré ou écouté. Seul l'horodatage de connexion au salon vocal est mesuré.</li>
+                    <li>❌ <strong>Aucun flux vidéo ni capture d'écran :</strong> L'activation de caméra ou de partage d'écran n'est relevée que comme simple booléen de présence technique.</li>
+                    <li>❌ <strong>Aucune donnée personnelle sensible :</strong> Aucun nom réel, adresse email, mot de passe, adresse IP ou coordonnée bancaire.</li>
+                    <li>❌ <strong>Aucune donnée de messagerie privée (DM) :</strong> Le bot n'interagit que dans les serveurs Discord publics ou privés où il est invité par les administrateurs.</li>
                 </ul>
             </div>
         </div>
@@ -200,8 +203,10 @@
             <ul class="legal-list">
                 <li><strong>Unique Discord ID (<code>user_id</code>):</strong> Technical identifier provided by Discord, required to link counters to your profile.</li>
                 <li><strong>Discord Username & Avatar:</strong> Displayed to present readable profiles, server leaderboards, and exported stat cards.</li>
-                <li><strong>Numeric Activity Counters:</strong> Total cumulative voice time (in seconds) and total messages sent within servers where the bot operates.</li>
-                <li><strong>Server Metadata (<code>server_id</code>):</strong> Server name, identifier, and guild icon for local rankings.</li>
+                <li><strong>Voice Sessions & Channels (<code>voice_sessions</code>):</strong> Timestamps of channel join and leave events (start, end, computed duration), channel IDs and names, and technical presence flags (screen sharing or camera on as boolean indicators).</li>
+                <li><strong>Message Events (<code>message_events</code>):</strong> Timestamps and channel IDs upon message submission to power activity curves and hourly rhythm heatmaps.</li>
+                <li><strong>Live Presence & Server Status:</strong> Aggregated member status counts (online, idle, dnd, voice active) via <code>live_server_status</code>.</li>
+                <li><strong>Server Metadata (<code>server_id</code>):</strong> Server name, identifier, and guild icon for local rankings and community profiles.</li>
             </ul>
 
             <div class="legal-highlight-box positive">
@@ -210,10 +215,11 @@
                     <span>What we NEVER collect or store</span>
                 </div>
                 <ul class="legal-sublist">
-                    <li>❌ <strong>No message content:</strong> We do not read, inspect, store, or log message contents. Only the numeric message counter is incremented.</li>
-                    <li>❌ <strong>No voice audio or recordings:</strong> We never record, stream, or listen to voice audio. Only time spent in voice channels is computed.</li>
-                    <li>❌ <strong>No sensitive personal data:</strong> No real names, email addresses, passwords, or payment credentials.</li>
-                    <li>❌ <strong>No Direct Messages (DMs):</strong> The bot only functions inside authorized servers.</li>
+                    <li>❌ <strong>No message content:</strong> We never read, inspect, parse, or store message contents. Only event timestamps and channel identifiers are processed.</li>
+                    <li>❌ <strong>No voice audio or recordings:</strong> We never record, stream, or listen to voice audio. Only connection timestamps are calculated.</li>
+                    <li>❌ <strong>No video streams or screen recordings:</strong> Webcam and screen-share presence are only recorded as raw boolean technical states.</li>
+                    <li>❌ <strong>No sensitive personal data:</strong> No real names, email addresses, passwords, IP addresses, or payment credentials.</li>
+                    <li>❌ <strong>No Direct Messages (DMs):</strong> The bot only functions inside authorized Discord servers.</li>
                 </ul>
             </div>
         </div>

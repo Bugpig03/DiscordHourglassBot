@@ -18,13 +18,18 @@
 <script type="application/json" id="serverMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe }}</script>
 <script type="application/json" id="serverDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe }}</script>
 <script type="application/json" id="serverTopMembersPieData">{{ charts.top_members_pie_json|safe }}</script>
+<script type="application/json" id="serverVoiceChannelsData">{{ charts.voice_channels_pie_json|safe }}</script>
+<script type="application/json" id="serverTextChannelsData">{{ charts.text_channels_pie_json|safe }}</script>
+<script type="application/json" id="serverHourlyActivityData">{{ charts.hourly_activity_json|safe }}</script>
 
 <style>
 /* Granularity Toggle Group Styles */
 .granularity-toggle-group {
     display: inline-flex;
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-radius: 10px;
     padding: 3px;
     gap: 4px;
@@ -174,6 +179,17 @@
             <div style="flex: 1; min-width: 220px;">
                 <div class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.servername }}</div>
                 <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
+                    {% if stats.is_bot_present %}
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        {{ t('servers.bot_active') }}
+                    </span>
+                    {% else %}
+                    <span style="background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 20px; padding: 4px 12px; font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;" title="{{ t('servers.bot_inactive_tooltip') }}">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
+                        {{ t('servers.bot_inactive') }}
+                    </span>
+                    {% endif %}
                     <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
                         {{ t('server_profile.server_rank', rank=stats.rank, total=stats.total_server) }}
                     </span>
@@ -244,29 +260,64 @@
 <!-- =================================================================== -->
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs">
-        <button class="graphs-tab-btn active" data-tab="tab-members" onclick="switchServerProfileTab('tab-members')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>{{ t('server_profile.tab_members') }}</span>
-            <span class="tab-badge">{{ stats.users|length }}</span>
+        <button class="graphs-tab-btn active" data-tab="tab-activity" onclick="switchServerProfileTab('tab-activity')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span>{{ t('server_profile.tab_activity') }}</span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-charts" onclick="switchServerProfileTab('tab-charts')">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             <span>{{ t('server_profile.tab_graphs') }}</span>
-            <span class="tab-badge">5</span>
+        </button>
+        <button class="graphs-tab-btn" data-tab="tab-members" onclick="switchServerProfileTab('tab-members')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>{{ t('server_profile.tab_members') }}</span>
         </button>
     </div>
 </div>
 
 <!-- =================================================================== -->
-<!-- ONGLET 1 : Membres du serveur (Classés par temps en vocal)           -->
+<!-- ONGLET 3 : Membres du serveur (Classés par temps en vocal)           -->
 <!-- =================================================================== -->
-<div id="tab-members" class="graphs-tab-pane active">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+<div id="tab-members" class="graphs-tab-pane">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
         <div class="big-bold-text nomargin" style="font-size: 1.25rem;">
             {{ t('server_profile.active_members_heading', count=stats.users|length) }}
         </div>
         <span class="small-text gray">{{ t('server_profile.sorted_by_voice') }}</span>
     </div>
+
+    <!-- Presence Breakdown Bar for this server -->
+    {% if stats.presence_counts %}
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+        <!-- En ligne -->
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.82rem; font-weight: 600; color: #34d399;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+            <span><strong>{{ stats.presence_counts.online }}</strong> {{ 'En ligne' if current_lang == 'fr' else 'Online' }}</span>
+        </div>
+        <!-- Absent -->
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.82rem; font-weight: 600; color: #fbbf24;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+            <span><strong>{{ stats.presence_counts.idle }}</strong> {{ 'Absent' if stats.presence_counts.idle <= 1 else 'Absents' if current_lang == 'fr' else 'Idle' }}</span>
+        </div>
+        <!-- Ne pas déranger -->
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.82rem; font-weight: 600; color: #f87171;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+            <span><strong>{{ stats.presence_counts.dnd }}</strong> {{ 'Ne pas déranger' if current_lang == 'fr' else 'Do Not Disturb' }}</span>
+        </div>
+        <!-- Hors ligne / Invisible -->
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(100, 116, 139, 0.12); border: 1px solid rgba(100, 116, 139, 0.25); border-radius: 20px; padding: 4px 12px; font-size: 0.82rem; font-weight: 600; color: #94a3b8;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
+            <span><strong>{{ stats.presence_counts.offline }}</strong> {{ 'Hors ligne / Invisible' if current_lang == 'fr' else 'Offline / Invisible' }}</span>
+        </div>
+        <!-- En vocal (si > 0) -->
+        {% if stats.presence_counts.voice > 0 %}
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(35, 165, 90, 0.14); border: 1px solid rgba(35, 165, 90, 0.4); border-radius: 20px; padding: 4px 12px; font-size: 0.82rem; font-weight: 600; color: #4ade80;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            <span><strong>{{ stats.presence_counts.voice }}</strong> {{ 'en vocal' if current_lang == 'fr' else 'in voice' }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <form method="GET" action="" class="page-search-form">
         <div class="page-search-bar">
@@ -301,8 +352,17 @@
                                 #{{ user.rank }}
                             </span>
 
-                            <img src="{{ user.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                                 class="small-pp" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                            <div style="position: relative; width: 48px; height: 48px; min-width: 48px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;">
+                                <img src="{{ user.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                                     class="small-pp"
+                                     style="display: block; width: 48px; height: 48px; margin: 0; {% if user.is_in_voice %}border: 2.5px solid #23a55a !important; box-shadow: 0 0 10px rgba(35, 165, 90, 0.6) !important;{% endif %}"
+                                     alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                                {% if user.presence and user.presence.status != 'offline' %}
+                                <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: {{ user.presence.color }}; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" title="{{ user.presence.label_fr if current_lang == 'fr' else user.presence.label_en }}"></span>
+                                {% elif user.is_in_voice %}
+                                <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: #64748b; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" title="{{ 'Invisible / Hors ligne' if current_lang == 'fr' else 'Invisible / Offline' }}"></span>
+                                {% endif %}
+                            </div>
 
                             <div style="min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <span class="medium-bold-text text-overflow nomargin" style="font-size: 1.05rem;">
@@ -463,6 +523,250 @@
 </div>
 
 <!-- =================================================================== -->
+<!-- ONGLET 1 : Activité, Salons & Rythme (v3.0)                        -->
+<!-- =================================================================== -->
+<div id="tab-activity" class="graphs-tab-pane active">
+    <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 4px; height: 24px; background: #10b981; border-radius: 4px;"></div>
+            <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
+                {{ t('channels.section_title') }}
+            </h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold;">
+                {{ t('channels.peak_hours_badge', hour=charts.peak_voice_hour) }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Graphique 1 : Affluence & Rythme Horaire (24h) -->
+    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('channels.hourly_title') }}</div>
+                <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.hourly_desc') }}</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                    <span>{{ 'Pic vocal' if current_lang == 'fr' else 'Voice peak' }} : {{ charts.peak_voice_hour }}</span>
+                </span>
+                <span style="background: rgba(129, 140, 248, 0.15); color: #a5b4fc; border: 1px solid rgba(129, 140, 248, 0.3); padding: 3px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>{{ 'Pic messages' if current_lang == 'fr' else 'Messages peak' }} : {{ charts.peak_messages_hour }}</span>
+                </span>
+            </div>
+        </div>
+        <div style="position: relative; height: 320px; width: 100%;">
+            <canvas id="serverHourlyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Graphique 2 : Punchcard Horaire (Matrice 7 Jours x 24 Heures) -->
+    <div class="gray-box small-border-radius" style="padding: 22px 25px; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span>{{ 'Punchcard Horaire (Affluence par Jour & Heure)' if current_lang == 'fr' else 'Hourly Punchcard (Day & Hour Heatmap)' }}</span>
+                </div>
+                <div class="small-text gray" style="margin-top: 4px;">
+                    {{ 'Visualisation de l’intensité d’activité sur la semaine (croisement jours de la semaine et 24 heures).' if current_lang == 'fr' else 'Activity density matrix across all 7 days of the week and 24 hours.' }}
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #64748b;">
+                <span>{{ 'Calme' if current_lang == 'fr' else 'Low' }}</span>
+                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(255,255,255,0.04); display: inline-block;"></span>
+                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(56, 189, 248, 0.3); display: inline-block;"></span>
+                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(56, 189, 248, 0.6); display: inline-block;"></span>
+                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(129, 140, 248, 0.85); display: inline-block;"></span>
+                <span style="width: 12px; height: 12px; border-radius: 3px; background: #f43f5e; box-shadow: 0 0 6px rgba(244,63,94,0.6); display: inline-block;"></span>
+                <span>{{ 'Intense' if current_lang == 'fr' else 'Peak' }}</span>
+            </div>
+        </div>
+
+        <div style="overflow-x: auto; padding: 10px 0;">
+            <div style="min-width: 680px;">
+                <!-- Header Heures (00h à 23h) -->
+                <div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 6px; text-align: center; font-size: 0.72rem; color: #64748b; font-weight: 600;">
+                    <div></div>
+                    {% for h in range(24) %}
+                    <div>{{ '%02d' % h }}h</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Lignes des 7 jours -->
+                {% for row in punchcard.days %}
+                <div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 4px; align-items: center;">
+                    <div style="font-size: 0.82rem; font-weight: 700; color: #94a3b8; text-align: right; padding-right: 12px;">
+                        {{ row.day_name }}
+                    </div>
+                    {% for c in row.hours %}
+                    <div style="height: 24px; border-radius: 4px; transition: transform 0.15s ease; cursor: pointer;
+                        {% if c.intensity == 0 %}
+                            background: rgba(255, 255, 255, 0.03);
+                        {% elif c.intensity <= 0.25 %}
+                            background: rgba(56, 189, 248, 0.25);
+                        {% elif c.intensity <= 0.50 %}
+                            background: rgba(56, 189, 248, 0.55);
+                        {% elif c.intensity <= 0.75 %}
+                            background: rgba(129, 140, 248, 0.8);
+                        {% else %}
+                            background: #f43f5e; box-shadow: 0 0 8px rgba(244, 63, 94, 0.5);
+                        {% endif %}"
+                        title="{{ row.day_name }} à {{ c.hour }}h00 : {{ c.voice_hours }}h vocal • {{ c.messages }} messages"
+                        onmouseover="this.style.transform='scale(1.2)';"
+                        onmouseout="this.style.transform='scale(1)';">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Répartition par Salon (Vocal & Textuel en grille 2 colonnes) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 25px;">
+        <!-- Salons Vocaux -->
+        <div class="gray-box small-border-radius" style="padding: 20px 22px;">
+            <div style="margin-bottom: 15px;">
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                    <span>{{ t('channels.voice_breakdown_title') }}</span>
+                </div>
+                <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.voice_breakdown_desc') }}</div>
+            </div>
+            <div style="position: relative; height: 260px; width: 100%; margin-bottom: 15px;">
+                <canvas id="serverVoiceChannelsChart"></canvas>
+            </div>
+            <!-- Tableau des salons vocaux -->
+            {% if charts.voice_channels_table %}
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% for ch in charts.voice_channels_table %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                        <span style="font-weight: 600; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ch.name }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                        <span style="color: #38bdf8; font-weight: 700;">{{ ch.hours }} h</span>
+                        <span style="color: #64748b; font-size: 0.78rem;">({{ ch.percent }}%)</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Salons Textuels -->
+        <div class="gray-box small-border-radius" style="padding: 20px 22px;">
+            <div style="margin-bottom: 15px;">
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>{{ t('channels.messages_breakdown_title') }}</span>
+                </div>
+                <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.messages_breakdown_desc') }}</div>
+            </div>
+            <div style="position: relative; height: 260px; width: 100%; margin-bottom: 15px;">
+                <canvas id="serverTextChannelsChart"></canvas>
+            </div>
+            <!-- Tableau des salons textuels -->
+            {% if charts.text_channels_table %}
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% for ch in charts.text_channels_table %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                        <span style="font-weight: 600; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ch.name }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                        <span style="color: #a5b4fc; font-weight: 700;">{{ ch.messages | thousands_fr }} msgs</span>
+                        <span style="color: #64748b; font-size: 0.78rem;">({{ ch.percent }}%)</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Journal des Dernières Sessions Vocales -->
+    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{{ t('channels.recent_sessions_title') }}</span>
+                </div>
+                <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.recent_sessions_desc') }}</div>
+            </div>
+            <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold;">
+                {{ charts.recent_sessions|length }} sessions
+            </span>
+        </div>
+
+        {% if charts.recent_sessions %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #64748b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <th style="padding: 10px 14px;">{{ t('channels.th_user') }}</th>
+                        <th style="padding: 10px 14px;">{{ t('channels.th_channel') }}</th>
+                        <th style="padding: 10px 14px;">{{ t('channels.th_date') }}</th>
+                        <th style="padding: 10px 14px;">{{ t('channels.th_duration') }}</th>
+                        <th style="padding: 10px 14px; text-align: right;">{{ t('channels.th_status') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in charts.recent_sessions %}
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 12px 14px;">
+                            <a href="{{ url_for('user_profile.profile', username=session.user_id) }}" style="display: inline-flex; align-items: center; gap: 10px; color: #ffffff; text-decoration: none; font-weight: 600;">
+                                <img src="{{ session.avatar or url_for('static', filename='images/base_avatar_big.png') }}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" alt="avatar">
+                                <span>{{ session.username }}</span>
+                            </a>
+                        </td>
+                        <td style="padding: 12px 14px; color: #cbd5e1; font-weight: 500;">
+                            {{ session.channel_name }}
+                        </td>
+                        <td style="padding: 12px 14px; color: #94a3b8; font-size: 0.85rem;">
+                            <span style="font-weight: 600; color: #e2e8f0;">{{ session.joined_at_str }}</span>
+                            {% if session.is_legacy %}
+                            <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">{{ t('channels.legacy_date_note') }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 14px; color: #38bdf8; font-weight: 700;">
+                            {{ session.duration_str }}
+                        </td>
+                        <td style="padding: 12px 14px; text-align: right;">
+                            {% if session.is_active %}
+                            <span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+                                {{ t('channels.status_live') }}
+                            </span>
+                            {% elif session.is_legacy %}
+                            <span style="background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
+                                {{ t('channels.status_legacy') }}
+                            </span>
+                            {% else %}
+                            <span style="background: rgba(255, 255, 255, 0.06); color: #94a3b8; border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
+                                {{ t('channels.status_ended') }}
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 30px; text-align: center; color: #64748b;">
+            {{ t('channels.no_sessions') }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- =================================================================== -->
 <!-- CHART INITIALIZATIONS & TAB CONTROLLER (JavaScript)                 -->
 <!-- =================================================================== -->
 <script>
@@ -557,6 +861,7 @@ function switchServerGranularity(mode) {
 }
 
 function switchServerProfileTab(tabId) {
+    if (tabId === 'tab-channels') tabId = 'tab-activity';
     document.querySelectorAll('.graphs-tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
     });
@@ -916,9 +1221,185 @@ document.addEventListener('DOMContentLoaded', function() {
         serverChartInstances.push(c5);
     }
 
+    // 6. Server Hourly Activity (24h)
+    const sHourlyEl = document.getElementById('serverHourlyActivityData');
+    if (sHourlyEl) {
+        const hourlyData = JSON.parse(sHourlyEl.textContent);
+        const ctxH = document.getElementById('serverHourlyChart').getContext('2d');
+        const gradV = ctxH.createLinearGradient(0, 0, 0, 300);
+        gradV.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+        gradV.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
+
+        const cH = new Chart(ctxH, {
+            type: 'line',
+            data: {
+                labels: hourlyData.labels,
+                datasets: [
+                    {
+                        label: isEn ? 'Voice Hours' : 'Heures en vocal',
+                        data: hourlyData.voice_hours,
+                        borderColor: '#38bdf8',
+                        backgroundColor: gradV,
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        fill: true,
+                        yAxisID: 'y',
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#38bdf8'
+                    },
+                    {
+                        label: isEn ? 'Messages Sent' : 'Messages envoyés',
+                        data: hourlyData.messages_count,
+                        borderColor: '#818cf8',
+                        backgroundColor: 'rgba(129, 140, 248, 0.08)',
+                        borderWidth: 2,
+                        tension: 0.35,
+                        borderDash: [4, 4],
+                        fill: false,
+                        yAxisID: 'y1',
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#818cf8'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#cbd5e1', usePointStyle: true, boxWidth: 8, padding: 16 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        callbacks: {
+                            label: function(ctx) {
+                                if (ctx.datasetIndex === 0) {
+                                    return ` 🎙️ ${ctx.parsed.y} ${hoursUnit}`;
+                                } else {
+                                    return ` 💬 ${ctx.parsed.y.toLocaleString(langLocale)} ${msgsUnit}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                        ticks: { color: '#38bdf8', callback: v => v + ' ' + hoursUnit }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#818cf8', callback: v => v.toLocaleString(langLocale) }
+                    }
+                }
+            }
+        });
+        serverChartInstances.push(cH);
+    }
+
+    // 7. Server Voice Channels Doughnut
+    const sVoiceChEl = document.getElementById('serverVoiceChannelsData');
+    if (sVoiceChEl) {
+        const vChData = JSON.parse(sVoiceChEl.textContent);
+        const ctxVC = document.getElementById('serverVoiceChannelsChart').getContext('2d');
+        const cVC = new Chart(ctxVC, {
+            type: 'doughnut',
+            data: {
+                labels: vChData.labels,
+                datasets: [{
+                    data: vChData.hours,
+                    backgroundColor: modernPalette.slice(0, vChData.labels.length),
+                    borderColor: '#15202e',
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '58%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#cbd5e1', font: { size: 11 }, usePointStyle: true, padding: 10 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const val = ctx.parsed;
+                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        serverChartInstances.push(cVC);
+    }
+
+    // 8. Server Text Channels Doughnut
+    const sTextChEl = document.getElementById('serverTextChannelsData');
+    if (sTextChEl) {
+        const tChData = JSON.parse(sTextChEl.textContent);
+        const ctxTC = document.getElementById('serverTextChannelsChart').getContext('2d');
+        const cTC = new Chart(ctxTC, {
+            type: 'doughnut',
+            data: {
+                labels: tChData.labels,
+                datasets: [{
+                    data: tChData.messages,
+                    backgroundColor: modernPalette.slice(1, tChData.labels.length + 1),
+                    borderColor: '#15202e',
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '58%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#cbd5e1', font: { size: 11 }, usePointStyle: true, padding: 10 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const val = ctx.parsed;
+                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                return ` ${val.toLocaleString(langLocale)} ${msgsUnit} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        serverChartInstances.push(cTC);
+    }
+
     // Check URL Hash
-    const validTabs = ['tab-members', 'tab-charts'];
-    const currentHash = window.location.hash ? window.location.hash.replace('#', '') : '';
+    const validTabs = ['tab-activity', 'tab-charts', 'tab-members'];
+    let currentHash = window.location.hash ? window.location.hash.replace('#', '') : '';
+    if (currentHash === 'tab-channels') currentHash = 'tab-activity';
     if (validTabs.includes(currentHash)) {
         switchServerProfileTab(currentHash);
     }

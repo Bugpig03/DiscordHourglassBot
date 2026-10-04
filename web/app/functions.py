@@ -2,7 +2,11 @@
 
 from datetime import datetime, timedelta
 from peewee import fn, SQL, JOIN
-from app.database import Users, Stats, HistoricalStats, Servers
+from app.database import (
+    Users, Stats, HistoricalStats, Servers,
+    VoiceSessions, Channels, MessageEvents, LiveServerStatus, UserPresence,
+    PresenceHistory
+)
 
 FRENCH_MONTHS = [
     "janvier", "février", "mars", "avril", "mai", "juin",
@@ -103,15 +107,27 @@ get_server_name_by_id = get_servername_by_server_id
 
 
 def get_total_seconds_by_user_id(user_id: int) -> int:
-    """Compute the cumulative voice seconds for a specific user across all servers."""
-    result = Stats.select(fn.SUM(Stats.seconds)).where(Stats.user_id == user_id).scalar()
-    return result or 0
+    """Compute the cumulative voice seconds for a specific user across all servers, including active live session."""
+    base_secs = Stats.select(fn.SUM(Stats.seconds)).where(Stats.user_id == user_id).scalar() or 0
+    active_secs = (
+        VoiceSessions
+        .select(fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0))
+        .where((VoiceSessions.user_id == user_id) & (VoiceSessions.left_at.is_null(True)))
+        .scalar() or 0
+    )
+    return int(base_secs + active_secs)
 
 
 def get_total_seconds_by_server_id(server_id: int) -> int:
-    """Compute the cumulative voice seconds for a specific server across all users."""
-    result = Stats.select(fn.SUM(Stats.seconds)).where(Stats.server_id == server_id).scalar()
-    return result or 0
+    """Compute the cumulative voice seconds for a specific server across all users, including active live sessions."""
+    base_secs = Stats.select(fn.SUM(Stats.seconds)).where(Stats.server_id == server_id).scalar() or 0
+    active_secs = (
+        VoiceSessions
+        .select(fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0))
+        .where((VoiceSessions.server_id == server_id) & (VoiceSessions.left_at.is_null(True)))
+        .scalar() or 0
+    )
+    return int(base_secs + active_secs)
 
 
 def get_total_message_by_user_id(user_id: int) -> int:
@@ -1018,3 +1034,715 @@ def get_monthly_new_users_growth() -> list[dict]:
                 "new_users": int(row.new_users)
             })
     return cohorts
+
+
+def get_user_presence(user_id: int) -> dict:
+    """Retrieve real-time presence status (online, idle, dnd, offline) for a user."""
+    p = UserPresence.select().where(UserPresence.user_id == user_id).first()
+    status = p.status if p else "offline"
+    labels = {
+        "online": {"fr": "En ligne", "en": "Online", "color": "#10b981", "bg": "rgba(16, 185, 129, 0.15)", "border": "#10b981"},
+        "idle": {"fr": "Absent", "en": "Idle", "color": "#f59e0b", "bg": "rgba(245, 158, 11, 0.15)", "border": "#f59e0b"},
+        "dnd": {"fr": "Ne pas déranger", "en": "Do Not Disturb", "color": "#ef4444", "bg": "rgba(239, 68, 68, 0.15)", "border": "#ef4444"},
+        "offline": {"fr": "Hors ligne", "en": "Offline", "color": "#64748b", "bg": "rgba(100, 116, 139, 0.15)", "border": "#64748b"}
+    }
+    info = labels.get(status, labels["offline"])
+    return {
+        "status": status,
+        "label_fr": info["fr"],
+        "label_en": info["en"],
+        "color": info["color"],
+        "bg": info["bg"],
+        "border": info["border"]
+    }
+
+
+def get_user_active_voice(user_id: int) -> dict | None:
+    """Check if a user is currently in a live voice session and return channel/server details."""
+    session = (
+        VoiceSessions
+        .select()
+        .where((VoiceSessions.user_id == user_id) & (VoiceSessions.left_at.is_null(True)))
+        .order_by(VoiceSessions.joined_at.desc())
+        .first()
+    )
+    if not session:
+        return None
+
+    channel_name = None
+    if session.channel_id:
+        ch = Channels.select().where(Channels.channel_id == session.channel_id).first()
+        if ch:
+            channel_name = ch.name
+
+    server_name = get_servername_by_server_id(session.server_id)
+    elapsed_seconds = int((datetime.now() - session.joined_at).total_seconds()) if session.joined_at else 0
+
+    return {
+        "channel_id": session.channel_id,
+        "channel_name": channel_name or "Salon Vocal",
+        "server_id": session.server_id,
+        "server_name": server_name or str(session.server_id),
+        "elapsed_seconds": max(0, elapsed_seconds),
+        "elapsed_minutes": max(0, elapsed_seconds) // 60,
+        "joined_at": session.joined_at,
+        "is_streaming": session.is_streaming,
+        "is_camera_on": session.is_camera_on
+    }
+
+
+def get_server_live_status(server_id: int) -> dict:
+    """Retrieve real-time presence counts and active voice members on a server."""
+    s = LiveServerStatus.select().where(LiveServerStatus.server_id == server_id).first()
+    if s:
+        return {
+            "online_count": s.online_count,
+            "idle_count": s.idle_count,
+            "dnd_count": s.dnd_count,
+            "offline_count": s.offline_count,
+            "voice_count": s.voice_count,
+            "updated_at": s.updated_at
+        }
+    return {
+        "online_count": 0,
+        "idle_count": 0,
+        "dnd_count": 0,
+        "offline_count": 0,
+        "voice_count": 0,
+        "updated_at": None
+    }
+
+
+def get_server_channels_voice_breakdown(server_id: int, limit: int = 8, lang: str = "fr") -> dict:
+    """Retrieve voice time distribution across voice channels on a specific server."""
+    query = (
+        VoiceSessions
+        .select(
+            VoiceSessions.channel_id,
+            Channels.name.alias("channel_name"),
+            fn.SUM(VoiceSessions.duration_seconds).alias("total_seconds"),
+            fn.COUNT(VoiceSessions.session_id).alias("session_count")
+        )
+        .join(Channels, JOIN.LEFT_OUTER, on=(VoiceSessions.channel_id == Channels.channel_id))
+        .where(VoiceSessions.server_id == int(server_id))
+        .group_by(VoiceSessions.channel_id, Channels.name)
+        .order_by(fn.SUM(VoiceSessions.duration_seconds).desc())
+    )
+
+    rows = list(query.dicts())
+    total_seconds_sum = sum(r["total_seconds"] or 0 for r in rows) or 1
+
+    channels_data = []
+    labels = []
+    hours = []
+
+    for r in rows[:limit]:
+        raw_name = r.get("channel_name")
+        if not raw_name:
+            name = "Historique / Non classé" if lang == "fr" else "Legacy / Uncategorized"
+        else:
+            name = f"🔊 {raw_name}"
+        sec = r["total_seconds"] or 0
+        h = round(sec / 3600, 1)
+        cnt = int(r["session_count"] or 0)
+        pct = round((sec / total_seconds_sum) * 100, 1)
+
+        labels.append(name)
+        hours.append(h)
+        channels_data.append({
+            "name": name,
+            "channel_id": r["channel_id"],
+            "hours": h,
+            "sessions": cnt,
+            "percent": pct
+        })
+
+    remaining = rows[limit:]
+    if remaining:
+        rem_sec = sum(r["total_seconds"] or 0 for r in remaining)
+        rem_h = round(rem_sec / 3600, 1)
+        rem_cnt = sum(int(r["session_count"] or 0) for r in remaining)
+        rem_pct = round((rem_sec / total_seconds_sum) * 100, 1)
+        other_label = f"Autres ({len(remaining)} salons)" if lang == "fr" else f"Others ({len(remaining)} channels)"
+        labels.append(other_label)
+        hours.append(rem_h)
+        channels_data.append({
+            "name": other_label,
+            "channel_id": None,
+            "hours": rem_h,
+            "sessions": rem_cnt,
+            "percent": rem_pct
+        })
+
+    return {
+        "labels": labels,
+        "hours": hours,
+        "channels": channels_data,
+        "has_data": len(rows) > 0
+    }
+
+
+def get_server_channels_messages_breakdown(server_id: int, limit: int = 8, lang: str = "fr") -> dict:
+    """Retrieve message volume distribution across text channels on a specific server."""
+    query = (
+        MessageEvents
+        .select(
+            MessageEvents.channel_id,
+            Channels.name.alias("channel_name"),
+            fn.SUM(MessageEvents.count).alias("total_messages")
+        )
+        .join(Channels, JOIN.LEFT_OUTER, on=(MessageEvents.channel_id == Channels.channel_id))
+        .where(MessageEvents.server_id == int(server_id))
+        .group_by(MessageEvents.channel_id, Channels.name)
+        .order_by(fn.SUM(MessageEvents.count).desc())
+    )
+
+    rows = list(query.dicts())
+    total_msgs_sum = sum(int(r["total_messages"] or 0) for r in rows) or 1
+
+    channels_data = []
+    labels = []
+    msgs = []
+
+    for r in rows[:limit]:
+        raw_name = r.get("channel_name")
+        if not raw_name:
+            name = "#général (historique)" if lang == "fr" else "#general (legacy)"
+        else:
+            name = f"#{raw_name}" if not raw_name.startswith("#") else raw_name
+        m_count = int(r["total_messages"] or 0)
+        pct = round((m_count / total_msgs_sum) * 100, 1)
+
+        labels.append(name)
+        msgs.append(m_count)
+        channels_data.append({
+            "name": name,
+            "channel_id": r["channel_id"],
+            "messages": m_count,
+            "percent": pct
+        })
+
+    remaining = rows[limit:]
+    if remaining:
+        rem_count = sum(int(r["total_messages"] or 0) for r in remaining)
+        rem_pct = round((rem_count / total_msgs_sum) * 100, 1)
+        other_label = f"Autres ({len(remaining)} salons)" if lang == "fr" else f"Others ({len(remaining)} channels)"
+        labels.append(other_label)
+        msgs.append(rem_count)
+        channels_data.append({
+            "name": other_label,
+            "channel_id": None,
+            "messages": rem_count,
+            "percent": rem_pct
+        })
+
+    return {
+        "labels": labels,
+        "messages": msgs,
+        "channels": channels_data,
+        "has_data": len(rows) > 0
+    }
+
+
+def get_hourly_activity_distribution(server_id: int | None = None, user_id: int | None = None, lang: str = "fr") -> dict:
+    """Analyze activity by hour of day (0-23h) to detect peak activity windows (excludes legacy snapshots)."""
+    voice_q = (
+        VoiceSessions
+        .select(
+            fn.date_part('hour', VoiceSessions.joined_at).alias('h'),
+            fn.SUM(VoiceSessions.duration_seconds).alias('sec'),
+            fn.COUNT(VoiceSessions.session_id).alias('cnt')
+        )
+        .where(VoiceSessions.is_legacy == False)
+    )
+    if server_id:
+        voice_q = voice_q.where(VoiceSessions.server_id == int(server_id))
+    if user_id:
+        voice_q = voice_q.where(VoiceSessions.user_id == int(user_id))
+    voice_q = voice_q.group_by(fn.date_part('hour', VoiceSessions.joined_at))
+
+    voice_by_hour = {int(r["h"]): round((r["sec"] or 0) / 3600, 1) for r in voice_q.dicts()}
+
+    msg_q = MessageEvents.select(
+        fn.date_part('hour', MessageEvents.created_at).alias('h'),
+        fn.SUM(MessageEvents.count).alias('cnt')
+    )
+    if server_id:
+        msg_q = msg_q.where(MessageEvents.server_id == int(server_id))
+    if user_id:
+        msg_q = msg_q.where(MessageEvents.user_id == int(user_id))
+    msg_q = msg_q.group_by(fn.date_part('hour', MessageEvents.created_at))
+
+    msg_by_hour = {int(r["h"]): int(r["cnt"] or 0) for r in msg_q.dicts()}
+
+    labels = [f"{h:02d}h" for h in range(24)]
+    voice_hours = [voice_by_hour.get(h, 0.0) for h in range(24)]
+    messages_count = [msg_by_hour.get(h, 0) for h in range(24)]
+
+    peak_v_idx = voice_hours.index(max(voice_hours)) if any(voice_hours) else 21
+    peak_m_idx = messages_count.index(max(messages_count)) if any(messages_count) else 18
+
+    return {
+        "labels": labels,
+        "voice_hours": voice_hours,
+        "messages_count": messages_count,
+        "peak_voice_hour": labels[peak_v_idx],
+        "peak_messages_hour": labels[peak_m_idx]
+    }
+
+
+def get_recent_voice_sessions(server_id: int | None = None, user_id: int | None = None, limit: int = 15, lang: str = "fr") -> list[dict]:
+    """Retrieve the most recent real-time voice sessions with user, channel, and server details."""
+    q = (
+        VoiceSessions
+        .select(
+            VoiceSessions.session_id,
+            VoiceSessions.user_id,
+            VoiceSessions.server_id,
+            VoiceSessions.channel_id,
+            VoiceSessions.joined_at,
+            VoiceSessions.left_at,
+            VoiceSessions.duration_seconds,
+            VoiceSessions.is_legacy,
+            Users.username,
+            Users.avatar.alias("user_avatar"),
+            Servers.servername,
+            Channels.name.alias("channel_name")
+        )
+        .join(Users, JOIN.LEFT_OUTER, on=(VoiceSessions.user_id == Users.user_id))
+        .switch(VoiceSessions)
+        .join(Servers, JOIN.LEFT_OUTER, on=(VoiceSessions.server_id == Servers.server_id))
+        .switch(VoiceSessions)
+        .join(Channels, JOIN.LEFT_OUTER, on=(VoiceSessions.channel_id == Channels.channel_id))
+    )
+
+    if server_id:
+        q = q.where(VoiceSessions.server_id == int(server_id))
+    if user_id:
+        q = q.where(VoiceSessions.user_id == int(user_id))
+
+    # Prioritize non-legacy sessions, then order by joined_at descending
+    q = q.order_by(VoiceSessions.is_legacy.asc(), VoiceSessions.joined_at.desc()).limit(limit)
+
+    results = []
+    now = datetime.now()
+    for row in q.dicts():
+        is_active = (row["left_at"] is None)
+        if is_active and row["joined_at"]:
+            dur_sec = max(0, int((now - row["joined_at"]).total_seconds()))
+        else:
+            dur_sec = row["duration_seconds"] or 0
+
+        is_legacy = bool(row.get("is_legacy", False))
+        joined_dt = row.get("joined_at")
+
+        if is_legacy:
+            channel_display = "🗄️ " + ("Historique (Non classé)" if lang == "fr" else "Legacy (Unclassified)")
+            # Only display calendar date for legacy snapshot delta to avoid fake 03:00 hours
+            joined_str = joined_dt.strftime("%d/%m/%Y") if joined_dt else "-"
+        else:
+            channel_display = f"🔊 {row['channel_name']}" if row.get("channel_name") else ("Salon Vocal" if lang == "fr" else "Voice Channel")
+            joined_str = joined_dt.strftime("%d/%m/%Y %H:%M") if joined_dt else "-"
+
+        results.append({
+            "session_id": row["session_id"],
+            "user_id": row["user_id"],
+            "username": row.get("username") or f"Membre {row['user_id']}",
+            "avatar": row.get("user_avatar"),
+            "server_id": row["server_id"],
+            "servername": row.get("servername") or str(row["server_id"]),
+            "channel_name": channel_display,
+            "joined_at_str": joined_str,
+            "duration_str": ConvertSecondsToTime(dur_sec),
+            "duration_seconds": dur_sec,
+            "is_active": is_active,
+            "is_legacy": is_legacy
+        })
+
+    return results
+
+
+def get_user_favorite_voice_channels(user_id: int, limit: int = 6, lang: str = "fr") -> dict:
+    """Retrieve favorite voice channels for a specific user across servers."""
+    query = (
+        VoiceSessions
+        .select(
+            VoiceSessions.channel_id,
+            Channels.name.alias("channel_name"),
+            Servers.servername,
+            fn.SUM(VoiceSessions.duration_seconds).alias("total_seconds"),
+            fn.COUNT(VoiceSessions.session_id).alias("session_count")
+        )
+        .join(Channels, JOIN.LEFT_OUTER, on=(VoiceSessions.channel_id == Channels.channel_id))
+        .switch(VoiceSessions)
+        .join(Servers, JOIN.LEFT_OUTER, on=(VoiceSessions.server_id == Servers.server_id))
+        .where(VoiceSessions.user_id == int(user_id))
+        .group_by(VoiceSessions.channel_id, Channels.name, Servers.servername)
+        .order_by(fn.SUM(VoiceSessions.duration_seconds).desc())
+    )
+
+    rows = list(query.dicts())
+    total_seconds_sum = sum(r["total_seconds"] or 0 for r in rows) or 1
+
+    channels_data = []
+    labels = []
+    hours = []
+
+    for r in rows[:limit]:
+        raw_name = r.get("channel_name")
+        srv = r.get("servername") or ""
+        base_name = raw_name if raw_name else ("Vocal" if lang == "fr" else "Voice")
+        display_name = f"{base_name} ({srv})" if srv else base_name
+        sec = r["total_seconds"] or 0
+        h = round(sec / 3600, 1)
+
+        labels.append(display_name)
+        hours.append(h)
+        channels_data.append({
+            "name": display_name,
+            "hours": h,
+            "sessions": int(r["session_count"] or 0),
+            "percent": round((sec / total_seconds_sum) * 100, 1)
+        })
+
+    return {
+        "labels": labels,
+        "hours": hours,
+        "channels": channels_data,
+        "has_data": len(rows) > 0
+    }
+
+
+def get_presence_history_48h(lang: str = "fr") -> dict:
+    """Retrieve 48-hour presence history points and connected/offline ratio."""
+    cutoff = datetime.now() - timedelta(hours=48)
+    query = (
+        PresenceHistory
+        .select()
+        .where((PresenceHistory.recorded_at >= cutoff) & (PresenceHistory.server_id.is_null(True)))
+        .order_by(PresenceHistory.recorded_at.asc())
+    )
+    rows = list(query.dicts())
+
+    labels = []
+    online = []
+    idle = []
+    dnd = []
+    offline = []
+    ratio_connected = []
+
+    for r in rows:
+        dt = r["recorded_at"]
+        lbl = dt.strftime("%d/%m %Hh") if lang == "fr" else dt.strftime("%b %d %I%p")
+        labels.append(lbl)
+        on = int(r.get("online_count") or 0)
+        id_cnt = int(r.get("idle_count") or 0)
+        dnd_cnt = int(r.get("dnd_count") or 0)
+        off = int(r.get("offline_count") or 0)
+        tot = on + id_cnt + dnd_cnt + off
+        ratio = round(((on + id_cnt + dnd_cnt) / tot * 100), 1) if tot > 0 else 0.0
+
+        online.append(on)
+        idle.append(id_cnt)
+        dnd.append(dnd_cnt)
+        offline.append(off)
+        ratio_connected.append(ratio)
+
+    avg_ratio = round(sum(ratio_connected) / len(ratio_connected), 1) if ratio_connected else 0.0
+
+    return {
+        "labels": labels,
+        "online": online,
+        "idle": idle,
+        "dnd": dnd,
+        "offline": offline,
+        "ratio_connected": ratio_connected,
+        "avg_ratio": avg_ratio,
+        "has_data": len(rows) > 0
+    }
+
+
+def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
+    """
+    Calcule l'activité quotidienne d'un utilisateur (vocal + messages) pour une Heatmap style GitHub.
+    Retourne les données pour les X derniers jours avec calcul de streak (flammes).
+    """
+    user_id = int(user_id)
+    today = datetime.now().date()
+    start_date = today - timedelta(days=days)
+
+    from app.database import db
+
+    # 1. Heures vocales par jour depuis voice_sessions
+    voice_sql = """
+        SELECT DATE(joined_at) AS day,
+               COALESCE(SUM(
+                   CASE WHEN left_at IS NOT NULL THEN duration_seconds
+                        ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
+               ), 0) AS total_seconds
+        FROM voice_sessions
+        WHERE user_id = %s AND joined_at >= %s
+        GROUP BY DATE(joined_at)
+    """
+    voice_cursor = db.execute_sql(voice_sql, (user_id, start_date))
+    voice_by_day = {row[0].strftime("%Y-%m-%d"): int(row[1]) for row in voice_cursor.fetchall()}
+
+    # 2. Messages par jour depuis message_events
+    msg_sql = """
+        SELECT DATE(created_at) AS day,
+               COALESCE(SUM(count), 0) AS total_messages
+        FROM message_events
+        WHERE user_id = %s AND created_at >= %s
+        GROUP BY DATE(created_at)
+    """
+    msg_cursor = db.execute_sql(msg_sql, (user_id, start_date))
+    msg_by_day = {row[0].strftime("%Y-%m-%d"): int(row[1]) for row in msg_cursor.fetchall()}
+
+    # 3. Assemblage jour par jour
+    day_list = []
+    total_active_days = 0
+    current_streak = 0
+    max_streak = 0
+    temp_streak = 0
+    best_day = None
+    max_day_seconds = 0
+
+    curr = start_date
+    while curr <= today:
+        date_str = curr.strftime("%Y-%m-%d")
+        v_sec = voice_by_day.get(date_str, 0)
+        m_cnt = msg_by_day.get(date_str, 0)
+        v_hrs = round(v_sec / 3600.0, 1)
+
+        # Calcul d'un niveau d'intensité (0 à 4 comme GitHub)
+        # 0: rien, 1: <1h ou <20 msgs, 2: 1-3h ou 20-60 msgs, 3: 3-6h ou 60-150 msgs, 4: >6h ou >150 msgs
+        level = 0
+        if v_sec > 0 or m_cnt > 0:
+            total_active_days += 1
+            temp_streak += 1
+            if temp_streak > max_streak:
+                max_streak = temp_streak
+
+            score = (v_sec / 3600.0) + (m_cnt / 30.0)
+            if score > 6.0:
+                level = 4
+            elif score > 3.0:
+                level = 3
+            elif score > 1.0:
+                level = 2
+            else:
+                level = 1
+        else:
+            temp_streak = 0
+
+        if v_sec > max_day_seconds:
+            max_day_seconds = v_sec
+            best_day = {"date": date_str, "hours": v_hrs, "messages": m_cnt}
+
+        day_list.append({
+            "date": date_str,
+            "day_name": curr.strftime("%a"),
+            "voice_seconds": v_sec,
+            "voice_hours": v_hrs,
+            "messages": m_cnt,
+            "level": level,
+            "formatted_time": ConvertSecondsToTime(v_sec)
+        })
+
+        curr += timedelta(days=1)
+
+    # Calcul streak actuelle (en partant d'hier ou aujourd'hui)
+    streak_count = 0
+    check_day = today
+    while check_day >= start_date:
+        d_str = check_day.strftime("%Y-%m-%d")
+        if voice_by_day.get(d_str, 0) > 0 or msg_by_day.get(d_str, 0) > 0:
+            streak_count += 1
+            check_day -= timedelta(days=1)
+        elif check_day == today:
+            # Si pas d'activité aujourd'hui, vérifier si actif hier
+            check_day -= timedelta(days=1)
+        else:
+            break
+    current_streak = streak_count
+
+    return {
+        "days": day_list,
+        "total_active_days": total_active_days,
+        "current_streak": current_streak,
+        "max_streak": max_streak,
+        "best_day": best_day,
+        "has_data": total_active_days > 0
+    }
+
+
+def get_user_voice_companions(user_id: int | str, server_id: int | str | None = None, limit: int = 6) -> list[dict]:
+    """
+    Calcule avec quels membres l'utilisateur passe le plus de temps en vocal
+    en croisant les sessions vocales simultanées dans les mêmes salons.
+    """
+    user_id = int(user_id)
+    from app.database import db
+
+    server_filter = ""
+    params = [user_id]
+    if server_id is not None:
+        server_filter = "AND s1.server_id = %s"
+        params.append(int(server_id))
+    params.append(limit)
+
+    sql = f"""
+        SELECT 
+            s2.user_id,
+            COALESCE(u.username, 'Membre #' || s2.user_id) AS username,
+            u.avatar,
+            COALESCE(SUM(
+                GREATEST(0, EXTRACT(EPOCH FROM (
+                    LEAST(COALESCE(s1.left_at, NOW()), COALESCE(s2.left_at, NOW())) - 
+                    GREATEST(s1.joined_at, s2.joined_at)
+                )))::INT
+            ), 0) AS shared_seconds,
+            COUNT(DISTINCT s1.session_id) AS session_count
+        FROM voice_sessions s1
+        JOIN voice_sessions s2 
+          ON s1.channel_id = s2.channel_id 
+         AND s1.server_id = s2.server_id
+         AND s1.user_id != s2.user_id
+         AND s1.joined_at < COALESCE(s2.left_at, NOW())
+         AND COALESCE(s1.left_at, NOW()) > s2.joined_at
+        LEFT JOIN users u ON u.user_id = s2.user_id
+        WHERE s1.user_id = %s {server_filter}
+        GROUP BY s2.user_id, u.username, u.avatar
+        HAVING SUM(
+            GREATEST(0, EXTRACT(EPOCH FROM (
+                LEAST(COALESCE(s1.left_at, NOW()), COALESCE(s2.left_at, NOW())) - 
+                GREATEST(s1.joined_at, s2.joined_at)
+            )))::INT
+        ) >= 60
+        ORDER BY shared_seconds DESC
+        LIMIT %s
+    """
+
+    cursor = db.execute_sql(sql, params)
+    companions = []
+    for row in cursor.fetchall():
+        u_id = row[0]
+        u_name = row[1]
+        avatar_raw = row[2]
+        shared_sec = int(row[3])
+        sess_cnt = int(row[4])
+
+        avatar_url = "/static/images/base_avatar_big.png"
+        if avatar_raw:
+            avatar_url = avatar_raw
+
+        companions.append({
+            "user_id": str(u_id),
+            "username": u_name,
+            "avatar_url": avatar_url,
+            "shared_seconds": shared_sec,
+            "shared_hours": round(shared_sec / 3600.0, 1),
+            "shared_time_formatted": ConvertSecondsToTime(shared_sec),
+            "session_count": sess_cnt
+        })
+
+    return companions
+
+
+def get_hourly_punchcard_data(server_id: int | str | None = None) -> dict:
+    """
+    Génère la matrice 7 jours × 24 heures (Punchcard) pour visualiser
+    l'intensité de l'activité (heures vocales et messages) selon le jour et l'heure.
+    """
+    from app.database import db
+
+    server_filter_vs = ""
+    server_filter_me = ""
+    params_vs = []
+    params_me = []
+
+    if server_id is not None:
+        server_filter_vs = "WHERE server_id = %s"
+        server_filter_me = "WHERE server_id = %s"
+        params_vs.append(int(server_id))
+        params_me.append(int(server_id))
+
+    # Matrice vide 7 jours x 24 heures
+    # 0 = Lundi, 6 = Dimanche
+    # PostgreSQL ISODOW : 1 = Lundi ... 7 = Dimanche
+    grid = [[{"voice_sec": 0, "messages": 0, "voice_hours": 0.0} for _ in range(24)] for _ in range(7)]
+
+    # 1. Sessions vocales par (ISODOW, HOUR)
+    vs_sql = f"""
+        SELECT 
+            EXTRACT(ISODOW FROM joined_at)::INT AS dow,
+            EXTRACT(HOUR FROM joined_at)::INT AS hr,
+            COALESCE(SUM(
+                CASE WHEN left_at IS NOT NULL THEN duration_seconds
+                     ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
+            ), 0) AS total_sec
+        FROM voice_sessions
+        {server_filter_vs}
+        GROUP BY EXTRACT(ISODOW FROM joined_at), EXTRACT(HOUR FROM joined_at)
+    """
+    cursor_vs = db.execute_sql(vs_sql, params_vs)
+    for row in cursor_vs.fetchall():
+        dow = int(row[0]) - 1  # 1..7 -> 0..6
+        hr = int(row[1])
+        sec = int(row[2])
+        if 0 <= dow < 7 and 0 <= hr < 24:
+            grid[dow][hr]["voice_sec"] = sec
+            grid[dow][hr]["voice_hours"] = round(sec / 3600.0, 1)
+
+    # 2. Messages par (ISODOW, HOUR)
+    me_sql = f"""
+        SELECT 
+            EXTRACT(ISODOW FROM created_at)::INT AS dow,
+            EXTRACT(HOUR FROM created_at)::INT AS hr,
+            COALESCE(SUM(count), 0) AS total_msg
+        FROM message_events
+        {server_filter_me}
+        GROUP BY EXTRACT(ISODOW FROM created_at), EXTRACT(HOUR FROM created_at)
+    """
+    cursor_me = db.execute_sql(me_sql, params_me)
+    for row in cursor_me.fetchall():
+        dow = int(row[0]) - 1
+        hr = int(row[1])
+        msg = int(row[2])
+        if 0 <= dow < 7 and 0 <= hr < 24:
+            grid[dow][hr]["messages"] = msg
+
+    # Calcul de l'intensité max (score combiné: heures + messages/15)
+    max_score = 1.0
+    for d in range(7):
+        for h in range(24):
+            score = (grid[d][h]["voice_sec"] / 3600.0) + (grid[d][h]["messages"] / 15.0)
+            if score > max_score:
+                max_score = score
+
+    # Normalisation de l'intensité (0.0 à 1.0)
+    days_fr = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    matrix = []
+    for d in range(7):
+        row_data = []
+        for h in range(24):
+            score = (grid[d][h]["voice_sec"] / 3600.0) + (grid[d][h]["messages"] / 15.0)
+            intensity = round(score / max_score, 2) if max_score > 0 else 0.0
+            row_data.append({
+                "hour": h,
+                "voice_hours": grid[d][h]["voice_hours"],
+                "voice_sec": grid[d][h]["voice_sec"],
+                "messages": grid[d][h]["messages"],
+                "intensity": intensity,
+            })
+        matrix.append({
+            "day_name": days_fr[d],
+            "day_index": d,
+            "hours": row_data
+        })
+
+    return {
+        "days": matrix,
+        "max_score": round(max_score, 1),
+        "has_data": max_score > 1.0
+    }

@@ -1,5 +1,25 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.6.0 - Analytics Granulaires, Sessions Vocales en Direct, Compagnons Vocaux & Cartes Vectorielles - 04/10/2026
+### Features & Architecture
+- **Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)** :
+  - Suivi détaillé des sessions vocales avec horodatage d'arrivée (`joined_at`), de départ (`left_at`), durée réelle en secondes et détection de streaming/caméra.
+  - Heatmap annuelle et mensuelle d'activité style GitHub (`user_profile.html`).
+  - Punchcard horaire 7j/7 et 24h/24 pour l'analyse des habitudes d'activité vocale.
+  - Compagnons vocaux fréquents : identification des membres partageant le plus de temps en salon vocal avec calcul précis du temps passé ensemble.
+  - Journal complet des sessions vocales récentes avec statuts en direct (`LIVE`), terminées ou historiques (`LEGACY`).
+  - Graphique de répartition du temps par salon vocal (`userFavoriteChannelsChart`).
+- **Refonte et Simplification de la Navigation par Onglets** :
+  - **Profil Utilisateur** : Réorganisation claire en onglets thématiques (*Activité*, *Graphiques*, *Serveurs fréquentés*, *Badges*). Déplacement du journal des sessions à la fin de l'onglet Activité. Suppression de tous les badges numériques superflus sur les onglets.
+  - **Profil Serveur** : Réorganisation en 3 onglets limpides (*Activité*, *Graphiques*, *Membres*) avec suppression de tous les numéros parasites.
+  - **Graphiques Globaux** : Suppression de l'onglet redondant « Tous les graphiques », simplification du titre en « Activité », suppression des badges numériques.
+- **Identité Visuelle & Cartes de Statistiques Vectorielles** :
+  - Remplacement total des émojis par des icônes vectorielles SVG (Feather/Lucide) sur toutes les pages et visualisations.
+  - Cartes générées avec liens en anglais (`/profile/<id>`, `/server/<id>`) pour une cohérence globale.
+  - Mise à niveau vers Bot v3.0.0 (Go Edition) et Dashboard v2.6.0.
+- **Conformité & RGPD** :
+  - Mise à jour complète de la politique de confidentialité (`/privacy`) et des CGU (`/terms`) au 04/10/2026 détaillant le suivi de sessions tout en garantissant l'absence totale de captation audio, vidéo ou contenu textuel.
+
 ## Version 2.5.10 - Granularité Dynamique des Graphiques & Gestion des Homonymes - 22/09/2026
 ### Features & Architecture
 - **Granularité Temporelle des Graphiques (`/server` et `/profile`)** :

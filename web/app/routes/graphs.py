@@ -13,9 +13,11 @@ from app.functions import (
     get_daily_activity_last_30_days,
     get_top_10_users_by_hours,
     get_top_10_users_by_messages,
-    get_vocal_vs_messages_scatter,
+    get_hourly_activity_distribution,
+    get_presence_history_48h,
     get_monthly_new_users_growth,
-    get_month_abbr
+    get_month_abbr,
+    get_hourly_punchcard_data,
 )
 
 graphs_bp = Blueprint("graphs", __name__)
@@ -162,20 +164,15 @@ def graphs():
         }
     })
 
-    # 9. Voice vs Messages scatter matrix with behavioral archetypes (Top 40 active users)
-    scatter_data = get_vocal_vs_messages_scatter(40)
-    scatter_chart_json = json.dumps(scatter_data)
+    # 9. Global Hourly Activity & Peak Hours across all servers (24h)
+    global_hourly_data = get_hourly_activity_distribution(server_id=None, user_id=None, lang=lang)
+    global_hourly_chart_json = json.dumps(global_hourly_data)
 
-    # Behavioral archetype summary counts
-    archetype_stats = {
-        "voice": sum(1 for s in scatter_data if s.get("archetype") == "voice"),
-        "text": sum(1 for s in scatter_data if s.get("archetype") == "text"),
-        "hybrid": sum(1 for s in scatter_data if s.get("archetype") == "hybrid"),
-        "balanced": sum(1 for s in scatter_data if s.get("archetype") == "balanced"),
-        "total": len(scatter_data)
-    }
+    # 10. Presence Ratio & Status Distribution over 48h (Online vs Offline)
+    presence_48h_data = get_presence_history_48h(lang=lang)
+    presence_48h_chart_json = json.dumps(presence_48h_data)
 
-    # 10. Community growth: new users cohort by month
+    # 11. Community growth: new users cohort by month
     user_growth_data = get_monthly_new_users_growth()
     user_growth_chart_json = json.dumps({
         "labels": [
@@ -213,8 +210,11 @@ def graphs():
         chart_data_json_pie_server=chart_data_json_pie_server,
         server_messages_pie_json=server_messages_pie_json,
         top_users_chart_json=top_users_chart_json,
-        scatter_chart_json=scatter_chart_json,
-        archetype_stats=archetype_stats,
+        global_hourly_chart_json=global_hourly_chart_json,
+        global_hourly_data=global_hourly_data,
+        presence_48h_chart_json=presence_48h_chart_json,
+        presence_48h_data=presence_48h_data,
         user_growth_chart_json=user_growth_chart_json,
+        punchcard_data=get_hourly_punchcard_data(),
         summary_stats=summary_stats
     )

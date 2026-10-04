@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
 from peewee import JOIN, fn
-from app.database import Users, Stats
+from app.database import Users, Stats, VoiceSessions, Servers
 from app.gamification import calculate_user_xp_and_level
 from app.functions import (
     get_servername_by_server_id,
@@ -25,6 +25,13 @@ from app.functions import (
     get_daily_hours_diff,
     get_daily_messages_diff,
     get_month_abbr,
+    get_server_live_status,
+    get_user_presence,
+    get_server_channels_voice_breakdown,
+    get_server_channels_messages_breakdown,
+    get_hourly_activity_distribution,
+    get_recent_voice_sessions,
+    get_hourly_punchcard_data,
 )
 
 server_profile_bp = Blueprint("server_profile", __name__)
@@ -45,16 +52,37 @@ def server(server_id: str):
     search_query = request.args.get("q", "").strip()
     stats = load_server_profile_stats(server_id, search_query=search_query, lang=lang)
     charts = load_server_charts_data(server_id, lang=lang)
+    punchcard = get_hourly_punchcard_data(server_id)
 
     return render_template(
         "server_profile.html",
         stats=stats,
-        charts=charts
+        charts=charts,
+        punchcard=punchcard
     )
 
 
 def load_server_profile_stats(server_id: str | int, search_query: str = "", lang: str = "fr") -> dict:
     """Compile aggregated metrics and member leaderboard for a given server."""
+    users = load_users_from_server(server_id, search_query, lang=lang)
+
+    # Compute presence breakdown across active members
+    members_for_counts = users if not search_query else load_users_from_server(server_id, search_query="", lang=lang)
+    online_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "online")
+    idle_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "idle")
+    dnd_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "dnd")
+    voice_count = sum(1 for u in members_for_counts if u.get("is_in_voice"))
+    offline_count = max(0, len(members_for_counts) - (online_count + idle_count + dnd_count))
+
+    presence_counts = {
+        "online": online_count,
+        "idle": idle_count,
+        "dnd": dnd_count,
+        "offline": offline_count,
+        "voice": voice_count,
+        "total": len(members_for_counts)
+    }
+
     return {
         "server_id": str(server_id),
         "avatar_url": get_server_avatar_url(server_id),
@@ -65,8 +93,11 @@ def load_server_profile_stats(server_id: str | int, search_query: str = "", lang
         "total_time_hours": round((get_total_seconds_by_server_id(server_id) or 0) / 3600, 1),
         "total_message": get_total_message_by_server_id(server_id),
         "total_time_last_30d": get_server_activity_sum_last_X_days(server_id, 30),
-        "users": load_users_from_server(server_id, search_query, lang=lang),
+        "users": users,
+        "presence_counts": presence_counts,
         "join_date": get_server_join_date(server_id, lang=lang),
+        "live_status": get_server_live_status(server_id),
+        "is_bot_present": getattr(Servers.get_or_none(Servers.server_id == int(server_id)), 'is_bot_present', True),
     }
 
 
@@ -115,6 +146,15 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
         )
         global_map = {g.user_id: (g.tot_sec or 0, g.tot_msg or 0) for g in global_stats}
 
+    active_voice_ids = set()
+    try:
+        active_voice_query = VoiceSessions.select(VoiceSessions.user_id).where(
+            (VoiceSessions.server_id == int(server_id)) & (VoiceSessions.left_at.is_null(True))
+        )
+        active_voice_ids = {v.user_id for v in active_voice_query}
+    except Exception:
+        pass
+
     result = []
     for rank, row in enumerate(filtered, start=1):
         default_username = f"Member {row['user_id']}" if lang == "en" else f"Membre {row['user_id']}"
@@ -133,7 +173,9 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
             "formatted_time": ConvertSecondsToTime(seconds),
             "messages_count": messages,
             "level": xp_info["level"],
-            "total_xp": xp_info["total_xp"]
+            "total_xp": xp_info["total_xp"],
+            "presence": get_user_presence(row["user_id"]),
+            "is_in_voice": (row["user_id"] in active_voice_ids)
         })
     return result
 
@@ -245,6 +287,31 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
     # Default to daily view if monthly data has less than 3 points (e.g. newly registered server)
     default_granularity = "day" if len(hours_data) < 3 else "month"
 
+    # 6. Channels voice breakdown
+    voice_channels = get_server_channels_voice_breakdown(int_server_id, lang=lang)
+    voice_channels_pie_json = json.dumps({
+        "labels": voice_channels["labels"],
+        "hours": voice_channels["hours"]
+    })
+
+    # 7. Channels messages breakdown
+    text_channels = get_server_channels_messages_breakdown(int_server_id, lang=lang)
+    text_channels_pie_json = json.dumps({
+        "labels": text_channels["labels"],
+        "messages": text_channels["messages"]
+    })
+
+    # 8. Hourly activity distribution (24h)
+    hourly_activity = get_hourly_activity_distribution(server_id=int_server_id, lang=lang)
+    hourly_activity_json = json.dumps({
+        "labels": hourly_activity["labels"],
+        "voice_hours": hourly_activity["voice_hours"],
+        "messages_count": hourly_activity["messages_count"]
+    })
+
+    # 9. Recent voice sessions log
+    recent_sessions = get_recent_voice_sessions(server_id=int_server_id, limit=12, lang=lang)
+
     return {
         "chart_data_json": chart_data_json,
         "messages_chart_data_json": messages_chart_data_json,
@@ -260,4 +327,15 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
         "avg_daily_hours": avg_daily_hours,
         "avg_daily_msgs": avg_daily_msgs,
         "default_granularity": default_granularity,
+        # New Session & Channel Analytics
+        "voice_channels_pie_json": voice_channels_pie_json,
+        "voice_channels_table": voice_channels["channels"],
+        "has_voice_channels": voice_channels["has_data"],
+        "text_channels_pie_json": text_channels_pie_json,
+        "text_channels_table": text_channels["channels"],
+        "has_text_channels": text_channels["has_data"],
+        "hourly_activity_json": hourly_activity_json,
+        "peak_voice_hour": hourly_activity["peak_voice_hour"],
+        "peak_messages_hour": hourly_activity["peak_messages_hour"],
+        "recent_sessions": recent_sessions,
     }
