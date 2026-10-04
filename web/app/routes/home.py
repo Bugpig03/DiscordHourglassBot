@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request
 from peewee import fn, SQL
-from app.database import db, Users, Servers, HistoricalStats, Stats, VoiceSessions
+from app.database import db, Users, Servers, HistoricalStats, Stats, VoiceSessions, LiveServerStatus
 from app.functions import format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta
 
 home_bp = Blueprint("home", __name__)
@@ -73,8 +73,12 @@ def load_dashboard_stats() -> dict:
     size_hist_bytes = query_hist_size.fetchone()[0]
     size_hist_ko = size_hist_bytes // 1024
 
-    # Most recent snapshot timestamp in historical_stats
-    last_backup = HistoricalStats.select(fn.MAX(HistoricalStats.created_at)).scalar()
+    # Real-time synchronization timestamp (live tracking telemetry)
+    last_backup = (
+        LiveServerStatus.select(fn.MAX(LiveServerStatus.updated_at)).scalar()
+        or VoiceSessions.select(fn.MAX(VoiceSessions.last_heartbeat)).scalar()
+        or HistoricalStats.select(fn.MAX(HistoricalStats.created_at)).scalar()
+    )
     lang = request.cookies.get("lang", "fr")
     last_backup_str = format_date_heure_localized(last_backup, lang=lang)
 

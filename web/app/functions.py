@@ -172,11 +172,46 @@ def get_global_nb_server() -> int:
 def _get_activity_delta(days: int, user_id: int | None = None, server_id: int | None = None) -> dict[str, int]:
     """Calculate the activity delta (seconds and messages) over the last X days.
 
-    Finds the earliest snapshot record within the window and subtracts it from current stats.
+    Queries granular voice_sessions and message_events directly (schema v3),
+    providing real-time accuracy without dependency on historical routine snapshots.
     """
     now = datetime.utcnow()
     since_days = now - timedelta(days=days)
 
+    try:
+        v_q = VoiceSessions.select(fn.COALESCE(fn.SUM(VoiceSessions.duration_seconds), 0)).where(VoiceSessions.joined_at >= since_days)
+        m_q = MessageEvents.select(fn.COALESCE(fn.SUM(MessageEvents.count), 0)).where(MessageEvents.created_at >= since_days)
+
+        if user_id is not None:
+            v_q = v_q.where(VoiceSessions.user_id == user_id)
+            m_q = m_q.where(MessageEvents.user_id == user_id)
+        if server_id is not None:
+            v_q = v_q.where(VoiceSessions.server_id == server_id)
+            m_q = m_q.where(MessageEvents.server_id == server_id)
+
+        total_seconds = int(v_q.scalar() or 0)
+        total_messages = int(m_q.scalar() or 0)
+
+        # Add ongoing active voice sessions if currently in voice
+        active_q = VoiceSessions.select(
+            fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
+        ).where(VoiceSessions.left_at.is_null(True))
+        if user_id is not None:
+            active_q = active_q.where(VoiceSessions.user_id == user_id)
+        if server_id is not None:
+            active_q = active_q.where(VoiceSessions.server_id == server_id)
+        total_seconds += int(active_q.scalar() or 0)
+
+        # If v3 granular events were found, return them directly
+        if total_seconds > 0 or total_messages > 0:
+            return {
+                "seconds": total_seconds,
+                "messages": total_messages
+            }
+    except Exception:
+        pass
+
+    # Fallback to HistoricalStats for legacy periods if no v3 records found
     base_condition = (HistoricalStats.created_at >= since_days) & (HistoricalStats.created_at <= now)
     if user_id is not None:
         base_condition &= (HistoricalStats.user_id == user_id)
@@ -223,20 +258,6 @@ def _get_activity_delta(days: int, user_id: int | None = None, server_id: int | 
 
     curr_seconds = curr_data.get("total_seconds") or 0 if curr_data else 0
     curr_messages = curr_data.get("total_messages") or 0 if curr_data else 0
-
-    # Add active voice seconds if in session
-    try:
-        active_q = VoiceSessions.select(
-            fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
-        ).where(VoiceSessions.left_at.is_null(True))
-        if user_id is not None:
-            active_q = active_q.where(VoiceSessions.user_id == user_id)
-        if server_id is not None:
-            active_q = active_q.where(VoiceSessions.server_id == server_id)
-        curr_seconds += int(active_q.scalar() or 0)
-    except Exception:
-        pass
-
     hist_seconds = hist_query.get("total_seconds") or 0 if hist_query else 0
     hist_messages = hist_query.get("total_messages") or 0 if hist_query else 0
 

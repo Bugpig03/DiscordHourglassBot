@@ -2,8 +2,8 @@
 
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request
-from peewee import fn
-from app.database import Users, Stats, Servers, HistoricalStats
+from peewee import fn, SQL
+from app.database import Users, Stats, Servers, VoiceSessions, MessageEvents
 from app.gamification import calculate_user_xp_and_level
 
 top_bp = Blueprint("top", __name__)
@@ -76,61 +76,57 @@ def load_users() -> tuple[list[dict], int]:
         now = datetime.utcnow()
         since_days = now - timedelta(days=search_day)
 
-        hist_base = (HistoricalStats.created_at >= since_days) & (HistoricalStats.created_at <= now)
-        if server_id != "all":
-            hist_base &= (HistoricalStats.server_id == int(server_id))
-
-        oldest_record = (
-            HistoricalStats.select(HistoricalStats.created_at)
-            .where(hist_base)
-            .order_by(HistoricalStats.created_at.asc())
-            .first()
-        )
-
-        hist_map = {}
-        if oldest_record:
-            oldest_date = oldest_record.created_at.date()
-            hist_cond = (fn.DATE(HistoricalStats.created_at) == oldest_date)
-            if server_id != "all":
-                hist_cond &= (HistoricalStats.server_id == int(server_id))
-
-            hist_data = (
-                HistoricalStats
-                .select(
-                    HistoricalStats.user_id,
-                    fn.SUM(HistoricalStats.seconds).alias("hist_sec"),
-                    fn.SUM(HistoricalStats.messages).alias("hist_msg")
-                )
-                .where(hist_cond)
-                .group_by(HistoricalStats.user_id)
-            )
-            hist_map = {row.user_id: (row.hist_sec or 0, row.hist_msg or 0) for row in hist_data}
-
-        # Fetch current totals for all users in one query
-        curr_cond = (Stats.server_id == int(server_id)) if server_id != "all" else None
-        curr_query = (
-            Stats
+        voice_q = (
+            VoiceSessions
             .select(
-                Stats.user_id,
-                fn.SUM(Stats.seconds).alias("curr_sec"),
-                fn.SUM(Stats.messages).alias("curr_msg")
+                VoiceSessions.user_id,
+                fn.COALESCE(fn.SUM(VoiceSessions.duration_seconds), 0).alias("delta_sec")
             )
+            .where(VoiceSessions.joined_at >= since_days)
         )
-        if curr_cond is not None:
-            curr_query = curr_query.where(curr_cond)
-        curr_data = curr_query.group_by(Stats.user_id)
-        curr_map = {row.user_id: (row.curr_sec or 0, row.curr_msg or 0) for row in curr_data}
+        if server_id != "all":
+            voice_q = voice_q.where(VoiceSessions.server_id == int(server_id))
+        voice_map = {row.user_id: int(row.delta_sec or 0) for row in voice_q.group_by(VoiceSessions.user_id)}
+
+        msg_q = (
+            MessageEvents
+            .select(
+                MessageEvents.user_id,
+                fn.COALESCE(fn.SUM(MessageEvents.count), 0).alias("delta_msg")
+            )
+            .where(MessageEvents.created_at >= since_days)
+        )
+        if server_id != "all":
+            msg_q = msg_q.where(MessageEvents.server_id == int(server_id))
+        msg_map = {row.user_id: int(row.delta_msg or 0) for row in msg_q.group_by(MessageEvents.user_id)}
+
+        # Add active voice sessions in real time
+        try:
+            active_q = (
+                VoiceSessions
+                .select(
+                    VoiceSessions.user_id,
+                    fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0).alias("active_sec")
+                )
+                .where(VoiceSessions.left_at.is_null(True))
+            )
+            if server_id != "all":
+                active_q = active_q.where(VoiceSessions.server_id == int(server_id))
+            for row in active_q.group_by(VoiceSessions.user_id):
+                voice_map[row.user_id] = voice_map.get(row.user_id, 0) + int(row.active_sec or 0)
+        except Exception:
+            pass
 
         results = []
         for user in query:
-            curr_sec, curr_msg = curr_map.get(user.user_id, (0, 0))
-            hist_sec, hist_msg = hist_map.get(user.user_id, (0, 0))
+            u_sec = voice_map.get(user.user_id, 0)
+            u_msg = msg_map.get(user.user_id, 0)
             results.append({
                 "user_id": str(user.user_id),
                 "username": user.username,
                 "avatar_url": user.avatar,
-                "seconds": max(0, curr_sec - hist_sec),
-                "messages": max(0, curr_msg - hist_msg)
+                "seconds": u_sec,
+                "messages": u_msg
             })
     else:
         # All-time stats queried in bulk
@@ -202,49 +198,54 @@ def load_servers() -> tuple[list[dict], int]:
         now = datetime.utcnow()
         since_days = now - timedelta(days=search_day)
 
-        oldest_record = (
-            HistoricalStats.select(HistoricalStats.created_at)
-            .where((HistoricalStats.created_at >= since_days) & (HistoricalStats.created_at <= now))
-            .order_by(HistoricalStats.created_at.asc())
-            .first()
-        )
-
-        hist_map = {}
-        if oldest_record:
-            oldest_date = oldest_record.created_at.date()
-            hist_data = (
-                HistoricalStats
-                .select(
-                    HistoricalStats.server_id,
-                    fn.SUM(HistoricalStats.seconds).alias("hist_sec"),
-                    fn.SUM(HistoricalStats.messages).alias("hist_msg")
-                )
-                .where(fn.DATE(HistoricalStats.created_at) == oldest_date)
-                .group_by(HistoricalStats.server_id)
-            )
-            hist_map = {row.server_id: (row.hist_sec or 0, row.hist_msg or 0) for row in hist_data}
-
-        curr_data = (
-            Stats
+        voice_q = (
+            VoiceSessions
             .select(
-                Stats.server_id,
-                fn.SUM(Stats.seconds).alias("curr_sec"),
-                fn.SUM(Stats.messages).alias("curr_msg")
+                VoiceSessions.server_id,
+                fn.COALESCE(fn.SUM(VoiceSessions.duration_seconds), 0).alias("delta_sec")
             )
-            .group_by(Stats.server_id)
+            .where(VoiceSessions.joined_at >= since_days)
+            .group_by(VoiceSessions.server_id)
         )
-        curr_map = {row.server_id: (row.curr_sec or 0, row.curr_msg or 0) for row in curr_data}
+        voice_map = {row.server_id: int(row.delta_sec or 0) for row in voice_q}
+
+        msg_q = (
+            MessageEvents
+            .select(
+                MessageEvents.server_id,
+                fn.COALESCE(fn.SUM(MessageEvents.count), 0).alias("delta_msg")
+            )
+            .where(MessageEvents.created_at >= since_days)
+            .group_by(MessageEvents.server_id)
+        )
+        msg_map = {row.server_id: int(row.delta_msg or 0) for row in msg_q}
+
+        # Add active voice sessions in real time
+        try:
+            active_q = (
+                VoiceSessions
+                .select(
+                    VoiceSessions.server_id,
+                    fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0).alias("active_sec")
+                )
+                .where(VoiceSessions.left_at.is_null(True))
+                .group_by(VoiceSessions.server_id)
+            )
+            for row in active_q:
+                voice_map[row.server_id] = voice_map.get(row.server_id, 0) + int(row.active_sec or 0)
+        except Exception:
+            pass
 
         results = []
         for server in query:
-            curr_sec, curr_msg = curr_map.get(server.server_id, (0, 0))
-            hist_sec, hist_msg = hist_map.get(server.server_id, (0, 0))
+            s_sec = voice_map.get(server.server_id, 0)
+            s_msg = msg_map.get(server.server_id, 0)
             results.append({
                 "server_id": server.server_id,
                 "servername": server.servername,
                 "avatar_url": server.avatar,
-                "seconds": max(0, curr_sec - hist_sec),
-                "messages": max(0, curr_msg - hist_msg)
+                "seconds": s_sec,
+                "messages": s_msg
             })
     else:
         curr_data = (
