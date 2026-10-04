@@ -1089,7 +1089,7 @@ func GenerateHelpCard() ([]byte, error) {
 
 	_ = dc.LoadFontFace(fontRegular, 11)
 	dc.SetRGB255(148, 163, 184)
-	dc.DrawString("Community activity analytics & Discord statistics (v3.0.2)", 26, 62)
+	dc.DrawString("Community activity analytics & Discord statistics (v3.0.3)", 26, 62)
 
 	// Dividing Line
 	dc.SetRGBA255(255, 255, 255, 20)

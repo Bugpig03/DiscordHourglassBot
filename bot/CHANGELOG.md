@@ -1,5 +1,17 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.0.3 - Réconciliation vocale bidirectionnelle & reprise automatique des sessions - 04/10/2026
+
+- **Réconciliation bidirectionnelle robuste (`reconcileSessions`)** :
+  - Synchronise les sessions vocales depuis Discord vers la BDD pour chaque membre actuellement en salon vocal.
+  - Temporisation de 5 secondes au démarrage (`OnReady`) pour attendre la réception des paquets `GUILD_CREATE`.
+  - Exécution continue toutes les 30 secondes dans la boucle Heartbeat pour une auto-réparation instantanée en cas de coupure réseau.
+- **Reprise automatique des sessions sans perte de temps (`SyncVoiceSession`)** :
+  - Détection et réouverture transparente des sessions coupées lors d'une mise à jour ou d'un redémarrage du bot (`left_at = NULL`).
+  - Aucun utilisateur en vocal ne subit de coupure ni de perte de temps lors des redéploiements.
+- **Synchronisation automatique à la connexion des serveurs (`OnGuildCreate`)** :
+  - Prise en charge immédiate de tous les membres déjà connectés dans les salons vocaux dès l'arrivée du serveur.
+
 ## Version 3.0.2 - Enregistrement automatique de présence 48h & Optimisations - 04/10/2026
 
 - **Enregistrement périodique automatique (`presence_history`)** :
