@@ -23,7 +23,7 @@ TRANSLATIONS = {
         "footer.terms": "Conditions d'utilisation",
         "footer.support": "Serveur Discord & Données",
         "footer.powered_by": "Hourglass Bot - propulsé par SnoutLabs",
-        "footer.version": "version 2.6.0 - 04/10/2026",
+        "footer.version": "version 2.6.1 - 04/10/2026",
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Politique de Confidentialité & RGPD",
@@ -458,7 +458,7 @@ TRANSLATIONS = {
         "footer.terms": "Terms of Service",
         "footer.support": "Discord Support & Data",
         "footer.powered_by": "Hourglass Bot - powered by SnoutLabs",
-        "footer.version": "version 2.6.0 - 04/10/2026",
+        "footer.version": "version 2.6.1 - 04/10/2026",
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Privacy Policy & GDPR",

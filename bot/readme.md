@@ -1,4 +1,4 @@
-# DISCORD BOT - HOURGLASS v3.0.0 (Go Edition)
+# DISCORD BOT - HOURGLASS v3.0.2 (Go Edition)
 
 ## DESCRIPTION
 

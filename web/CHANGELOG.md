@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.6.1 - Correctif Connectés vs Hors-ligne 48h & Épuration Liste Serveurs - 04/10/2026
+### Fixes & Améliorations
+- **Graphique 48h Connectés vs Hors-ligne (`/graphs`)** :
+  - Intégration d'un algorithme de backfill et lissage transparent pour combler automatiquement les heures sans données ou lors d'un redémarrage.
+  - Regroupement horaire éliminant tout doublon d'étiquette temporelle sur l'axe X.
+  - Calcul et affichage fidèle du ratio moyen de membres connectés.
+- **Liste des Serveurs (`servers.html`)** :
+  - Suppression de la mention erronée de date d'activité ainsi que de la pastille « Bot actif » pour un affichage minimaliste, rapide et épuré.
+- **Statut en Direct** :
+  - Retrait de l'émoji micro dans la pastille « En direct » pour un design sobre et uniforme.
+
 ## Version 2.6.0 - Analytics Granulaires, Sessions Vocales en Direct, Compagnons Vocaux & Cartes Vectorielles - 04/10/2026
 ### Features & Architecture
 - **Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)** :

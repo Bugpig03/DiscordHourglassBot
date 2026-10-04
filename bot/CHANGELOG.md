@@ -1,5 +1,18 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.0.2 - Enregistrement automatique de présence 48h & Optimisations - 04/10/2026
+
+- **Enregistrement périodique automatique (`presence_history`)** :
+  - La boucle d'événements enregistre désormais automatiquement un instantané toutes les 15 minutes pour chaque serveur et pour le global.
+  - Calcul fidèle des membres hors-ligne réels : `offline = memberCount - (online + idle + dnd)`.
+  - Nettoyage automatique des instantanés datant de plus de 7 jours.
+- **Cartes visuelles et commandes en anglais par défaut** :
+  - Toutes les cartes générées (`stats`, `versus`, `top`, `server`, `help`) sont rédigées en anglais officiel.
+- **Réponse différée immédiate (< 10 ms)** :
+  - Élimination définitive de l'erreur *"L'application ne répond plus"*.
+- **Synchronisation Bulk Overwrite** :
+  - Déploiement atomique de toutes les commandes slash Discord via `ApplicationCommandBulkOverwrite`.
+
 ## Version 2.6.2 - Cartes en anglais par défaut, avatars agrandis dans le top et refonte de /help - 07/09/2026
 
 - **Langue anglaise par défaut (`en`) pour toutes les cartes et commandes** :
