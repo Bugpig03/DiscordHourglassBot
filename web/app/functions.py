@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from peewee import fn, SQL, JOIN
 from app.database import (
-    Users, Stats, HistoricalStats, Servers,
+    Users, Stats, Servers,
     VoiceSessions, Channels, MessageEvents, LiveServerStatus, UserPresence,
     PresenceHistory
 )
@@ -202,69 +202,12 @@ def _get_activity_delta(days: int, user_id: int | None = None, server_id: int | 
             active_q = active_q.where(VoiceSessions.server_id == server_id)
         total_seconds += int(active_q.scalar() or 0)
 
-        # If v3 granular events were found, return them directly
-        if total_seconds > 0 or total_messages > 0:
-            return {
-                "seconds": total_seconds,
-                "messages": total_messages
-            }
+        return {
+            "seconds": total_seconds,
+            "messages": total_messages
+        }
     except Exception:
-        pass
-
-    # Fallback to HistoricalStats for legacy periods if no v3 records found
-    base_condition = (HistoricalStats.created_at >= since_days) & (HistoricalStats.created_at <= now)
-    if user_id is not None:
-        base_condition &= (HistoricalStats.user_id == user_id)
-    if server_id is not None:
-        base_condition &= (HistoricalStats.server_id == server_id)
-
-    oldest_record = (
-        HistoricalStats.select(HistoricalStats.created_at)
-        .where(base_condition)
-        .order_by(HistoricalStats.created_at.asc())
-        .first()
-    )
-
-    if not oldest_record:
         return {"seconds": 0, "messages": 0}
-
-    oldest_date = oldest_record.created_at.date()
-
-    hist_condition = fn.DATE(HistoricalStats.created_at) == oldest_date
-    curr_condition = None
-
-    if user_id is not None:
-        hist_condition &= (HistoricalStats.user_id == user_id)
-        curr_condition = (Stats.user_id == user_id)
-    if server_id is not None:
-        hist_condition &= (HistoricalStats.server_id == server_id)
-        if curr_condition is not None:
-            curr_condition &= (Stats.server_id == server_id)
-        else:
-            curr_condition = (Stats.server_id == server_id)
-
-    hist_query = HistoricalStats.select(
-        fn.SUM(HistoricalStats.seconds).alias("total_seconds"),
-        fn.SUM(HistoricalStats.messages).alias("total_messages")
-    ).where(hist_condition).dicts().first()
-
-    curr_query = Stats.select(
-        fn.SUM(Stats.seconds).alias("total_seconds"),
-        fn.SUM(Stats.messages).alias("total_messages")
-    )
-    if curr_condition is not None:
-        curr_query = curr_query.where(curr_condition)
-    curr_data = curr_query.dicts().first()
-
-    curr_seconds = curr_data.get("total_seconds") or 0 if curr_data else 0
-    curr_messages = curr_data.get("total_messages") or 0 if curr_data else 0
-    hist_seconds = hist_query.get("total_seconds") or 0 if hist_query else 0
-    hist_messages = hist_query.get("total_messages") or 0 if hist_query else 0
-
-    return {
-        "seconds": max(0, curr_seconds - hist_seconds),
-        "messages": max(0, curr_messages - hist_messages)
-    }
 
 
 def get_activity_sum_last_X_days(user_id: int, days: int, server_id: int | None = None) -> dict[str, int]:
@@ -366,32 +309,32 @@ def get_user_servers_stats(user_id: int) -> list[dict]:
 
 
 def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
-    """Sum voice hours on the first day of each month for cumulative trend charting."""
+    """Sum voice hours by month directly from VoiceSessions for cumulative trend charting."""
     query = (
-        HistoricalStats
+        VoiceSessions
         .select(
-            fn.DATE_TRUNC("month", HistoricalStats.created_at).alias("month_start"),
-            fn.SUM(HistoricalStats.seconds).alias("total_seconds")
+            fn.DATE_TRUNC("month", VoiceSessions.joined_at).alias("month_start"),
+            fn.SUM(VoiceSessions.duration_seconds).alias("month_seconds")
         )
-        .where(SQL("EXTRACT(DAY FROM created_at) = 1"))
     )
 
     if server_id:
-        query = query.where(HistoricalStats.server_id == server_id)
+        query = query.where(VoiceSessions.server_id == server_id)
     if user_id:
-        query = query.where(HistoricalStats.user_id == user_id)
+        query = query.where(VoiceSessions.user_id == user_id)
 
-    query = query.group_by(fn.DATE_TRUNC("month", HistoricalStats.created_at)).order_by(
-        fn.DATE_TRUNC("month", HistoricalStats.created_at)
+    query = query.group_by(fn.DATE_TRUNC("month", VoiceSessions.joined_at)).order_by(
+        fn.DATE_TRUNC("month", VoiceSessions.joined_at)
     )
 
-    result = [
-        {
+    running_seconds = 0
+    result = []
+    for row in query:
+        running_seconds += int(row.month_seconds or 0)
+        result.append({
             "month": row.month_start.strftime("%Y-%m-%d"),
-            "total_hours": round((row.total_seconds or 0) / 3600, 1)
-        }
-        for row in query
-    ]
+            "total_hours": round(running_seconds / 3600.0, 1)
+        })
 
     today_str = datetime.now().strftime("%Y-%m-%d")
 
@@ -438,44 +381,44 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
     if any(r["month"] == today_str for r in result):
         for r in result:
             if r["month"] == today_str:
-                r["total_hours"] = round(current_total / 3600, 1)
+                r["total_hours"] = round(current_total / 3600.0, 1)
                 break
     else:
         result.append({
             "month": today_str,
-            "total_hours": round(current_total / 3600, 1)
+            "total_hours": round(current_total / 3600.0, 1)
         })
 
     return sorted(result, key=lambda x: x["month"])
 
 
 def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
-    """Sum total message count on the first day of each month for cumulative trend charting."""
+    """Sum total message count by month directly from MessageEvents for cumulative trend charting."""
     query = (
-        HistoricalStats
+        MessageEvents
         .select(
-            fn.DATE_TRUNC("month", HistoricalStats.created_at).alias("month_start"),
-            fn.SUM(HistoricalStats.messages).alias("total_messages")
+            fn.DATE_TRUNC("month", MessageEvents.created_at).alias("month_start"),
+            fn.SUM(MessageEvents.count).alias("month_messages")
         )
-        .where(SQL("EXTRACT(DAY FROM created_at) = 1"))
     )
 
     if server_id:
-        query = query.where(HistoricalStats.server_id == server_id)
+        query = query.where(MessageEvents.server_id == server_id)
     if user_id:
-        query = query.where(HistoricalStats.user_id == user_id)
+        query = query.where(MessageEvents.user_id == user_id)
 
-    query = query.group_by(fn.DATE_TRUNC("month", HistoricalStats.created_at)).order_by(
-        fn.DATE_TRUNC("month", HistoricalStats.created_at)
+    query = query.group_by(fn.DATE_TRUNC("month", MessageEvents.created_at)).order_by(
+        fn.DATE_TRUNC("month", MessageEvents.created_at)
     )
 
-    result = [
-        {
+    running_messages = 0
+    result = []
+    for row in query:
+        running_messages += int(row.month_messages or 0)
+        result.append({
             "month": row.month_start.strftime("%Y-%m-%d"),
-            "total_messages": int(row.total_messages or 0)
-        }
-        for row in query
-    ]
+            "total_messages": running_messages
+        })
 
     today_str = datetime.now().strftime("%Y-%m-%d")
 
@@ -522,55 +465,33 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
 
 
 def get_daily_hours_progression(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
-    """Calculate daily cumulative voice hours progression over the last X days."""
-    cutoff = datetime.now() - timedelta(days=days + 2)
+    """Calculate daily cumulative voice hours progression over the last X days directly from VoiceSessions."""
+    cutoff = datetime.now().date() - timedelta(days=days - 1)
     query = (
-        HistoricalStats
+        VoiceSessions
         .select(
-            fn.DATE(HistoricalStats.created_at).alias("day_date"),
-            fn.SUM(HistoricalStats.seconds).alias("total_seconds")
+            fn.DATE(VoiceSessions.joined_at).alias("day_date"),
+            fn.SUM(VoiceSessions.duration_seconds).alias("day_seconds")
         )
-        .where(HistoricalStats.created_at >= cutoff)
+        .where(VoiceSessions.joined_at >= cutoff)
     )
     if server_id:
-        query = query.where(HistoricalStats.server_id == server_id)
+        query = query.where(VoiceSessions.server_id == server_id)
     if user_id:
-        query = query.where(HistoricalStats.user_id == user_id)
+        query = query.where(VoiceSessions.user_id == user_id)
 
-    query = query.group_by(fn.DATE(HistoricalStats.created_at)).order_by(
-        fn.DATE(HistoricalStats.created_at)
-    )
+    query = query.group_by(fn.DATE(VoiceSessions.joined_at))
+    daily_map = {row.day_date.strftime("%Y-%m-%d"): int(row.day_seconds or 0) for row in query}
 
-    result = [
-        {
-            "date": row.day_date.strftime("%Y-%m-%d"),
-            "total_hours": round((row.total_seconds or 0) / 3600, 1)
-        }
-        for row in query
-    ]
+    today = datetime.now().date()
+    today_str = today.strftime("%Y-%m-%d")
 
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    cutoff_str = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
-
-    # Add baseline according to entity scope if joined within range
-    start_date = None
-    if user_id:
-        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
-    elif server_id:
-        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
-
-    if start_date:
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        if start_date_str >= cutoff_str and start_date_str < today_str and not any(r["date"] == start_date_str for r in result):
-            result.append({"date": start_date_str, "total_hours": 0.0})
-
-    # Add latest current total value from Stats table
     curr_query = Stats.select(fn.SUM(Stats.seconds))
     if server_id:
         curr_query = curr_query.where(Stats.server_id == server_id)
     if user_id:
         curr_query = curr_query.where(Stats.user_id == user_id)
-    current_total = curr_query.scalar() or 0
+    current_total = int(curr_query.scalar() or 0)
 
     try:
         active_q = VoiceSessions.select(
@@ -580,232 +501,198 @@ def get_daily_hours_progression(server_id: int | None = None, user_id: int | Non
             active_q = active_q.where(VoiceSessions.user_id == user_id)
         if server_id is not None:
             active_q = active_q.where(VoiceSessions.server_id == server_id)
-        current_total += int(active_q.scalar() or 0)
+        active_secs = int(active_q.scalar() or 0)
+        current_total += active_secs
+        daily_map[today_str] = daily_map.get(today_str, 0) + active_secs
     except Exception:
         pass
 
-    if any(r["date"] == today_str for r in result):
-        for r in result:
-            if r["date"] == today_str:
-                r["total_hours"] = round(current_total / 3600, 1)
-                break
-    else:
-        result.append({
-            "date": today_str,
-            "total_hours": round(current_total / 3600, 1)
-        })
+    total_window_seconds = sum(daily_map.values())
+    starting_seconds = max(0, current_total - total_window_seconds)
 
-    result = sorted(result, key=lambda x: x["date"])
-    return result[-days:]
+    result = []
+    running_seconds = starting_seconds
+    for i in range(days - 1, -1, -1):
+        d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+        running_seconds += daily_map.get(d_str, 0)
+        result.append({
+            "date": d_str,
+            "total_hours": round(running_seconds / 3600.0, 1)
+        })
+    return result
 
 
 def get_daily_messages_progression(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
-    """Calculate daily cumulative messages progression over the last X days."""
-    cutoff = datetime.now() - timedelta(days=days + 2)
+    """Calculate daily cumulative messages progression over the last X days directly from MessageEvents."""
+    cutoff = datetime.now().date() - timedelta(days=days - 1)
     query = (
-        HistoricalStats
+        MessageEvents
         .select(
-            fn.DATE(HistoricalStats.created_at).alias("day_date"),
-            fn.SUM(HistoricalStats.messages).alias("total_messages")
+            fn.DATE(MessageEvents.created_at).alias("day_date"),
+            fn.SUM(MessageEvents.count).alias("day_messages")
         )
-        .where(HistoricalStats.created_at >= cutoff)
+        .where(MessageEvents.created_at >= cutoff)
     )
     if server_id:
-        query = query.where(HistoricalStats.server_id == server_id)
+        query = query.where(MessageEvents.server_id == server_id)
     if user_id:
-        query = query.where(HistoricalStats.user_id == user_id)
+        query = query.where(MessageEvents.user_id == user_id)
 
-    query = query.group_by(fn.DATE(HistoricalStats.created_at)).order_by(
-        fn.DATE(HistoricalStats.created_at)
-    )
-
-    result = [
-        {
-            "date": row.day_date.strftime("%Y-%m-%d"),
-            "total_messages": int(row.total_messages or 0)
-        }
-        for row in query
-    ]
-
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    cutoff_str = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
-
-    start_date = None
-    if user_id:
-        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
-    elif server_id:
-        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
-
-    if start_date:
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        if start_date_str >= cutoff_str and start_date_str < today_str and not any(r["date"] == start_date_str for r in result):
-            result.append({"date": start_date_str, "total_messages": 0})
+    query = query.group_by(fn.DATE(MessageEvents.created_at))
+    daily_map = {row.day_date.strftime("%Y-%m-%d"): int(row.day_messages or 0) for row in query}
 
     curr_query = Stats.select(fn.SUM(Stats.messages))
     if server_id:
         curr_query = curr_query.where(Stats.server_id == server_id)
     if user_id:
         curr_query = curr_query.where(Stats.user_id == user_id)
-    current_total = curr_query.scalar() or 0
+    current_total = int(curr_query.scalar() or 0)
 
-    if any(r["date"] == today_str for r in result):
-        for r in result:
-            if r["date"] == today_str:
-                r["total_messages"] = int(current_total)
-                break
-    else:
+    total_window_messages = sum(daily_map.values())
+    starting_messages = max(0, current_total - total_window_messages)
+
+    result = []
+    today = datetime.now().date()
+    running_messages = starting_messages
+    for i in range(days - 1, -1, -1):
+        d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+        running_messages += daily_map.get(d_str, 0)
         result.append({
-            "date": today_str,
-            "total_messages": int(current_total)
+            "date": d_str,
+            "total_messages": running_messages
         })
-
-    result = sorted(result, key=lambda x: x["date"])
-    return result[-days:]
+    return result
 
 
 def get_daily_hours_diff(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
-    """Calculate incremental hours spent each day over the last X days."""
-    cumul = get_daily_hours_progression(server_id=server_id, user_id=user_id, days=days + 1)
-    if len(cumul) <= 1:
-        if cumul:
-            return [{"date": cumul[0]["date"], "hours_this_day": cumul[0]["total_hours"]}]
-        return []
+    """Calculate incremental hours spent each day over the last X days directly from VoiceSessions."""
+    cutoff = datetime.now().date() - timedelta(days=days - 1)
+    query = (
+        VoiceSessions
+        .select(
+            fn.DATE(VoiceSessions.joined_at).alias("day_date"),
+            fn.SUM(VoiceSessions.duration_seconds).alias("day_seconds")
+        )
+        .where(VoiceSessions.joined_at >= cutoff)
+    )
+    if server_id:
+        query = query.where(VoiceSessions.server_id == server_id)
+    if user_id:
+        query = query.where(VoiceSessions.user_id == user_id)
+    query = query.group_by(fn.DATE(VoiceSessions.joined_at))
 
-    diffs = []
-    for i in range(1, len(cumul)):
-        prev = cumul[i - 1]
-        curr = cumul[i]
-        d_prev = datetime.strptime(prev["date"], "%Y-%m-%d").date()
-        d_curr = datetime.strptime(curr["date"], "%Y-%m-%d").date()
-        gap = (d_curr - d_prev).days
-        if gap > 1:
-            avg_diff = round(max(0.0, curr["total_hours"] - prev["total_hours"]) / gap, 1)
-            for step in range(1, gap + 1):
-                inter_date = (d_prev + timedelta(days=step)).strftime("%Y-%m-%d")
-                diffs.append({
-                    "date": inter_date,
-                    "hours_this_day": avg_diff
-                })
-        else:
-            diff = round(max(0.0, curr["total_hours"] - prev["total_hours"]), 1)
-            diffs.append({
-                "date": curr["date"],
-                "hours_this_day": diff
-            })
-    return diffs[-days:]
+    daily_map = {row.day_date.strftime("%Y-%m-%d"): round((row.day_seconds or 0) / 3600.0, 1) for row in query}
+
+    today = datetime.now().date()
+    today_str = today.strftime("%Y-%m-%d")
+    try:
+        active_q = VoiceSessions.select(
+            fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
+        ).where(VoiceSessions.left_at.is_null(True))
+        if user_id is not None:
+            active_q = active_q.where(VoiceSessions.user_id == user_id)
+        if server_id is not None:
+            active_q = active_q.where(VoiceSessions.server_id == server_id)
+        active_secs = int(active_q.scalar() or 0)
+        if active_secs > 0:
+            daily_map[today_str] = round(daily_map.get(today_str, 0.0) + (active_secs / 3600.0), 1)
+    except Exception:
+        pass
+
+    result = []
+    for i in range(days - 1, -1, -1):
+        d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+        result.append({
+            "date": d_str,
+            "hours_this_day": daily_map.get(d_str, 0.0)
+        })
+    return result
 
 
 def get_daily_messages_diff(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
-    """Calculate incremental messages sent each day over the last X days."""
-    cumul = get_daily_messages_progression(server_id=server_id, user_id=user_id, days=days + 1)
-    if len(cumul) <= 1:
-        if cumul:
-            return [{"date": cumul[0]["date"], "messages_this_day": cumul[0]["total_messages"]}]
-        return []
+    """Calculate incremental messages sent each day over the last X days directly from MessageEvents."""
+    cutoff = datetime.now().date() - timedelta(days=days - 1)
+    query = (
+        MessageEvents
+        .select(
+            fn.DATE(MessageEvents.created_at).alias("day_date"),
+            fn.SUM(MessageEvents.count).alias("day_messages")
+        )
+        .where(MessageEvents.created_at >= cutoff)
+    )
+    if server_id:
+        query = query.where(MessageEvents.server_id == server_id)
+    if user_id:
+        query = query.where(MessageEvents.user_id == user_id)
+    query = query.group_by(fn.DATE(MessageEvents.created_at))
 
-    diffs = []
-    for i in range(1, len(cumul)):
-        prev = cumul[i - 1]
-        curr = cumul[i]
-        d_prev = datetime.strptime(prev["date"], "%Y-%m-%d").date()
-        d_curr = datetime.strptime(curr["date"], "%Y-%m-%d").date()
-        gap = (d_curr - d_prev).days
-        if gap > 1:
-            avg_diff = int(max(0, curr["total_messages"] - prev["total_messages"]) / gap)
-            for step in range(1, gap + 1):
-                inter_date = (d_prev + timedelta(days=step)).strftime("%Y-%m-%d")
-                diffs.append({
-                    "date": inter_date,
-                    "messages_this_day": avg_diff
-                })
-        else:
-            diff = max(0, curr["total_messages"] - prev["total_messages"])
-            diffs.append({
-                "date": curr["date"],
-                "messages_this_day": diff
-            })
-    return diffs[-days:]
+    daily_map = {row.day_date.strftime("%Y-%m-%d"): int(row.day_messages or 0) for row in query}
+
+    result = []
+    today = datetime.now().date()
+    for i in range(days - 1, -1, -1):
+        d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+        result.append({
+            "date": d_str,
+            "messages_this_day": daily_map.get(d_str, 0)
+        })
+    return result
 
 
 def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
-    """Calculate the incremental hours spent each month by computing the difference between month-start totals."""
-    # Retrieve month-start totals from HistoricalStats
+    """Calculate the incremental hours spent each month directly from VoiceSessions."""
     query = (
-        HistoricalStats
+        VoiceSessions
         .select(
-            fn.DATE_TRUNC("month", HistoricalStats.created_at).alias("month_start"),
-            fn.SUM(HistoricalStats.seconds).alias("total_seconds")
+            fn.DATE_TRUNC("month", VoiceSessions.joined_at).alias("month_start"),
+            fn.SUM(VoiceSessions.duration_seconds).alias("total_seconds")
         )
-        .where(SQL("EXTRACT(DAY FROM created_at) = 1"))
     )
 
     if server_id:
-        query = query.where(HistoricalStats.server_id == server_id)
+        query = query.where(VoiceSessions.server_id == server_id)
     if user_id:
-        query = query.where(HistoricalStats.user_id == user_id)
+        query = query.where(VoiceSessions.user_id == user_id)
 
-    query = query.group_by(fn.DATE_TRUNC("month", HistoricalStats.created_at)).order_by(
-        fn.DATE_TRUNC("month", HistoricalStats.created_at)
+    query = query.group_by(fn.DATE_TRUNC("month", VoiceSessions.joined_at)).order_by(
+        fn.DATE_TRUNC("month", VoiceSessions.joined_at)
     )
 
-    monthly_data = [
+    result = [
         {
             "month": row.month_start.strftime("%Y-%m-%d"),
-            "total_hours": round((row.total_seconds or 0) / 3600, 1)
+            "hours_this_month": round((row.total_seconds or 0) / 3600.0, 1)
         }
         for row in query
     ]
 
-    # Baseline for user/server join month
-    if user_id:
-        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
-        if start_date:
-            start_month_str = start_date.strftime("%Y-%m-01")
-            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
-            if not any(r["month"] == start_month_str for r in monthly_data):
-                monthly_data.append({"month": start_month_str, "total_hours": 0.0})
-    elif server_id:
-        server_min = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
-        if server_min:
-            start_month_str = server_min.strftime("%Y-%m-01")
-            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
-            if not any(r["month"] == start_month_str for r in monthly_data):
-                monthly_data.append({"month": start_month_str, "total_hours": 0.0})
+    # Add active sessions for current month
+    today_month_str = datetime.now().strftime("%Y-%m-01")
+    try:
+        active_q = VoiceSessions.select(
+            fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
+        ).where(VoiceSessions.left_at.is_null(True))
+        if user_id is not None:
+            active_q = active_q.where(VoiceSessions.user_id == user_id)
+        if server_id is not None:
+            active_q = active_q.where(VoiceSessions.server_id == server_id)
+        active_secs = int(active_q.scalar() or 0)
+        if active_secs > 0:
+            found = False
+            for r in result:
+                if r["month"] == today_month_str:
+                    r["hours_this_month"] = round(r["hours_this_month"] + (active_secs / 3600.0), 1)
+                    found = True
+                    break
+            if not found:
+                result.append({
+                    "month": today_month_str,
+                    "hours_this_month": round(active_secs / 3600.0, 1)
+                })
+    except Exception:
+        pass
 
-    # Append current total for today
-    curr_query = Stats.select(fn.SUM(Stats.seconds))
-    if server_id:
-        curr_query = curr_query.where(Stats.server_id == server_id)
-    if user_id:
-        curr_query = curr_query.where(Stats.user_id == user_id)
-    current_total = curr_query.scalar() or 0
-
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    if any(r["month"] == today_str for r in monthly_data):
-        for r in monthly_data:
-            if r["month"] == today_str:
-                r["total_hours"] = round(current_total / 3600, 1)
-                break
-    else:
-        monthly_data.append({
-            "month": today_str,
-            "total_hours": round(current_total / 3600, 1)
-        })
-
-    monthly_data = sorted(monthly_data, key=lambda x: x["month"])
-
-    # Compute differences between consecutive points
-    monthly_differences = []
-    for i in range(1, len(monthly_data)):
-        prev = monthly_data[i - 1]
-        curr = monthly_data[i]
-        diff = round(curr["total_hours"] - prev["total_hours"], 1)
-        monthly_differences.append({
-            "month": prev["month"],
-            "hours_this_month": max(diff, 0.0)
-        })
-
-    return monthly_differences
+    return sorted(result, key=lambda x: x["month"])
 
 
 def get_user_join_date(user_id: int, server_id: int | None = None, lang: str = "fr") -> str:
@@ -821,19 +708,27 @@ def get_user_raw_join_date(user_id: int, server_id: int | None = None):
         query = query.where(Stats.server_id == server_id)
     min_date = query.scalar()
     if not min_date:
-        hist_query = HistoricalStats.select(fn.MIN(HistoricalStats.created_at)).where(HistoricalStats.user_id == user_id)
+        v_q = VoiceSessions.select(fn.MIN(VoiceSessions.joined_at)).where(VoiceSessions.user_id == user_id)
         if server_id:
-            hist_query = hist_query.where(HistoricalStats.server_id == server_id)
-        min_date = hist_query.scalar()
+            v_q = v_q.where(VoiceSessions.server_id == server_id)
+        min_date = v_q.scalar()
+    if not min_date:
+        m_q = MessageEvents.select(fn.MIN(MessageEvents.created_at)).where(MessageEvents.user_id == user_id)
+        if server_id:
+            m_q = m_q.where(MessageEvents.server_id == server_id)
+        min_date = m_q.scalar()
     return min_date
 
 
 def get_server_raw_join_date(server_id: int | str):
     """Return the raw earliest recorded activity datetime for a server (oldest registered user on the server)."""
     int_server_id = int(server_id)
+    server = Servers.select(Servers.first_tracked_at).where(Servers.server_id == int_server_id).first()
+    if server and server.first_tracked_at:
+        return server.first_tracked_at
     min_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == int_server_id).scalar()
     if not min_date:
-        min_date = HistoricalStats.select(fn.MIN(HistoricalStats.created_at)).where(HistoricalStats.server_id == int_server_id).scalar()
+        min_date = VoiceSessions.select(fn.MIN(VoiceSessions.joined_at)).where(VoiceSessions.server_id == int_server_id).scalar()
     return min_date
 
 
@@ -846,209 +741,81 @@ def get_server_join_date(server_id: int | str, lang: str = "fr") -> str:
 
 
 def get_monthly_messages_diff(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
-    """Calculate incremental messages sent each month by computing the difference between month-start totals."""
+    """Calculate incremental messages sent each month directly from MessageEvents."""
     query = (
-        HistoricalStats
+        MessageEvents
         .select(
-            fn.DATE_TRUNC("month", HistoricalStats.created_at).alias("month_start"),
-            fn.SUM(HistoricalStats.messages).alias("total_messages")
+            fn.DATE_TRUNC("month", MessageEvents.created_at).alias("month_start"),
+            fn.SUM(MessageEvents.count).alias("total_messages")
         )
-        .where(SQL("EXTRACT(DAY FROM created_at) = 1"))
     )
 
     if server_id:
-        query = query.where(HistoricalStats.server_id == server_id)
+        query = query.where(MessageEvents.server_id == server_id)
     if user_id:
-        query = query.where(HistoricalStats.user_id == user_id)
+        query = query.where(MessageEvents.user_id == user_id)
 
-    query = query.group_by(fn.DATE_TRUNC("month", HistoricalStats.created_at)).order_by(
-        fn.DATE_TRUNC("month", HistoricalStats.created_at)
+    query = query.group_by(fn.DATE_TRUNC("month", MessageEvents.created_at)).order_by(
+        fn.DATE_TRUNC("month", MessageEvents.created_at)
     )
 
-    monthly_data = [
+    result = [
         {
             "month": row.month_start.strftime("%Y-%m-%d"),
-            "total_messages": int(row.total_messages or 0)
+            "messages_this_month": int(row.total_messages or 0)
         }
         for row in query
     ]
-
-    # Baseline for user/server join month
-    if user_id:
-        start_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.user_id == user_id).scalar()
-        if start_date:
-            start_month_str = start_date.strftime("%Y-%m-01")
-            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
-            if not any(r["month"] == start_month_str for r in monthly_data):
-                monthly_data.append({"month": start_month_str, "total_messages": 0})
-    elif server_id:
-        server_min = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == server_id).scalar()
-        if server_min:
-            start_month_str = server_min.strftime("%Y-%m-01")
-            monthly_data = [r for r in monthly_data if r["month"] >= start_month_str]
-            if not any(r["month"] == start_month_str for r in monthly_data):
-                monthly_data.append({"month": start_month_str, "total_messages": 0})
-
-    curr_query = Stats.select(fn.SUM(Stats.messages))
-    if server_id:
-        curr_query = curr_query.where(Stats.server_id == server_id)
-    if user_id:
-        curr_query = curr_query.where(Stats.user_id == user_id)
-    current_total = curr_query.scalar() or 0
-
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    if any(r["month"] == today_str for r in monthly_data):
-        for r in monthly_data:
-            if r["month"] == today_str:
-                r["total_messages"] = int(current_total)
-                break
-    else:
-        monthly_data.append({
-            "month": today_str,
-            "total_messages": int(current_total)
-        })
-
-    monthly_data = sorted(monthly_data, key=lambda x: x["month"])
-
-    monthly_differences = []
-    for i in range(1, len(monthly_data)):
-        prev = monthly_data[i - 1]
-        curr = monthly_data[i]
-        diff = curr["total_messages"] - prev["total_messages"]
-        monthly_differences.append({
-            "month": prev["month"],
-            "messages_this_month": max(diff, 0)
-        })
-
-    return monthly_differences
+    return sorted(result, key=lambda x: x["month"])
 
 
 def get_daily_activity_last_30_days() -> list[dict]:
-    """Calculate day-by-day incremental voice hours and messages over the last 30 days.
+    """Calculate day-by-day incremental voice hours and messages over the last 30 days directly from VoiceSessions and MessageEvents."""
+    today = datetime.now().date()
+    cutoff = today - timedelta(days=29)
 
-    Robust against missing snapshot days and partial/corrupted test snapshots:
-    distributes deltas evenly across multi-day gaps to prevent single-day spikes.
-    """
-    cutoff = datetime.now() - timedelta(days=33)
-    raw_query = (
-        HistoricalStats
+    v_q = (
+        VoiceSessions
         .select(
-            fn.DATE(HistoricalStats.created_at).alias("day_date"),
-            fn.SUM(HistoricalStats.seconds).alias("total_seconds"),
-            fn.SUM(HistoricalStats.messages).alias("total_messages"),
-            fn.COUNT(fn.DISTINCT(HistoricalStats.user_id)).alias("user_count")
+            fn.DATE(VoiceSessions.joined_at).alias("day_date"),
+            fn.SUM(VoiceSessions.duration_seconds).alias("day_seconds")
         )
-        .where(HistoricalStats.created_at >= cutoff)
-        .group_by(fn.DATE(HistoricalStats.created_at))
-        .order_by(fn.DATE(HistoricalStats.created_at))
+        .where(VoiceSessions.joined_at >= cutoff)
+        .group_by(fn.DATE(VoiceSessions.joined_at))
+    )
+    m_q = (
+        MessageEvents
+        .select(
+            fn.DATE(MessageEvents.created_at).alias("day_date"),
+            fn.SUM(MessageEvents.count).alias("day_messages")
+        )
+        .where(MessageEvents.created_at >= cutoff)
+        .group_by(fn.DATE(MessageEvents.created_at))
     )
 
-    # Filter out partial test snapshots (e.g. test rows with only 2-3 users while DB has hundreds)
-    total_users_count = Users.select().count()
-    min_user_threshold = max(10, int(total_users_count * 0.15))
+    hours_map = {row.day_date.strftime("%Y-%m-%d"): round((row.day_seconds or 0) / 3600.0, 1) for row in v_q}
+    msgs_map = {row.day_date.strftime("%Y-%m-%d"): int(row.day_messages or 0) for row in m_q}
 
-    valid_points = []
-    for row in raw_query:
-        u_cnt = int(row.user_count or 0)
-        if u_cnt >= min_user_threshold:
-            valid_points.append({
-                "date": row.day_date,
-                "seconds": int(row.total_seconds or 0),
-                "messages": int(row.total_messages or 0)
-            })
-
-    # Append today's live stats
-    today_date = datetime.now().date()
-    curr_s = int(Stats.select(fn.SUM(Stats.seconds)).scalar() or 0)
-    curr_m = int(Stats.select(fn.SUM(Stats.messages)).scalar() or 0)
-
+    today_str = today.strftime("%Y-%m-%d")
     try:
         active_secs = int(
             VoiceSessions.select(
                 fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
             ).where(VoiceSessions.left_at.is_null(True)).scalar() or 0
         )
-        curr_s += active_secs
+        if active_secs > 0:
+            hours_map[today_str] = round(hours_map.get(today_str, 0.0) + (active_secs / 3600.0), 1)
     except Exception:
         pass
 
-    if not valid_points or valid_points[-1]["date"] != today_date:
-        valid_points.append({
-            "date": today_date,
-            "seconds": curr_s,
-            "messages": curr_m
-        })
-
-    # Smoothly distribute deltas across gaps between consecutive snapshot dates
-    daily_map = {}
-    for i in range(1, len(valid_points)):
-        p_prev = valid_points[i - 1]
-        p_curr = valid_points[i]
-        delta_days = (p_curr["date"] - p_prev["date"]).days
-        if delta_days <= 0:
-            continue
-
-        diff_s = max(0, p_curr["seconds"] - p_prev["seconds"])
-        diff_m = max(0, p_curr["messages"] - p_prev["messages"])
-        s_per_day = diff_s / delta_days
-        m_per_day = diff_m / delta_days
-
-        for step in range(1, delta_days + 1):
-            d = p_prev["date"] + timedelta(days=step)
-            daily_map[d.strftime("%Y-%m-%d")] = {
-                "hours": round(s_per_day / 3600.0, 1),
-                "messages": int(m_per_day)
-            }
-
-    # Overlay with live v3 granular events if available for recent days
-    try:
-        live_voice = (
-            VoiceSessions
-            .select(
-                fn.DATE(VoiceSessions.joined_at).alias("day_date"),
-                fn.SUM(VoiceSessions.duration_seconds).alias("sec")
-            )
-            .where(
-                (VoiceSessions.joined_at >= datetime.now() - timedelta(days=30)) &
-                (VoiceSessions.is_legacy == False)
-            )
-            .group_by(fn.DATE(VoiceSessions.joined_at))
-        )
-        for lv in live_voice:
-            d_str = lv.day_date.strftime("%Y-%m-%d")
-            if d_str in daily_map and (lv.sec or 0) > 0:
-                daily_map[d_str]["hours"] = round(float(lv.sec or 0) / 3600.0, 1)
-
-        live_msgs = (
-            MessageEvents
-            .select(
-                fn.DATE(MessageEvents.created_at).alias("day_date"),
-                fn.SUM(MessageEvents.count).alias("cnt")
-            )
-            .where(
-                (MessageEvents.created_at >= datetime.now() - timedelta(days=30)) &
-                (MessageEvents.is_legacy == False)
-            )
-            .group_by(fn.DATE(MessageEvents.created_at))
-        )
-        for lm in live_msgs:
-            d_str = lm.day_date.strftime("%Y-%m-%d")
-            if d_str in daily_map and (lm.cnt or 0) > 0:
-                daily_map[d_str]["messages"] = int(lm.cnt or 0)
-    except Exception:
-        pass
-
-    # Build continuous 30-day sequence ending today
     result = []
     for i in range(29, -1, -1):
-        d_str = (today_date - timedelta(days=i)).strftime("%Y-%m-%d")
-        entry = daily_map.get(d_str, {"hours": 0.0, "messages": 0})
+        d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
         result.append({
             "date": d_str,
-            "hours": entry["hours"],
-            "messages": entry["messages"]
+            "hours": hours_map.get(d_str, 0.0),
+            "messages": msgs_map.get(d_str, 0)
         })
-
     return result
 
 

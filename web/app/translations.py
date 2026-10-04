@@ -68,7 +68,7 @@ TRANSLATIONS = {
         "home.telemetry_badge": "Infrastructure",
         "home.pg_size": "Taille PostgreSQL",
         "home.stats_table": "Table stats principale",
-        "home.hist_table": "Table historique & snapshots",
+        "home.hist_table": "Table sessions & événements",
         "home.last_snapshot": "Dernier snapshot",
 
         # Top Leaderboards
@@ -503,7 +503,7 @@ TRANSLATIONS = {
         "home.telemetry_badge": "Infrastructure",
         "home.pg_size": "PostgreSQL Size",
         "home.stats_table": "Primary stats table",
-        "home.hist_table": "History & snapshots table",
+        "home.hist_table": "Sessions & events table",
         "home.last_snapshot": "Latest snapshot",
 
         # Top Leaderboards
