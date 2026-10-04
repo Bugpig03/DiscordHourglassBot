@@ -4,6 +4,26 @@
 
 {% block content %}
 <div class="big-bold-text">{{ t('servers.heading') }}</div>
+
+<div class="hub-nav-bar">
+    <a href="{{ url_for('servers.servers') }}" class="hub-nav-pill active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+        <span>{{ t('hub.all_servers') }}</span>
+    </a>
+    <a href="{{ url_for('top.top_servers', sort_by='hours') }}" class="hub-nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+        <span>{{ t('hub.top_voice') }}</span>
+    </a>
+    <a href="{{ url_for('top.top_servers', sort_by='messages') }}" class="hub-nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>{{ t('hub.top_messages') }}</span>
+    </a>
+    <a href="{{ url_for('versus.versus') }}" class="hub-nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>{{ t('hub.versus_tool') }}</span>
+    </a>
+</div>
+
 <form method="GET" action="{{ url_for('servers.servers') }}" class="page-search-form" id="serversSearchForm">
     <div class="page-search-wrap">
         <div class="page-search-bar">

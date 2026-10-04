@@ -1,10 +1,13 @@
-"""Home dashboard and support routes."""
-
+import json
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request
 from peewee import fn, SQL
 from app.database import db, Users, Servers, Stats, VoiceSessions, MessageEvents, LiveServerStatus
-from app.functions import format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta
+from app.functions import (
+    format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta,
+    get_daily_activity_last_30_days, get_top_users_podium, get_top_servers_podium,
+    get_month_abbr
+)
 
 home_bp = Blueprint("home", __name__)
 
@@ -41,6 +44,8 @@ def terms():
 
 def load_dashboard_stats() -> dict:
     """Collect global metrics: 30-day activity delta, all-time totals, database storage sizes, and last snapshot timestamp."""
+    lang = request.cookies.get("lang", "fr")
+
     # All-time totals
     nb_users = Users.select().count()
     nb_profiles = Stats.select().count()
@@ -52,50 +57,46 @@ def load_dashboard_stats() -> dict:
         .where(VoiceSessions.left_at.is_null(True))
         .scalar() or 0
     )
-    nb_time = ConvertSecondsToTime((Stats.select(fn.SUM(Stats.seconds)).scalar() or 0) + active_secs)
+    total_voice_secs = (Stats.select(fn.SUM(Stats.seconds)).scalar() or 0) + active_secs
+    nb_time = ConvertSecondsToTime(total_voice_secs)
+    nb_voice_hours_str = f"{(total_voice_secs // 3600):,}".replace(",", " ") + " h"
 
     # 30-Day Activity Delta
     delta_30d = _get_activity_delta(30)
     time_30d = ConvertSecondsToTime(delta_30d["seconds"])
     messages_30d = delta_30d["messages"]
+    hours_30d_num = round(delta_30d["seconds"] / 3600.0, 1)
 
-    # Database total size in KB
-    query_db_size = db.execute_sql("SELECT pg_database_size(current_database())")
-    size_db_bytes = query_db_size.fetchone()[0]
-    size_db_ko = size_db_bytes // 1024
+    # Daily Activity Chart Data for Home Dashboard
+    daily_activity_data = get_daily_activity_last_30_days()
+    daily_chart_json = json.dumps({
+        "labels": [
+            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            for row in daily_activity_data
+        ],
+        "hours": [row["hours"] for row in daily_activity_data],
+        "messages": [row["messages"] for row in daily_activity_data]
+    })
 
-    # Table sizes in KB
-    query_stats_size = db.execute_sql("SELECT pg_total_relation_size('public.stats')")
-    size_stats_bytes = query_stats_size.fetchone()[0]
-    size_stats_ko = size_stats_bytes // 1024
-
-    query_sessions_size = db.execute_sql("SELECT pg_total_relation_size('public.voice_sessions') + pg_total_relation_size('public.message_events')")
-    size_sessions_bytes = query_sessions_size.fetchone()[0]
-    size_sessions_ko = size_sessions_bytes // 1024
-
-    # Real-time synchronization timestamp (live tracking telemetry)
-    last_backup = (
-        LiveServerStatus.select(fn.MAX(LiveServerStatus.updated_at)).scalar()
-        or VoiceSessions.select(fn.MAX(VoiceSessions.last_heartbeat)).scalar()
-        or VoiceSessions.select(fn.MAX(VoiceSessions.joined_at)).scalar()
-    )
-    lang = request.cookies.get("lang", "fr")
-    last_backup_str = format_date_heure_localized(last_backup, lang=lang)
+    # Podiums (Top 3 Members & Top 3 Servers)
+    top_users = get_top_users_podium(3)
+    top_servers = get_top_servers_podium(3)
 
     return {
         # 30-day activity metrics
         "time_30d": time_30d,
         "seconds_30d": delta_30d["seconds"],
         "messages_30d": messages_30d,
+        "hours_30d_num": hours_30d_num,
         # All-time global metrics
         "nb_users": nb_users,
         "nb_profiles": nb_profiles,
         "nb_servers": nb_servers,
         "nb_messages": nb_messages,
         "nb_time": nb_time,
-        # Infrastructure telemetry
-        "size_db_ko": size_db_ko,
-        "size_stats_ko": size_stats_ko,
-        "size_hist_ko": size_sessions_ko,
-        "last_backup": last_backup_str
+        "nb_voice_hours_str": nb_voice_hours_str,
+        # Chart & Podiums
+        "daily_chart_json": daily_chart_json,
+        "top_users": top_users,
+        "top_servers": top_servers
     }

@@ -819,6 +819,66 @@ def get_daily_activity_last_30_days() -> list[dict]:
     return result
 
 
+def get_top_users_podium(limit: int = 3) -> list[dict]:
+    """Retrieve top members with avatar for the dashboard podium."""
+    HOURGLASS_BOT_ID = 1210665993328926750
+    query = (
+        Stats
+        .select(
+            Stats.user_id,
+            Users.username,
+            Users.avatar,
+            fn.SUM(Stats.seconds).alias("total_seconds"),
+            fn.SUM(Stats.messages).alias("total_messages")
+        )
+        .join(Users, JOIN.LEFT_OUTER, on=(Stats.user_id == Users.user_id))
+        .where(Stats.user_id != HOURGLASS_BOT_ID)
+        .group_by(Stats.user_id, Users.username, Users.avatar)
+        .order_by(fn.SUM(Stats.seconds).desc())
+        .limit(limit)
+        .dicts()
+    )
+    res = []
+    for r in query:
+        res.append({
+            "user_id": r["user_id"],
+            "username": r["username"] or f"Membre {r['user_id']}",
+            "avatar": r["avatar"],
+            "hours": round((r["total_seconds"] or 0) / 3600.0, 1),
+            "messages": int(r["total_messages"] or 0)
+        })
+    return res
+
+
+def get_top_servers_podium(limit: int = 3) -> list[dict]:
+    """Retrieve top servers with avatar for the dashboard podium."""
+    query = (
+        Stats
+        .select(
+            Stats.server_id,
+            Servers.servername,
+            Servers.avatar,
+            fn.SUM(Stats.seconds).alias("total_seconds"),
+            fn.SUM(Stats.messages).alias("total_messages")
+        )
+        .join(Servers, JOIN.LEFT_OUTER, on=(Stats.server_id == Servers.server_id))
+        .group_by(Stats.server_id, Servers.servername, Servers.avatar)
+        .order_by(fn.SUM(Stats.seconds).desc())
+        .limit(limit)
+        .dicts()
+    )
+    res = []
+    for r in query:
+        res.append({
+            "server_id": r["server_id"],
+            "servername": r["servername"] or f"Serveur {r['server_id']}",
+            "avatar": r["avatar"],
+            "hours": round((r["total_seconds"] or 0) / 3600.0, 1),
+            "messages": int(r["total_messages"] or 0)
+        })
+    return res
+
+
 def get_top_10_users_by_hours() -> list[dict]:
     """Retrieve the top 10 most active members by total voice hours across all servers (excluding bot)."""
     HOURGLASS_BOT_ID = 1210665993328926750

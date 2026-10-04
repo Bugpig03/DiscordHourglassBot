@@ -3,197 +3,286 @@
 {% block title %}{{ t('home.title') }}{% endblock %}
 
 {% block content %}
-<div class="gray-box small-border-radius" style="text-align: center; padding: 30px 20px;">
-    <img src="{{ url_for('static', filename='icons/favicon.png') }}" class="home-center-icon" alt="Icon Hourglass">
-    <div class="big-bold-text nomargin" style="font-size: clamp(1.4rem, 2.5vw, 2.2rem);">{{ t('home.welcome_title') }}</div>
-    <p class="medium-text gray" style="max-width: 720px; margin: 12px auto; font-size: 1.05rem;">
-        {{ t('home.welcome_desc') }}
-    </p>
-    <div style="display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 4px 14px; font-size: 0.88rem; font-weight: 600; color: #38bdf8; margin-top: 10px;">
-        {{ t('home.online_since') }}
+<!-- Load Chart.js for dashboard activity chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Embedded Chart Data -->
+<script type="application/json" id="homeDailyChartData">{{ stats.daily_chart_json|safe }}</script>
+
+<!-- 1. Hero Section -->
+<div class="dashboard-hero">
+    <div class="dashboard-hero-content">
+        <div class="dashboard-hero-badge">
+            <span class="hero-pulse-dot"></span>
+            <span>{{ t('home.online_since') }}</span>
+        </div>
+        <h1 class="dashboard-hero-title">{{ t('home.welcome_title') }}</h1>
+        <p class="dashboard-hero-desc">{{ t('home.welcome_desc') }}</p>
+        <div class="dashboard-hero-actions">
+            <a class="btn-hero-discord" href="https://discord.com/oauth2/authorize?client_id=1210665993328926750" target="_blank" rel="noopener noreferrer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+                <span>{{ t('home.invite_btn') }}</span>
+            </a>
+            <a class="btn-hero-secondary" href="{{ url_for('top.top_users') }}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                <span>{{ t('home.explore_btn') }}</span>
+            </a>
+        </div>
     </div>
-    <div style="margin-top: 20px;">
-        <a class="btn-discord" href="https://discord.com/oauth2/authorize?client_id=1210665993328926750" target="_blank" rel="noopener noreferrer">
-            <img src="{{ url_for('static', filename='icons/discord.png') }}" alt="Discord" class="btn-discord-icon">
-            <span>{{ t('home.invite_btn') }}</span>
+</div>
+
+<!-- 2. Global KPIs (Symmetrical 4-Card Grid) -->
+<div class="dashboard-kpi-grid">
+    <!-- 1. Voice Hours -->
+    <div class="dashboard-kpi-card accent-blue">
+        <div class="dashboard-kpi-top">
+            <span class="dashboard-kpi-label">{{ t('home.total_voice_time') }}</span>
+            <div class="dashboard-kpi-icon icon-voice">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            </div>
+        </div>
+        <div class="dashboard-kpi-val" title="{{ stats.nb_time }}">
+            {{ stats.nb_voice_hours_str }}
+        </div>
+        <div class="dashboard-kpi-footer">
+            <div class="dashboard-kpi-pill pill-blue">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <span>+{{ stats.hours_30d_num | thousands_fr }}h {{ 'sur 30j' if current_lang == 'fr' else 'in 30d' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Messages Recorded -->
+    <div class="dashboard-kpi-card accent-emerald">
+        <div class="dashboard-kpi-top">
+            <span class="dashboard-kpi-label">{{ t('home.recorded_messages') }}</span>
+            <div class="dashboard-kpi-icon icon-messages">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+        </div>
+        <div class="dashboard-kpi-val">
+            {{ stats.nb_messages | thousands_fr }}
+        </div>
+        <div class="dashboard-kpi-footer">
+            <div class="dashboard-kpi-pill pill-emerald">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <span>+{{ stats.messages_30d | thousands_fr }} {{ 'sur 30j' if current_lang == 'fr' else 'in 30d' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Unique Members -->
+    <div class="dashboard-kpi-card accent-violet">
+        <div class="dashboard-kpi-top">
+            <span class="dashboard-kpi-label">{{ t('home.unique_users') }}</span>
+            <div class="dashboard-kpi-icon icon-users">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+        </div>
+        <div class="dashboard-kpi-val">
+            {{ stats.nb_users | thousands_fr }}
+        </div>
+        <div class="dashboard-kpi-footer">
+            <div class="dashboard-kpi-pill pill-violet">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <span>{{ stats.nb_profiles | thousands_fr }} {{ 'profils enregistrés' if current_lang == 'fr' else 'server profiles' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Active Servers -->
+    <div class="dashboard-kpi-card accent-amber">
+        <div class="dashboard-kpi-top">
+            <span class="dashboard-kpi-label">{{ 'SERVERS ACTIFS' if current_lang == 'fr' else 'ACTIVE SERVERS' }}</span>
+            <div class="dashboard-kpi-icon icon-servers">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+            </div>
+        </div>
+        <div class="dashboard-kpi-val">
+            {{ stats.nb_servers | thousands_fr }}
+        </div>
+        <div class="dashboard-kpi-footer">
+            <div class="dashboard-kpi-pill pill-amber">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>{{ 'Servers connectés' if current_lang == 'fr' else 'Connected servers' }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Recent Activity Section (Interactive Chart) -->
+<div class="dashboard-section-wrap">
+    <div class="dashboard-section-header">
+        <div>
+            <h2 class="dashboard-section-title">{{ t('home.recent_activity_title') }}</h2>
+            <p class="dashboard-section-desc">{{ t('home.recent_activity_subtitle') }}</p>
+        </div>
+        <a href="{{ url_for('graphs.graphs') }}" class="dashboard-section-link">
+            <span>{{ 'Analyses complètes' if current_lang == 'fr' else 'Full Analytics' }}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </a>
     </div>
-</div>
 
-<!-- Category 1: Last 30 Days Activity -->
-<div class="home-section-header">
-    <div class="home-section-title-wrap">
-        <div class="home-section-icon icon-30d">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-            </svg>
-        </div>
-        <h2 class="home-section-title">{{ t('home.stats_30d_title') }}</h2>
-    </div>
-    <span class="home-section-badge badge-30d">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <span>{{ t('home.stats_30d_badge') }}</span>
-    </span>
-</div>
-
-<div class="home-stats-grid-2cols">
-    <div class="home-stats-box featured-kpi featured-kpi-30d">
-        <div class="home-stats-icon icon-accent-amber">
-            <img src="{{ url_for('static', filename='icons/30day.png') }}" alt="Icon 30 jours">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.stats_30d_voice') }}</span>
-            <span class="home-stats-value time-value">{{ stats.time_30d }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box featured-kpi featured-kpi-30d">
-        <div class="home-stats-icon icon-accent-amber">
-            <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon messages">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.stats_30d_messages') }}</span>
-            <span class="home-stats-value">{{ stats.messages_30d | thousands_fr }}</span>
+    <div class="dashboard-chart-box">
+        <div style="position: relative; height: 260px; width: 100%;">
+            <canvas id="homeActivityChart"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Category 2: Global All-Time Statistics -->
-<div class="home-section-header">
-    <div class="home-section-title-wrap">
-        <div class="home-section-icon icon-alltime">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
+<!-- 4. Community Leaders: Podiums (Members & Servers) -->
+<div class="dashboard-podiums-grid">
+    <!-- Top Members -->
+    <div class="dashboard-podium-card">
+        <div class="podium-card-header">
+            <div class="podium-card-title-wrap">
+                <div class="podium-card-icon icon-users">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                </div>
+                <h3 class="podium-card-title">{{ t('home.podium_users_title') }}</h3>
+            </div>
+            <a href="{{ url_for('top.top_users') }}" class="podium-card-more">
+                {{ t('home.see_all_rankings') }}
+            </a>
         </div>
-        <h2 class="home-section-title">{{ t('home.bot_stats') }}</h2>
-    </div>
-    <span class="home-section-badge badge-alltime">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        <span>{{ t('home.all_time_badge') }}</span>
-    </span>
-</div>
-
-<div class="home-stats-grid-bot">
-    <div class="home-stats-box featured-kpi">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/hourglass.png') }}" alt="Icon Hourglass">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.total_voice_time') }}</span>
-            <span class="home-stats-value time-value">{{ stats.nb_time }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box featured-kpi">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon messages">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.recorded_messages') }}</span>
-            <span class="home-stats-value">{{ stats.nb_messages | thousands_fr }}</span>
+        <div class="podium-list">
+            {% for u in stats.top_users %}
+            <a href="{{ url_for('user_profile.profile', username=u.username) }}" class="podium-item">
+                <div class="podium-rank rank-{{ loop.index }}">{{ loop.index }}</div>
+                <img src="{{ u.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                     alt="{{ u.username }}" class="podium-avatar"
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/base_avatar_big.png') }}';">
+                <div class="podium-info">
+                    <span class="podium-name">{{ u.username }}</span>
+                    <span class="podium-sub">{{ u.messages | thousands_fr }} msgs</span>
+                </div>
+                <div class="podium-score">
+                    <span class="podium-value">{{ u.hours | thousands_fr }} h</span>
+                </div>
+            </a>
+            {% endfor %}
         </div>
     </div>
 
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/users_group.png') }}" alt="Icon users_group">
+    <!-- Top Servers -->
+    <div class="dashboard-podium-card">
+        <div class="podium-card-header">
+            <div class="podium-card-title-wrap">
+                <div class="podium-card-icon icon-servers">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                </div>
+                <h3 class="podium-card-title">{{ t('home.podium_servers_title') }}</h3>
+            </div>
+            <a href="{{ url_for('top.top_servers') }}" class="podium-card-more">
+                {{ t('home.see_all_servers') }}
+            </a>
         </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.unique_users') }}</span>
-            <span class="home-stats-value">{{ stats.nb_users | thousands_fr }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/profile.png') }}" alt="Icon profil">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.activity_profiles') }}</span>
-            <span class="home-stats-value">{{ stats.nb_profiles | thousands_fr }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/server.png') }}" alt="Icon serveur">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.active_servers') }}</span>
-            <span class="home-stats-value">{{ stats.nb_servers | thousands_fr }}</span>
+        <div class="podium-list">
+            {% for s in stats.top_servers %}
+            <a href="{{ url_for('server_profile.server', server_id=s.server_id) }}" class="podium-item">
+                <div class="podium-rank rank-{{ loop.index }}">{{ loop.index }}</div>
+                <img src="{{ s.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                     alt="{{ s.servername }}" class="podium-avatar border-server"
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/base_avatar_big.png') }}';">
+                <div class="podium-info">
+                    <span class="podium-name">{{ s.servername }}</span>
+                    <span class="podium-sub">{{ s.messages | thousands_fr }} msgs</span>
+                </div>
+                <div class="podium-score">
+                    <span class="podium-value">{{ s.hours | thousands_fr }} h</span>
+                </div>
+            </a>
+            {% endfor %}
         </div>
     </div>
 </div>
 
-<!-- Category 3: Database & Telemetry -->
-<div class="home-section-header">
-    <div class="home-section-title-wrap">
-        <div class="home-section-icon icon-db">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-            </svg>
-        </div>
-        <h2 class="home-section-title">{{ t('home.db_telemetry') }}</h2>
-    </div>
-    <span class="home-section-badge badge-db">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
-            <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
-            <line x1="6" x2="6.01" y1="6" y2="6"/>
-            <line x1="6" x2="6.01" y1="18" y2="18"/>
-        </svg>
-        <span>{{ t('home.telemetry_badge') }}</span>
-    </span>
-</div>
-
-<div class="home-stats-container">
-    <div class="home-stats-box">
-        <div class="home-stats-icon icon-accent-purple">
-            <img src="{{ url_for('static', filename='icons/database.png') }}" alt="Icon Database">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.pg_size') }}</span>
-            <span class="home-stats-value">{{ stats.size_db_ko | thousands_fr }} {% if current_lang == 'en' %}KB{% else %}Ko{% endif %}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon icon-accent-purple">
-            <img src="{{ url_for('static', filename='icons/calendar.png') }}" alt="Icon Table Stats">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.stats_table') }}</span>
-            <span class="home-stats-value">{{ stats.size_stats_ko | thousands_fr }} {% if current_lang == 'en' %}KB{% else %}Ko{% endif %}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon icon-accent-purple">
-            <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Icon Historique">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.hist_table') }}</span>
-            <span class="home-stats-value">{{ stats.size_hist_ko | thousands_fr }} {% if current_lang == 'en' %}KB{% else %}Ko{% endif %}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon icon-accent-purple">
-            <img src="{{ url_for('static', filename='icons/save.png') }}" alt="Icon Snapshot">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('home.last_snapshot') }}</span>
-            <span class="home-stats-value" style="font-size: 1rem; font-weight: 600;">{{ stats.last_backup }}</span>
-        </div>
-    </div>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rawDataEl = document.getElementById('homeDailyChartData');
+    if (!rawDataEl) return;
+    try {
+        const chartData = JSON.parse(rawDataEl.textContent);
+        const ctx = document.getElementById('homeActivityChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [
+                    {
+                        label: "{{ 'Heures en vocal' if current_lang == 'fr' else 'Voice Hours' }}",
+                        data: chartData.hours,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2.2,
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#38bdf8',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: "{{ 'Messages' if current_lang == 'fr' else 'Messages' }}",
+                        data: chartData.messages,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#10b981',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#94a3b8', font: { size: 12, weight: '600' }, boxWidth: 12, usePointStyle: true }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        borderColor: 'rgba(255, 255, 255, 0.12)',
+                        borderWidth: 1,
+                        padding: 10,
+                        titleColor: '#ffffff',
+                        bodyColor: '#cbd5e1'
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: 10 }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#38bdf8', font: { size: 11 } }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#10b981', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    } catch(e) {
+        console.error('Error rendering home activity chart:', e);
+    }
+});
+</script>
 {% endblock %}

@@ -1,5 +1,19 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.0 - Modernisation du Dashboard, Navigation Épurée & Hub Communautaire - 05/10/2026
+### Features & Améliorations
+- **Refonte Complète de la Navigation (`base.html`)** :
+  - Consolidation des 7 liens plats en 4 piliers modernes et épurés : *Accueil*, *Statistiques* (menu déroulant), *Communauté* (menu déroulant), et *Support*.
+  - Menus déroulants ergonomiques avec icônes, descriptions, pont de survol invisible (`::before`) et buffer anti-décrochage pour une navigation fluide sur desktop et mobile.
+- **Nouveau Dashboard d'Accueil (`home.html`)** :
+  - Hero d'accueil avec boutons d'actions parfaitement alignés et cadrés (Invitation Discord et Exploration des classements).
+  - 4 cartes KPI globales parfaitement symétriques (Temps vocal total, Messages, Utilisateurs uniques, Servers actifs) avec bordures supérieures lumineuses et pilules d'état colorées.
+  - Graphique d'activité dynamique sur 30 jours (Chart.js) comparant le rythme vocal et textuel.
+  - Podiums Top 3 pour les membres et les serveurs avec médailles or, argent et bronze.
+  - Allègement de l'accueil : suppression des requêtes et de la barre de télémétrie de base de données.
+- **Hub de Navigation Croisée (`hub-nav-bar`)** :
+  - Barre de pilules interactive sur `/servers`, `/users`, `/top/servers` et `/top/users` permettant de basculer instantanément entre annuaires, classements vocal/messages et l'outil Versus.
+
 ## Version 2.6.1 - Correctif Connectés vs Hors-ligne 48h & Épuration Liste Serveurs - 04/10/2026
 ### Fixes & Améliorations
 - **Graphique 48h Connectés vs Hors-ligne (`/graphs`)** :

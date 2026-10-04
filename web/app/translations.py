@@ -8,22 +8,48 @@ TRANSLATIONS = {
     "fr": {
         # Navigation
         "nav.home": "Accueil",
-        "nav.top": "Top",
-        "nav.graphs": "Graphiques",
-        "nav.users": "Utilisateurs",
-        "nav.servers": "Serveurs",
-        "nav.versus": "Versus",
-        "nav.supports": "Supports",
+        "nav.stats_group": "Statistiques",
+        "nav.community_group": "Communauté",
+        "nav.top": "Classements",
+        "nav.top_desc": "Top membres et serveurs",
+        "nav.graphs": "Analyses & Graphiques",
+        "nav.graphs_desc": "Tendances et visualisations",
+        "nav.versus": "Comparateur Versus",
+        "nav.versus_desc": "Face-à-face entre membres",
+        "nav.servers": "Serveurs Discord",
+        "nav.servers_desc": "Annuaire des serveurs",
+        "nav.users": "Membres & Profils",
+        "nav.users_desc": "Annuaire des utilisateurs",
+        "nav.supports": "Support",
         "nav.invite": "Inviter",
         "nav.bot_badge": "BOT",
         "nav.invite_title": "Inviter le bot Hourglass sur votre serveur",
+
+        # Home Dashboard enhancements
+        "home.explore_btn": "Explorer les classements",
+        "home.recent_activity_title": "Activité récente de la communauté",
+        "home.recent_activity_subtitle": "Suivi jour par jour des heures en vocal et du volume de messages sur les 30 derniers jours.",
+        "home.podium_users_title": "Top Membres les plus actifs",
+        "home.podium_servers_title": "Top Serveurs les plus actifs",
+        "home.see_all_rankings": "Voir tout le classement →",
+        "home.see_all_servers": "Voir tous les serveurs →",
+        "home.badge_30d_voice": "+{hours}h sur 30j",
+        "home.badge_30d_msgs": "+{msgs} sur 30j",
+        "home.telemetry_title": "Télémétrie Système & Base de données",
+
+        # Hub navigation pills
+        "hub.all_servers": "Tous les serveurs",
+        "hub.all_users": "Tous les membres",
+        "hub.top_voice": "Top Vocal",
+        "hub.top_messages": "Top Messages",
+        "hub.versus_tool": "Comparateur Versus",
 
         # Footer
         "footer.privacy": "Politique de confidentialité",
         "footer.terms": "Conditions d'utilisation",
         "footer.support": "Serveur Discord & Données",
         "footer.powered_by": "Hourglass Bot - propulsé par SnoutLabs",
-        "footer.version": "version 2.6.1 - 04/10/2026",
+        "footer.version": "version 2.7.0 - 05/10/2026",
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Politique de Confidentialité & RGPD",
@@ -443,22 +469,48 @@ TRANSLATIONS = {
     "en": {
         # Navigation
         "nav.home": "Home",
-        "nav.top": "Leaderboard",
-        "nav.graphs": "Graphs",
-        "nav.users": "Users",
-        "nav.servers": "Servers",
-        "nav.versus": "Versus",
+        "nav.stats_group": "Statistics",
+        "nav.community_group": "Community",
+        "nav.top": "Leaderboards",
+        "nav.top_desc": "Top members and servers",
+        "nav.graphs": "Charts & Analytics",
+        "nav.graphs_desc": "Trends & visualizations",
+        "nav.versus": "Versus Comparison",
+        "nav.versus_desc": "Head-to-head match-up",
+        "nav.servers": "Discord Servers",
+        "nav.servers_desc": "Guilds directory",
+        "nav.users": "Members & Profiles",
+        "nav.users_desc": "Users directory",
         "nav.supports": "Support",
         "nav.invite": "Invite",
         "nav.bot_badge": "BOT",
         "nav.invite_title": "Invite Hourglass Bot to your server",
+
+        # Home Dashboard enhancements
+        "home.explore_btn": "Explore Leaderboards",
+        "home.recent_activity_title": "Recent Community Activity",
+        "home.recent_activity_subtitle": "Day-by-day voice hours and message volume tracked over the last 30 days.",
+        "home.podium_users_title": "Top Most Active Members",
+        "home.podium_servers_title": "Top Most Active Servers",
+        "home.see_all_rankings": "View full leaderboard →",
+        "home.see_all_servers": "View all servers →",
+        "home.badge_30d_voice": "+{hours}h in 30d",
+        "home.badge_30d_msgs": "+{msgs} in 30d",
+        "home.telemetry_title": "System Telemetry & Database",
+
+        # Hub navigation pills
+        "hub.all_servers": "All Servers",
+        "hub.all_users": "All Members",
+        "hub.top_voice": "Top Voice",
+        "hub.top_messages": "Top Messages",
+        "hub.versus_tool": "Versus Tool",
 
         # Footer
         "footer.privacy": "Privacy Policy",
         "footer.terms": "Terms of Service",
         "footer.support": "Discord Support & Data",
         "footer.powered_by": "Hourglass Bot - powered by SnoutLabs",
-        "footer.version": "version 2.6.1 - 04/10/2026",
+        "footer.version": "version 2.7.0 - 05/10/2026",
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Privacy Policy & GDPR",

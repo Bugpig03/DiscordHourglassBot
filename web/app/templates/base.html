@@ -8,7 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
     <link
     rel="stylesheet"
-    href="{{ url_for('static', filename='styles.css', v=26) }}"
+    href="{{ url_for('static', filename='styles.css', v=29) }}"
     >
 </head>
 <body>
@@ -38,39 +38,62 @@
                     <ul class="app-nav-list">
                         <li class="app-nav-item">
                             <a href="{{ url_for('home.home') }}" class="app-nav-link {% if request.endpoint == 'home.home' %}active{% endif %}">
-                                <svg class="nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                                 <span>{{ t('nav.home') }}</span>
                             </a>
                         </li>
-                        <li class="app-nav-item">
-                            <a href="{{ url_for('top.top_users') }}" class="app-nav-link {% if request.endpoint in ['top.top_users', 'top.top_servers'] %}active{% endif %}">
-                                <svg class="nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-                                <span>{{ t('nav.top') }}</span>
-                            </a>
+                        <li class="app-nav-item nav-dropdown">
+                            <button type="button" class="app-nav-link nav-dropdown-toggle {% if request.endpoint in ['top.top_users', 'top.top_servers', 'graphs.graphs', 'versus.versus'] %}active{% endif %}" aria-expanded="false">
+                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                <span>{{ t('nav.stats_group') }}</span>
+                                <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="nav-dropdown-menu">
+                                <a href="{{ url_for('top.top_users') }}" class="nav-dropdown-item {% if request.endpoint in ['top.top_users', 'top.top_servers'] %}active{% endif %}">
+                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                                    <div class="nav-dropdown-text">
+                                        <span class="nav-dropdown-title">{{ t('nav.top') }}</span>
+                                        <span class="nav-dropdown-desc">{{ t('nav.top_desc') }}</span>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('graphs.graphs') }}" class="nav-dropdown-item {% if request.endpoint == 'graphs.graphs' %}active{% endif %}">
+                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                    <div class="nav-dropdown-text">
+                                        <span class="nav-dropdown-title">{{ t('nav.graphs') }}</span>
+                                        <span class="nav-dropdown-desc">{{ t('nav.graphs_desc') }}</span>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('versus.versus') }}" class="nav-dropdown-item {% if request.endpoint == 'versus.versus' %}active{% endif %}">
+                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                                    <div class="nav-dropdown-text">
+                                        <span class="nav-dropdown-title">{{ t('nav.versus') }}</span>
+                                        <span class="nav-dropdown-desc">{{ t('nav.versus_desc') }}</span>
+                                    </div>
+                                </a>
+                            </div>
                         </li>
-                        <li class="app-nav-item">
-                            <a href="{{ url_for('graphs.graphs') }}" class="app-nav-link {% if request.endpoint == 'graphs.graphs' %}active{% endif %}">
-                                <svg class="nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                                <span>{{ t('nav.graphs') }}</span>
-                            </a>
-                        </li>
-                        <li class="app-nav-item">
-                            <a href="{{ url_for('users.users') }}" class="app-nav-link {% if request.endpoint in ['users.users', 'user_profile.profile'] %}active{% endif %}">
-                                <svg class="nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                <span>{{ t('nav.users') }}</span>
-                            </a>
-                        </li>
-                        <li class="app-nav-item">
-                            <a href="{{ url_for('servers.servers') }}" class="app-nav-link {% if request.endpoint in ['servers.servers', 'server_profile.server'] %}active{% endif %}">
-                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
-                                <span>{{ t('nav.servers') }}</span>
-                            </a>
-                        </li>
-                        <li class="app-nav-item">
-                            <a href="{{ url_for('versus.versus') }}" class="app-nav-link {% if request.endpoint == 'versus.versus' %}active{% endif %}">
-                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
-                                <span>{{ t('nav.versus') }}</span>
-                            </a>
+                        <li class="app-nav-item nav-dropdown">
+                            <button type="button" class="app-nav-link nav-dropdown-toggle {% if request.endpoint in ['servers.servers', 'server_profile.server', 'users.users', 'user_profile.profile'] %}active{% endif %}" aria-expanded="false">
+                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <span>{{ t('nav.community_group') }}</span>
+                                <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="nav-dropdown-menu">
+                                <a href="{{ url_for('servers.servers') }}" class="nav-dropdown-item {% if request.endpoint in ['servers.servers', 'server_profile.server'] %}active{% endif %}">
+                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                                    <div class="nav-dropdown-text">
+                                        <span class="nav-dropdown-title">{{ t('nav.servers') }}</span>
+                                        <span class="nav-dropdown-desc">{{ t('nav.servers_desc') }}</span>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('users.users') }}" class="nav-dropdown-item {% if request.endpoint in ['users.users', 'user_profile.profile'] %}active{% endif %}">
+                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    <div class="nav-dropdown-text">
+                                        <span class="nav-dropdown-title">{{ t('nav.users') }}</span>
+                                        <span class="nav-dropdown-desc">{{ t('nav.users_desc') }}</span>
+                                    </div>
+                                </a>
+                            </div>
                         </li>
                         <li class="app-nav-item">
                             <a href="{{ url_for('home.supports') }}" class="app-nav-link {% if request.endpoint == 'home.supports' %}active{% endif %}">
@@ -165,6 +188,41 @@
                         menu.classList.remove('open');
                         toggle.classList.remove('open');
                         toggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                // Dropdown hover buffer & mouseleave grace period
+                document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+                    let hoverTimer;
+                    dropdown.addEventListener('mouseenter', () => {
+                        clearTimeout(hoverTimer);
+                        dropdown.classList.add('is-hovered');
+                    });
+                    dropdown.addEventListener('mouseleave', () => {
+                        hoverTimer = setTimeout(() => {
+                            dropdown.classList.remove('is-hovered');
+                        }, 220);
+                    });
+                });
+
+                // Dropdown click toggle (touch & mobile friendly)
+                document.querySelectorAll('.nav-dropdown-toggle').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const parent = btn.closest('.nav-dropdown');
+                        if (parent) {
+                            const wasOpen = parent.classList.contains('open');
+                            document.querySelectorAll('.nav-dropdown.open').forEach(d => {
+                                if (d !== parent) d.classList.remove('open');
+                            });
+                            parent.classList.toggle('open', !wasOpen);
+                        }
+                    });
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.nav-dropdown')) {
+                        document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
                     }
                 });
             }
