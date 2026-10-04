@@ -96,6 +96,13 @@ func (db *DB) RecordPresenceHistory(ctx context.Context, serverID *int64, online
 	return err
 }
 
+// CleanOldPresenceHistory supprime les instantanés de présence datant de plus de 7 jours
+func (db *DB) CleanOldPresenceHistory(ctx context.Context) error {
+	query := `DELETE FROM presence_history WHERE recorded_at < NOW() - INTERVAL '7 days'`
+	_, err := db.Pool.Exec(ctx, query)
+	return err
+}
+
 // UpsertChannel insère ou met à jour le nom et le type d'un salon
 func (db *DB) UpsertChannel(ctx context.Context, channelID, serverID int64, name, channelType string) error {
 	query := `

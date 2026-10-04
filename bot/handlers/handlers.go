@@ -155,20 +155,30 @@ func (h *BotHandler) startHeartbeatLoop(s *discordgo.Session) {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
+	historyTicker := time.NewTicker(15 * time.Minute)
+	defer historyTicker.Stop()
+
 	// Exécuter immédiatement une première fois
 	h.refreshServerPresences(s)
+	h.recordPresenceSnapshot(s)
 
-	for range ticker.C {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		updated, err := h.DB.UpdateHeartbeats(ctx)
-		cancel()
-		if err != nil {
-			log.Printf("⚠️ Erreur Heartbeat: %v", err)
-		} else if updated > 0 {
-			log.Printf("💓 Heartbeat actualisé pour %d session(s) active(s)", updated)
+	for {
+		select {
+		case <-ticker.C:
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			updated, err := h.DB.UpdateHeartbeats(ctx)
+			cancel()
+			if err != nil {
+				log.Printf("⚠️ Erreur Heartbeat: %v", err)
+			} else if updated > 0 {
+				log.Printf("💓 Heartbeat actualisé pour %d session(s) active(s)", updated)
+			}
+
+			h.refreshServerPresences(s)
+
+		case <-historyTicker.C:
+			h.recordPresenceSnapshot(s)
 		}
-
-		h.refreshServerPresences(s)
 	}
 }
 
@@ -181,7 +191,7 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 		if err != nil {
 			continue
 		}
-		online, idle, dnd, offline := 0, 0, 0, 0
+		online, idle, dnd := 0, 0, 0
 		for _, p := range guild.Presences {
 			switch p.Status {
 			case discordgo.StatusOnline:
@@ -190,13 +200,20 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 				idle++
 			case discordgo.StatusDoNotDisturb:
 				dnd++
-			default:
-				offline++
 			}
 			if p.User != nil {
 				uID, _ := strconv.ParseInt(p.User.ID, 10, 64)
 				_ = h.DB.UpsertUserPresence(ctx, uID, string(p.Status))
 			}
+		}
+
+		memberCount := guild.MemberCount
+		if memberCount < len(guild.Members) {
+			memberCount = len(guild.Members)
+		}
+		offline := memberCount - (online + idle + dnd)
+		if offline < 0 {
+			offline = 0
 		}
 
 		voiceCount := 0
@@ -209,6 +226,58 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 		serverID, _ := strconv.ParseInt(g.ID, 10, 64)
 		_ = h.DB.UpdateLiveServerStatus(ctx, serverID, online, idle, dnd, offline, voiceCount)
 		_ = h.DB.UpsertServer(ctx, serverID, guild.Name, guild.IconURL("1024"))
+	}
+}
+
+// recordPresenceSnapshot enregistre un point d'historique 48h pour chaque serveur et pour le global
+func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	totalOnline := 0
+	totalIdle := 0
+	totalDnd := 0
+	totalOffline := 0
+
+	for _, g := range s.State.Guilds {
+		guild, err := s.State.Guild(g.ID)
+		if err != nil || guild == nil {
+			continue
+		}
+		online, idle, dnd := 0, 0, 0
+		for _, p := range guild.Presences {
+			switch p.Status {
+			case discordgo.StatusOnline:
+				online++
+			case discordgo.StatusIdle:
+				idle++
+			case discordgo.StatusDoNotDisturb:
+				dnd++
+			}
+		}
+
+		memberCount := guild.MemberCount
+		if memberCount < len(guild.Members) {
+			memberCount = len(guild.Members)
+		}
+		offline := memberCount - (online + idle + dnd)
+		if offline < 0 {
+			offline = 0
+		}
+
+		serverID, _ := strconv.ParseInt(g.ID, 10, 64)
+		_ = h.DB.RecordPresenceHistory(ctx, &serverID, online, idle, dnd, offline)
+
+		totalOnline += online
+		totalIdle += idle
+		totalDnd += dnd
+		totalOffline += offline
+	}
+
+	if len(s.State.Guilds) > 0 {
+		_ = h.DB.RecordPresenceHistory(ctx, nil, totalOnline, totalIdle, totalDnd, totalOffline)
+		_ = h.DB.CleanOldPresenceHistory(ctx)
+		log.Printf("📊 [PRESENCE] Instantané 48h enregistré (En ligne: %d, Absent: %d, DND: %d, Hors-ligne: %d)", totalOnline, totalIdle, totalDnd, totalOffline)
 	}
 }
 
