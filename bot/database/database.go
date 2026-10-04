@@ -209,6 +209,58 @@ func (db *DB) SwitchVoiceChannel(ctx context.Context, userID, serverID, newChann
 	return tx.Commit(ctx)
 }
 
+// SyncVoiceSession synchronise ou réactive la session vocale d'un membre présent dans un salon
+func (db *DB) SyncVoiceSession(ctx context.Context, userID, serverID, channelID int64, isStreaming, isCameraOn bool) error {
+	// 1. Session déjà active (left_at IS NULL) ?
+	var activeID int64
+	var activeChannelID *int64
+	err := db.Pool.QueryRow(ctx, `
+		SELECT session_id, channel_id 
+		FROM voice_sessions 
+		WHERE user_id = $1 AND server_id = $2 AND left_at IS NULL
+		LIMIT 1
+	`, userID, serverID).Scan(&activeID, &activeChannelID)
+
+	if err == nil {
+		if activeChannelID != nil && *activeChannelID == channelID {
+			_, errTouch := db.Pool.Exec(ctx, `
+				UPDATE voice_sessions 
+				SET last_heartbeat = NOW(), is_streaming = $2, is_camera_on = $3 
+				WHERE session_id = $1
+			`, activeID, isStreaming, isCameraOn)
+			return errTouch
+		}
+		// Salon différent : bascule
+		return db.SwitchVoiceChannel(ctx, userID, serverID, channelID, isStreaming, isCameraOn)
+	}
+
+	// 2. Session coupée récemment (dans les 2 dernières heures, ex: lors du redémarrage/mise à jour du bot) ?
+	var recentID int64
+	var recentChannelID *int64
+	errRecent := db.Pool.QueryRow(ctx, `
+		SELECT session_id, channel_id
+		FROM voice_sessions
+		WHERE user_id = $1 AND server_id = $2 AND left_at >= NOW() - INTERVAL '2 hours'
+		ORDER BY left_at DESC
+		LIMIT 1
+	`, userID, serverID).Scan(&recentID, &recentChannelID)
+
+	if errRecent == nil {
+		// Réouverture transparente de la session sans coupure !
+		_, errReopen := db.Pool.Exec(ctx, `
+			UPDATE voice_sessions
+			SET left_at = NULL, duration_seconds = 0, last_heartbeat = NOW(), is_streaming = $2, is_camera_on = $3, channel_id = $4
+			WHERE session_id = $1
+		`, recentID, isStreaming, isCameraOn, channelID)
+		if errReopen == nil {
+			return nil
+		}
+	}
+
+	// 3. Sinon, ouvrir une nouvelle session vocale
+	return db.StartVoiceSession(ctx, userID, serverID, channelID, isStreaming, isCameraOn)
+}
+
 // UpsertUserPresence enregistre le statut de présence Discord d'un utilisateur
 func (db *DB) UpsertUserPresence(ctx context.Context, userID int64, status string) error {
 	query := `
@@ -305,7 +357,13 @@ func (db *DB) CloseOrphanSession(ctx context.Context, sessionID int64, closeTime
 		SET left_at = $2,
 		    duration_seconds = GREATEST(0, EXTRACT(EPOCH FROM ($2 - joined_at))::INT)
 		WHERE session_id = $1 AND left_at IS NULL
+		RETURNING user_id, server_id, duration_seconds
 	`
-	_, err := db.Pool.Exec(ctx, query, sessionID, closeTime)
+	var userID, serverID int64
+	var duration int
+	err := db.Pool.QueryRow(ctx, query, sessionID, closeTime).Scan(&userID, &serverID, &duration)
+	if err == nil && duration > 0 {
+		_ = db.AddSecondsToStats(ctx, userID, serverID, duration)
+	}
 	return err
 }

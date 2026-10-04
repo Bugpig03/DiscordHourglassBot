@@ -29,8 +29,11 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 		_ = s.RequestGuildMembers(g.ID, "", 0, "", true)
 	}
 
-	// Lancer la réconciliation des sessions orphelines suite à un éventuel crash/redémarrage
-	go h.reconcileSessions(s)
+	// Lancer la réconciliation des sessions avec un délai de 5s pour laisser le temps aux GUILD_CREATE d'arriver
+	go func() {
+		time.Sleep(5 * time.Second)
+		h.reconcileSessions(s)
+	}()
 
 	// Lancer la boucle de Heartbeat & actualisation présences (toutes les 30s)
 	go h.startHeartbeatLoop(s)
@@ -174,6 +177,8 @@ func (h *BotHandler) startHeartbeatLoop(s *discordgo.Session) {
 				log.Printf("💓 Heartbeat actualisé pour %d session(s) active(s)", updated)
 			}
 
+			// Réconciliation bidirectionnelle continue (toutes les 30s)
+			h.reconcileSessions(s)
 			h.refreshServerPresences(s)
 
 		case <-historyTicker.C:
@@ -286,13 +291,34 @@ func (h *BotHandler) OnGuildCreate(s *discordgo.Session, g *discordgo.GuildCreat
 	if g.Guild == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	serverID, _ := strconv.ParseInt(g.ID, 10, 64)
 	avatarURL := g.IconURL("1024")
 	_ = h.DB.UpsertServer(ctx, serverID, g.Name, avatarURL)
-	log.Printf("📥 [GUILD] Bot présent sur le serveur %d (%s)", serverID, g.Name)
+	log.Printf("📥 [GUILD] Bot présent sur le serveur %d (%s) avec %d membre(s) en vocal", serverID, g.Name, len(g.VoiceStates))
+
+	// Synchroniser / réactiver immédiatement les sessions de tous les membres déjà en vocal
+	for _, vs := range g.VoiceStates {
+		if vs.ChannelID != "" {
+			uID, _ := strconv.ParseInt(vs.UserID, 10, 64)
+			chID, _ := strconv.ParseInt(vs.ChannelID, 10, 64)
+
+			if ch, err := s.State.Channel(vs.ChannelID); err == nil {
+				_ = h.DB.UpsertChannel(ctx, chID, serverID, ch.Name, "voice")
+			}
+			if vs.Member != nil && vs.Member.User != nil {
+				_ = h.DB.UpsertUser(ctx, uID, vs.Member.User.Username, vs.Member.User.AvatarURL("1024"))
+			}
+
+			if err := h.DB.SyncVoiceSession(ctx, uID, serverID, chID, vs.SelfStream, vs.SelfVideo); err != nil {
+				log.Printf("⚠️ Erreur SyncVoiceSession lors de OnGuildCreate (user %d): %v", uID, err)
+			} else {
+				log.Printf("🎙️ [SYNC] Session vocale synchronisée pour user %d (%s)", uID, g.Name)
+			}
+		}
+	}
 }
 
 // OnGuildDelete est déclenché quand le bot est retiré d'un serveur (kické, banni ou quitte)
@@ -308,36 +334,49 @@ func (h *BotHandler) OnGuildDelete(s *discordgo.Session, g *discordgo.GuildDelet
 	log.Printf("📤 [GUILD] Bot retiré du serveur %d (%s) - Historique préservé", serverID, g.Name)
 }
 
-// reconcileSessions inspecte les salons réels de Discord au boot et clôture les sessions fantômes
+// reconcileSessions inspecte les salons réels de Discord et effectue une réconciliation bidirectionnelle
 func (h *BotHandler) reconcileSessions(s *discordgo.Session) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	if len(s.State.Guilds) == 0 {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	activeSessions, err := h.DB.GetActiveVoiceSessions(ctx)
-	if err != nil {
-		log.Printf("Erreur récupération sessions actives pour réconciliation: %v", err)
-		return
-	}
-
-	if len(activeSessions) == 0 {
-		return
-	}
-
-	log.Printf("🔍 Réconciliation : %d session(s) active(s) en BDD à vérifier...", len(activeSessions))
-
-	// Construire une map des membres réellement en vocal sur Discord par (guildID, userID)
+	// 1. Scanner tous les salons réels de Discord et s'assurer que chaque membre en vocal a une session active
 	realVoiceMembers := make(map[string]bool)
 	for _, g := range s.State.Guilds {
 		guild, err := s.State.Guild(g.ID)
-		if err != nil {
+		if err != nil || guild == nil {
 			continue
 		}
+		serverID, _ := strconv.ParseInt(guild.ID, 10, 64)
+
 		for _, vs := range guild.VoiceStates {
 			if vs.ChannelID != "" {
 				key := fmt.Sprintf("%s:%s", vs.GuildID, vs.UserID)
 				realVoiceMembers[key] = true
+
+				uID, _ := strconv.ParseInt(vs.UserID, 10, 64)
+				chID, _ := strconv.ParseInt(vs.ChannelID, 10, 64)
+
+				if ch, errCh := s.State.Channel(vs.ChannelID); errCh == nil {
+					_ = h.DB.UpsertChannel(ctx, chID, serverID, ch.Name, "voice")
+				}
+				if vs.Member != nil && vs.Member.User != nil {
+					_ = h.DB.UpsertUser(ctx, uID, vs.Member.User.Username, vs.Member.User.AvatarURL("1024"))
+				}
+
+				_ = h.DB.SyncVoiceSession(ctx, uID, serverID, chID, vs.SelfStream, vs.SelfVideo)
 			}
 		}
+	}
+
+	// 2. Vérifier les sessions actives en BDD et clôturer celles dont l'utilisateur n'est plus en vocal
+	activeSessions, err := h.DB.GetActiveVoiceSessions(ctx)
+	if err != nil {
+		log.Printf("⚠️ Erreur récupération sessions actives pour réconciliation: %v", err)
+		return
 	}
 
 	reconciledCount := 0
@@ -355,6 +394,6 @@ func (h *BotHandler) reconcileSessions(s *discordgo.Session) {
 	}
 
 	if reconciledCount > 0 {
-		log.Printf("✅ Réconciliation terminée : %d session(s) orpheline(s) clôturée(s) proprement.", reconciledCount)
+		log.Printf("✅ Réconciliation : %d session(s) orpheline(s) clôturée(s) proprement.", reconciledCount)
 	}
 }
