@@ -47,28 +47,12 @@
         {% for server in servers %}
         <div class="gray-box small-border-radius dynamic link">
             <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" style="width: 100%;">
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-                        <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                             class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
-                        <div style="min-width: 0; flex: 1;">
-                            <div class="medium-bold-text text-overflow nomargin" style="font-size: 1rem;">{{ server.servername }}</div>
-                            {% if server.first_tracked_at %}
-                            <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">{{ t('server_profile.active_since') }} {{ server.first_tracked_at }}</div>
-                            {% endif %}
-                        </div>
+                <div style="display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0;">
+                    <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                         class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                    <div class="medium-bold-text text-overflow nomargin" style="font-size: 1rem; min-width: 0; flex: 1;">
+                        {{ server.servername }}
                     </div>
-                    {% if server.is_bot_present %}
-                    <span style="background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 3px 8px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;" title="{{ t('servers.bot_active_tooltip') }}">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-                        {{ t('servers.bot_active') }}
-                    </span>
-                    {% else %}
-                    <span style="background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;" title="{{ t('servers.bot_inactive_tooltip') }}">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
-                        {{ t('servers.bot_inactive') }}
-                    </span>
-                    {% endif %}
                 </div>
             </a>
         </div>
