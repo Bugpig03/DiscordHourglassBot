@@ -7,6 +7,7 @@
 FROM golang:1.24-alpine AS builder
 
 WORKDIR /build
+ENV GOTOOLCHAIN=auto
 
 # Installer git si nécessaire pour certaines dépendances
 RUN apk add --no-cache git ca-certificates
