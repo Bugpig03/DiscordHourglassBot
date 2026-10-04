@@ -2,8 +2,8 @@
 
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request
-from peewee import fn
-from app.database import db, Users, Servers, HistoricalStats, Stats
+from peewee import fn, SQL
+from app.database import db, Users, Servers, HistoricalStats, Stats, VoiceSessions
 from app.functions import format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta
 
 home_bp = Blueprint("home", __name__)
@@ -46,7 +46,13 @@ def load_dashboard_stats() -> dict:
     nb_profiles = Stats.select().count()
     nb_servers = Servers.select().count()
     nb_messages = Stats.select(fn.SUM(Stats.messages)).scalar() or 0
-    nb_time = ConvertSecondsToTime(Stats.select(fn.SUM(Stats.seconds)).scalar() or 0)
+    active_secs = (
+        VoiceSessions
+        .select(fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0))
+        .where(VoiceSessions.left_at.is_null(True))
+        .scalar() or 0
+    )
+    nb_time = ConvertSecondsToTime((Stats.select(fn.SUM(Stats.seconds)).scalar() or 0) + active_secs)
 
     # 30-Day Activity Delta
     delta_30d = _get_activity_delta(30)

@@ -223,6 +223,20 @@ def _get_activity_delta(days: int, user_id: int | None = None, server_id: int | 
 
     curr_seconds = curr_data.get("total_seconds") or 0 if curr_data else 0
     curr_messages = curr_data.get("total_messages") or 0 if curr_data else 0
+
+    # Add active voice seconds if in session
+    try:
+        active_q = VoiceSessions.select(
+            fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
+        ).where(VoiceSessions.left_at.is_null(True))
+        if user_id is not None:
+            active_q = active_q.where(VoiceSessions.user_id == user_id)
+        if server_id is not None:
+            active_q = active_q.where(VoiceSessions.server_id == server_id)
+        curr_seconds += int(active_q.scalar() or 0)
+    except Exception:
+        pass
+
     hist_seconds = hist_query.get("total_seconds") or 0 if hist_query else 0
     hist_messages = hist_query.get("total_messages") or 0 if hist_query else 0
 
@@ -388,6 +402,18 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
         curr_query = curr_query.where(Stats.user_id == user_id)
     current_total = curr_query.scalar() or 0
 
+    try:
+        active_q = VoiceSessions.select(
+            fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
+        ).where(VoiceSessions.left_at.is_null(True))
+        if user_id is not None:
+            active_q = active_q.where(VoiceSessions.user_id == user_id)
+        if server_id is not None:
+            active_q = active_q.where(VoiceSessions.server_id == server_id)
+        current_total += int(active_q.scalar() or 0)
+    except Exception:
+        pass
+
     if any(r["month"] == today_str for r in result):
         for r in result:
             if r["month"] == today_str:
@@ -524,6 +550,18 @@ def get_daily_hours_progression(server_id: int | None = None, user_id: int | Non
     if user_id:
         curr_query = curr_query.where(Stats.user_id == user_id)
     current_total = curr_query.scalar() or 0
+
+    try:
+        active_q = VoiceSessions.select(
+            fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
+        ).where(VoiceSessions.left_at.is_null(True))
+        if user_id is not None:
+            active_q = active_q.where(VoiceSessions.user_id == user_id)
+        if server_id is not None:
+            active_q = active_q.where(VoiceSessions.server_id == server_id)
+        current_total += int(active_q.scalar() or 0)
+    except Exception:
+        pass
 
     if any(r["date"] == today_str for r in result):
         for r in result:
