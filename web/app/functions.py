@@ -654,11 +654,23 @@ def get_daily_hours_diff(server_id: int | None = None, user_id: int | None = Non
     for i in range(1, len(cumul)):
         prev = cumul[i - 1]
         curr = cumul[i]
-        diff = round(max(0.0, curr["total_hours"] - prev["total_hours"]), 1)
-        diffs.append({
-            "date": curr["date"],
-            "hours_this_day": diff
-        })
+        d_prev = datetime.strptime(prev["date"], "%Y-%m-%d").date()
+        d_curr = datetime.strptime(curr["date"], "%Y-%m-%d").date()
+        gap = (d_curr - d_prev).days
+        if gap > 1:
+            avg_diff = round(max(0.0, curr["total_hours"] - prev["total_hours"]) / gap, 1)
+            for step in range(1, gap + 1):
+                inter_date = (d_prev + timedelta(days=step)).strftime("%Y-%m-%d")
+                diffs.append({
+                    "date": inter_date,
+                    "hours_this_day": avg_diff
+                })
+        else:
+            diff = round(max(0.0, curr["total_hours"] - prev["total_hours"]), 1)
+            diffs.append({
+                "date": curr["date"],
+                "hours_this_day": diff
+            })
     return diffs[-days:]
 
 
@@ -674,11 +686,23 @@ def get_daily_messages_diff(server_id: int | None = None, user_id: int | None = 
     for i in range(1, len(cumul)):
         prev = cumul[i - 1]
         curr = cumul[i]
-        diff = max(0, curr["total_messages"] - prev["total_messages"])
-        diffs.append({
-            "date": curr["date"],
-            "messages_this_day": diff
-        })
+        d_prev = datetime.strptime(prev["date"], "%Y-%m-%d").date()
+        d_curr = datetime.strptime(curr["date"], "%Y-%m-%d").date()
+        gap = (d_curr - d_prev).days
+        if gap > 1:
+            avg_diff = int(max(0, curr["total_messages"] - prev["total_messages"]) / gap)
+            for step in range(1, gap + 1):
+                inter_date = (d_prev + timedelta(days=step)).strftime("%Y-%m-%d")
+                diffs.append({
+                    "date": inter_date,
+                    "messages_this_day": avg_diff
+                })
+        else:
+            diff = max(0, curr["total_messages"] - prev["total_messages"])
+            diffs.append({
+                "date": curr["date"],
+                "messages_this_day": diff
+            })
     return diffs[-days:]
 
 
@@ -879,52 +903,132 @@ def get_monthly_messages_diff(server_id: int | None = None, user_id: int | None 
 
 
 def get_daily_activity_last_30_days() -> list[dict]:
-    """Calculate day-by-day incremental voice hours and messages over the last 30 days."""
-    cutoff = datetime.now() - timedelta(days=32)
-    query = (
+    """Calculate day-by-day incremental voice hours and messages over the last 30 days.
+
+    Robust against missing snapshot days and partial/corrupted test snapshots:
+    distributes deltas evenly across multi-day gaps to prevent single-day spikes.
+    """
+    cutoff = datetime.now() - timedelta(days=33)
+    raw_query = (
         HistoricalStats
         .select(
             fn.DATE(HistoricalStats.created_at).alias("day_date"),
             fn.SUM(HistoricalStats.seconds).alias("total_seconds"),
-            fn.SUM(HistoricalStats.messages).alias("total_messages")
+            fn.SUM(HistoricalStats.messages).alias("total_messages"),
+            fn.COUNT(fn.DISTINCT(HistoricalStats.user_id)).alias("user_count")
         )
         .where(HistoricalStats.created_at >= cutoff)
         .group_by(fn.DATE(HistoricalStats.created_at))
         .order_by(fn.DATE(HistoricalStats.created_at))
     )
 
-    daily_cumulative = [
-        {
-            "date": row.day_date.strftime("%Y-%m-%d"),
-            "seconds": int(row.total_seconds or 0),
-            "messages": int(row.total_messages or 0)
-        }
-        for row in query
-    ]
+    # Filter out partial test snapshots (e.g. test rows with only 2-3 users while DB has hundreds)
+    total_users_count = Users.select().count()
+    min_user_threshold = max(10, int(total_users_count * 0.15))
 
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    curr_s = Stats.select(fn.SUM(Stats.seconds)).scalar() or 0
-    curr_m = Stats.select(fn.SUM(Stats.messages)).scalar() or 0
-    if not daily_cumulative or daily_cumulative[-1]["date"] != today_str:
-        daily_cumulative.append({
-            "date": today_str,
-            "seconds": int(curr_s),
-            "messages": int(curr_m)
+    valid_points = []
+    for row in raw_query:
+        u_cnt = int(row.user_count or 0)
+        if u_cnt >= min_user_threshold:
+            valid_points.append({
+                "date": row.day_date,
+                "seconds": int(row.total_seconds or 0),
+                "messages": int(row.total_messages or 0)
+            })
+
+    # Append today's live stats
+    today_date = datetime.now().date()
+    curr_s = int(Stats.select(fn.SUM(Stats.seconds)).scalar() or 0)
+    curr_m = int(Stats.select(fn.SUM(Stats.messages)).scalar() or 0)
+
+    try:
+        active_secs = int(
+            VoiceSessions.select(
+                fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
+            ).where(VoiceSessions.left_at.is_null(True)).scalar() or 0
+        )
+        curr_s += active_secs
+    except Exception:
+        pass
+
+    if not valid_points or valid_points[-1]["date"] != today_date:
+        valid_points.append({
+            "date": today_date,
+            "seconds": curr_s,
+            "messages": curr_m
         })
 
-    daily_activity = []
-    for i in range(1, len(daily_cumulative)):
-        prev = daily_cumulative[i - 1]
-        curr = daily_cumulative[i]
-        diff_hours = round(max(curr["seconds"] - prev["seconds"], 0) / 3600, 1)
-        diff_msgs = max(curr["messages"] - prev["messages"], 0)
-        daily_activity.append({
-            "date": curr["date"],
-            "hours": diff_hours,
-            "messages": diff_msgs
+    # Smoothly distribute deltas across gaps between consecutive snapshot dates
+    daily_map = {}
+    for i in range(1, len(valid_points)):
+        p_prev = valid_points[i - 1]
+        p_curr = valid_points[i]
+        delta_days = (p_curr["date"] - p_prev["date"]).days
+        if delta_days <= 0:
+            continue
+
+        diff_s = max(0, p_curr["seconds"] - p_prev["seconds"])
+        diff_m = max(0, p_curr["messages"] - p_prev["messages"])
+        s_per_day = diff_s / delta_days
+        m_per_day = diff_m / delta_days
+
+        for step in range(1, delta_days + 1):
+            d = p_prev["date"] + timedelta(days=step)
+            daily_map[d.strftime("%Y-%m-%d")] = {
+                "hours": round(s_per_day / 3600.0, 1),
+                "messages": int(m_per_day)
+            }
+
+    # Overlay with live v3 granular events if available for recent days
+    try:
+        live_voice = (
+            VoiceSessions
+            .select(
+                fn.DATE(VoiceSessions.joined_at).alias("day_date"),
+                fn.SUM(VoiceSessions.duration_seconds).alias("sec")
+            )
+            .where(
+                (VoiceSessions.joined_at >= datetime.now() - timedelta(days=30)) &
+                (VoiceSessions.is_legacy == False)
+            )
+            .group_by(fn.DATE(VoiceSessions.joined_at))
+        )
+        for lv in live_voice:
+            d_str = lv.day_date.strftime("%Y-%m-%d")
+            if d_str in daily_map and (lv.sec or 0) > 0:
+                daily_map[d_str]["hours"] = round(float(lv.sec or 0) / 3600.0, 1)
+
+        live_msgs = (
+            MessageEvents
+            .select(
+                fn.DATE(MessageEvents.created_at).alias("day_date"),
+                fn.SUM(MessageEvents.count).alias("cnt")
+            )
+            .where(
+                (MessageEvents.created_at >= datetime.now() - timedelta(days=30)) &
+                (MessageEvents.is_legacy == False)
+            )
+            .group_by(fn.DATE(MessageEvents.created_at))
+        )
+        for lm in live_msgs:
+            d_str = lm.day_date.strftime("%Y-%m-%d")
+            if d_str in daily_map and (lm.cnt or 0) > 0:
+                daily_map[d_str]["messages"] = int(lm.cnt or 0)
+    except Exception:
+        pass
+
+    # Build continuous 30-day sequence ending today
+    result = []
+    for i in range(29, -1, -1):
+        d_str = (today_date - timedelta(days=i)).strftime("%Y-%m-%d")
+        entry = daily_map.get(d_str, {"hours": 0.0, "messages": 0})
+        result.append({
+            "date": d_str,
+            "hours": entry["hours"],
+            "messages": entry["messages"]
         })
 
-    return daily_activity[-30:]
+    return result
 
 
 def get_top_10_users_by_hours() -> list[dict]:
