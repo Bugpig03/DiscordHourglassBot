@@ -59,7 +59,7 @@ func init() {
 	}
 }
 
-// FormatDuration convertit des secondes en format lisible (ex: "45.2h", "142h" ou "35m")
+// FormatDuration converts seconds into human readable format (e.g., "45.2h", "142h" or "35m")
 func FormatDuration(sec int64) string {
 	if sec <= 0 {
 		return "0m"
@@ -77,7 +77,7 @@ func FormatDuration(sec int64) string {
 	return fmt.Sprintf("%ds", sec)
 }
 
-// FormatNumber formate un nombre avec des espaces (ex: 12 450)
+// FormatNumber formats numbers with space separators (e.g., 12 450)
 func FormatNumber(n int64) string {
 	in := fmt.Sprintf("%d", n)
 	out := ""
@@ -90,7 +90,7 @@ func FormatNumber(n int64) string {
 	return out
 }
 
-// CalculateXPAndLevel calcule l'XP et le niveau selon la formule Hourglass officielle
+// CalculateXPAndLevel computes XP and Level according to official Hourglass formula
 func CalculateXPAndLevel(totalSeconds, totalMessages int64) (level int, title string, totalXP int64, progressPct float64) {
 	if totalSeconds < 0 {
 		totalSeconds = 0
@@ -115,19 +115,19 @@ func CalculateXPAndLevel(totalSeconds, totalMessages int64) (level int, title st
 
 	switch {
 	case level >= 50:
-		title = "Légende Hourglass"
+		title = "Hourglass Legend"
 	case level >= 40:
-		title = "Grand Maître"
+		title = "Grandmaster"
 	case level >= 30:
-		title = "Vétéran de l'Éther"
+		title = "Aether Veteran"
 	case level >= 20:
-		title = "Expert des Ondes"
+		title = "Wave Expert"
 	case level >= 10:
-		title = "Membre Confirmé"
+		title = "Elite Member"
 	case level >= 5:
-		title = "Initié Actif"
+		title = "Active Member"
 	default:
-		title = "Novice Curieux"
+		title = "Apprentice"
 	}
 	return
 }
@@ -170,12 +170,12 @@ func fetchImage(url string) (image.Image, error) {
 func drawAvatar(dc *gg.Context, avatarImg image.Image, username string, cx, cy, r float64, borderColor color.Color, ringThickness float64) {
 	dc.Push()
 
-	// Anneau de bordure externe avec lueur
+	// Outer border ring with glow
 	dc.DrawCircle(cx, cy, r+ringThickness)
 	dc.SetColor(borderColor)
 	dc.Fill()
 
-	// Fond sombre de l'avatar
+	// Dark avatar background
 	dc.DrawCircle(cx, cy, r)
 	dc.SetRGB255(30, 41, 59) // #1e293b
 	dc.Fill()
@@ -212,7 +212,7 @@ func truncate(s string, maxRunes int) string {
 }
 
 // =============================================================
-// 1. CARTE DE PROFIL & STATS (560 × 220) - DA OFFICIELLE HOURGLASS
+// 1. STATS & PROFILE CARD (560 × 220) - OFFICIAL HOURGLASS DESIGN
 // =============================================================
 
 type StatsCardParams struct {
@@ -234,7 +234,7 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 
 	dc := gg.NewContext(W, H)
 
-	// 1. Fond sombre avec dégradé subtil (#080e1a -> #111d2e)
+	// 1. Dark background with subtle gradient (#080e1a -> #111d2e)
 	bgGrad := gg.NewLinearGradient(0, 0, float64(W), float64(H))
 	bgGrad.AddColorStop(0, color.RGBA{R: 8, G: 14, B: 26, A: 255})   // #080e1a
 	bgGrad.AddColorStop(1, color.RGBA{R: 17, G: 29, B: 46, A: 255})  // #111d2e
@@ -242,37 +242,37 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
 	dc.Fill()
 
-	// 2. Lueur d'ambiance cyan subtile en haut
+	// 2. Cyan ambient glow at top
 	dc.Push()
 	dc.DrawEllipse(140, 12, 140, 24)
 	dc.SetRGBA255(56, 189, 248, 30) // 0.12 opacity
 	dc.Fill()
 	dc.Pop()
 
-	// 3. Bordure externe élégante
+	// 3. Elegant outer border
 	dc.SetRGBA255(255, 255, 255, 26) // rgba(255, 255, 255, 0.10)
 	dc.SetLineWidth(1.2)
 	dc.DrawRoundedRectangle(1, 1, float64(W-2), float64(H-2), 20)
 	dc.Stroke()
 
-	// 4. Avatar (cx=64, cy=64, r=36) avec lueur cyan #38bdf8
+	// 4. Avatar (cx=64, cy=64, r=36) with #38bdf8 cyan border
 	avatarImg, _ := fetchImage(p.AvatarURL)
 	borderColor := color.RGBA{R: 56, G: 189, B: 248, A: 255}
 	drawAvatar(dc, avatarImg, p.Username, 64, 64, 36, borderColor, 3.0)
 
-	// Calcul Gamification XP & Niveau
+	// Gamification XP & Level computation
 	level, title, totalXP, progressPct := CalculateXPAndLevel(p.TotalSeconds, p.TotalMessages)
 
-	// 5. Nom d'utilisateur
+	// 5. Username
 	_ = dc.LoadFontFace(fontBold, 19)
 	dc.SetRGB255(255, 255, 255)
 	displayName := truncate(p.Username, 16)
 
 	if !p.IsGlobal {
-		// --- FORMAT SERVEUR ---
+		// --- SERVER FORMAT ---
 		dc.DrawString(displayName, 120, 44)
 
-		// Chip Serveur
+		// Server Chip
 		cleanServer := truncate(p.ServerName, 18)
 		_ = dc.LoadFontFace(fontBold, 10.5)
 		sw, _ := dc.MeasureString(cleanServer)
@@ -292,7 +292,7 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 		dc.SetRGB255(56, 189, 248)
 		dc.DrawStringAnchored(cleanServer, chipX+chipW/2, chipY+chipH/2, 0.5, 0.42)
 
-		// Badge Niveau
+		// Level Badge
 		lvlText := fmt.Sprintf("LVL %d • %s", level, title)
 		_ = dc.LoadFontFace(fontBold, 10.5)
 		lw, _ := dc.MeasureString(lvlText)
@@ -301,7 +301,7 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 		lvlBadgeX := 120.0
 		lvlBadgeY := 75.0
 
-		dc.SetRGBA255(88, 101, 242, 56) // #5865F2 avec 22% opacité
+		dc.SetRGBA255(88, 101, 242, 56) // #5865F2 with 22% opacity
 		dc.DrawRoundedRectangle(lvlBadgeX, lvlBadgeY, lvlBadgeW, lvlBadgeH, 5)
 		dc.Fill()
 		dc.SetRGBA255(88, 101, 242, 200)
@@ -313,10 +313,10 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 		dc.DrawStringAnchored(lvlText, lvlBadgeX+lvlBadgeW/2, lvlBadgeY+lvlBadgeH/2, 0.5, 0.42)
 
 	} else {
-		// --- FORMAT GLOBAL ---
+		// --- GLOBAL FORMAT ---
 		dc.DrawString(displayName, 120, 50)
 
-		// Badge Niveau plus imposant
+		// Prominent Level Badge
 		lvlText := fmt.Sprintf("LVL %d • %s", level, title)
 		_ = dc.LoadFontFace(fontBold, 11)
 		lw, _ := dc.MeasureString(lvlText)
@@ -337,7 +337,7 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 		dc.DrawStringAnchored(lvlText, lvlBadgeX+lvlBadgeW/2, lvlBadgeY+lvlBadgeH/2, 0.5, 0.42)
 	}
 
-	// 6. Badge de Rang empilé (Stacked Pill) en haut à droite
+	// 6. Stacked Rank Pill in top right
 	rankBoxX := 440.0
 	rankBoxY := 30.0
 	rankBoxW := 96.0
@@ -350,15 +350,15 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 	dc.DrawRoundedRectangle(rankBoxX, rankBoxY, rankBoxW, rankBoxH, 10)
 	dc.Stroke()
 
-	rankLabel := "RANG SERVEUR"
+	rankLabel := "SERVER RANK"
 	if p.IsGlobal {
-		rankLabel = "RANG GLOBAL"
+		rankLabel = "GLOBAL RANK"
 	}
 	_ = dc.LoadFontFace(fontBold, 8.5)
 	dc.SetRGB255(100, 116, 139) // #64748b
 	dc.DrawStringAnchored(rankLabel, rankBoxX+rankBoxW/2, rankBoxY+13, 0.5, 0.5)
 
-	rankVal := "Non classé"
+	rankVal := "Unranked"
 	if p.Rank > 0 {
 		rankVal = fmt.Sprintf("#%d", p.Rank)
 	}
@@ -366,13 +366,13 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 	dc.SetRGB255(56, 189, 248) // #38bdf8
 	dc.DrawStringAnchored(rankVal, rankBoxX+rankBoxW/2, rankBoxY+27, 0.5, 0.5)
 
-	// 7. Ligne de séparation
+	// 7. Dividing Line
 	dc.SetRGBA255(255, 255, 255, 18)
 	dc.SetLineWidth(1.0)
 	dc.DrawLine(24, 106, 536, 106)
 	dc.Stroke()
 
-	// 8. Tuiles de Statistiques (Cardlets) à y=118
+	// 8. Stat Tiles (Cardlets) at y=118
 	tileY := 118.0
 	tileH := 46.0
 	rTile := 8.0
@@ -395,7 +395,7 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 		dc.SetRGB255(100, 116, 139)
 		dc.DrawString(label, x+10, tileY+16)
 
-		// Valeur
+		// Value
 		_ = dc.LoadFontFace(fontBold, 14.5)
 		dc.SetColor(valCol)
 		dc.DrawString(val, x+10, tileY+36)
@@ -404,21 +404,21 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 	whiteCol := color.RGBA{R: 255, G: 255, B: 255, A: 255}
 	cyanCol := color.RGBA{R: 56, G: 189, B: 248, A: 255}
 
-	drawTile(24, 92, "VOCAL", hoursStr, whiteCol)
+	drawTile(24, 92, "VOICE", hoursStr, whiteCol)
 	drawTile(124, 94, "MESSAGES", msgsStr, whiteCol)
 
 	if !p.IsGlobal {
-		drawTile(226, 96, "XP SERVEUR", xpStr, whiteCol)
+		drawTile(226, 96, "SERVER XP", xpStr, whiteCol)
 
 		joinStr := p.JoinDate
 		if joinStr == "" {
-			joinStr = "Inconnue"
+			joinStr = "Unknown"
 		}
-		drawTile(330, 206, "MEMBRE DEPUIS", joinStr, cyanCol)
+		drawTile(330, 206, "MEMBER SINCE", joinStr, cyanCol)
 	} else {
-		drawTile(226, 98, "XP TOTAL", xpStr, whiteCol)
+		drawTile(226, 98, "TOTAL XP", xpStr, whiteCol)
 
-		// Bloc d'information globale sur la droite
+		// Global status summary block
 		summaryX := 332.0
 		summaryW := 204.0
 		dc.SetRGBA255(255, 255, 255, 6)
@@ -431,25 +431,25 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 
 		_ = dc.LoadFontFace(fontBold, 9.5)
 		dc.SetRGB255(100, 116, 139)
-		dc.DrawString("STATUT GLOBAL", summaryX+10, tileY+16)
+		dc.DrawString("GLOBAL STATUS", summaryX+10, tileY+16)
 
 		_ = dc.LoadFontFace(fontBold, 13)
 		dc.SetRGB255(56, 189, 248)
 		dc.DrawString(title, summaryX+10, tileY+36)
 	}
 
-	// 9. Barre de Progression XP (x=24, y=178)
+	// 9. XP Progress Bar (x=24, y=178)
 	barX := 24.0
 	barY := 178.0
 	barW := 298.0
 	barH := 7.0
 
-	// Fond de la barre
+	// Bar background
 	dc.SetRGBA255(255, 255, 255, 20)
 	dc.DrawRoundedRectangle(barX, barY, barW, barH, 3.5)
 	dc.Fill()
 
-	// Remplissage avec dégradé Cyan -> Indigo
+	// Fill with Cyan -> Indigo gradient
 	fillW := math.Max(6.0, barW*(progressPct/100.0))
 	fillGrad := gg.NewLinearGradient(barX, barY, barX+fillW, barY)
 	fillGrad.AddColorStop(0, color.RGBA{R: 56, G: 189, B: 248, A: 255})
@@ -458,12 +458,12 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 	dc.DrawRoundedRectangle(barX, barY, fillW, barH, 3.5)
 	dc.Fill()
 
-	// Texte sous la barre
+	// Subtext under bar
 	_ = dc.LoadFontFace(fontBold, 9.5)
 	dc.SetRGB255(100, 116, 139)
-	dc.DrawString(fmt.Sprintf("PROCHAIN NIVEAU : %.1f%%", progressPct), barX, barY+20)
+	dc.DrawString(fmt.Sprintf("NEXT LEVEL: %.1f%%", progressPct), barX, barY+20)
 
-	// 10. Watermark officiel en bas à droite
+	// 10. Watermark in bottom right
 	_ = dc.LoadFontFace(fontBold, 9.5)
 	dc.SetRGB255(51, 65, 85) // #334155
 	dc.DrawStringAnchored("HOURGLASS BOT", float64(W)-24, float64(H)-14, 1.0, 0.5)
@@ -476,7 +476,7 @@ func GenerateStatsCard(p StatsCardParams) ([]byte, error) {
 }
 
 // =============================================================
-// 2. CARTE DE CLASSEMENT TOP 10 (620 × H) - DA OFFICIELLE
+// 2. TOP 10 LEADERBOARD CARD (620 × H) - OFFICIAL DESIGN
 // =============================================================
 
 type TopEntry struct {
@@ -506,7 +506,7 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 
 	dc := gg.NewContext(W, H)
 
-	// Fond sombre avec dégradé (#080e1a -> #111d2e)
+	// Dark background with gradient (#080e1a -> #111d2e)
 	bgGrad := gg.NewLinearGradient(0, 0, float64(W), float64(H))
 	bgGrad.AddColorStop(0, color.RGBA{R: 8, G: 14, B: 26, A: 255})
 	bgGrad.AddColorStop(1, color.RGBA{R: 17, G: 29, B: 46, A: 255})
@@ -514,29 +514,29 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
 	dc.Fill()
 
-	// Lueur d'ambiance en haut
+	// Top ambient glow
 	dc.Push()
 	dc.DrawEllipse(float64(W)/2, 16, 180, 24)
 	dc.SetRGBA255(56, 189, 248, 25)
 	dc.Fill()
 	dc.Pop()
 
-	// Bordure externe
+	// Outer border
 	dc.SetRGBA255(255, 255, 255, 26)
 	dc.SetLineWidth(1.2)
 	dc.DrawRoundedRectangle(1, 1, float64(W-2), float64(H-2), 20)
 	dc.Stroke()
 
-	// Header (Titre & Filtres)
+	// Header (Title & Filters)
 	_ = dc.LoadFontFace(fontBold, 18)
 	dc.SetRGB255(255, 255, 255)
-	mainTitle := "TOP 10 VOCAL"
+	mainTitle := "TOP 10 VOICE"
 	if rankingType == "messages" {
 		mainTitle = "TOP 10 MESSAGES"
 	}
 	dc.DrawString(mainTitle, 24, 44)
 
-	// Chip des filtres (Période • Portée)
+	// Filter Chip (Period • Scope)
 	filterStr := fmt.Sprintf("%s • %s", period, scope)
 	_ = dc.LoadFontFace(fontBold, 10.5)
 	fw, _ := dc.MeasureString(filterStr)
@@ -556,18 +556,18 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 	dc.SetRGB255(56, 189, 248)
 	dc.DrawStringAnchored(filterStr, chipX+chipW/2, chipY+chipH/2, 0.5, 0.42)
 
-	// Watermark Header en haut à droite
+	// Header watermark top right
 	_ = dc.LoadFontFace(fontBold, 9.5)
 	dc.SetRGB255(100, 116, 139)
 	dc.DrawStringAnchored("HOURGLASS LEADERBOARD", float64(W)-24, 44, 1.0, 0.5)
 
-	// Ligne de séparation
+	// Dividing Line
 	dc.SetRGBA255(255, 255, 255, 18)
 	dc.SetLineWidth(1.0)
 	dc.DrawLine(20, 84, float64(W)-20, 84)
 	dc.Stroke()
 
-	// Téléchargement parallèle ultra-rapide de tous les avatars du Top 10
+	// Parallel concurrent download of all 10 avatars
 	avatarMap := make(map[string]image.Image)
 	var mu sync.Mutex
 	var wg sync.WaitGroup
@@ -588,7 +588,7 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 	}
 	wg.Wait()
 
-	// Rendu des lignes du Leaderboard
+	// Render Leaderboard rows
 	for i, entry := range entries {
 		if i >= 10 {
 			break
@@ -597,24 +597,24 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 		rank := entry.Rank
 		y := yStart + float64(i)*rowHeight
 
-		// Fond alterné pour une meilleure lisibilité
+		// Subtle alternating background
 		if i%2 == 0 {
 			dc.SetRGBA255(255, 255, 255, 6)
 			dc.DrawRoundedRectangle(16, y-18, float64(W)-32, 36, 8)
 			dc.Fill()
 		}
 
-		// 1. Cercle du Rang (Médailles Podium Or, Argent, Bronze)
+		// 1. Rank Circle (Gold, Silver, Bronze medals)
 		medalBg := color.RGBA{R: 255, G: 255, B: 255, A: 20}
 		medalTxt := color.RGBA{R: 148, G: 163, B: 184, A: 255}
 		avBorder := color.RGBA{R: 56, G: 189, B: 248, A: 120}
 
 		if rank == 1 {
-			medalBg = color.RGBA{R: 245, G: 158, B: 11, A: 255} // Or
+			medalBg = color.RGBA{R: 245, G: 158, B: 11, A: 255} // Gold
 			medalTxt = color.RGBA{R: 15, G: 23, B: 42, A: 255}
 			avBorder = color.RGBA{R: 245, G: 158, B: 11, A: 255}
 		} else if rank == 2 {
-			medalBg = color.RGBA{R: 148, G: 163, B: 184, A: 255} // Argent
+			medalBg = color.RGBA{R: 148, G: 163, B: 184, A: 255} // Silver
 			medalTxt = color.RGBA{R: 15, G: 23, B: 42, A: 255}
 			avBorder = color.RGBA{R: 148, G: 163, B: 184, A: 255}
 		} else if rank == 3 {
@@ -640,17 +640,17 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 		dc.SetColor(medalTxt)
 		dc.DrawStringAnchored(fmt.Sprintf("%d", rank), 36, y, 0.5, 0.42)
 
-		// 2. Avatar du membre (32px, r=15)
+		// 2. Member avatar (32px, r=15)
 		avImg := avatarMap[entry.Avatar]
 		drawAvatar(dc, avImg, entry.Username, 72, y, 15, avBorder, 1.8)
 
-		// 3. Pseudo
+		// 3. Username
 		_ = dc.LoadFontFace(fontBold, 13.5)
 		dc.SetRGB255(255, 255, 255)
 		cleanUname := truncate(entry.Username, 18)
 		dc.DrawString(cleanUname, 98, y+4)
 
-		// 4. Badge Niveau approximatif basé sur la métrique
+		// 4. Approximate Level Badge based on metric
 		var estLevel int
 		if rankingType == "messages" {
 			estLevel = int(math.Sqrt(float64(entry.Value*5)/100.0)) + 1
@@ -661,7 +661,7 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 			estLevel = 1
 		}
 
-		lvlBadgeStr := fmt.Sprintf("Nv. %d", estLevel)
+		lvlBadgeStr := fmt.Sprintf("LVL %d", estLevel)
 		_ = dc.LoadFontFace(fontBold, 10)
 		bw, _ := dc.MeasureString(lvlBadgeStr)
 		badgeW := bw + 14
@@ -680,7 +680,7 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 		dc.SetRGB255(129, 140, 248)
 		dc.DrawStringAnchored(lvlBadgeStr, badgeX+badgeW/2, badgeY+badgeH/2, 0.5, 0.42)
 
-		// 5. Valeur alignée à droite
+		// 5. Right aligned value
 		_ = dc.LoadFontFace(fontBold, 13.5)
 		if rankingType == "messages" {
 			dc.SetRGB255(192, 132, 252) // #c084fc
@@ -691,7 +691,7 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 		}
 	}
 
-	// Watermark officiel en bas
+	// Bottom watermark
 	_ = dc.LoadFontFace(fontBold, 9.5)
 	dc.SetRGB255(51, 65, 85)
 	dc.DrawStringAnchored("HOURGLASS BOT", float64(W)-24, float64(H)-14, 1.0, 0.5)
@@ -704,7 +704,7 @@ func GenerateTopCard(rankingType, period, scope string, entries []TopEntry) ([]b
 }
 
 // =============================================================
-// 3. CARTE DE DUEL VERSUS (600 × 260) - DA OFFICIELLE
+// 3. 1V1 VERSUS DUEL CARD (600 × 260) - OFFICIAL DESIGN
 // =============================================================
 
 type VersusCardParams struct {
@@ -729,7 +729,7 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 
 	dc := gg.NewContext(W, H)
 
-	// 1. Fond sombre avec dégradé (#080e1a -> #111d2e)
+	// 1. Dark background with gradient (#080e1a -> #111d2e)
 	bgGrad := gg.NewLinearGradient(0, 0, float64(W), float64(H))
 	bgGrad.AddColorStop(0, color.RGBA{R: 8, G: 14, B: 26, A: 255})
 	bgGrad.AddColorStop(1, color.RGBA{R: 17, G: 29, B: 46, A: 255})
@@ -737,7 +737,7 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
 	dc.Fill()
 
-	// 2. Lueur d'ambiance duel (Cyan à gauche, Violet à droite)
+	// 2. Duel ambient glow (Cyan on left, Purple on right)
 	dc.Push()
 	dc.DrawCircle(90, 40, 100)
 	dc.SetRGBA255(56, 189, 248, 20)
@@ -747,15 +747,15 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 	dc.Fill()
 	dc.Pop()
 
-	// 3. Bordure externe
+	// 3. Outer border
 	dc.SetRGBA255(255, 255, 255, 26)
 	dc.SetLineWidth(1.2)
 	dc.DrawRoundedRectangle(1, 1, float64(W-2), float64(H-2), 20)
 	dc.Stroke()
 
-	// 4. Header (Contexte Duel & Watermark)
+	// 4. Header (Duel Context & Watermark)
 	_ = dc.LoadFontFace(fontBold, 10.5)
-	duelChip := "DUEL DE STATISTIQUES"
+	duelChip := "STATISTICS DUEL"
 	if p.ServerName != "" {
 		duelChip = fmt.Sprintf("DUEL • %s", truncate(p.ServerName, 22))
 	}
@@ -774,11 +774,11 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 	dc.SetRGB255(100, 116, 139)
 	dc.DrawStringAnchored("HOURGLASS BOT", float64(W)-24, 28, 1.0, 0.5)
 
-	// 5. Profils des deux Joueurs
+	// 5. Profiles of both players
 	u1Lvl, _, _, _ := CalculateXPAndLevel(p.U1Seconds, p.U1Msgs)
 	u2Lvl, _, _, _ := CalculateXPAndLevel(p.U2Seconds, p.U2Msgs)
 
-	// Joueur 1 (Gauche, Cyan)
+	// Player 1 (Left, Cyan)
 	u1Img, _ := fetchImage(p.U1Avatar)
 	drawAvatar(dc, u1Img, p.U1Name, 58, 76, 26, color.RGBA{R: 56, G: 189, B: 248, A: 255}, 2.5)
 
@@ -799,7 +799,7 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 	dc.SetRGB255(129, 140, 248)
 	dc.DrawStringAnchored(u1Badge, 96+(bw1+14)/2, 84, 0.5, 0.42)
 
-	// Joueur 2 (Droite, Violet)
+	// Player 2 (Right, Purple)
 	u2Img, _ := fetchImage(p.U2Avatar)
 	drawAvatar(dc, u2Img, p.U2Name, float64(W)-58, 76, 26, color.RGBA{R: 192, G: 132, B: 252, A: 255}, 2.5)
 
@@ -821,7 +821,7 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 	dc.SetRGB255(192, 132, 252)
 	dc.DrawStringAnchored(u2Badge, p2BadgeX+(bw2+14)/2, 84, 0.5, 0.42)
 
-	// Pastille centrale "VS"
+	// Center VS Pill
 	vsX := float64(W) / 2
 	vsY := 74.0
 	dc.SetRGBA255(255, 255, 255, 12)
@@ -836,13 +836,13 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 	dc.SetRGB255(56, 189, 248)
 	dc.DrawStringAnchored("VS", vsX, vsY, 0.5, 0.45)
 
-	// Ligne de séparation
+	// Dividing Line
 	dc.SetRGBA255(255, 255, 255, 18)
 	dc.SetLineWidth(1.0)
 	dc.DrawLine(24, 118, float64(W)-24, 118)
 	dc.Stroke()
 
-	// 6. Barres comparatives
+	// 6. Comparative Bars
 	barTotalW := float64(W) - 48.0 // 552px
 
 	drawComparisonBar := func(y float64, label string, val1, val2 int64, isDuration bool) {
@@ -853,22 +853,22 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 			str2 = FormatDuration(val2)
 		}
 
-		// Valeur Joueur 1 (Cyan, Gauche)
+		// Player 1 Value (Cyan, Left)
 		_ = dc.LoadFontFace(fontBold, 13.5)
 		dc.SetRGB255(56, 189, 248)
 		dc.DrawString(str1, 24, y)
 
-		// Label central
+		// Center Label
 		_ = dc.LoadFontFace(fontBold, 9.5)
 		dc.SetRGB255(100, 116, 139)
 		dc.DrawStringAnchored(label, float64(W)/2, y, 0.5, 0.5)
 
-		// Valeur Joueur 2 (Violet, Droite)
+		// Player 2 Value (Purple, Right)
 		_ = dc.LoadFontFace(fontBold, 13.5)
 		dc.SetRGB255(192, 132, 252)
 		dc.DrawStringAnchored(str2, float64(W)-24, y, 1.0, 0.5)
 
-		// Barre bicolore
+		// Two-tone bar
 		barY := y + 10.0
 		barH := 8.0
 		dc.SetRGBA255(255, 255, 255, 15)
@@ -888,7 +888,7 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 
 		p1W := barTotalW * ratio
 
-		// Segment Joueur 1 (Cyan)
+		// Player 1 Segment (Cyan)
 		dc.Push()
 		dc.DrawRoundedRectangle(24, barY, barTotalW, barH, 4)
 		dc.Clip()
@@ -897,7 +897,7 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 		dc.DrawRectangle(24, barY, p1W, barH)
 		dc.Fill()
 
-		// Segment Joueur 2 (Violet)
+		// Player 2 Segment (Purple)
 		dc.SetRGB255(192, 132, 252)
 		dc.DrawRectangle(24+p1W, barY, barTotalW-p1W, barH)
 		dc.Fill()
@@ -906,10 +906,10 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 		dc.ResetClip()
 	}
 
-	drawComparisonBar(146, "TEMPS VOCAL", p.U1Seconds, p.U2Seconds, true)
-	drawComparisonBar(196, "MESSAGES ENVOYÉS", p.U1Msgs, p.U2Msgs, false)
+	drawComparisonBar(146, "VOICE TIME", p.U1Seconds, p.U2Seconds, true)
+	drawComparisonBar(196, "MESSAGES SENT", p.U1Msgs, p.U2Msgs, false)
 
-	// Watermark bas
+	// Bottom watermark
 	_ = dc.LoadFontFace(fontBold, 9.5)
 	dc.SetRGB255(51, 65, 85)
 	dc.DrawStringAnchored("HOURGLASS BOT", float64(W)-24, float64(H)-14, 1.0, 0.5)
@@ -922,7 +922,7 @@ func GenerateVersusCard(p VersusCardParams) ([]byte, error) {
 }
 
 // =============================================================
-// 4. CARTE DE STATISTIQUES SERVEUR (600 × 280) - DA OFFICIELLE
+// 4. SERVER STATISTICS CARD (600 × 280) - OFFICIAL DESIGN
 // =============================================================
 
 type ServerCardParams struct {
@@ -944,7 +944,7 @@ func GenerateServerCard(p ServerCardParams) ([]byte, error) {
 
 	dc := gg.NewContext(W, H)
 
-	// Fond dégradé sombre (#080e1a -> #0f172a)
+	// Dark gradient background (#080e1a -> #0f172a)
 	bgGrad := gg.NewLinearGradient(0, 0, float64(W), float64(H))
 	bgGrad.AddColorStop(0, color.RGBA{R: 8, G: 14, B: 26, A: 255})
 	bgGrad.AddColorStop(1, color.RGBA{R: 15, G: 23, B: 42, A: 255})
@@ -952,39 +952,39 @@ func GenerateServerCard(p ServerCardParams) ([]byte, error) {
 	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
 	dc.Fill()
 
-	// Bordure externe
+	// Outer border
 	dc.SetRGBA255(255, 255, 255, 26)
 	dc.SetLineWidth(1.2)
 	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
 	dc.Stroke()
 
-	// Lueur d'ambiance (#38bdf8 / cyan)
+	// Ambient glow (#38bdf8 / cyan)
 	dc.Push()
 	dc.DrawCircle(60, 60, 90)
 	dc.SetRGBA255(56, 189, 248, 18)
 	dc.Fill()
 	dc.Pop()
 
-	// Icône du serveur
+	// Server Icon
 	var iconImg image.Image
 	if p.IconURL != "" {
 		iconImg, _ = fetchImage(p.IconURL)
 	}
 	drawAvatar(dc, iconImg, p.ServerName, 64, 64, 34, color.RGBA{R: 56, G: 189, B: 248, A: 200}, 2.0)
 
-	// Nom du serveur
+	// Server Name
 	_ = dc.LoadFontFace(fontBold, 21)
 	dc.SetRGB255(255, 255, 255)
 	cleanName := truncate(p.ServerName, 26)
 	dc.DrawString(cleanName, 116, 56)
 
-	// Sous-titre
+	// Subtitle
 	_ = dc.LoadFontFace(fontRegular, 11)
 	dc.SetRGB255(148, 163, 184)
-	subStr := fmt.Sprintf("ID: %d • STATISTIQUES DU SERVEUR", p.ServerID)
+	subStr := fmt.Sprintf("ID: %d • SERVER STATISTICS", p.ServerID)
 	dc.DrawString(subStr, 116, 76)
 
-	// Badge "DISCORD GUILD" en haut à droite
+	// "DISCORD GUILD" badge in top right
 	_ = dc.LoadFontFace(fontBold, 10.5)
 	dc.SetRGBA255(56, 189, 248, 30)
 	dc.DrawRoundedRectangle(float64(W)-130, 30, 106, 26, 13)
@@ -996,7 +996,7 @@ func GenerateServerCard(p ServerCardParams) ([]byte, error) {
 	dc.SetRGB255(56, 189, 248)
 	dc.DrawStringAnchored("DISCORD GUILD", float64(W)-77, 43, 0.5, 0.45)
 
-	// 2 Boîtes principales de stats (Temps Vocal & Messages)
+	// 2 Main Stat Boxes (Voice Time & Messages)
 	drawStatBox := func(x, y, w, h float64, label, mainVal, subVal string, accent color.Color) {
 		dc.SetRGBA255(255, 255, 255, 7)
 		dc.DrawRoundedRectangle(x, y, w, h, 12)
@@ -1006,17 +1006,17 @@ func GenerateServerCard(p ServerCardParams) ([]byte, error) {
 		dc.DrawRoundedRectangle(x, y, w, h, 12)
 		dc.Stroke()
 
-		// Titre
+		// Title
 		_ = dc.LoadFontFace(fontBold, 10.5)
 		dc.SetRGB255(148, 163, 184)
 		dc.DrawString(label, x+16, y+24)
 
-		// Valeur principale
+		// Main Value
 		_ = dc.LoadFontFace(fontBold, 22)
 		dc.SetColor(accent)
 		dc.DrawString(mainVal, x+16, y+58)
 
-		// Sous-valeur
+		// Sub Value
 		if subVal != "" {
 			_ = dc.LoadFontFace(fontRegular, 11)
 			dc.SetRGB255(148, 163, 184)
@@ -1025,19 +1025,19 @@ func GenerateServerCard(p ServerCardParams) ([]byte, error) {
 	}
 
 	hours := float64(p.TotalSeconds) / 3600.0
-	drawStatBox(24, 118, 266, 100, "TEMPS VOCAL CUMULÉ", fmt.Sprintf("%.1fh", hours), fmt.Sprintf("%s au total", FormatDuration(p.TotalSeconds)), color.RGBA{R: 56, G: 189, B: 248, A: 255})
-	drawStatBox(310, 118, 266, 100, "VOLUME DE MESSAGES", FormatNumber(p.TotalMessages), "Messages enregistrés", color.RGBA{R: 192, G: 132, B: 252, A: 255})
+	drawStatBox(24, 118, 266, 100, "TOTAL VOICE TIME", fmt.Sprintf("%.1fh", hours), fmt.Sprintf("%s in total", FormatDuration(p.TotalSeconds)), color.RGBA{R: 56, G: 189, B: 248, A: 255})
+	drawStatBox(310, 118, 266, 100, "MESSAGE VOLUME", FormatNumber(p.TotalMessages), "Recorded messages", color.RGBA{R: 192, G: 132, B: 252, A: 255})
 
-	// Présence en direct en bas à gauche
+	// Live Presence in bottom left
 	_ = dc.LoadFontFace(fontRegular, 10.5)
 	dc.SetRGB255(148, 163, 184)
-	liveStr := fmt.Sprintf("Membres suivis : %d", p.MemberCount)
+	liveStr := fmt.Sprintf("Tracked members: %d", p.MemberCount)
 	if p.VoiceCount > 0 || p.OnlineCount > 0 {
-		liveStr = fmt.Sprintf("En direct : %d en vocal • %d en ligne • %d membres", p.VoiceCount, p.OnlineCount, p.MemberCount)
+		liveStr = fmt.Sprintf("Live: %d in voice • %d online • %d members", p.VoiceCount, p.OnlineCount, p.MemberCount)
 	}
 	dc.DrawString(liveStr, 28, float64(H)-20)
 
-	// Watermark / lien en bas à droite
+	// Watermark / link in bottom right
 	_ = dc.LoadFontFace(fontBold, 9.5)
 	dc.SetRGB255(71, 85, 105)
 	dc.DrawStringAnchored(fmt.Sprintf("HOURGLASS • server/%d", p.ServerID), float64(W)-24, float64(H)-20, 1.0, 0.5)
@@ -1050,7 +1050,7 @@ func GenerateServerCard(p ServerCardParams) ([]byte, error) {
 }
 
 // =============================================================
-// 5. CARTE D'AIDE ET COMMANDES /HELP (640 × 380) - DA OFFICIELLE
+// 5. COMMAND GUIDE /HELP CARD (640 × 380) - OFFICIAL DESIGN
 // =============================================================
 
 func GenerateHelpCard() ([]byte, error) {
@@ -1061,7 +1061,7 @@ func GenerateHelpCard() ([]byte, error) {
 
 	dc := gg.NewContext(W, H)
 
-	// Fond dégradé sombre (#080e1a -> #0f172a)
+	// Dark gradient background (#080e1a -> #0f172a)
 	bgGrad := gg.NewLinearGradient(0, 0, float64(W), float64(H))
 	bgGrad.AddColorStop(0, color.RGBA{R: 8, G: 14, B: 26, A: 255})
 	bgGrad.AddColorStop(1, color.RGBA{R: 15, G: 23, B: 42, A: 255})
@@ -1069,35 +1069,35 @@ func GenerateHelpCard() ([]byte, error) {
 	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
 	dc.Fill()
 
-	// Bordure externe
+	// Outer border
 	dc.SetRGBA255(255, 255, 255, 26)
 	dc.SetLineWidth(1.2)
 	dc.DrawRoundedRectangle(0, 0, float64(W), float64(H), 20)
 	dc.Stroke()
 
-	// Header Lueur
+	// Header glow
 	dc.Push()
 	dc.DrawCircle(60, 40, 80)
 	dc.SetRGBA255(56, 189, 248, 22)
 	dc.Fill()
 	dc.Pop()
 
-	// Titre
+	// Title
 	_ = dc.LoadFontFace(fontBold, 20)
 	dc.SetRGB255(255, 255, 255)
 	dc.DrawString("HOURGLASS BOT — COMMAND GUIDE", 26, 42)
 
 	_ = dc.LoadFontFace(fontRegular, 11)
 	dc.SetRGB255(148, 163, 184)
-	dc.DrawString("Bot d'analyse d'activité communautaire & statistiques Discord (v3.0)", 26, 62)
+	dc.DrawString("Community activity analytics & Discord statistics (v3.0.1)", 26, 62)
 
-	// Ligne de séparation
+	// Dividing Line
 	dc.SetRGBA255(255, 255, 255, 20)
 	dc.SetLineWidth(1.0)
 	dc.DrawLine(24, 76, float64(W)-24, 76)
 	dc.Stroke()
 
-	// Liste des commandes avec badges
+	// Command list with badges
 	type cmdHelp struct {
 		Name string
 		Desc string
@@ -1105,13 +1105,13 @@ func GenerateHelpCard() ([]byte, error) {
 	}
 
 	cmds := []cmdHelp{
-		{Name: "/stats [user]", Desc: "Statistiques vocales & messages sur le serveur actuel", Tag: "CARTE"},
-		{Name: "/allstats [user]", Desc: "Statistiques globales consolidées sur tous les serveurs", Tag: "CARTE"},
-		{Name: "/top [type] [periode]", Desc: "Classement Top 10 du serveur actuel (vocal ou messages)", Tag: "LEADERBOARD"},
-		{Name: "/alltop", Desc: "Classement Top 10 global de tous les serveurs suivis", Tag: "LEADERBOARD"},
-		{Name: "/versus <j1> <j2>", Desc: "Duel comparatif direct entre deux membres en 1v1", Tag: "DUEL"},
-		{Name: "/server", Desc: "Statistiques détaillées et membres en direct du serveur", Tag: "SERVEUR"},
-		{Name: "/help", Desc: "Affiche ce guide officiel des commandes interactives", Tag: "AIDE"},
+		{Name: "/stats [user]", Desc: "Voice & message stats on the current server", Tag: "CARD"},
+		{Name: "/allstats [user]", Desc: "Consolidated global statistics across all servers", Tag: "CARD"},
+		{Name: "/top [type] [period]", Desc: "Top 10 leaderboard for this server (voice or messages)", Tag: "LEADERBOARD"},
+		{Name: "/alltop", Desc: "Global Top 10 leaderboard across all tracked servers", Tag: "LEADERBOARD"},
+		{Name: "/versus <p1> <p2>", Desc: "Head-to-head 1v1 comparison duel between members", Tag: "DUEL"},
+		{Name: "/server", Desc: "Detailed server statistics, live voice & presence", Tag: "SERVER"},
+		{Name: "/help", Desc: "Displays this official interactive command guide", Tag: "HELP"},
 	}
 
 	yStart := 104.0
@@ -1120,14 +1120,14 @@ func GenerateHelpCard() ([]byte, error) {
 	for i, c := range cmds {
 		y := yStart + float64(i)*rowH
 
-		// Fond alterné discret
+		// Subtle alternating background
 		if i%2 == 0 {
 			dc.SetRGBA255(255, 255, 255, 5)
 			dc.DrawRoundedRectangle(20, y-16, float64(W)-40, 30, 6)
 			dc.Fill()
 		}
 
-		// Commande
+		// Command
 		_ = dc.LoadFontFace(fontBold, 13)
 		dc.SetRGB255(56, 189, 248)
 		dc.DrawString(c.Name, 28, y+4)
@@ -1137,7 +1137,7 @@ func GenerateHelpCard() ([]byte, error) {
 		dc.SetRGB255(203, 213, 225)
 		dc.DrawString(c.Desc, 205, y+4)
 
-		// Badge tag à droite
+		// Category tag badge on the right
 		_ = dc.LoadFontFace(fontBold, 9)
 		tw, _ := dc.MeasureString(c.Tag)
 		tBoxW := tw + 12
@@ -1164,7 +1164,7 @@ func GenerateHelpCard() ([]byte, error) {
 
 	_ = dc.LoadFontFace(fontRegular, 9.5)
 	dc.SetRGB255(100, 116, 139)
-	dc.DrawStringAnchored("RGPD Compliant • Aucune captation audio", float64(W)-28, float64(H)-16, 1.0, 0.5)
+	dc.DrawStringAnchored("GDPR Compliant • No audio recording", float64(W)-28, float64(H)-16, 1.0, 0.5)
 
 	var buf bytes.Buffer
 	if err := dc.EncodePNG(&buf); err != nil {

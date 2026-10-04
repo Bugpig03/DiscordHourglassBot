@@ -1,13 +1,13 @@
 # ⏳ HOURGLASS - Discord Activity & Analytics Suite
 
-[![Bot Version](https://img.shields.io/badge/Bot-v3.0.0_(Go)-00ADD8?style=flat-square&logo=go)](https://golang.org)
+[![Bot Version](https://img.shields.io/badge/Bot-v3.0.1_(Go)-00ADD8?style=flat-square&logo=go)](https://golang.org)
 [![Web Dashboard](https://img.shields.io/badge/Dashboard-v2.6.0_(Flask)-000000?style=flat-square&logo=flask)](https://hourglassbot.net)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_16-4169E1?style=flat-square&logo=postgresql)](https://www.postgresql.org)
 [![Docker](https://img.shields.io/badge/Deploy-Docker_Compose-2496ED?style=flat-square&logo=docker)](https://www.docker.com)
 [![GDPR Compliant](https://img.shields.io/badge/GDPR-Compliant-10B981?style=flat-square)](https://hourglassbot.net/privacy)
 
 **Hourglass** est une suite analytique et de gamification haute performance pour Discord.  
-Le projet combine un **bot Discord natif écrit en Go (v3.0.0)** pour une capture d'événements ultra-rapide et légère en mémoire, et un **tableau de bord web interactif en Flask / Python (v2.6.0)** offrant des métriques détaillées, des visualisations graphiques avancées et des cartes statistiques exportables.
+Le projet combine un **bot Discord natif écrit en Go (v3.0.1)** pour une capture d'événements ultra-rapide et légère en mémoire, et un **tableau de bord web interactif en Flask / Python (v2.6.0)** offrant des métriques détaillées, des visualisations graphiques avancées et des cartes statistiques exportables.
 
 ---
 
@@ -15,7 +15,7 @@ Le projet combine un **bot Discord natif écrit en Go (v3.0.0)** pour une captur
 
 ```text
 DiscordHourglassBot/
-├── bot/                    # Bot Discord v3.0.0 en Go (Haute performance, DiscordGo & pgxpool)
+├── bot/                    # Bot Discord v3.0.1 en Go (Haute performance, DiscordGo & pgxpool)
 │   ├── card/               # Moteur de génération des cartes d'activité vectorielles
 │   ├── config/             # Chargement des variables d'environnement
 │   ├── database/           # Connexion et requêtes PostgreSQL
