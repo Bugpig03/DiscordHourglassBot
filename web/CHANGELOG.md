@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.3 - Correctif Crash Session Vocale Active sur le Profil Utilisateur - 05/10/2026
+### Fixes
+- **Sessions Vocales en Direct & Profils Utilisateurs (`functions.py`)** :
+  - Résolution d'un crash critique (Erreur 500 / `NameError`) lors de la consultation du profil d'un membre actuellement connecté dans un salon vocal.
+  - Récupération et résolution correctes du nom de serveur (`server_name` via `Servers.servername`) dans `get_user_active_voice`.
+  - Sécurisation du typage booléen pour les statuts caméra et partage d'écran en direct.
+ 
 ## Version 2.7.2 - Découpage Horaire Proportionnel des Sessions Vocales & KPI d'Assiduité - 05/10/2026
 ### Fixes & Améliorations
 - **Découpage Horaire Proportionnel des Sessions Vocales (`functions.py`)** :

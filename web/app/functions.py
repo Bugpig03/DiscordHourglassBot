@@ -1140,6 +1140,12 @@ def get_user_active_voice(user_id: int) -> dict | None:
         if ch:
             channel_name = ch.name
 
+    server_name = None
+    if session.server_id:
+        srv = Servers.select().where(Servers.server_id == session.server_id).first()
+        if srv:
+            server_name = srv.servername
+
     now_utc = datetime.now(ZoneInfo("UTC"))
     if session.joined_at:
         joined_utc = session.joined_at.replace(tzinfo=ZoneInfo("UTC")) if session.joined_at.tzinfo is None else session.joined_at
@@ -1158,8 +1164,8 @@ def get_user_active_voice(user_id: int) -> dict | None:
         "elapsed_minutes": elapsed_seconds // 60,
         "joined_at": local_joined,
         "joined_at_str": local_joined.strftime("%H:%M") if local_joined else "-",
-        "is_streaming": session.is_streaming,
-        "is_camera_on": session.is_camera_on
+        "is_streaming": bool(session.is_streaming),
+        "is_camera_on": bool(session.is_camera_on)
     }
 
 
