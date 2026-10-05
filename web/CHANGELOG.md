@@ -1,5 +1,19 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.1 - Détection Fuseau Horaire Visiteur, Gestion Été/Hiver & Standardisation UTC - 05/10/2026
+### Fixes & Améliorations
+- **Détection Automatique du Fuseau Horaire Visiteur (`base.html` & `functions.py`)** :
+  - Détection client transparente via `Intl.DateTimeFormat().resolvedOptions().timeZone` et enregistrement dans un cookie `user_tz`.
+  - Prise en charge automatique multi-pays (Canada, Japon, France, etc.) et fallback par défaut sur `Europe/Paris`.
+- **Gestion Automatique du Changement d'Heure Été / Hiver (`zoneinfo.ZoneInfo`)** :
+  - Prise en charge native des transitions solstice / équinoxe (DST : UTC+2 en été, UTC+1 en hiver en France) via la base IANA Python 3.9+.
+- **Standardisation UTC Globale de la Base de Données (`database.py` & `database.go`)** :
+  - Forçage strict de `SET TIME ZONE 'UTC'` sur chaque connexion au pool PostgreSQL tant pour le bot Go que pour l'application Flask.
+  - Résolution définitive du décalage de 2 heures constaté sur les heures de début de sessions vocales.
+- **Localisation des Horodatages & Graphiques** :
+  - Conversion et affichage localisé des sessions vocales récentes (`joined_at_str` et sessions actives).
+  - Graphique de présence 48h, distribution horaire des pics d'activité (24h), punchcard 7j×24h et heatmap GitHub alignés sur l'heure locale de chaque visiteur.
+
 ## Version 2.7.0 - Modernisation du Dashboard, Navigation Épurée & Hub Communautaire - 05/10/2026
 ### Features & Améliorations
 - **Refonte Complète de la Navigation (`base.html`)** :

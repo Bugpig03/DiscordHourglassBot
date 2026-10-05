@@ -1,2 +1,12 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto detect text files and enforce LF normalization (Linux/Docker/Go/Python standard)
+* text=auto eol=lf
+*.go text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+Dockerfile* text eol=lf
+
