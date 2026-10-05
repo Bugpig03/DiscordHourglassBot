@@ -501,31 +501,41 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
 
 def get_daily_hours_progression(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
     """Calculate daily cumulative voice hours progression over the last X days directly from VoiceSessions."""
-    cutoff = datetime.now().date() - timedelta(days=days - 1)
+    import re
+    user_tz = get_user_timezone()
+    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
+    if not clean_tz:
+        clean_tz = "Europe/Paris"
+
+    user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
+    today = user_now.date() if user_now else datetime.now().date()
+    cutoff = today - timedelta(days=days - 1)
+
+    tz_date = SQL(f"DATE(joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')")
+
     query = (
         VoiceSessions
         .select(
-            fn.DATE(VoiceSessions.joined_at).alias("day_date"),
+            tz_date.alias("day_date"),
             fn.SUM(VoiceSessions.duration_seconds).alias("day_seconds")
         )
         .where(VoiceSessions.joined_at >= cutoff)
     )
     if server_id:
-        query = query.where(VoiceSessions.server_id == server_id)
+        query = query.where(VoiceSessions.server_id == int(server_id))
     if user_id:
-        query = query.where(VoiceSessions.user_id == user_id)
+        query = query.where(VoiceSessions.user_id == int(user_id))
 
-    query = query.group_by(fn.DATE(VoiceSessions.joined_at))
+    query = query.group_by(tz_date)
     daily_map = {row.day_date.strftime("%Y-%m-%d"): int(row.day_seconds or 0) for row in query}
 
-    today = datetime.now().date()
     today_str = today.strftime("%Y-%m-%d")
 
     curr_query = Stats.select(fn.SUM(Stats.seconds))
     if server_id:
-        curr_query = curr_query.where(Stats.server_id == server_id)
+        curr_query = curr_query.where(Stats.server_id == int(server_id))
     if user_id:
-        curr_query = curr_query.where(Stats.user_id == user_id)
+        curr_query = curr_query.where(Stats.user_id == int(user_id))
     current_total = int(curr_query.scalar() or 0)
 
     try:
@@ -533,9 +543,9 @@ def get_daily_hours_progression(server_id: int | None = None, user_id: int | Non
             fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
         ).where(VoiceSessions.left_at.is_null(True))
         if user_id is not None:
-            active_q = active_q.where(VoiceSessions.user_id == user_id)
+            active_q = active_q.where(VoiceSessions.user_id == int(user_id))
         if server_id is not None:
-            active_q = active_q.where(VoiceSessions.server_id == server_id)
+            active_q = active_q.where(VoiceSessions.server_id == int(server_id))
         active_secs = int(active_q.scalar() or 0)
         current_total += active_secs
         daily_map[today_str] = daily_map.get(today_str, 0) + active_secs
@@ -559,35 +569,45 @@ def get_daily_hours_progression(server_id: int | None = None, user_id: int | Non
 
 def get_daily_messages_progression(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
     """Calculate daily cumulative messages progression over the last X days directly from MessageEvents."""
-    cutoff = datetime.now().date() - timedelta(days=days - 1)
+    import re
+    user_tz = get_user_timezone()
+    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
+    if not clean_tz:
+        clean_tz = "Europe/Paris"
+
+    user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
+    today = user_now.date() if user_now else datetime.now().date()
+    cutoff = today - timedelta(days=days - 1)
+
+    tz_date = SQL(f"DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')")
+
     query = (
         MessageEvents
         .select(
-            fn.DATE(MessageEvents.created_at).alias("day_date"),
+            tz_date.alias("day_date"),
             fn.SUM(MessageEvents.count).alias("day_messages")
         )
         .where(MessageEvents.created_at >= cutoff)
     )
     if server_id:
-        query = query.where(MessageEvents.server_id == server_id)
+        query = query.where(MessageEvents.server_id == int(server_id))
     if user_id:
-        query = query.where(MessageEvents.user_id == user_id)
+        query = query.where(MessageEvents.user_id == int(user_id))
 
-    query = query.group_by(fn.DATE(MessageEvents.created_at))
+    query = query.group_by(tz_date)
     daily_map = {row.day_date.strftime("%Y-%m-%d"): int(row.day_messages or 0) for row in query}
 
     curr_query = Stats.select(fn.SUM(Stats.messages))
     if server_id:
-        curr_query = curr_query.where(Stats.server_id == server_id)
+        curr_query = curr_query.where(Stats.server_id == int(server_id))
     if user_id:
-        curr_query = curr_query.where(Stats.user_id == user_id)
+        curr_query = curr_query.where(Stats.user_id == int(user_id))
     current_total = int(curr_query.scalar() or 0)
 
     total_window_messages = sum(daily_map.values())
     starting_messages = max(0, current_total - total_window_messages)
 
     result = []
-    today = datetime.now().date()
     running_messages = starting_messages
     for i in range(days - 1, -1, -1):
         d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
@@ -601,33 +621,43 @@ def get_daily_messages_progression(server_id: int | None = None, user_id: int | 
 
 def get_daily_hours_diff(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
     """Calculate incremental hours spent each day over the last X days directly from VoiceSessions."""
-    cutoff = datetime.now().date() - timedelta(days=days - 1)
+    import re
+    user_tz = get_user_timezone()
+    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
+    if not clean_tz:
+        clean_tz = "Europe/Paris"
+
+    user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
+    today = user_now.date() if user_now else datetime.now().date()
+    cutoff = today - timedelta(days=days - 1)
+
+    tz_date = SQL(f"DATE(joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')")
+
     query = (
         VoiceSessions
         .select(
-            fn.DATE(VoiceSessions.joined_at).alias("day_date"),
+            tz_date.alias("day_date"),
             fn.SUM(VoiceSessions.duration_seconds).alias("day_seconds")
         )
         .where(VoiceSessions.joined_at >= cutoff)
     )
     if server_id:
-        query = query.where(VoiceSessions.server_id == server_id)
+        query = query.where(VoiceSessions.server_id == int(server_id))
     if user_id:
-        query = query.where(VoiceSessions.user_id == user_id)
-    query = query.group_by(fn.DATE(VoiceSessions.joined_at))
+        query = query.where(VoiceSessions.user_id == int(user_id))
+    query = query.group_by(tz_date)
 
     daily_map = {row.day_date.strftime("%Y-%m-%d"): round((row.day_seconds or 0) / 3600.0, 1) for row in query}
 
-    today = datetime.now().date()
     today_str = today.strftime("%Y-%m-%d")
     try:
         active_q = VoiceSessions.select(
             fn.COALESCE(fn.SUM(SQL("GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))::INT)")), 0)
         ).where(VoiceSessions.left_at.is_null(True))
         if user_id is not None:
-            active_q = active_q.where(VoiceSessions.user_id == user_id)
+            active_q = active_q.where(VoiceSessions.user_id == int(user_id))
         if server_id is not None:
-            active_q = active_q.where(VoiceSessions.server_id == server_id)
+            active_q = active_q.where(VoiceSessions.server_id == int(server_id))
         active_secs = int(active_q.scalar() or 0)
         if active_secs > 0:
             daily_map[today_str] = round(daily_map.get(today_str, 0.0) + (active_secs / 3600.0), 1)
@@ -646,25 +676,35 @@ def get_daily_hours_diff(server_id: int | None = None, user_id: int | None = Non
 
 def get_daily_messages_diff(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
     """Calculate incremental messages sent each day over the last X days directly from MessageEvents."""
-    cutoff = datetime.now().date() - timedelta(days=days - 1)
+    import re
+    user_tz = get_user_timezone()
+    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
+    if not clean_tz:
+        clean_tz = "Europe/Paris"
+
+    user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
+    today = user_now.date() if user_now else datetime.now().date()
+    cutoff = today - timedelta(days=days - 1)
+
+    tz_date = SQL(f"DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')")
+
     query = (
         MessageEvents
         .select(
-            fn.DATE(MessageEvents.created_at).alias("day_date"),
+            tz_date.alias("day_date"),
             fn.SUM(MessageEvents.count).alias("day_messages")
         )
         .where(MessageEvents.created_at >= cutoff)
     )
     if server_id:
-        query = query.where(MessageEvents.server_id == server_id)
+        query = query.where(MessageEvents.server_id == int(server_id))
     if user_id:
-        query = query.where(MessageEvents.user_id == user_id)
-    query = query.group_by(fn.DATE(MessageEvents.created_at))
+        query = query.where(MessageEvents.user_id == int(user_id))
+    query = query.group_by(tz_date)
 
     daily_map = {row.day_date.strftime("%Y-%m-%d"): int(row.day_messages or 0) for row in query}
 
     result = []
-    today = datetime.now().date()
     for i in range(days - 1, -1, -1):
         d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
         result.append({
@@ -1284,26 +1324,54 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
     except Exception:
         clean_tz = "Europe/Paris"
 
-    tz_voice_hour = SQL(f"EXTRACT(HOUR FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT")
-    tz_msg_hour = SQL(f"EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT")
+    from app.database import db
 
-    voice_q = (
-        VoiceSessions
-        .select(
-            tz_voice_hour.alias('h'),
-            fn.SUM(VoiceSessions.duration_seconds).alias('sec'),
-            fn.COUNT(VoiceSessions.session_id).alias('cnt')
+    # 1. Sessions vocales découpées tranche horaire par tranche horaire dans le fuseau du visiteur :
+    # Une session de 21h06 à 23h55 contribuera ~54m à 21h, 60m à 22h et 55m à 23h (au lieu de 3h d'un coup à 21h)
+    voice_filters = ["is_legacy = FALSE"]
+    params_voice = []
+    if server_id is not None:
+        voice_filters.append("server_id = %s")
+        params_voice.append(int(server_id))
+    if user_id is not None:
+        voice_filters.append("user_id = %s")
+        params_voice.append(int(user_id))
+
+    where_voice = " AND ".join(voice_filters)
+
+    voice_sql = f"""
+        WITH localized_sessions AS (
+            SELECT 
+                (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') AS s_start,
+                LEAST(
+                    COALESCE(left_at, (NOW() AT TIME ZONE 'UTC')) AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}',
+                    (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') + INTERVAL '24 hours'
+                ) AS s_end
+            FROM voice_sessions
+            WHERE {where_voice}
+        ),
+        hourly_slices AS (
+            SELECT 
+                EXTRACT(HOUR FROM gs)::INT AS h,
+                GREATEST(0, EXTRACT(EPOCH FROM (
+                    LEAST(s.s_end, gs + INTERVAL '1 hour') - GREATEST(s.s_start, gs)
+                )))::INT AS slice_sec
+            FROM localized_sessions s
+            CROSS JOIN LATERAL generate_series(
+                date_trunc('hour', s.s_start),
+                date_trunc('hour', s.s_end),
+                INTERVAL '1 hour'
+            ) AS gs
         )
-        .where(VoiceSessions.is_legacy == False)
-    )
-    if server_id:
-        voice_q = voice_q.where(VoiceSessions.server_id == int(server_id))
-    if user_id:
-        voice_q = voice_q.where(VoiceSessions.user_id == int(user_id))
-    voice_q = voice_q.group_by(tz_voice_hour)
+        SELECT h, SUM(slice_sec) AS sec
+        FROM hourly_slices
+        GROUP BY h
+    """
+    cursor_v = db.execute_sql(voice_sql, params_voice)
+    voice_by_hour = {int(row[0]): round((row[1] or 0) / 3600.0, 1) for row in cursor_v.fetchall()}
 
-    voice_by_hour = {int(r["h"]): round((r["sec"] or 0) / 3600, 1) for r in voice_q.dicts()}
-
+    # 2. Messages par tranche horaire dans le fuseau du visiteur
+    tz_msg_hour = SQL(f"EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT")
     msg_q = MessageEvents.select(
         tz_msg_hour.alias('h'),
         fn.SUM(MessageEvents.count).alias('cnt')
@@ -1888,19 +1956,41 @@ def get_hourly_punchcard_data(server_id: int | str | None = None) -> dict:
     # PostgreSQL ISODOW : 1 = Lundi ... 7 = Dimanche
     grid = [[{"voice_sec": 0, "messages": 0, "voice_hours": 0.0} for _ in range(24)] for _ in range(7)]
 
-    # 1. Sessions vocales par (ISODOW, HOUR) - converties au fuseau utilisateur
+    # 1. Sessions vocales découpées heure par heure et jour par jour dans le fuseau utilisateur
+    vs_filters = ["is_legacy = FALSE"]
+    if server_id is not None:
+        vs_filters.append("server_id = %s")
+
+    where_vs = " AND ".join(vs_filters)
+
     vs_sql = f"""
-        SELECT 
-            EXTRACT(ISODOW FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS dow,
-            EXTRACT(HOUR FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS hr,
-            COALESCE(SUM(
-                CASE WHEN left_at IS NOT NULL THEN duration_seconds
-                     ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
-            ), 0) AS total_sec
-        FROM voice_sessions
-        {server_filter_vs}
-        GROUP BY EXTRACT(ISODOW FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')), 
-                 EXTRACT(HOUR FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))
+        WITH localized_sessions AS (
+            SELECT 
+                (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') AS s_start,
+                LEAST(
+                    COALESCE(left_at, (NOW() AT TIME ZONE 'UTC')) AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}',
+                    (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') + INTERVAL '24 hours'
+                ) AS s_end
+            FROM voice_sessions
+            WHERE {where_vs}
+        ),
+        hourly_slices AS (
+            SELECT 
+                EXTRACT(ISODOW FROM gs)::INT AS dow,
+                EXTRACT(HOUR FROM gs)::INT AS hr,
+                GREATEST(0, EXTRACT(EPOCH FROM (
+                    LEAST(s.s_end, gs + INTERVAL '1 hour') - GREATEST(s.s_start, gs)
+                )))::INT AS slice_sec
+            FROM localized_sessions s
+            CROSS JOIN LATERAL generate_series(
+                date_trunc('hour', s.s_start),
+                date_trunc('hour', s.s_end),
+                INTERVAL '1 hour'
+            ) AS gs
+        )
+        SELECT dow, hr, SUM(slice_sec) AS total_sec
+        FROM hourly_slices
+        GROUP BY dow, hr
     """
     cursor_vs = db.execute_sql(vs_sql, params_vs)
     for row in cursor_vs.fetchall():

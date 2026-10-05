@@ -1,5 +1,19 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.2 - Découpage Horaire Proportionnel des Sessions Vocales & KPI d'Assiduité - 05/10/2026
+### Fixes & Améliorations
+- **Découpage Horaire Proportionnel des Sessions Vocales (`functions.py`)** :
+  - Découpage heure par heure via une CTE récursive (`generate_series`) pour la distribution des pics d'activité sur 24h (`get_hourly_activity_distribution`).
+  - Élimination des faux pics d'activité : une session vocale chevauchant plusieurs tranches horaires (ex: 21h06 à 23h50) distribue désormais fidèlement ses minutes sur chaque heure active au lieu d'attribuer toute la durée à l'heure de début.
+  - Uniformisation du découpage horaire sur les profils utilisateurs (`user_id`), les pages de serveurs (`server_id`) et les graphiques globaux.
+- **Découpage Multi-Jours & Multi-Heures de la Matrice Punchcard (`get_hourly_punchcard_data`)** :
+  - Décomposition proportionnelle des sessions vocales à travers les jours et les heures de la semaine (matrice 7j × 24h).
+- **Refonte des Cartes KPI d'Assiduité du Profil Utilisateur (`user_profile.html`)** :
+  - Harmonisation complète des 4 cartes d'assiduité (Série actuelle, Meilleure série, Jours actifs, Assiduité globale) avec le design moderne du Dashboard principal (`dashboard-kpi-grid`).
+  - Ajout des bordures d'accentuation supérieures lumineuses (orange, ambre, émeraude, bleu), des icônes d'en-tête dédiées et des badges d'état pills.
+- **Épuration de l'Interface Utilisateur** :
+  - Retrait du bouton et de la modale superflus « Exporter ma carte de profil » sur le profil web.
+ 
 ## Version 2.7.1 - Détection Fuseau Horaire Visiteur, Gestion Été/Hiver & Standardisation UTC - 05/10/2026
 ### Fixes & Améliorations
 - **Détection Automatique du Fuseau Horaire Visiteur (`base.html` & `functions.py`)** :

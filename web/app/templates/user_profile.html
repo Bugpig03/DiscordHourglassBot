@@ -298,10 +298,6 @@
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
                 <span>{{ t('profile.versus_btn') }}</span>
             </a>
-            <button id="openCardModalBtn" class="btn-export-card" onclick="openCardModal()" title="{{ t('profile.export_card_btn') }}">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                <span>{{ t('profile.export_card_btn') }}</span>
-            </button>
         </div>
     </div>
 </div>
@@ -408,56 +404,84 @@
 <!-- =================================================================== -->
 <div id="tab-activity" class="graphs-tab-pane active">
 
-    <!-- KPI Streaks & Assiduité -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 25px;">
-        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(249, 115, 22, 0.15); display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+    <!-- KPI Streaks & Assiduité (Style Moderne Identique à la Page Principale) -->
+    <div class="dashboard-kpi-grid" style="margin-bottom: 25px;">
+        <!-- 1. Série actuelle -->
+        <div class="dashboard-kpi-card accent-orange">
+            <div class="dashboard-kpi-top">
+                <span class="dashboard-kpi-label">{{ 'SÉRIE ACTUELLE' if current_lang == 'fr' else 'CURRENT STREAK' }}</span>
+                <div class="dashboard-kpi-icon icon-orange">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                </div>
             </div>
-            <div>
-                <div class="small-text gray">{{ 'Série actuelle' if current_lang == 'fr' else 'Current streak' }}</div>
-                <div class="big-bold-text" style="color: #fb923c; font-size: 1.45rem;">
-                    {{ heatmap_annual.current_streak }} {{ 'jour' if heatmap_annual.current_streak <= 1 else 'jours' if current_lang == 'fr' else 'days' }}
+            <div class="dashboard-kpi-val" style="color: #fb923c;">
+                {{ heatmap_annual.current_streak }} <span style="font-size: 1.15rem; font-weight: 600; color: #cbd5e1;">{{ 'jour' if heatmap_annual.current_streak <= 1 else 'jours' if current_lang == 'fr' else 'days' }}</span>
+            </div>
+            <div class="dashboard-kpi-footer">
+                <div class="dashboard-kpi-pill pill-orange">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    <span>{{ 'Série en cours' if heatmap_annual.current_streak > 0 else 'Inactif aujourd\'hui' if current_lang == 'fr' else 'Active streak' if heatmap_annual.current_streak > 0 else 'Inactive today' }}</span>
                 </div>
             </div>
         </div>
 
-        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(234, 179, 8, 0.15); display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <!-- 2. Record de série -->
+        <div class="dashboard-kpi-card accent-amber">
+            <div class="dashboard-kpi-top">
+                <span class="dashboard-kpi-label">{{ 'RECORD DE SÉRIE' if current_lang == 'fr' else 'BEST STREAK' }}</span>
+                <div class="dashboard-kpi-icon icon-amber">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
             </div>
-            <div>
-                <div class="small-text gray">{{ 'Record de série' if current_lang == 'fr' else 'Best streak' }}</div>
-                <div class="big-bold-text" style="color: #facc15; font-size: 1.45rem;">
-                    {{ heatmap_annual.max_streak }} {{ 'jours' if current_lang == 'fr' else 'days' }}
+            <div class="dashboard-kpi-val" style="color: #facc15;">
+                {{ heatmap_annual.max_streak }} <span style="font-size: 1.15rem; font-weight: 600; color: #cbd5e1;">{{ 'jours' if current_lang == 'fr' else 'days' }}</span>
+            </div>
+            <div class="dashboard-kpi-footer">
+                <div class="dashboard-kpi-pill pill-amber">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span>{{ 'Record historique' if current_lang == 'fr' else 'All-time best' }}</span>
                 </div>
             </div>
         </div>
 
-        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        <!-- 3. Jours actifs (1 an) -->
+        <div class="dashboard-kpi-card accent-emerald">
+            <div class="dashboard-kpi-top">
+                <span class="dashboard-kpi-label">{{ 'JOURS ACTIFS (1 AN)' if current_lang == 'fr' else 'ACTIVE DAYS (1 YR)' }}</span>
+                <div class="dashboard-kpi-icon icon-emerald">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                </div>
             </div>
-            <div>
-                <div class="small-text gray">{{ 'Jours actifs (1 an)' if current_lang == 'fr' else 'Active days (1 yr)' }}</div>
-                <div class="big-bold-text" style="color: #4ade80; font-size: 1.45rem;">
-                    {{ heatmap_annual.total_active_days }} <span style="font-size: 0.85rem; color: #64748b;">/ 365</span>
+            <div class="dashboard-kpi-val" style="color: #4ade80;">
+                {{ heatmap_annual.total_active_days }} <span style="font-size: 1.15rem; font-weight: 500; color: #94a3b8;">/ 365</span>
+            </div>
+            <div class="dashboard-kpi-footer">
+                <div class="dashboard-kpi-pill pill-emerald">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>{{ ((heatmap_annual.total_active_days / 365 * 100) | round(1)) }}% {{ 'd\'assiduité' if current_lang == 'fr' else 'active rate' }}</span>
                 </div>
             </div>
         </div>
 
-        <div class="gray-box small-border-radius" style="padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <!-- 4. Journée record -->
+        <div class="dashboard-kpi-card accent-blue">
+            <div class="dashboard-kpi-top">
+                <span class="dashboard-kpi-label">{{ 'JOURNÉE RECORD' if current_lang == 'fr' else 'PEAK DAY' }}</span>
+                <div class="dashboard-kpi-icon icon-blue">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
             </div>
-            <div>
-                <div class="small-text gray">{{ 'Journée record' if current_lang == 'fr' else 'Peak day' }}</div>
-                <div class="big-bold-text" style="color: #38bdf8; font-size: 1.35rem;">
-                    {% if heatmap_annual.best_day %}
-                        {{ heatmap_annual.best_day.hours }}h <span style="font-size: 0.75rem; color: #94a3b8;">({{ heatmap_annual.best_day.date }})</span>
-                    {% else %}
-                        -
-                    {% endif %}
+            <div class="dashboard-kpi-val" style="color: #38bdf8;">
+                {% if heatmap_annual.best_day %}
+                    {{ heatmap_annual.best_day.hours }}h
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+            <div class="dashboard-kpi-footer">
+                <div class="dashboard-kpi-pill pill-blue">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.date }}{% else %}{{ 'Aucune donnée' if current_lang == 'fr' else 'No data' }}{% endif %}</span>
                 </div>
             </div>
         </div>
@@ -1556,101 +1580,6 @@ function toggleHeatmapView(mode) {
         if (btnMon) btnMon.classList.remove('active');
     }
 }
-
-function openCardModal() {
-    const modal = document.getElementById('cardExportModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function closeCardModal() {
-    const modal = document.getElementById('cardExportModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-    }
-}
-
-function closeCardModalOnBackdrop(e) {
-    if (e.target && e.target.id === 'cardExportModal') {
-        closeCardModal();
-    }
-}
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeCardModal();
-    }
-});
-
-function copySnippet(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    input.select();
-    input.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(input.value).then(() => {
-        const originalText = btn.textContent;
-        btn.textContent = '✓ ' + (btn.getAttribute('data-copied') || 'Copié !');
-        btn.style.background = '#10b981';
-        btn.style.borderColor = '#10b981';
-        setTimeout(() => {
-            btn.textContent = originalText;
-            btn.style.background = '';
-            btn.style.borderColor = '';
-        }, 2000);
-    });
-}
 </script>
-
-<!-- =================================================================== -->
-<!-- MODAL : Export Stat Card                                            -->
-<!-- =================================================================== -->
-<div id="cardExportModal" class="hourglass-modal-overlay" style="display: none;" onclick="closeCardModalOnBackdrop(event)">
-    <div class="hourglass-modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <div class="modal-title-wrap">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                <span class="modal-title">{{ t('profile.export_modal_title') }}</span>
-            </div>
-            <button class="modal-close-btn" onclick="closeCardModal()" aria-label="Fermer">✕</button>
-        </div>
-
-        <p class="modal-desc">{{ t('profile.export_modal_desc') }}</p>
-
-        <!-- Card Live Preview -->
-        <div class="card-preview-container">
-            <img src="{{ url_for('api.get_user_stat_card', username=stats.username, lang=current_lang) }}" 
-                 alt="Stat Card {{ stats.username }}" 
-                 id="cardLivePreview" 
-                 class="card-preview-img">
-        </div>
-
-        <!-- Export Snippets -->
-        <div class="export-snippet-group">
-            <label class="snippet-label">{{ t('profile.card_direct_link') }}</label>
-            <div class="snippet-input-row">
-                <input type="text" readonly id="directLinkInput" class="snippet-input" value="{{ request.host_url.rstrip('/') }}{{ url_for('api.get_user_stat_card', username=stats.username, lang=current_lang) }}">
-                <button class="btn-copy-snippet" data-copied="{{ t('profile.copied_toast') }}" onclick="copySnippet('directLinkInput', this)">{{ 'Copier' if current_lang == 'fr' else 'Copy' }}</button>
-            </div>
-        </div>
-
-        <div class="export-snippet-group">
-            <label class="snippet-label">{{ t('profile.card_markdown_embed') }}</label>
-            <div class="snippet-input-row">
-                <input type="text" readonly id="markdownInput" class="snippet-input" value="[![Hourglass Stats]({{ request.host_url.rstrip('/') }}{{ url_for('api.get_user_stat_card', username=stats.username, lang=current_lang) }})]({{ request.host_url.rstrip('/') }}{{ url_for('user_profile.profile', username=stats.username) }})">
-                <button class="btn-copy-snippet" data-copied="{{ t('profile.copied_toast') }}" onclick="copySnippet('markdownInput', this)">{{ 'Copier' if current_lang == 'fr' else 'Copy' }}</button>
-            </div>
-        </div>
-
-        <div class="modal-actions-footer">
-            <a href="{{ url_for('api.get_user_stat_card', username=stats.username, lang=current_lang) }}" download="hourglass_stats_{{ stats.username }}.svg" class="btn-download-svg">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                <span>{{ t('profile.download_svg') }}</span>
-            </a>
-        </div>
-    </div>
-</div>
 
 {% endblock %}
