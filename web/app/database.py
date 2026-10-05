@@ -181,6 +181,10 @@ def init_app(app):
     def _db_connect():
         if db.is_closed():
             db.connect()
+            try:
+                db.execute_sql("SET TIME ZONE 'UTC'")
+            except Exception:
+                pass
 
     @app.teardown_request
     def _db_close(exc):

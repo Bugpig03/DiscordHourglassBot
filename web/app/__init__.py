@@ -28,12 +28,14 @@ def create_app():
 
     @app.context_processor
     def inject_i18n():
-        """Inject current language and translation helper into all templates."""
+        """Inject current language, detected timezone, and translation helper into all templates."""
+        from app.functions import get_user_timezone
         lang = request.cookies.get("lang", "fr")
         if lang not in ("fr", "en"):
             lang = "fr"
         return {
             "current_lang": lang,
+            "user_tz": get_user_timezone(),
             "t": lambda key, **kwargs: get_text(key, lang=lang, **kwargs)
         }
 
@@ -72,14 +74,28 @@ def create_app():
 
     @app.template_filter("date_localized")
     def filter_date_localized(dt):
-        """Format a datetime into localized date based on current language cookie."""
+        """Format a datetime into localized date based on current language cookie and user timezone."""
         from app.functions import format_date_localized
         lang = request.cookies.get("lang", "fr")
         return format_date_localized(dt, lang=lang)
 
     @app.template_filter("date_heure_localized")
     def filter_date_heure_localized(dt):
-        """Format a datetime into localized date and time based on current language cookie."""
+        """Format a datetime into localized date and time based on current language cookie and user timezone."""
+        from app.functions import format_date_heure_localized
+        lang = request.cookies.get("lang", "fr")
+        return format_date_heure_localized(dt, lang=lang)
+
+    @app.template_filter("date_fr")
+    def filter_date_fr(dt):
+        """Legacy filter alias redirecting to localized date formatter."""
+        from app.functions import format_date_localized
+        lang = request.cookies.get("lang", "fr")
+        return format_date_localized(dt, lang=lang)
+
+    @app.template_filter("date_heure_fr")
+    def filter_date_heure_fr(dt):
+        """Legacy filter alias redirecting to localized datetime formatter."""
         from app.functions import format_date_heure_localized
         lang = request.cookies.get("lang", "fr")
         return format_date_heure_localized(dt, lang=lang)

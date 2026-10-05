@@ -10,6 +10,20 @@
     rel="stylesheet"
     href="{{ url_for('static', filename='styles.css', v=29) }}"
     >
+    <script>
+        // Automatic visitor timezone detection with DST support
+        (function() {
+            try {
+                var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (tz) {
+                    var current = document.cookie.split('; ').find(function(r) { return r.startsWith('user_tz='); });
+                    if (!current || decodeURIComponent(current.split('=')[1]) !== tz) {
+                        document.cookie = 'user_tz=' + encodeURIComponent(tz) + '; path=/; max-age=31536000; SameSite=Lax';
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body>
     <div class="main-container">

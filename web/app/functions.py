@@ -1,6 +1,8 @@
 """Utility functions and statistics query helpers for the Hourglass web application."""
 
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+from flask import has_request_context, request
 from peewee import fn, SQL, JOIN
 from app.database import (
     Users, Stats, Servers,
@@ -48,6 +50,37 @@ def ConvertSecondsToTime(seconds: int) -> str:
     return f"{formatted_hours} h {minutes} min {secs} s"
 
 
+def get_user_timezone() -> str:
+    """Return the user's timezone from cookie 'user_tz' or fallback to 'Europe/Paris'."""
+    if has_request_context():
+        tz = request.cookies.get("user_tz")
+        if tz:
+            try:
+                ZoneInfo(tz)
+                return tz
+            except Exception:
+                pass
+    return "Europe/Paris"
+
+
+def to_user_timezone(dt: datetime | None, tz_name: str | None = None) -> datetime | None:
+    """Convert a UTC or naive datetime to the user's local timezone with automatic DST (summer/winter) handling."""
+    if dt is None:
+        return None
+    if tz_name is None:
+        tz_name = get_user_timezone()
+    try:
+        target_tz = ZoneInfo(tz_name)
+    except Exception:
+        target_tz = ZoneInfo("Europe/Paris")
+
+    # If datetime is naive (typical for PostgreSQL TIMESTAMP WITHOUT TIME ZONE), treat as UTC
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+
+    return dt.astimezone(target_tz)
+
+
 def ConvertSecondsToHours(seconds: int) -> str:
     """Convert an integer number of seconds into decimal hours with one decimal place."""
     seconds = int(seconds or 0)
@@ -55,31 +88,33 @@ def ConvertSecondsToHours(seconds: int) -> str:
     return f"{hours} h"
 
 
-def format_date_heure_localized(dt: datetime | None, lang: str = "fr") -> str:
-    """Format a datetime object into a localized French or English date and time string."""
+def format_date_heure_localized(dt: datetime | None, lang: str = "fr", tz_name: str | None = None) -> str:
+    """Format a datetime object into a localized French or English date and time string in the user's timezone."""
     if dt is None:
         return " "
+    local_dt = to_user_timezone(dt, tz_name)
     if lang == "en":
-        return f"{ENGLISH_MONTHS[dt.month - 1]} {dt.day}, {dt.year} at {dt.strftime('%H:%M:%S')}"
-    return f"{dt.day} {FRENCH_MONTHS[dt.month - 1]} {dt.year} à {dt.strftime('%H:%M:%S')}"
+        return f"{ENGLISH_MONTHS[local_dt.month - 1]} {local_dt.day}, {local_dt.year} at {local_dt.strftime('%H:%M:%S')}"
+    return f"{local_dt.day} {FRENCH_MONTHS[local_dt.month - 1]} {local_dt.year} à {local_dt.strftime('%H:%M:%S')}"
 
 
-def format_date_localized(dt: datetime | None, lang: str = "fr") -> str:
-    """Format a datetime object into a localized French or English date string."""
+def format_date_localized(dt: datetime | None, lang: str = "fr", tz_name: str | None = None) -> str:
+    """Format a datetime object into a localized French or English date string in the user's timezone."""
     if dt is None:
         return " "
+    local_dt = to_user_timezone(dt, tz_name)
     if lang == "en":
-        return f"{ENGLISH_MONTHS[dt.month - 1]} {dt.day}, {dt.year}"
-    return f"{dt.day} {FRENCH_MONTHS[dt.month - 1]} {dt.year}"
+        return f"{ENGLISH_MONTHS[local_dt.month - 1]} {local_dt.day}, {local_dt.year}"
+    return f"{local_dt.day} {FRENCH_MONTHS[local_dt.month - 1]} {local_dt.year}"
 
 
 def format_date_heure_fr(dt: datetime | None) -> str:
-    """Format a datetime object into a French date and time string (backward compatibility)."""
+    """Format a datetime object into a French date and time string in the user's timezone."""
     return format_date_heure_localized(dt, lang="fr")
 
 
 def format_date_fr(dt: datetime | None) -> str:
-    """Format a datetime object into a French date string (backward compatibility)."""
+    """Format a datetime object into a French date string in the user's timezone."""
     return format_date_localized(dt, lang="fr")
 
 
@@ -1065,17 +1100,24 @@ def get_user_active_voice(user_id: int) -> dict | None:
         if ch:
             channel_name = ch.name
 
-    server_name = get_servername_by_server_id(session.server_id)
-    elapsed_seconds = int((datetime.now() - session.joined_at).total_seconds()) if session.joined_at else 0
+    now_utc = datetime.now(ZoneInfo("UTC"))
+    if session.joined_at:
+        joined_utc = session.joined_at.replace(tzinfo=ZoneInfo("UTC")) if session.joined_at.tzinfo is None else session.joined_at
+        elapsed_seconds = max(0, int((now_utc - joined_utc).total_seconds()))
+    else:
+        elapsed_seconds = 0
+
+    local_joined = to_user_timezone(session.joined_at)
 
     return {
         "channel_id": session.channel_id,
         "channel_name": channel_name or "Salon Vocal",
         "server_id": session.server_id,
         "server_name": server_name or str(session.server_id),
-        "elapsed_seconds": max(0, elapsed_seconds),
-        "elapsed_minutes": max(0, elapsed_seconds) // 60,
-        "joined_at": session.joined_at,
+        "elapsed_seconds": elapsed_seconds,
+        "elapsed_minutes": elapsed_seconds // 60,
+        "joined_at": local_joined,
+        "joined_at_str": local_joined.strftime("%H:%M") if local_joined else "-",
         "is_streaming": session.is_streaming,
         "is_camera_on": session.is_camera_on
     }
@@ -1234,12 +1276,21 @@ def get_server_channels_messages_breakdown(server_id: int, limit: int = 8, lang:
     }
 
 
-def get_hourly_activity_distribution(server_id: int | None = None, user_id: int | None = None, lang: str = "fr") -> dict:
-    """Analyze activity by hour of day (0-23h) to detect peak activity windows (excludes legacy snapshots)."""
+def get_hourly_activity_distribution(server_id: int | None = None, user_id: int | None = None, lang: str = "fr", tz_name: str | None = None) -> dict:
+    """Analyze activity by hour of day (0-23h) in user's timezone to detect peak activity windows (excludes legacy snapshots)."""
+    user_tz = tz_name or get_user_timezone()
+    try:
+        clean_tz = ZoneInfo(user_tz).key
+    except Exception:
+        clean_tz = "Europe/Paris"
+
+    tz_voice_hour = SQL(f"EXTRACT(HOUR FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT")
+    tz_msg_hour = SQL(f"EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT")
+
     voice_q = (
         VoiceSessions
         .select(
-            fn.date_part('hour', VoiceSessions.joined_at).alias('h'),
+            tz_voice_hour.alias('h'),
             fn.SUM(VoiceSessions.duration_seconds).alias('sec'),
             fn.COUNT(VoiceSessions.session_id).alias('cnt')
         )
@@ -1249,19 +1300,19 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
         voice_q = voice_q.where(VoiceSessions.server_id == int(server_id))
     if user_id:
         voice_q = voice_q.where(VoiceSessions.user_id == int(user_id))
-    voice_q = voice_q.group_by(fn.date_part('hour', VoiceSessions.joined_at))
+    voice_q = voice_q.group_by(tz_voice_hour)
 
     voice_by_hour = {int(r["h"]): round((r["sec"] or 0) / 3600, 1) for r in voice_q.dicts()}
 
     msg_q = MessageEvents.select(
-        fn.date_part('hour', MessageEvents.created_at).alias('h'),
+        tz_msg_hour.alias('h'),
         fn.SUM(MessageEvents.count).alias('cnt')
     )
     if server_id:
         msg_q = msg_q.where(MessageEvents.server_id == int(server_id))
     if user_id:
         msg_q = msg_q.where(MessageEvents.user_id == int(user_id))
-    msg_q = msg_q.group_by(fn.date_part('hour', MessageEvents.created_at))
+    msg_q = msg_q.group_by(tz_msg_hour)
 
     msg_by_hour = {int(r["h"]): int(r["cnt"] or 0) for r in msg_q.dicts()}
 
@@ -1281,8 +1332,8 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
     }
 
 
-def get_recent_voice_sessions(server_id: int | None = None, user_id: int | None = None, limit: int = 15, lang: str = "fr") -> list[dict]:
-    """Retrieve the most recent real-time voice sessions with user, channel, and server details."""
+def get_recent_voice_sessions(server_id: int | None = None, user_id: int | None = None, limit: int = 15, lang: str = "fr", tz_name: str | None = None) -> list[dict]:
+    """Retrieve the most recent real-time voice sessions with user, channel, and server details in user timezone."""
     q = (
         VoiceSessions
         .select(
@@ -1315,24 +1366,26 @@ def get_recent_voice_sessions(server_id: int | None = None, user_id: int | None 
     q = q.order_by(VoiceSessions.is_legacy.asc(), VoiceSessions.joined_at.desc()).limit(limit)
 
     results = []
-    now = datetime.now()
+    now_utc = datetime.now(ZoneInfo("UTC"))
     for row in q.dicts():
         is_active = (row["left_at"] is None)
-        if is_active and row["joined_at"]:
-            dur_sec = max(0, int((now - row["joined_at"]).total_seconds()))
+        raw_joined = row.get("joined_at")
+        if is_active and raw_joined:
+            joined_utc = raw_joined.replace(tzinfo=ZoneInfo("UTC")) if raw_joined.tzinfo is None else raw_joined
+            dur_sec = max(0, int((now_utc - joined_utc).total_seconds()))
         else:
             dur_sec = row["duration_seconds"] or 0
 
         is_legacy = bool(row.get("is_legacy", False))
-        joined_dt = row.get("joined_at")
+        local_joined_dt = to_user_timezone(raw_joined, tz_name)
 
         if is_legacy:
             channel_display = "🗄️ " + ("Historique (Non classé)" if lang == "fr" else "Legacy (Unclassified)")
             # Only display calendar date for legacy snapshot delta to avoid fake 03:00 hours
-            joined_str = joined_dt.strftime("%d/%m/%Y") if joined_dt else "-"
+            joined_str = local_joined_dt.strftime("%d/%m/%Y") if local_joined_dt else "-"
         else:
             channel_display = f"🔊 {row['channel_name']}" if row.get("channel_name") else ("Salon Vocal" if lang == "fr" else "Voice Channel")
-            joined_str = joined_dt.strftime("%d/%m/%Y %H:%M") if joined_dt else "-"
+            joined_str = local_joined_dt.strftime("%d/%m/%Y %H:%M") if local_joined_dt else "-"
 
         results.append({
             "session_id": row["session_id"],
@@ -1565,14 +1618,15 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
             except Exception:
                 pass
 
-    # Regrouper par heure pour éviter les doublons de labels sur l'axe X
+    # Regrouper par heure pour éviter les doublons de labels sur l'axe X (localisé au fuseau utilisateur)
     hourly_dict = {}
     for r in rows:
         dt = r["recorded_at"]
         if isinstance(dt, str):
             dt = datetime.fromisoformat(dt)
-        hour_key = dt.strftime("%Y-%m-%d %H:00:00")
-        hourly_dict[hour_key] = r
+        local_dt = to_user_timezone(dt)
+        hour_key = local_dt.strftime("%Y-%m-%d %H:00:00")
+        hourly_dict[hour_key] = (r, local_dt)
 
     labels = []
     online = []
@@ -1582,11 +1636,8 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
     ratio_connected = []
 
     for hour_key in sorted(hourly_dict.keys()):
-        r = hourly_dict[hour_key]
-        dt = r["recorded_at"]
-        if isinstance(dt, str):
-            dt = datetime.fromisoformat(dt)
-        lbl = dt.strftime("%d/%m %Hh") if lang == "fr" else dt.strftime("%b %d %I%p")
+        r, local_dt = hourly_dict[hour_key]
+        lbl = local_dt.strftime("%d/%m %Hh") if lang == "fr" else local_dt.strftime("%b %d %I%p")
         labels.append(lbl)
         on = int(r.get("online_count") or 0)
         id_cnt = int(r.get("idle_count") or 0)
@@ -1620,33 +1671,39 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
     Calcule l'activité quotidienne d'un utilisateur (vocal + messages) pour une Heatmap style GitHub.
     Retourne les données pour les X derniers jours avec calcul de streak (flammes).
     """
-    user_id = int(user_id)
-    today = datetime.now().date()
+    import re
+    user_tz = get_user_timezone()
+    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
+    if not clean_tz:
+        clean_tz = "Europe/Paris"
+
+    user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
+    today = user_now.date() if user_now else datetime.now().date()
     start_date = today - timedelta(days=days)
 
     from app.database import db
 
-    # 1. Heures vocales par jour depuis voice_sessions
-    voice_sql = """
-        SELECT DATE(joined_at) AS day,
+    # 1. Heures vocales par jour depuis voice_sessions (localisé)
+    voice_sql = f"""
+        SELECT DATE(joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') AS day,
                COALESCE(SUM(
                    CASE WHEN left_at IS NOT NULL THEN duration_seconds
                         ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
                ), 0) AS total_seconds
         FROM voice_sessions
         WHERE user_id = %s AND joined_at >= %s
-        GROUP BY DATE(joined_at)
+        GROUP BY DATE(joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')
     """
     voice_cursor = db.execute_sql(voice_sql, (user_id, start_date))
     voice_by_day = {row[0].strftime("%Y-%m-%d"): int(row[1]) for row in voice_cursor.fetchall()}
 
-    # 2. Messages par jour depuis message_events
-    msg_sql = """
-        SELECT DATE(created_at) AS day,
+    # 2. Messages par jour depuis message_events (localisé)
+    msg_sql = f"""
+        SELECT DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') AS day,
                COALESCE(SUM(count), 0) AS total_messages
         FROM message_events
         WHERE user_id = %s AND created_at >= %s
-        GROUP BY DATE(created_at)
+        GROUP BY DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')
     """
     msg_cursor = db.execute_sql(msg_sql, (user_id, start_date))
     msg_by_day = {row[0].strftime("%Y-%m-%d"): int(row[1]) for row in msg_cursor.fetchall()}
@@ -1820,23 +1877,30 @@ def get_hourly_punchcard_data(server_id: int | str | None = None) -> dict:
         params_vs.append(int(server_id))
         params_me.append(int(server_id))
 
+    import re
+    user_tz = get_user_timezone()
+    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
+    if not clean_tz:
+        clean_tz = "Europe/Paris"
+
     # Matrice vide 7 jours x 24 heures
     # 0 = Lundi, 6 = Dimanche
     # PostgreSQL ISODOW : 1 = Lundi ... 7 = Dimanche
     grid = [[{"voice_sec": 0, "messages": 0, "voice_hours": 0.0} for _ in range(24)] for _ in range(7)]
 
-    # 1. Sessions vocales par (ISODOW, HOUR)
+    # 1. Sessions vocales par (ISODOW, HOUR) - converties au fuseau utilisateur
     vs_sql = f"""
         SELECT 
-            EXTRACT(ISODOW FROM joined_at)::INT AS dow,
-            EXTRACT(HOUR FROM joined_at)::INT AS hr,
+            EXTRACT(ISODOW FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS dow,
+            EXTRACT(HOUR FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS hr,
             COALESCE(SUM(
                 CASE WHEN left_at IS NOT NULL THEN duration_seconds
                      ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
             ), 0) AS total_sec
         FROM voice_sessions
         {server_filter_vs}
-        GROUP BY EXTRACT(ISODOW FROM joined_at), EXTRACT(HOUR FROM joined_at)
+        GROUP BY EXTRACT(ISODOW FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')), 
+                 EXTRACT(HOUR FROM (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))
     """
     cursor_vs = db.execute_sql(vs_sql, params_vs)
     for row in cursor_vs.fetchall():
@@ -1847,15 +1911,16 @@ def get_hourly_punchcard_data(server_id: int | str | None = None) -> dict:
             grid[dow][hr]["voice_sec"] = sec
             grid[dow][hr]["voice_hours"] = round(sec / 3600.0, 1)
 
-    # 2. Messages par (ISODOW, HOUR)
+    # 2. Messages par (ISODOW, HOUR) - converties au fuseau utilisateur
     me_sql = f"""
         SELECT 
-            EXTRACT(ISODOW FROM created_at)::INT AS dow,
-            EXTRACT(HOUR FROM created_at)::INT AS hr,
+            EXTRACT(ISODOW FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS dow,
+            EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS hr,
             COALESCE(SUM(count), 0) AS total_msg
         FROM message_events
         {server_filter_me}
-        GROUP BY EXTRACT(ISODOW FROM created_at), EXTRACT(HOUR FROM created_at)
+        GROUP BY EXTRACT(ISODOW FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')), 
+                 EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))
     """
     cursor_me = db.execute_sql(me_sql, params_me)
     for row in cursor_me.fetchall():
