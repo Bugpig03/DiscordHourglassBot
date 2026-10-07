@@ -939,6 +939,9 @@ def get_text(key: str, lang: str = "fr", **kwargs) -> str:
     Falls back to French if key is not found in the selected language,
     and formats placeholders using kwargs.
     """
+    if key == "footer.version":
+        return f"version {Config.APP_VERSION} - {Config.APP_VERSION_DATE}"
+
     lang = lang if lang in TRANSLATIONS else "fr"
     text = TRANSLATIONS.get(lang, {}).get(key)
     if text is None:

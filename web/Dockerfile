@@ -1,5 +1,5 @@
 # ==============================================================================
-# HOURGLASS WEB APP v2.7.5 - Production Dockerfile
+# HOURGLASS WEB APP v2.7.6 - Production Dockerfile
 # ==============================================================================
 
 FROM python:3.12-slim

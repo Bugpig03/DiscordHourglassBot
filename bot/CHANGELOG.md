@@ -1,5 +1,14 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.0.4 - Correctifs de sécurité critiques (Dependabot) - 07/10/2026
+
+- **Mise à niveau des dépendances Go et élimination des vulnérabilités Dependabot** :
+  - `github.com/jackc/pgx/v5` mis à niveau vers `v5.11.0` (correction de l'injection SQL GHSA-j88v-2chj-qfwx et vulnérabilités de sécurité mémoire).
+  - `golang.org/x/crypto` mis à niveau vers `v0.57.0` (résolution de 39 vulnérabilités CVE/GHSA sur SSH, DoS et bypass d'authentification).
+  - `golang.org/x/image` mis à niveau vers `v0.46.0` (résolution de 11 vulnérabilités d'épuisement mémoire et crashs TIFF/BMP/WEBP).
+  - `github.com/gorilla/websocket` mis à niveau vers `v1.5.3` (résolution de la vulnérabilité GHSA-w67g-5rqw-f597 sur le générateur PRNG).
+  - `golang.org/x/sys` (v0.48.0) et `golang.org/x/text` (v0.42.0) synchronisés avec les derniers correctifs.
+
 ## Version 3.0.3 - Réconciliation vocale bidirectionnelle & reprise automatique des sessions - 04/10/2026
 
 - **Réconciliation bidirectionnelle robuste (`reconcileSessions`)** :

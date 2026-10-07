@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.6 - Correctifs de Sécurité Dependabot & Automatisation Dynamique du Footer - 07/10/2026
+### Sécurité & Fixes
+- **Résolution des Vulnérabilités de Dépendances (Dependabot)** :
+  - Verrouillage de `Werkzeug==3.1.9` dans `requirements.txt` pour éliminer les failles de sécurité Windows device names / traversal (GHSA-29vq-49wr-vm6x).
+  - Synchronisation de l'ensemble des modules Python sans aucune vulnérabilité résiduelle.
+- **Affichage Dynamique et Garanti de la Version en Pied de Page (`translations.py`)** :
+  - Intégration d'un résolveur direct dans `get_text('footer.version')` garantissant la synchronisation immédiate avec `APP_VERSION` et `APP_VERSION_DATE` du CHANGELOG.
+ 
 ## Version 2.7.5 - Tooltips Cumulatifs Enrichis & Sélecteur de Granularité Globale 30j/Mois - 07/10/2026
 ### Features & Améliorations
 - **Tooltips Intelligents avec Deltas Relatifs sur les Courbes Cumulées** :
