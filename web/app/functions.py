@@ -343,6 +343,81 @@ def get_user_servers_stats(user_id: int) -> list[dict]:
     ]
 
 
+def interpolate_pre_routine_progression(result: list[dict], value_key: str = "total_hours") -> list[dict]:
+    """Interpolate monthly progression points linearly prior to 2024-10-12 (launch of daily snapshot routine).
+
+    Bridges the gap between the entity's start date (< 2024-10-12) and the first reliable routine snapshot (2024-11-01),
+    eliminating the artificial flat-zero plateau and vertical cliff.
+    """
+    if not result:
+        return result
+
+    start_pt = result[0]
+    try:
+        start_dt = datetime.strptime(start_pt["month"], "%Y-%m-%d")
+    except Exception:
+        return result
+
+    # Only apply if the entity existed before the routine launch (2024-10-12)
+    if start_dt >= datetime(2024, 10, 12):
+        return result
+
+    target_dt = datetime(2024, 11, 1)
+    target_date_str = "2024-11-01"
+
+    target_val = None
+    for pt in result:
+        if pt["month"] >= target_date_str:
+            target_val = pt.get(value_key, 0.0)
+            break
+
+    if target_val is None or target_val <= 0:
+        return result
+
+    months_by_date = {r["month"]: r for r in result}
+
+    curr = datetime(start_dt.year, start_dt.month, 1)
+    if curr < start_dt:
+        if curr.month == 12:
+            curr = datetime(curr.year + 1, 1, 1)
+        else:
+            curr = datetime(curr.year, curr.month + 1, 1)
+
+    while curr < target_dt:
+        m_str = curr.strftime("%Y-%m-%d")
+        if m_str not in months_by_date:
+            new_pt = {"month": m_str, value_key: 0.0 if value_key == "total_hours" else 0}
+            result.append(new_pt)
+            months_by_date[m_str] = new_pt
+
+        if curr.month == 12:
+            curr = datetime(curr.year + 1, 1, 1)
+        else:
+            curr = datetime(curr.year, curr.month + 1, 1)
+
+    result.sort(key=lambda x: x["month"])
+
+    total_span_seconds = (target_dt - start_dt).total_seconds()
+    if total_span_seconds <= 0:
+        return result
+
+    for pt in result:
+        try:
+            pt_dt = datetime.strptime(pt["month"], "%Y-%m-%d")
+        except Exception:
+            continue
+
+        if start_dt < pt_dt < target_dt:
+            progress = (pt_dt - start_dt).total_seconds() / total_span_seconds
+            if value_key == "total_hours":
+                interp_val = round(progress * target_val, 1)
+            else:
+                interp_val = int(round(progress * target_val))
+            pt[value_key] = max(pt.get(value_key, 0), interp_val)
+
+    return result
+
+
 def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Sum voice hours by month directly from VoiceSessions for cumulative trend charting."""
     query = (
@@ -433,7 +508,8 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
             "total_hours": round(current_total / 3600.0, 1)
         })
 
-    return sorted(result, key=lambda x: x["month"])
+    sorted_res = sorted(result, key=lambda x: x["month"])
+    return interpolate_pre_routine_progression(sorted_res, "total_hours")
 
 
 def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
@@ -514,7 +590,8 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
             "total_messages": int(current_total)
         })
 
-    return sorted(result, key=lambda x: x["month"])
+    sorted_res = sorted(result, key=lambda x: x["month"])
+    return interpolate_pre_routine_progression(sorted_res, "total_messages")
 
 
 def get_daily_hours_progression(server_id: int | None = None, user_id: int | None = None, days: int = 30) -> list[dict]:
@@ -1392,7 +1469,11 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
         GROUP BY h
     """
     cursor_v = db.execute_sql(voice_sql, params_voice)
-    voice_by_hour = {int(row[0]): round((row[1] or 0) / 3600.0, 1) for row in cursor_v.fetchall()}
+    voice_rows = cursor_v.fetchall()
+
+    days_v_sql = f"SELECT COUNT(DISTINCT DATE(joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')) FROM voice_sessions WHERE {where_voice}"
+    cursor_v_days = db.execute_sql(days_v_sql, params_voice)
+    voice_days = max(1, int(cursor_v_days.fetchone()[0] or 1))
 
     # 2. Messages par tranche horaire dans le fuseau du visiteur (exclut les lots d'archive historique)
     tz_msg_hour = SQL(f"EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT")
@@ -1410,7 +1491,20 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
         msg_q = msg_q.where(MessageEvents.user_id == int(user_id))
     msg_q = msg_q.group_by(tz_msg_hour)
 
-    msg_by_hour = {int(r["h"]): int(r["cnt"] or 0) for r in msg_q.dicts()}
+    days_m_sql = f"SELECT COUNT(DISTINCT DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')) FROM message_events WHERE is_legacy = FALSE"
+    params_msg = []
+    if server_id is not None:
+        days_m_sql += " AND server_id = %s"
+        params_msg.append(int(server_id))
+    if user_id is not None:
+        days_m_sql += " AND user_id = %s"
+        params_msg.append(int(user_id))
+    cursor_m_days = db.execute_sql(days_m_sql, params_msg)
+    msg_days = max(1, int(cursor_m_days.fetchone()[0] or 1))
+
+    # Option B : Moyenne quotidienne par tranche horaire (ne dépasse jamais 1.0 h/jour par créneau)
+    voice_by_hour = {int(row[0]): round(((row[1] or 0) / 3600.0) / voice_days, 2) for row in voice_rows}
+    msg_by_hour = {int(r["h"]): round(float(r["cnt"] or 0) / msg_days, 1) for r in msg_q.dicts()}
 
     labels = [f"{h:02d}h" for h in range(24)]
     voice_hours = [voice_by_hour.get(h, 0.0) for h in range(24)]

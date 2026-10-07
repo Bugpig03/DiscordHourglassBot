@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.7 - Moyenne Journalière sur le Rythme Horaire & Lissage Linéaire Pré-Routine - 07/10/2026
+### Features & Fixes
+- **Moyenne Journalière par Tranche Horaire (Option B)** :
+  - Transformation des volumes cumulés du graphique de distribution horaire 24h (`get_hourly_activity_distribution`) en moyennes quotidiennes réelles (`heures/jour` et `messages/jour`).
+  - Division par le nombre de jours d'activité distincts sur chaque type d'événement, garantissant qu'un utilisateur ne dépasse jamais 1.0 h/jour par créneau horaire.
+  - Mise à jour cohérente des unités, infobulles et axes de `user_profile.html`, `server_profile.html` et `graphs.html` (FR et EN).
+- **Interpolation Linéaire Pré-Routine (Courbes de Progression)** :
+  - Implémentation de `interpolate_pre_routine_progression` pour les membres / serveurs actifs avant l'introduction de la routine de snapshot quotidien (12 octobre 2024).
+  - Suppression du plateau artificiel à 0 et de la falaise verticale d'octobre 2024 grâce à une transition linéaire proportionnelle entre la date d'arrivée et le 1er novembre 2024.
+
 ## Version 2.7.6 - Correctifs de Sécurité Dependabot & Automatisation Dynamique du Footer - 07/10/2026
 ### Sécurité & Fixes
 - **Résolution des Vulnérabilités de Dépendances (Dependabot)** :

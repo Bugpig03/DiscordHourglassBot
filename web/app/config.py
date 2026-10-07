@@ -33,7 +33,7 @@ def load_app_version() -> tuple[str, str]:
                             return match.group(1), match.group(2)
             except Exception:
                 pass
-    return "2.7.5", "07/10/2026"
+    return "2.7.7", "07/10/2026"
 
 
 class Config:

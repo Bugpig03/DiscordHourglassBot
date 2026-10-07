@@ -1232,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: hData.labels,
                 datasets: [
                     {
-                        label: isEn ? 'Voice Hours (h)' : 'Heures Vocales (h)',
+                        label: isEn ? 'Avg Voice (h/day)' : 'Moyenne vocale (h/jour)',
                         data: hData.voice_hours,
                         borderColor: '#38bdf8',
                         backgroundColor: 'rgba(56, 189, 248, 0.15)',
@@ -1245,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         yAxisID: 'y'
                     },
                     {
-                        label: isEn ? 'Text Messages' : 'Messages Textuels',
+                        label: isEn ? 'Avg Messages (msgs/day)' : 'Moyenne messages (msgs/jour)',
                         data: hData.messages_count,
                         borderColor: '#a5b4fc',
                         backgroundColor: 'rgba(165, 180, 252, 0.08)',
@@ -1276,7 +1276,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         bodyColor: '#e2e8f0',
                         borderColor: 'rgba(56, 189, 248, 0.3)',
                         borderWidth: 1,
-                        padding: 12
+                        padding: 12,
+                        callbacks: {
+                            label: function(ctx) {
+                                if (ctx.datasetIndex === 0) {
+                                    return ` 🎙️ ${ctx.parsed.y} ${isEn ? 'h/day' : 'h/jour'}`;
+                                } else {
+                                    return ` 💬 ${ctx.parsed.y.toLocaleString(langLocale)} ${isEn ? 'msgs/day' : 'msgs/jour'}`;
+                                }
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -1291,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
                         ticks: {
                             color: '#38bdf8',
-                            callback: function(v) { return v + ' h'; }
+                            callback: function(v) { return v + ' ' + (isEn ? 'h/day' : 'h/jour'); }
                         }
                     },
                     y1: {
@@ -1301,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         grid: { drawOnChartArea: false },
                         ticks: {
                             color: '#a5b4fc',
-                            callback: function(v) { return v.toLocaleString(langLocale) + ' msgs'; }
+                            callback: function(v) { return v.toLocaleString(langLocale) + ' ' + (isEn ? 'msgs/day' : 'msgs/jour'); }
                         }
                     }
                 }

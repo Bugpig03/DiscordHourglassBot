@@ -1270,7 +1270,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: hourlyData.labels,
                 datasets: [
                     {
-                        label: isEn ? 'Voice Hours' : 'Heures en vocal',
+                        label: isEn ? 'Avg Voice (h/day)' : 'Moyenne vocale (h/jour)',
                         data: hourlyData.voice_hours,
                         borderColor: '#38bdf8',
                         backgroundColor: gradV,
@@ -1283,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         pointBackgroundColor: '#38bdf8'
                     },
                     {
-                        label: isEn ? 'Messages Sent' : 'Messages envoyés',
+                        label: isEn ? 'Avg Messages (msgs/day)' : 'Moyenne messages (msgs/jour)',
                         data: hourlyData.messages_count,
                         borderColor: '#818cf8',
                         backgroundColor: 'rgba(129, 140, 248, 0.08)',
@@ -1312,9 +1312,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         callbacks: {
                             label: function(ctx) {
                                 if (ctx.datasetIndex === 0) {
-                                    return ` 🎙️ ${ctx.parsed.y} ${hoursUnit}`;
+                                    return ` 🎙️ ${ctx.parsed.y} ${isEn ? 'h/day' : 'h/jour'}`;
                                 } else {
-                                    return ` 💬 ${ctx.parsed.y.toLocaleString(langLocale)} ${msgsUnit}`;
+                                    return ` 💬 ${ctx.parsed.y.toLocaleString(langLocale)} ${isEn ? 'msgs/day' : 'msgs/jour'}`;
                                 }
                             }
                         }
@@ -1328,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         position: 'left',
                         beginAtZero: true,
                         grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                        ticks: { color: '#38bdf8', callback: v => v + ' ' + hoursUnit }
+                        ticks: { color: '#38bdf8', callback: v => v + ' ' + (isEn ? 'h/day' : 'h/jour') }
                     },
                     y1: {
                         type: 'linear',
@@ -1336,7 +1336,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         position: 'right',
                         beginAtZero: true,
                         grid: { drawOnChartArea: false },
-                        ticks: { color: '#818cf8', callback: v => v.toLocaleString(langLocale) }
+                        ticks: { color: '#818cf8', callback: v => v.toLocaleString(langLocale) + ' ' + (isEn ? 'msgs/day' : 'msgs/jour') }
                     }
                 }
             }
