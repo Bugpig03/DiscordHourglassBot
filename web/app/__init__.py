@@ -36,6 +36,8 @@ def create_app():
         return {
             "current_lang": lang,
             "user_tz": get_user_timezone(),
+            "app_version": Config.APP_VERSION,
+            "app_version_date": Config.APP_VERSION_DATE,
             "t": lambda key, **kwargs: get_text(key, lang=lang, **kwargs)
         }
 

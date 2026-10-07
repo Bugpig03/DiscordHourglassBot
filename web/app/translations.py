@@ -4,6 +4,10 @@ Provides full dictionary-based translations for French (fr) and English (en)
 with automatic fallback to French if a translation key is missing.
 """
 
+from app.config import Config
+
+APP_VERSION_STR = f"version {Config.APP_VERSION} - {Config.APP_VERSION_DATE}"
+
 TRANSLATIONS = {
     "fr": {
         # Navigation
@@ -49,7 +53,7 @@ TRANSLATIONS = {
         "footer.terms": "Conditions d'utilisation",
         "footer.support": "Serveur Discord & Données",
         "footer.powered_by": "Hourglass Bot - propulsé par SnoutLabs",
-        "footer.version": "version 2.7.3 - 05/10/2026",
+        "footer.version": APP_VERSION_STR,
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Politique de Confidentialité & RGPD",
@@ -510,7 +514,7 @@ TRANSLATIONS = {
         "footer.terms": "Terms of Service",
         "footer.support": "Discord Support & Data",
         "footer.powered_by": "Hourglass Bot - powered by SnoutLabs",
-        "footer.version": "version 2.7.3 - 05/10/2026",
+        "footer.version": APP_VERSION_STR,
 
         # Legal & Privacy (RGPD)
         "privacy.title": "Hourglass - Privacy Policy & GDPR",

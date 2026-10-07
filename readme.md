@@ -24,7 +24,7 @@ DiscordHourglassBot/
 │   ├── Dockerfile          # Image multi-stage Docker ultra-légère pour le bot
 │   └── main.go             # Point d'entrée principal du bot Go
 │
-├── web/                    # Dashboard Web v2.7.4 en Python (Flask, Chart.js, Bilingue FR/EN)
+├── web/                    # Dashboard Web v2.7.5 en Python (Flask, Chart.js, Bilingue FR/EN)
 │   ├── app/                # Application Flask (routes, templates, composants, gamification, API)
 │   ├── Dockerfile          # Image Docker du dashboard web
 │   ├── run.py              # Serveur Flask / WSGI
