@@ -10,7 +10,9 @@
 
 <!-- Embedded Chart Data (safe from HTML attribute quote truncation) -->
 <script type="application/json" id="totalHoursData">{{ chart_data_json|safe }}</script>
+<script type="application/json" id="totalDailyHoursData">{{ daily_chart_data_json|safe }}</script>
 <script type="application/json" id="totalMessagesData">{{ messages_chart_data_json|safe }}</script>
+<script type="application/json" id="totalDailyMessagesData">{{ daily_messages_chart_data_json|safe }}</script>
 <script type="application/json" id="monthlyHoursData">{{ monthly_chart_data_json|safe }}</script>
 <script type="application/json" id="monthlyMessagesData">{{ monthly_messages_chart_data_json|safe }}</script>
 <script type="application/json" id="dailyActivityData">{{ daily_activity_chart_data_json|safe }}</script>
@@ -22,6 +24,43 @@
 <script type="application/json" id="userGrowthData">{{ user_growth_chart_json|safe }}</script>
 
 <style>
+/* Granularity Toggle Group Styles */
+.granularity-toggle-group {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 4px;
+}
+.granularity-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    user-select: none;
+}
+.granularity-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+.granularity-btn.active {
+    background: #38bdf8;
+    color: #0b1120;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+}
+
 /* Graphs Tab Navigation Styles */
 .graphs-tabs-wrapper {
     margin: 25px 0 30px;
@@ -232,12 +271,23 @@
 <!-- ONGLET 2 : Progression Historique Globale                           -->
 <!-- =================================================================== -->
 <div id="tab-history" class="graphs-tab-pane">
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('graphs.section_history') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
+    <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
+            <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
+                {{ t('graphs.section_history') }}
+            </h2>
+        </div>
+        <div class="granularity-toggle-group">
+            <button type="button" class="granularity-btn active" data-granularity="month" onclick="switchGlobalGranularity('month')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <span>{{ t('charts.mode_monthly') }}</span>
+            </button>
+            <button type="button" class="granularity-btn" data-granularity="day" onclick="switchGlobalGranularity('day')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>{{ t('charts.mode_daily') }}</span>
+            </button>
+        </div>
     </div>
 
     <!-- Graphique 1 : Progression Cumulative des Heures -->
@@ -594,6 +644,39 @@ function switchGraphTab(tabId) {
     }
 }
 
+let globalGranularity = 'month';
+let c1 = null;
+let c2 = null;
+let totalHoursData = null;
+let totalDailyHoursData = null;
+let totalMessagesData = null;
+let totalDailyMessagesData = null;
+
+function switchGlobalGranularity(mode) {
+    globalGranularity = mode;
+    document.querySelectorAll('.granularity-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-granularity') === mode);
+    });
+
+    const isDay = (mode === 'day');
+
+    if (c1 && totalDailyHoursData && totalHoursData) {
+        const data = isDay ? totalDailyHoursData : totalHoursData;
+        c1.data.labels = data.labels;
+        c1.data.datasets[0].data = data.hours;
+        c1.options.scales.x.time.unit = isDay ? 'day' : 'month';
+        c1.update();
+    }
+
+    if (c2 && totalDailyMessagesData && totalMessagesData) {
+        const data = isDay ? totalDailyMessagesData : totalMessagesData;
+        c2.data.labels = data.labels;
+        c2.data.datasets[0].data = data.messages;
+        c2.options.scales.x.time.unit = isDay ? 'day' : 'month';
+        c2.update();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const isEn = '{{ current_lang }}' === 'en';
     const langLocale = isEn ? 'en-US' : 'fr-FR';
@@ -623,15 +706,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. Line Chart: Cumulative Hours Over Time
     // -------------------------------------------------------------------
     const totalHoursEl = document.getElementById('totalHoursData');
-    if (totalHoursEl) {
-        const totalHoursData = JSON.parse(totalHoursEl.textContent);
+    const totalDailyHoursEl = document.getElementById('totalDailyHoursData');
+    if (totalHoursEl) totalHoursData = JSON.parse(totalHoursEl.textContent);
+    if (totalDailyHoursEl) totalDailyHoursData = JSON.parse(totalDailyHoursEl.textContent);
+
+    if (totalHoursData) {
         const lineCtx = document.getElementById('myChart').getContext('2d');
 
         const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 350);
         lineGradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
         lineGradient.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
 
-        const c1 = new Chart(lineCtx, {
+        c1 = new Chart(lineCtx, {
             type: 'line',
             data: {
                 labels: totalHoursData.labels,
@@ -677,7 +763,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             title: function(items) {
                                 if (!items.length) return '';
                                 const item = items[0];
-                                const rawDate = (totalHoursData && totalHoursData.labels && totalHoursData.labels[item.dataIndex])
+                                const currentData = (globalGranularity === 'day' && totalDailyHoursData) ? totalDailyHoursData : totalHoursData;
+                                const rawDate = (currentData && currentData.labels && currentData.labels[item.dataIndex])
                                     || (item.parsed && item.parsed.x)
                                     || item.label;
                                 if (rawDate) {
@@ -691,7 +778,22 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return item.label || '';
                             },
                             label: function(context) {
-                                return ` ${context.parsed.y.toLocaleString(langLocale)} ${isEn ? 'hours' : 'heures'}`;
+                                const val = context.parsed.y;
+                                const dataArr = context.dataset.data;
+                                const idx = context.dataIndex;
+                                let deltaStr = '';
+                                if (idx > 0 && dataArr && dataArr.length > idx) {
+                                    const prev = typeof dataArr[idx - 1] === 'number' ? dataArr[idx - 1] : (dataArr[idx - 1]?.y ?? 0);
+                                    const diff = Math.round((val - prev) * 10) / 10;
+                                    const diffSign = diff >= 0 ? '+' : '';
+                                    const periodText = isEn
+                                        ? (globalGranularity === 'day' ? 'this day' : 'this month')
+                                        : (globalGranularity === 'day' ? 'ce jour' : 'ce mois');
+                                    deltaStr = ` (${diffSign}${diff.toLocaleString(langLocale)} h ${periodText})`;
+                                } else if (idx === 0) {
+                                    deltaStr = isEn ? ' (baseline)' : ' (point de départ)';
+                                }
+                                return ` ${val.toLocaleString(langLocale)} ${isEn ? 'hours' : 'heures'}${deltaStr}`;
                             }
                         }
                     }
@@ -705,13 +807,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             drawBorder: false
                         },
                         ticks: {
-                            color: '#94a3b8',
-                            callback: function(val, index, ticks) {
-                                if (!ticks[index]) return '';
-                                const d = new Date(ticks[index].value);
-                                if (isNaN(d.getTime())) return '';
-                                return d.toLocaleDateString(langLocale, { month: 'short', year: '2-digit' });
-                            }
+                            color: '#94a3b8'
                         }
                     },
                     y: {
@@ -737,15 +833,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. Line Chart: Cumulative Messages Over Time
     // -------------------------------------------------------------------
     const totalMessagesEl = document.getElementById('totalMessagesData');
-    if (totalMessagesEl) {
-        const totalMessagesData = JSON.parse(totalMessagesEl.textContent);
+    const totalDailyMessagesEl = document.getElementById('totalDailyMessagesData');
+    if (totalMessagesEl) totalMessagesData = JSON.parse(totalMessagesEl.textContent);
+    if (totalDailyMessagesEl) totalDailyMessagesData = JSON.parse(totalDailyMessagesEl.textContent);
+
+    if (totalMessagesData) {
         const messagesCtx = document.getElementById('messagesChart').getContext('2d');
 
         const messagesGradient = messagesCtx.createLinearGradient(0, 0, 0, 350);
         messagesGradient.addColorStop(0, 'rgba(88, 101, 242, 0.35)');
         messagesGradient.addColorStop(1, 'rgba(88, 101, 242, 0.00)');
 
-        const c2 = new Chart(messagesCtx, {
+        c2 = new Chart(messagesCtx, {
             type: 'line',
             data: {
                 labels: totalMessagesData.labels,
@@ -791,7 +890,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             title: function(items) {
                                 if (!items.length) return '';
                                 const item = items[0];
-                                const rawDate = (totalMessagesData && totalMessagesData.labels && totalMessagesData.labels[item.dataIndex])
+                                const currentData = (globalGranularity === 'day' && totalDailyMessagesData) ? totalDailyMessagesData : totalMessagesData;
+                                const rawDate = (currentData && currentData.labels && currentData.labels[item.dataIndex])
                                     || (item.parsed && item.parsed.x)
                                     || item.label;
                                 if (rawDate) {
@@ -805,7 +905,22 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return item.label || '';
                             },
                             label: function(context) {
-                                return ` ${context.parsed.y.toLocaleString(langLocale)} messages`;
+                                const val = context.parsed.y;
+                                const dataArr = context.dataset.data;
+                                const idx = context.dataIndex;
+                                let deltaStr = '';
+                                if (idx > 0 && dataArr && dataArr.length > idx) {
+                                    const prev = typeof dataArr[idx - 1] === 'number' ? dataArr[idx - 1] : (dataArr[idx - 1]?.y ?? 0);
+                                    const diff = Math.round(val - prev);
+                                    const diffSign = diff >= 0 ? '+' : '';
+                                    const periodText = isEn
+                                        ? (globalGranularity === 'day' ? 'this day' : 'this month')
+                                        : (globalGranularity === 'day' ? 'ce jour' : 'ce mois');
+                                    deltaStr = ` (${diffSign}${diff.toLocaleString(langLocale)} ${periodText})`;
+                                } else if (idx === 0) {
+                                    deltaStr = isEn ? ' (baseline)' : ' (point de départ)';
+                                }
+                                return ` ${val.toLocaleString(langLocale)} messages${deltaStr}`;
                             }
                         }
                     }
@@ -819,13 +934,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             drawBorder: false
                         },
                         ticks: {
-                            color: '#94a3b8',
-                            callback: function(val, index, ticks) {
-                                if (!ticks[index]) return '';
-                                const d = new Date(ticks[index].value);
-                                if (isNaN(d.getTime())) return '';
-                                return d.toLocaleDateString(langLocale, { month: 'short', year: '2-digit' });
-                            }
+                            color: '#94a3b8'
                         }
                     },
                     y: {

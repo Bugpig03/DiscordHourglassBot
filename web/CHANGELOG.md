@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.5 - Tooltips Cumulatifs Enrichis & Sélecteur de Granularité Globale 30j/Mois - 07/10/2026
+### Features & Améliorations
+- **Tooltips Intelligents avec Deltas Relatifs sur les Courbes Cumulées** :
+  - Enrichissement des tooltips Chart.js sur toutes les courbes d'évolution cumulées (heures et messages).
+  - Calcul et affichage en temps réel du delta exact par rapport au point précédent (ex: `178 369 messages (+29 500 ce mois)` ou `(+1 200 ce jour)`).
+  - Déploiement homogène sur la page d'analyse globale (`/graphs`), les profils utilisateurs (`/profile/<user>`) et les profils de serveurs (`/server/<id>`).
+- **Sélecteur de Granularité sur les Graphiques Globaux (`/graphs`)** :
+  - Ajout du groupe de boutons interactif `[Mois par mois]` / `[30 derniers jours]` dans l'onglet Évolution globale de `/graphs`.
+  - Intégration côté backend des progressions journalières sur 30 jours (`get_daily_hours_progression` et `get_daily_messages_progression`).
+  - Commutation dynamique en JavaScript (sans aucun rechargement de page) avec conservation des tooltips adaptatifs (`ce mois` en vue mensuelle vs `ce jour` en vue quotidienne).
+
 ## Version 2.7.4 - Correctif Décalage Mensuel des Courbes Cumulées & Élimination du Pic Nocturne Hérité - 07/10/2026
 ### Fixes & Améliorations
 - **Alignement Chronologique des Courbes Cumulées Mensuelles (`functions.py`)** :

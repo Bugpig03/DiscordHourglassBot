@@ -8,6 +8,8 @@ from app.database import Stats, Servers
 from app.functions import (
     get_first_of_month_hours_sum,
     get_first_of_month_messages_sum,
+    get_daily_hours_progression,
+    get_daily_messages_progression,
     get_monthly_hours_diff,
     get_monthly_messages_diff,
     get_daily_activity_last_30_days,
@@ -34,11 +36,25 @@ def graphs():
         "hours": [row["total_hours"] for row in hours_data]
     })
 
+    # 1b. Cumulative voice hours progression (Daily - last 30 days)
+    daily_hours_data = get_daily_hours_progression(days=30)
+    daily_chart_data_json = json.dumps({
+        "labels": [row["date"] for row in daily_hours_data],
+        "hours": [row["total_hours"] for row in daily_hours_data]
+    })
+
     # 2. Total cumulative messages progression curve
     messages_data = get_first_of_month_messages_sum()
     messages_chart_data_json = json.dumps({
         "labels": [row["month"] for row in messages_data],
         "messages": [row["total_messages"] for row in messages_data]
+    })
+
+    # 2b. Cumulative messages progression (Daily - last 30 days)
+    daily_messages_data = get_daily_messages_progression(days=30)
+    daily_messages_chart_data_json = json.dumps({
+        "labels": [row["date"] for row in daily_messages_data],
+        "messages": [row["total_messages"] for row in daily_messages_data]
     })
 
     # 3. Monthly delta bar chart (Hours)
@@ -203,7 +219,9 @@ def graphs():
     return render_template(
         "graphs.html",
         chart_data_json=chart_data_json,
+        daily_chart_data_json=daily_chart_data_json,
         messages_chart_data_json=messages_chart_data_json,
+        daily_messages_chart_data_json=daily_messages_chart_data_json,
         monthly_chart_data_json=monthly_chart_data_json,
         monthly_messages_chart_data_json=monthly_messages_chart_data_json,
         daily_activity_chart_data_json=daily_activity_chart_data_json,
