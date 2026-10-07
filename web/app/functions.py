@@ -365,13 +365,21 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
     running_seconds = 0
     result = []
     for row in query:
-        running_seconds += int(row.month_seconds or 0)
         result.append({
             "month": row.month_start.strftime("%Y-%m-%d"),
             "total_hours": round(running_seconds / 3600.0, 1)
         })
+        running_seconds += int(row.month_seconds or 0)
 
     today_str = datetime.now().strftime("%Y-%m-%d")
+    cur_month_str = datetime.now().strftime("%Y-%m-01")
+
+    # If current month start isn't in result yet (no sessions recorded yet this month)
+    if not any(r["month"] == cur_month_str for r in result):
+        result.append({
+            "month": cur_month_str,
+            "total_hours": round(running_seconds / 3600.0, 1)
+        })
 
     # Add baseline according to entity scope (user, server, or global bot)
     if user_id:
@@ -390,6 +398,7 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
                 result.append({"month": start_date_str, "total_hours": 0.0})
     else:
         # Add bot origin baseline if not already present
+        result = [r for r in result if r["month"] >= "2024-04-28"]
         if not any(r["month"] == "2024-04-28" for r in result):
             result.append({"month": "2024-04-28", "total_hours": 0.0})
 
@@ -449,13 +458,21 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
     running_messages = 0
     result = []
     for row in query:
-        running_messages += int(row.month_messages or 0)
         result.append({
             "month": row.month_start.strftime("%Y-%m-%d"),
             "total_messages": running_messages
         })
+        running_messages += int(row.month_messages or 0)
 
     today_str = datetime.now().strftime("%Y-%m-%d")
+    cur_month_str = datetime.now().strftime("%Y-%m-01")
+
+    # If current month start isn't in result yet (no messages recorded yet this month)
+    if not any(r["month"] == cur_month_str for r in result):
+        result.append({
+            "month": cur_month_str,
+            "total_messages": running_messages
+        })
 
     # Add baseline according to entity scope (user, server, or global bot)
     if user_id:
@@ -474,6 +491,7 @@ def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int |
                 result.append({"month": start_date_str, "total_messages": 0})
     else:
         # Add bot origin baseline if not already present
+        result = [r for r in result if r["month"] >= "2024-04-28"]
         if not any(r["month"] == "2024-04-28" for r in result):
             result.append({"month": "2024-04-28", "total_messages": 0})
 
@@ -1376,11 +1394,15 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
     cursor_v = db.execute_sql(voice_sql, params_voice)
     voice_by_hour = {int(row[0]): round((row[1] or 0) / 3600.0, 1) for row in cursor_v.fetchall()}
 
-    # 2. Messages par tranche horaire dans le fuseau du visiteur
+    # 2. Messages par tranche horaire dans le fuseau du visiteur (exclut les lots d'archive historique)
     tz_msg_hour = SQL(f"EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT")
-    msg_q = MessageEvents.select(
-        tz_msg_hour.alias('h'),
-        fn.SUM(MessageEvents.count).alias('cnt')
+    msg_q = (
+        MessageEvents
+        .select(
+            tz_msg_hour.alias('h'),
+            fn.SUM(MessageEvents.count).alias('cnt')
+        )
+        .where(MessageEvents.is_legacy == False)
     )
     if server_id:
         msg_q = msg_q.where(MessageEvents.server_id == int(server_id))
@@ -1401,8 +1423,8 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
         "labels": labels,
         "voice_hours": voice_hours,
         "messages_count": messages_count,
-        "peak_voice_hour": labels[peak_v_idx],
-        "peak_messages_hour": labels[peak_m_idx]
+        "peak_voice_hour": labels[peak_v_idx] if any(voice_hours) else "-",
+        "peak_messages_hour": labels[peak_m_idx] if any(messages_count) else "-"
     }
 
 
@@ -1940,14 +1962,10 @@ def get_hourly_punchcard_data(server_id: int | str | None = None) -> dict:
     """
     from app.database import db
 
-    server_filter_vs = ""
-    server_filter_me = ""
     params_vs = []
     params_me = []
 
     if server_id is not None:
-        server_filter_vs = "WHERE server_id = %s"
-        server_filter_me = "WHERE server_id = %s"
         params_vs.append(int(server_id))
         params_me.append(int(server_id))
 
@@ -2007,14 +2025,20 @@ def get_hourly_punchcard_data(server_id: int | str | None = None) -> dict:
             grid[dow][hr]["voice_sec"] = sec
             grid[dow][hr]["voice_hours"] = round(sec / 3600.0, 1)
 
-    # 2. Messages par (ISODOW, HOUR) - converties au fuseau utilisateur
+    # 2. Messages par (ISODOW, HOUR) - converties au fuseau utilisateur (exclut les lots historiques)
+    me_filters = ["is_legacy = FALSE"]
+    if server_id is not None:
+        me_filters.append("server_id = %s")
+
+    where_me = "WHERE " + " AND ".join(me_filters)
+
     me_sql = f"""
         SELECT 
             EXTRACT(ISODOW FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS dow,
             EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))::INT AS hr,
             COALESCE(SUM(count), 0) AS total_msg
         FROM message_events
-        {server_filter_me}
+        {where_me}
         GROUP BY EXTRACT(ISODOW FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')), 
                  EXTRACT(HOUR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'))
     """

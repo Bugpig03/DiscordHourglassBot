@@ -1,5 +1,19 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.7.4 - Correctif Décalage Mensuel des Courbes Cumulées & Élimination du Pic Nocturne Hérité - 07/10/2026
+### Fixes & Améliorations
+- **Alignement Chronologique des Courbes Cumulées Mensuelles (`functions.py`)** :
+  - Correction du décalage de 1 mois dans `get_first_of_month_messages_sum` et `get_first_of_month_hours_sum`.
+  - La valeur cumulée au 1er de chaque mois est désormais enregistrée *avant* l'incrémentation du volume d'activité de ce mois (les messages/heures d'un mois s'affichent désormais fidèlement entre le 1er du mois et le 1er du mois suivant).
+  - Parfaite cohérence rétablie entre la courbe d'évolution cumulée, le delta sur 30 jours (ex: `+31 179 sur 30j`) et l'histogramme d'activité mensuelle.
+  - Ajout systématique du point au 1er du mois en cours (`YYYY-MM-01`) pour une continuité parfaite jusqu'à la date du jour (`today`).
+  - Nettoyage du point de départ originel du bot (`2024-04-28`) sur les graphiques globaux afin de supprimer tout point fictif antérieur.
+- **Élimination du Faux Pic Nocturne à 04h/05h (`functions.py`)** :
+  - Application du filtre strict `is_legacy == False` sur les requêtes horaires de `MessageEvents` dans `get_hourly_activity_distribution` (distribution 24h) et `get_hourly_punchcard_data` (matrice 7j × 24h).
+  - Les lots historiques migrés n'impactent plus les tranches nocturnes des profils utilisateurs, serveurs et globaux.
+- **Audit Exhaustif des Visualisations Graphiques** :
+  - Vérification de l'ensemble des requêtes analytiques (progressions quotidiennes sur 30 jours, deltas journaliers/mensuels, heatmap GitHub annuelle, timeline 48h, diagrammes circulaires) : toutes confirmées synchrones et fidèles aux données brutes.
+ 
 ## Version 2.7.3 - Correctif Crash Session Vocale Active sur le Profil Utilisateur - 05/10/2026
 ### Fixes
 - **Sessions Vocales en Direct & Profils Utilisateurs (`functions.py`)** :
