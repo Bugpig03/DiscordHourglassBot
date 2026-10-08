@@ -1,5 +1,11 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.4 - Correctif JavaScript Recherche Globale (Ctrl+K) & Navbar - 09/10/2026
+### Bug Fixes
+- **Restauration de la Recherche Globale et du Raccourci Clavier (`Ctrl+K`)** :
+  - Correction d'une accolade fermante manquante dans l'écouteur `DOMContentLoaded` de `base.html`.
+  - Rétablissement complet de la modal de recherche globale, de la navigation par touches fléchées et de la recherche dynamique en direct.
+
 ## Version 2.8.3 - Calibration Client ID Bot Officiel & Déconnexion Globale Sécurisée - 09/10/2026
 ### Features & Sécurité
 - **Calibrage du Client ID Officiel Discord (`1210665993328926750`)** :

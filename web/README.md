@@ -6,9 +6,13 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.3 - 09/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.4 - 09/10/2026)
 
-### 1. ⚡ Calibration Client ID Bot Officiel & Déconnexion Globale
+### 1. 🔍 Correctif JavaScript Recherche Globale (Ctrl+K) & Navbar
+- **Restauration du Raccourci `Ctrl+K` & Modal de Recherche** : Correction d'une fermeture de bloc d'écouteur d'événements (`DOMContentLoaded`) dans le template de base qui bloquait l'initialisation du gestionnaire de recherche globale.
+- **Autocomplétion & Navigation Clavier** : Fonctionnement fluide et instantané de la recherche de membres et serveurs.
+
+### 2. ⚡ Calibration Client ID Bot Officiel & Déconnexion Globale
 - **Client ID Discord Officiel (`1210665993328926750`)** : Harmonisation directe sur l'ID du bot Hourglass pour correspondre exactement aux redirections autorisées dans le Developer Portal Discord.
 - **Déconnexion Globale Sécurisée** : Purge automatique de 100% des sessions actives précédentes via rotation de la `SECRET_KEY` et hook `before_request`.
 - **Authentification Discord OAuth2 en Pop-up** : Connexion fluide en 1 clic dans une pop-up dédiée sans rechargement de page.
