@@ -6,13 +6,14 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.0 - 08/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.1 - 08/10/2026)
 
-### 1. 🔒 Confidentialité Avancée & Authentification Discord OAuth2
+### 1. 🔑 Page de Connexion par Identifiant Discord & Confidentialité Stricte
+- **Page de Connexion Dédiée (`/login`)** : Interface moderne unifiée en dark glassmorphism permettant à tout utilisateur de se connecter avec son identifiant Discord (ID Snowflake ou pseudo) ou via le bouton officiel Discord OAuth2.
+- **Suppression définitive du mode dev-login** : Remplacement par une authentification propre et universelle fonctionnant de manière identique en local et en production.
 - **Protection des Sessions Vocales Utilisateur** : Consultation du journal des sessions vocales privatisée et réservée exclusivement au titulaire du compte Discord connecté.
 - **Protection des Données de Serveur** : Journal des sessions et pastilles d'activité en temps réel (en ligne / absent / dnd / en vocal) réservés aux membres connectés du serveur concerné.
-- **Connexion Discord OAuth2 Intégrée** : Bouton de connexion dans la barre de navigation, profil connecté avec avatar et déconnexion sécurisée.
-- **Mode Dev Switcher (`/auth/dev-login`)** : Permet de tester et basculer instantanément entre différents comptes en environnement de développement local.
+- **Calibrage Navbar** : Harmonisation de la pastille de profil utilisateur (`34px`) et troncature des pseudos pour un alignement fluide sans aucun débordement.
 
 ### 2. 🎙️ Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)
 - **Tracking Temporel Précis** : Horodatage d'arrivée (`joined_at`) et de départ (`left_at`) avec durée exacte en secondes.

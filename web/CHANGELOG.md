@@ -1,5 +1,17 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.1 - Page de Connexion par Identifiant Discord & Calibrage Navbar - 08/10/2026
+### Features & Fixes
+- **Page de Connexion Unifiée & Professionnelle (`/login` & `/auth/login`)** :
+  - Création d'une page de connexion dédiée (`login.html`) aux couleurs d'Hourglass en dark glassmorphism.
+  - Connexion directe par identifiant Discord (ID Snowflake à 18-19 chiffres ou pseudo Discord) avec récupération instantanée du profil, de l'avatar et des serveurs associés depuis la base de données.
+  - Suppression définitive du mode `dev-login` et redirection transparente de toutes les anciennes routes vers la page de connexion unifiée.
+  - Prise en charge optionnelle du bouton "Continuer avec Discord" via OAuth2.
+- **Calibrage et Résolution du Débordement Navbar** :
+  - Fixation de la hauteur de la pastille utilisateur (`.auth-user-btn`) à 34px avec centrage vertical parfait.
+  - Troncature automatique des pseudos longs (`max-width: 85px` avec points de suspension `...`) pour garantir qu'aucun élément ne dépasse de la capsule de la barre de navigation.
+  - Redesign du bouton "Inviter" avec icône robot vectorielle et style verre cyan distinctif.
+
 ## Version 2.8.0 - Confidentialité Avancée, Authentification Discord OAuth2 & Contrôle d'Accès - 08/10/2026
 ### Features & Sécurité
 - **Authentification Discord OAuth2 (`web/app/auth.py`)** :
