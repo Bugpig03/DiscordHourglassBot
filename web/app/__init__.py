@@ -33,6 +33,15 @@ def create_app():
     # Initialize database connection hooks with Flask request lifecycle
     init_app(app)
 
+    @app.before_request
+    def force_global_session_reset():
+        """Ensure all sessions are cleared on update to prevent stale session states."""
+        from flask import session
+        auth_version = "2.8.3"
+        if session.get("auth_session_ver") != auth_version:
+            session.clear()
+            session["auth_session_ver"] = auth_version
+
     @app.context_processor
     def inject_i18n():
         """Inject current language, detected timezone, and translation helper into all templates."""

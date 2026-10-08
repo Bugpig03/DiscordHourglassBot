@@ -33,13 +33,14 @@ def load_app_version() -> tuple[str, str]:
                             return match.group(1), match.group(2)
             except Exception:
                 pass
-    return "2.8.2", "08/10/2026"
+    return "2.8.3", "09/10/2026"
 
 
 class Config:
     """Flask application configuration settings loaded from environment variables."""
 
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev_secret_key")
+    # Rotated secret key to disconnect all existing client sessions cleanly
+    SECRET_KEY = os.environ.get("SECRET_KEY", "hourglass_session_secret_v283_force_logout")
     DB_NAME = os.environ.get("POSTGRESQL_DBNAME", "devhourglass")
     DB_USER = os.environ.get("POSTGRESQL_USER", "postgres")
     DB_PASSWORD = os.environ.get("POSTGRESQL_PASSWORD", "admin")
@@ -49,7 +50,7 @@ class Config:
     # Automated versioning from CHANGELOG.md
     APP_VERSION, APP_VERSION_DATE = load_app_version()
 
-    # Discord OAuth2 Configuration
-    DISCORD_CLIENT_ID = os.environ.get("DISCORD_CLIENT_ID", "1252400491644715100")
+    # Discord OAuth2 Configuration (Official Hourglass Bot: 1210665993328926750)
+    DISCORD_CLIENT_ID = os.environ.get("DISCORD_CLIENT_ID", "1210665993328926750")
     DISCORD_CLIENT_SECRET = os.environ.get("DISCORD_CLIENT_SECRET", "")
     DISCORD_REDIRECT_URI = os.environ.get("DISCORD_REDIRECT_URI", "")

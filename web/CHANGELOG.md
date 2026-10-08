@@ -1,5 +1,14 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.3 - Calibration Client ID Bot Officiel & Déconnexion Globale Sécurisée - 09/10/2026
+### Features & Sécurité
+- **Calibrage du Client ID Officiel Discord (`1210665993328926750`)** :
+  - Harmonisation du client ID OAuth2 sur le bot officiel Hourglass pour correspondre exactement aux redirections configurées dans le portail développeur Discord.
+  - Résolution définitive du blocage `redirect_uri OAuth2 non valide` lors des flux d'autorisation.
+- **Déconnexion Globale Forcée & Purge des Sessions Obsolètes** :
+  - Rotation de la clé secrète Flask (`SECRET_KEY`) pour révoquer cryptographiquement tous les anciens cookies de session.
+  - Ajout d'un hook `before_request` de réinitialisation automatique purgeant toute session sans versionnage strict (`2.8.3`).
+
 ## Version 2.8.2 - Connexion Pop-up Discord OAuth2 & Simplification du Portail - 08/10/2026
 ### Features & UX
 - **Authentification Discord OAuth2 en Pop-up Non-Intrusive** :

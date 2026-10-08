@@ -6,14 +6,13 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.2 - 08/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.3 - 09/10/2026)
 
-### 1. 🪟 Authentification Discord OAuth2 en Pop-up & Portail Épuré
-- **Connexion Discord en Pop-up Non-Intrusive** : Clic sur le bouton de connexion ouvrant une fenêtre pop-up centrée (500x750) avec clôture automatique dès l'approbation et synchronisation en direct de la page active.
-- **Portail de Connexion Épuré (`/login`)** : Suppression des formulaires manuels et des blocs superflus au profit d'un bouton unique `[ Se connecter avec Discord ]`.
-- **Résolution des Redirect URIs** : Gestion intelligente de l'URI de redirection avec détection dynamique de la production (`hourglassbot.net`) et normalisation locale `localhost:5002`.
-- **Protection des Sessions Vocales Utilisateur** : Consultation du journal des sessions vocales privatisée et réservée exclusivement au titulaire du compte Discord connecté.
-- **Protection des Données de Serveur** : Journal des sessions et pastilles d'activité en temps réel réservés aux membres connectés du serveur concerné.
+### 1. ⚡ Calibration Client ID Bot Officiel & Déconnexion Globale
+- **Client ID Discord Officiel (`1210665993328926750`)** : Harmonisation directe sur l'ID du bot Hourglass pour correspondre exactement aux redirections autorisées dans le Developer Portal Discord.
+- **Déconnexion Globale Sécurisée** : Purge automatique de 100% des sessions actives précédentes via rotation de la `SECRET_KEY` et hook `before_request`.
+- **Authentification Discord OAuth2 en Pop-up** : Connexion fluide en 1 clic dans une pop-up dédiée sans rechargement de page.
+- **Portail de Connexion Épuré (`/login`)** : Interface claire et minimaliste centrée sur l'accès Discord.
 
 ### 2. 🎙️ Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)
 - **Tracking Temporel Précis** : Horodatage d'arrivée (`joined_at`) et de départ (`left_at`) avec durée exacte en secondes.
