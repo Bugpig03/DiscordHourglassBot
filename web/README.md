@@ -6,9 +6,15 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.6.0 - 04/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.0 - 08/10/2026)
 
-### 1. 🎙️ Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)
+### 1. 🔒 Confidentialité Avancée & Authentification Discord OAuth2
+- **Protection des Sessions Vocales Utilisateur** : Consultation du journal des sessions vocales privatisée et réservée exclusivement au titulaire du compte Discord connecté.
+- **Protection des Données de Serveur** : Journal des sessions et pastilles d'activité en temps réel (en ligne / absent / dnd / en vocal) réservés aux membres connectés du serveur concerné.
+- **Connexion Discord OAuth2 Intégrée** : Bouton de connexion dans la barre de navigation, profil connecté avec avatar et déconnexion sécurisée.
+- **Mode Dev Switcher (`/auth/dev-login`)** : Permet de tester et basculer instantanément entre différents comptes en environnement de développement local.
+
+### 2. 🎙️ Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)
 - **Tracking Temporel Précis** : Horodatage d'arrivée (`joined_at`) et de départ (`left_at`) avec durée exacte en secondes.
 - **Punchcard Horaire 24h & 7j/7** : Grille matricielle d'activité vocale heure par heure pour chaque membre et serveur.
 - **Heatmap d'Activité Annuelle & Mensuelle** : Calendrier dynamique d'assiduité vocale style GitHub.

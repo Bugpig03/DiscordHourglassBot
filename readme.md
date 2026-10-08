@@ -1,13 +1,13 @@
 # ⏳ HOURGLASS - Discord Activity & Analytics Suite
 
 [![Bot Version](https://img.shields.io/badge/Bot-v3.0.4_(Go)-00ADD8?style=flat-square&logo=go)](https://golang.org)
-[![Web Dashboard](https://img.shields.io/badge/Dashboard-v2.7.6_(Flask)-000000?style=flat-square&logo=flask)](https://hourglassbot.net)
+[![Web Dashboard](https://img.shields.io/badge/Dashboard-v2.8.0_(Flask)-000000?style=flat-square&logo=flask)](https://hourglassbot.net)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_16-4169E1?style=flat-square&logo=postgresql)](https://www.postgresql.org)
 [![Docker](https://img.shields.io/badge/Deploy-Docker_Compose-2496ED?style=flat-square&logo=docker)](https://www.docker.com)
 [![GDPR Compliant](https://img.shields.io/badge/GDPR-Compliant-10B981?style=flat-square)](https://hourglassbot.net/privacy)
 
 **Hourglass** est une suite analytique et de gamification haute performance pour Discord.  
-Le projet combine un **bot Discord natif écrit en Go (v3.0.4)** pour une capture d'événements ultra-rapide et légère en mémoire, et un **tableau de bord web interactif en Flask / Python (v2.7.6)** offrant des métriques détaillées, des visualisations graphiques avancées et des cartes statistiques exportables.
+Le projet combine un **bot Discord natif écrit en Go (v3.0.4)** pour une capture d'événements ultra-rapide et légère en mémoire, et un **tableau de bord web interactif en Flask / Python (v2.8.0)** offrant des métriques détaillées, des visualisations graphiques avancées, l'authentification Discord OAuth2 avec contrôle d'accès strict et des cartes statistiques exportables.
 
 ---
 
@@ -24,7 +24,7 @@ DiscordHourglassBot/
 │   ├── Dockerfile          # Image multi-stage Docker ultra-légère pour le bot
 │   └── main.go             # Point d'entrée principal du bot Go
 │
-├── web/                    # Dashboard Web v2.7.6 en Python (Flask, Chart.js, Bilingue FR/EN)
+├── web/                    # Dashboard Web v2.8.0 en Python (Flask, Chart.js, Bilingue FR/EN)
 │   ├── app/                # Application Flask (routes, templates, composants, gamification, API)
 │   ├── Dockerfile          # Image Docker du dashboard web
 │   ├── run.py              # Serveur Flask / WSGI

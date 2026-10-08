@@ -13,6 +13,13 @@ from app.routes.server_profile import server_profile_bp
 from app.routes.graphs import graphs_bp
 from app.routes.api import api_bp
 from app.routes.versus import versus_bp
+from app.auth import (
+    auth_bp,
+    get_current_user,
+    is_authenticated,
+    can_view_user_sessions,
+    can_view_server_private_data,
+)
 
 
 
@@ -38,6 +45,10 @@ def create_app():
             "user_tz": get_user_timezone(),
             "app_version": Config.APP_VERSION,
             "app_version_date": Config.APP_VERSION_DATE,
+            "current_user": get_current_user(),
+            "is_authenticated": is_authenticated(),
+            "can_view_user_sessions": can_view_user_sessions,
+            "can_view_server_private_data": can_view_server_private_data,
             "t": lambda key, **kwargs: get_text(key, lang=lang, **kwargs)
         }
 
@@ -117,5 +128,6 @@ def create_app():
     app.register_blueprint(graphs_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(versus_bp)
+    app.register_blueprint(auth_bp)
 
     return app

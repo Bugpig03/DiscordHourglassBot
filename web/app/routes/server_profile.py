@@ -33,6 +33,7 @@ from app.functions import (
     get_recent_voice_sessions,
     get_hourly_punchcard_data,
 )
+from app.auth import can_view_server_private_data
 
 server_profile_bp = Blueprint("server_profile", __name__)
 
@@ -50,38 +51,44 @@ def server(server_id: str):
 
     lang = request.cookies.get("lang", "fr")
     search_query = request.args.get("q", "").strip()
-    stats = load_server_profile_stats(server_id, search_query=search_query, lang=lang)
-    charts = load_server_charts_data(server_id, lang=lang)
+    has_server_access = can_view_server_private_data(server_id)
+
+    stats = load_server_profile_stats(server_id, search_query=search_query, lang=lang, has_server_access=has_server_access)
+    charts = load_server_charts_data(server_id, lang=lang, has_server_access=has_server_access)
     punchcard = get_hourly_punchcard_data(server_id)
 
     return render_template(
         "server_profile.html",
         stats=stats,
         charts=charts,
-        punchcard=punchcard
+        punchcard=punchcard,
+        can_view_sessions=has_server_access,
+        can_view_presence=has_server_access,
     )
 
 
-def load_server_profile_stats(server_id: str | int, search_query: str = "", lang: str = "fr") -> dict:
+def load_server_profile_stats(server_id: str | int, search_query: str = "", lang: str = "fr", has_server_access: bool = True) -> dict:
     """Compile aggregated metrics and member leaderboard for a given server."""
-    users = load_users_from_server(server_id, search_query, lang=lang)
+    users = load_users_from_server(server_id, search_query, lang=lang, has_server_access=has_server_access)
 
-    # Compute presence breakdown across active members
-    members_for_counts = users if not search_query else load_users_from_server(server_id, search_query="", lang=lang)
-    online_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "online")
-    idle_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "idle")
-    dnd_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "dnd")
-    voice_count = sum(1 for u in members_for_counts if u.get("is_in_voice"))
-    offline_count = max(0, len(members_for_counts) - (online_count + idle_count + dnd_count))
+    # Compute presence breakdown across active members (only if user has access to server presence)
+    presence_counts = None
+    if has_server_access:
+        members_for_counts = users if not search_query else load_users_from_server(server_id, search_query="", lang=lang, has_server_access=True)
+        online_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "online")
+        idle_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "idle")
+        dnd_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "dnd")
+        voice_count = sum(1 for u in members_for_counts if u.get("is_in_voice"))
+        offline_count = max(0, len(members_for_counts) - (online_count + idle_count + dnd_count))
 
-    presence_counts = {
-        "online": online_count,
-        "idle": idle_count,
-        "dnd": dnd_count,
-        "offline": offline_count,
-        "voice": voice_count,
-        "total": len(members_for_counts)
-    }
+        presence_counts = {
+            "online": online_count,
+            "idle": idle_count,
+            "dnd": dnd_count,
+            "offline": offline_count,
+            "voice": voice_count,
+            "total": len(members_for_counts)
+        }
 
     return {
         "server_id": str(server_id),
@@ -96,12 +103,14 @@ def load_server_profile_stats(server_id: str | int, search_query: str = "", lang
         "users": users,
         "presence_counts": presence_counts,
         "join_date": get_server_join_date(server_id, lang=lang),
-        "live_status": get_server_live_status(server_id),
+        "live_status": get_server_live_status(server_id) if has_server_access else None,
         "is_bot_present": getattr(Servers.get_or_none(Servers.server_id == int(server_id)), 'is_bot_present', True),
+        "can_view_presence": has_server_access,
+        "can_view_sessions": has_server_access,
     }
 
 
-def load_users_from_server(server_id: str | int, search_query: str = "", lang: str = "fr") -> list[dict]:
+def load_users_from_server(server_id: str | int, search_query: str = "", lang: str = "fr", has_server_access: bool = True) -> list[dict]:
     """Retrieve members with activity on a server, ranked by voice time descending."""
     query = (
         Stats
@@ -174,13 +183,13 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
             "messages_count": messages,
             "level": xp_info["level"],
             "total_xp": xp_info["total_xp"],
-            "presence": get_user_presence(row["user_id"]),
-            "is_in_voice": (row["user_id"] in active_voice_ids)
+            "presence": get_user_presence(row["user_id"]) if has_server_access else None,
+            "is_in_voice": (row["user_id"] in active_voice_ids) if has_server_access else False,
         })
     return result
 
 
-def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
+def load_server_charts_data(server_id: str | int, lang: str = "fr", has_server_access: bool = True) -> dict:
     """Compile chart data for a specific server: cumulative curves, monthly deltas, and top members doughnut."""
     int_server_id = int(server_id)
 
@@ -309,8 +318,8 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
         "messages_count": hourly_activity["messages_count"]
     })
 
-    # 9. Recent voice sessions log
-    recent_sessions = get_recent_voice_sessions(server_id=int_server_id, limit=12, lang=lang)
+    # 9. Recent voice sessions log (Protected: Only server members can view)
+    recent_sessions = get_recent_voice_sessions(server_id=int_server_id, limit=12, lang=lang) if has_server_access else []
 
     return {
         "chart_data_json": chart_data_json,
@@ -338,4 +347,5 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr") -> dict:
         "peak_voice_hour": hourly_activity["peak_voice_hour"],
         "peak_messages_hour": hourly_activity["peak_messages_hour"],
         "recent_sessions": recent_sessions,
+        "can_view_sessions": has_server_access,
     }

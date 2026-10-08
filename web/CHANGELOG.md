@@ -1,5 +1,20 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.0 - Confidentialité Avancée, Authentification Discord OAuth2 & Contrôle d'Accès - 08/10/2026
+### Features & Sécurité
+- **Authentification Discord OAuth2 (`web/app/auth.py`)** :
+  - Intégration de la connexion officielle Discord OAuth2 (scopes `identify guilds`).
+  - Menu utilisateur dans la barre de navigation avec avatar, pseudo, lien vers mon profil et bouton de déconnexion.
+  - Mode développement local (`/auth/dev-login`) permettant de simuler n'importe quel compte ou ID Discord en un clic pour tester les permissions sans clés OAuth2 configurées en local.
+- **Confidentialité Stricte des Sessions Vocales Utilisateur (`/profile/<username>`)** :
+  - L'historique détaillé des sessions vocales individuelles est réservé exclusivement au propriétaire du profil connecté.
+  - Les visiteurs anonymes et les tiers voient un encart élégant de confidentialité avec invitation à se connecter via Discord.
+  - Aucune fuite de données de session dans le DOM ou les requêtes SQL pour les tiers non autorisés.
+- **Protection des Sessions et des Présences en Direct sur les Serveurs (`/server/<id>`)** :
+  - L'accès au journal des sessions vocales d'un serveur et à la barre de statut des membres (En ligne / Absent / DND / En vocal) est strictement réservé aux utilisateurs connectés et membres avérés du serveur.
+  - Double vérification de présence : via les serveurs Discord OAuth2 et par recoupement avec les tables d'activité en base de données.
+  - Masquage automatique des pastilles de statut et d'activité vocale sur les membres pour les visiteurs non autorisés.
+
 ## Version 2.7.7 - Moyenne Journalière sur le Rythme Horaire & Lissage Linéaire Pré-Routine - 07/10/2026
 ### Features & Fixes
 - **Moyenne Journalière par Tranche Horaire (Option B)** :

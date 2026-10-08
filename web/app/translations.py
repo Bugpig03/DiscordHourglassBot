@@ -65,6 +65,22 @@ TRANSLATIONS = {
         "terms.subtitle": "Règles d'utilisation du bot Discord et du dashboard web Hourglass.",
         "terms.last_updated": "Dernière mise à jour : 4 octobre 2026",
 
+        # Auth & Confidentialité
+        "auth.login": "Se connecter avec Discord",
+        "auth.login_short": "Se connecter",
+        "auth.logout": "Déconnexion",
+        "auth.my_profile": "Mon Profil",
+        "auth.logged_in_as": "Connecté :",
+        "privacy.visible_only_by_you": "Visible uniquement par vous",
+        "privacy.user_sessions_locked_title": "Journal des sessions confidentiel",
+        "privacy.user_sessions_locked_desc": "Ces données détaillées d'activité sont privées. Connectez-vous avec votre compte Discord pour consulter votre propre historique de sessions.",
+        "privacy.user_sessions_other_title": "Données de sessions protégées",
+        "privacy.user_sessions_other_desc": "Par respect pour la vie privée de ce membre, le détail précis de ses sessions vocales n'est visible que par lui-même.",
+        "privacy.server_presence_locked": "Statuts en direct réservés aux membres du serveur",
+        "privacy.server_sessions_locked_title": "Sessions réservées aux membres du serveur",
+        "privacy.server_sessions_locked_desc": "L'historique des sessions vocales de ce serveur est réservé à ses membres connectés. Connectez-vous avec un compte Discord présent sur ce serveur pour le consulter.",
+        "privacy.server_not_member": "Votre compte Discord n'est pas présent sur ce serveur.",
+
         # Home Page
         "home.title": "Hourglass - Dashboard & Statistiques Discord",
         "home.welcome_title": "Bienvenue sur le Dashboard Hourglass",
@@ -525,6 +541,22 @@ TRANSLATIONS = {
         "terms.heading": "Terms of Service",
         "terms.subtitle": "Rules and conditions for using Hourglass Discord Bot and Web Dashboard.",
         "terms.last_updated": "Last updated: October 4, 2026",
+
+        # Auth & Confidentialité
+        "auth.login": "Login with Discord",
+        "auth.login_short": "Login",
+        "auth.logout": "Log out",
+        "auth.my_profile": "My Profile",
+        "auth.logged_in_as": "Logged in as:",
+        "privacy.visible_only_by_you": "Visible only by you",
+        "privacy.user_sessions_locked_title": "Confidential Session Log",
+        "privacy.user_sessions_locked_desc": "Detailed voice activity is private. Log in with your Discord account to view your own session history.",
+        "privacy.user_sessions_other_title": "Protected Session Data",
+        "privacy.user_sessions_other_desc": "To respect this member's privacy, detailed voice session logs are only visible to them.",
+        "privacy.server_presence_locked": "Live presence is restricted to server members",
+        "privacy.server_sessions_locked_title": "Sessions restricted to server members",
+        "privacy.server_sessions_locked_desc": "Voice session history for this server is restricted to its members. Log in with a Discord account in this server to view.",
+        "privacy.server_not_member": "Your Discord account is not a member of this server.",
 
         # Home Page
         "home.title": "Hourglass - Dashboard & Discord Analytics",

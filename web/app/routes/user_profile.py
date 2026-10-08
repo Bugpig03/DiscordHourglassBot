@@ -35,6 +35,7 @@ from app.functions import (
     get_user_voice_companions,
 )
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges
+from app.auth import can_view_user_sessions
 
 user_profile_bp = Blueprint("user_profile", __name__)
 
@@ -322,8 +323,9 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
         "messages_count": hourly_activity["messages_count"]
     })
 
-    # 8. User's recent voice sessions log
-    recent_sessions = get_recent_voice_sessions(user_id=user_id, limit=10, lang=lang)
+    # 8. User's recent voice sessions log (Protected: Only owner can view)
+    can_view_sessions = can_view_user_sessions(user_id)
+    recent_sessions = get_recent_voice_sessions(user_id=user_id, limit=10, lang=lang) if can_view_sessions else []
 
     return {
         "chart_data_json": chart_data_json,
@@ -348,4 +350,5 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
         "peak_voice_hour": hourly_activity["peak_voice_hour"],
         "peak_messages_hour": hourly_activity["peak_messages_hour"],
         "recent_sessions": recent_sessions,
+        "can_view_sessions": can_view_sessions,
     }
