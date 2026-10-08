@@ -1,6 +1,6 @@
 """Flask application factory and blueprint registration."""
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for
 from app.config import Config
 from app.database import init_app
 from app.translations import get_text
@@ -61,6 +61,11 @@ def create_app():
         response = redirect(referrer)
         response.set_cookie("lang", lang, max_age=365 * 24 * 3600, samesite="Lax")
         return response
+
+    @app.route("/login")
+    def login_shortcut():
+        """Shortcut redirect to the unified auth.login page."""
+        return redirect(url_for("auth.login", **request.args))
 
     @app.template_filter("thousands_fr")
     def thousands_fr(value):

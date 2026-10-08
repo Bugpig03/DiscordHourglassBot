@@ -108,23 +108,90 @@ def _safe_redirect_target(target: str | None) -> str:
 # OAuth2 & Session Routes
 # ==============================================================================
 
-@auth_bp.route("/login")
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    """Initiate Discord OAuth2 authorization flow or redirect to dev-login if unconfigured."""
-    # Store return destination in session
-    next_url = _safe_redirect_target(request.args.get("next") or request.referrer or "/")
+    """Render beautiful login page and handle direct Discord identifier authentication."""
+    next_url = _safe_redirect_target(request.args.get("next") or session.get("oauth_next_url") or request.referrer or "/")
     session["oauth_next_url"] = next_url
 
     client_id = current_app.config.get("DISCORD_CLIENT_ID", Config.DISCORD_CLIENT_ID)
     client_secret = current_app.config.get("DISCORD_CLIENT_SECRET", Config.DISCORD_CLIENT_SECRET)
+    has_oauth = bool(client_secret and client_id)
+
+    error_message = None
+
+    if request.method == "POST":
+        identifier = request.form.get("identifier", "").strip()
+        if not identifier:
+            error_message = "Veuillez renseigner votre identifiant Discord (ID ou pseudo)."
+        else:
+            # 1. Search by snowflake numeric ID
+            user = None
+            if identifier.isdigit():
+                user = Users.get_or_none(Users.user_id == int(identifier))
+
+            # 2. Search by username (case-insensitive)
+            if not user:
+                user = (
+                    Users.select()
+                    .where(fn.LOWER(Users.username) == identifier.lower())
+                    .first()
+                )
+
+            if user:
+                # Load their servers from Stats table
+                user_servers = [
+                    int(row.server_id)
+                    for row in Stats.select(Stats.server_id).where(Stats.user_id == user.user_id)
+                ]
+                session["user"] = {
+                    "id": str(user.user_id),
+                    "username": user.username or f"User_{user.user_id}",
+                    "avatar": user.avatar or "https://cdn.discordapp.com/embed/avatars/0.png",
+                }
+                session["guild_ids"] = user_servers
+                destination = session.pop("oauth_next_url", "/")
+                return redirect(destination)
+            elif identifier.isdigit() and len(identifier) >= 17:
+                # User entered a valid snowflake Discord ID (17-20 digits)
+                user_servers = [
+                    int(row.server_id)
+                    for row in Stats.select(Stats.server_id).where(Stats.user_id == int(identifier))
+                ]
+                session["user"] = {
+                    "id": str(identifier),
+                    "username": f"User_{identifier}",
+                    "avatar": "https://cdn.discordapp.com/embed/avatars/0.png",
+                }
+                session["guild_ids"] = user_servers
+                destination = session.pop("oauth_next_url", "/")
+                return redirect(destination)
+            else:
+                error_message = (
+                    "Aucun utilisateur trouvé pour cet identifiant. "
+                    "Assurez-vous d'avoir saisi votre ID Discord (ex: 301727996392505346) "
+                    "ou votre nom d'utilisateur Discord présent sur un serveur équipé d'Hourglass."
+                )
+
+    return render_template(
+        "login.html",
+        next_url=next_url,
+        has_oauth=has_oauth,
+        error_message=error_message,
+        current_user=get_current_user(),
+    )
+
+
+@auth_bp.route("/oauth")
+def oauth_start():
+    """Initiate official Discord OAuth2 authorization flow."""
+    client_id = current_app.config.get("DISCORD_CLIENT_ID", Config.DISCORD_CLIENT_ID)
+    client_secret = current_app.config.get("DISCORD_CLIENT_SECRET", Config.DISCORD_CLIENT_SECRET)
     redirect_uri = current_app.config.get("DISCORD_REDIRECT_URI", Config.DISCORD_REDIRECT_URI)
 
-    # If secret is missing or explicit dev parameter, use dev-login
-    if not client_secret or request.args.get("dev") == "1":
-        if current_app.config.get("AUTH_DEV_MODE", Config.AUTH_DEV_MODE):
-            return redirect(url_for("auth.dev_login"))
-        flash("Discord OAuth2 secret non configuré sur ce serveur.", "error")
-        return redirect(next_url)
+    if not client_secret:
+        flash("Discord OAuth2 client_secret non configuré sur ce serveur.", "error")
+        return redirect(url_for("auth.login"))
 
     state = secrets.token_urlsafe(24)
     session["oauth_state"] = state
@@ -157,9 +224,9 @@ def callback():
     if not code or not state or state != expected_state:
         return redirect(next_url)
 
-    client_id = Config.DISCORD_CLIENT_ID
-    client_secret = Config.DISCORD_CLIENT_SECRET
-    redirect_uri = Config.DISCORD_REDIRECT_URI
+    client_id = current_app.config.get("DISCORD_CLIENT_ID", Config.DISCORD_CLIENT_ID)
+    client_secret = current_app.config.get("DISCORD_CLIENT_SECRET", Config.DISCORD_CLIENT_SECRET)
+    redirect_uri = current_app.config.get("DISCORD_REDIRECT_URI", Config.DISCORD_REDIRECT_URI)
 
     # Exchange authorization code for access token
     token_data = {
@@ -230,63 +297,8 @@ def logout():
     return redirect(next_url)
 
 
-# ==============================================================================
-# Development / Local Simulation Login (Active in AUTH_DEV_MODE)
-# ==============================================================================
-
 @auth_bp.route("/dev-login")
-def dev_login():
-    """Provide a quick one-click local login selector for testing privacy rules in dev mode."""
-    if not current_app.config.get("AUTH_DEV_MODE", Config.AUTH_DEV_MODE):
-        abort(404)
-
-    next_url = session.get("oauth_next_url", request.args.get("next") or request.referrer or "/")
-    session["oauth_next_url"] = next_url
-
-    # Fetch top active users from DB for convenient one-click testing
-    top_users = (
-        Users.select(Users.user_id, Users.username, Users.avatar)
-        .join(Stats, on=(Users.user_id == Stats.user_id))
-        .group_by(Users.user_id, Users.username, Users.avatar)
-        .order_by(fn.SUM(Stats.seconds).desc())
-        .limit(15)
-    )
-
-    current_u = get_current_user()
-    current_guilds = get_current_user_guild_ids()
-
-    return render_template(
-        "dev_login.html",
-        top_users=top_users,
-        current_user=current_u,
-        current_guilds=current_guilds,
-        next_url=next_url,
-    )
-
-
-@auth_bp.route("/dev-login/<int:user_id>")
-def dev_login_as(user_id: int):
-    """Authenticate immediately as a specified user ID in local dev mode."""
-    if not current_app.config.get("AUTH_DEV_MODE", Config.AUTH_DEV_MODE):
-        abort(404)
-
-    next_url = session.pop("oauth_next_url", "/")
-
-    user = Users.get_or_none(Users.user_id == user_id)
-    username = user.username if user else f"User_{user_id}"
-    avatar = user.avatar if (user and user.avatar) else f"https://cdn.discordapp.com/embed/avatars/0.png"
-
-    # Automatically load all servers this user belongs to from the Stats table
-    user_servers = [
-        int(row.server_id)
-        for row in Stats.select(Stats.server_id).where(Stats.user_id == user_id)
-    ]
-
-    session["user"] = {
-        "id": str(user_id),
-        "username": username,
-        "avatar": avatar,
-    }
-    session["guild_ids"] = user_servers
-
-    return redirect(next_url)
+@auth_bp.route("/dev-login/<path:subpath>")
+def dev_login(subpath=None):
+    """Legacy redirect: redirect any dev-login attempt to the unified login page."""
+    return redirect(url_for("auth.login"))
