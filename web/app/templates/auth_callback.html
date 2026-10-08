@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('auth.callback_loading') }}{% endblock %}
+
+{% block content %}
+<div class="auth-page-container" style="max-width: 440px; margin: 60px auto 90px; padding: 0 16px; text-align: center;">
+    <div class="gray-box" style="padding: 40px 28px; border-radius: 20px; background: rgba(18, 28, 41, 0.94); border: 1px solid rgba(255, 255, 255, 0.09); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+        
+        <!-- Animated Spinner -->
+        <div style="position: relative; width: 64px; height: 64px; margin: 0 auto 20px;">
+            <div style="position: absolute; inset: 0; border: 3px solid rgba(88, 101, 242, 0.2); border-top-color: #5865F2; border-radius: 50%; animation: spin 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+            <div style="position: absolute; inset: 10px; display: flex; align-items: center; justify-content: center; background: rgba(88, 101, 242, 0.15); border-radius: 50%;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#5865F2">
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.177 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+            </div>
+        </div>
+
+        <h2 class="big-bold-text" style="font-size: 1.25rem; margin: 0 0 6px; color: #ffffff;">
+            {{ t('auth.callback_loading') }}
+        </h2>
+        <p class="small-text gray" style="margin: 0; line-height: 1.5; font-size: 0.88rem;">
+            {{ t('auth.callback_desc') }}
+        </p>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function finishAuth(success, redirectUrl) {
+        if (window.opener && !window.opener.closed) {
+            try {
+                window.opener.postMessage({ type: "DISCORD_AUTH_SUCCESS" }, window.location.origin);
+            } catch (e) {}
+            setTimeout(function() { window.close(); }, 250);
+            return;
+        }
+        window.location.href = redirectUrl || "{{ next_url or '/' }}";
+    }
+
+    {% if auto_close %}
+    finishAuth(true, "{{ next_url or '/' }}");
+    return;
+    {% endif %}
+
+    {% if error %}
+    if (window.opener && !window.opener.closed) {
+        window.close();
+        return;
+    }
+    window.location.href = "{{ url_for('auth.login', error=error) }}";
+    return;
+    {% endif %}
+
+    try {
+        const hash = window.location.hash.substring(1);
+        const search = window.location.search.substring(1);
+        const params = new URLSearchParams(hash || search);
+
+        const err = params.get('error');
+        if (err) {
+            if (window.opener && !window.opener.closed) {
+                window.close();
+                return;
+            }
+            window.location.href = "{{ url_for('auth.login') }}?error=" + encodeURIComponent(err);
+            return;
+        }
+
+        const accessToken = params.get('access_token');
+        const state = params.get('state');
+
+        if (!accessToken) {
+            finishAuth(false, "{{ url_for('auth.login') }}");
+            return;
+        }
+
+        fetch("{{ url_for('auth.token_login') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                access_token: accessToken,
+                state: state
+            })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data && data.success) {
+                finishAuth(true, data.redirect || "{{ next_url or '/' }}");
+            } else {
+                finishAuth(false, "{{ url_for('auth.login') }}?error=token_failed");
+            }
+        })
+        .catch(function(e) {
+            console.error("Auth error:", e);
+            finishAuth(false, "{{ url_for('auth.login') }}?error=token_failed");
+        });
+    } catch (e) {
+        finishAuth(false, "{{ url_for('auth.login') }}?error=token_failed");
+    }
+});
+</script>
+{% endblock %}

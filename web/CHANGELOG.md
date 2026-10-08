@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.2 - Connexion Pop-up Discord OAuth2 & Simplification du Portail - 08/10/2026
+### Features & UX
+- **Authentification Discord OAuth2 en Pop-up Non-Intrusive** :
+  - Ouverture d'une fenêtre pop-up centrée (500x750) lors du clic sur "Se connecter", évitant toute rupture de navigation sur la page en cours.
+  - Détection automatique de la validation Discord, transmission du signal `DISCORD_AUTH_SUCCESS` via `postMessage`, fermeture automatique de la pop-up et rafraîchissement transparent de la page mère.
+  - Normalisation intelligente des URI de redirection (`127.0.0.1` vers `localhost`, détection automatique de la production `https://hourglassbot.net/auth/callback`).
+- **Simplification Radicale du Portail de Connexion (`/login`)** :
+  - Suppression intégrale des formulaires manuels d'ID/pseudo et des longs blocs descriptifs.
+  - Carte minimaliste épurée (440px) centrée sur l'action essentielle : bouton officiel `[ Se connecter avec Discord ]`.
+  - Mention sobre de conformité Discord OAuth2.
+
 ## Version 2.8.1 - Page de Connexion par Identifiant Discord & Calibrage Navbar - 08/10/2026
 ### Features & Fixes
 - **Page de Connexion Unifiée & Professionnelle (`/login` & `/auth/login`)** :

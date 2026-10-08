@@ -6,14 +6,14 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.1 - 08/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.2 - 08/10/2026)
 
-### 1. 🔑 Page de Connexion par Identifiant Discord & Confidentialité Stricte
-- **Page de Connexion Dédiée (`/login`)** : Interface moderne unifiée en dark glassmorphism permettant à tout utilisateur de se connecter avec son identifiant Discord (ID Snowflake ou pseudo) ou via le bouton officiel Discord OAuth2.
-- **Suppression définitive du mode dev-login** : Remplacement par une authentification propre et universelle fonctionnant de manière identique en local et en production.
+### 1. 🪟 Authentification Discord OAuth2 en Pop-up & Portail Épuré
+- **Connexion Discord en Pop-up Non-Intrusive** : Clic sur le bouton de connexion ouvrant une fenêtre pop-up centrée (500x750) avec clôture automatique dès l'approbation et synchronisation en direct de la page active.
+- **Portail de Connexion Épuré (`/login`)** : Suppression des formulaires manuels et des blocs superflus au profit d'un bouton unique `[ Se connecter avec Discord ]`.
+- **Résolution des Redirect URIs** : Gestion intelligente de l'URI de redirection avec détection dynamique de la production (`hourglassbot.net`) et normalisation locale `localhost:5002`.
 - **Protection des Sessions Vocales Utilisateur** : Consultation du journal des sessions vocales privatisée et réservée exclusivement au titulaire du compte Discord connecté.
-- **Protection des Données de Serveur** : Journal des sessions et pastilles d'activité en temps réel (en ligne / absent / dnd / en vocal) réservés aux membres connectés du serveur concerné.
-- **Calibrage Navbar** : Harmonisation de la pastille de profil utilisateur (`34px`) et troncature des pseudos pour un alignement fluide sans aucun débordement.
+- **Protection des Données de Serveur** : Journal des sessions et pastilles d'activité en temps réel réservés aux membres connectés du serveur concerné.
 
 ### 2. 🎙️ Analytics Granulaires & Sessions Vocales (`voice_sessions` & `channels`)
 - **Tracking Temporel Précis** : Horodatage d'arrivée (`joined_at`) et de départ (`left_at`) avec durée exacte en secondes.

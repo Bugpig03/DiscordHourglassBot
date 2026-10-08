@@ -33,7 +33,7 @@ def load_app_version() -> tuple[str, str]:
                             return match.group(1), match.group(2)
             except Exception:
                 pass
-    return "2.8.1", "08/10/2026"
+    return "2.8.2", "08/10/2026"
 
 
 class Config:
@@ -52,4 +52,4 @@ class Config:
     # Discord OAuth2 Configuration
     DISCORD_CLIENT_ID = os.environ.get("DISCORD_CLIENT_ID", "1252400491644715100")
     DISCORD_CLIENT_SECRET = os.environ.get("DISCORD_CLIENT_SECRET", "")
-    DISCORD_REDIRECT_URI = os.environ.get("DISCORD_REDIRECT_URI", "http://localhost:5002/auth/callback")
+    DISCORD_REDIRECT_URI = os.environ.get("DISCORD_REDIRECT_URI", "")
