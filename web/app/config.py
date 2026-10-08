@@ -53,4 +53,8 @@ class Config:
     DISCORD_CLIENT_ID = os.environ.get("DISCORD_CLIENT_ID", "1252400491644715100")
     DISCORD_CLIENT_SECRET = os.environ.get("DISCORD_CLIENT_SECRET", "")
     DISCORD_REDIRECT_URI = os.environ.get("DISCORD_REDIRECT_URI", "http://localhost:5002/auth/callback")
-    AUTH_DEV_MODE = os.environ.get("AUTH_DEV_MODE", "true").lower() in ("true", "1", "yes")
+    # Dev login simulation is strictly disabled if CLIENT_SECRET is configured or AUTH_DEV_MODE=false
+    AUTH_DEV_MODE = (
+        os.environ.get("AUTH_DEV_MODE", "false" if os.environ.get("DISCORD_CLIENT_SECRET") else "true")
+        .lower() in ("true", "1", "yes")
+    )

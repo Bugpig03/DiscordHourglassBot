@@ -972,7 +972,9 @@ def get_text(key: str, lang: str = "fr", **kwargs) -> str:
     and formats placeholders using kwargs.
     """
     if key == "footer.version":
-        return f"version {Config.APP_VERSION} - {Config.APP_VERSION_DATE}"
+        from app.config import load_app_version
+        ver, date = load_app_version()
+        return f"version {ver} - {date}"
 
     lang = lang if lang in TRANSLATIONS else "fr"
     text = TRANSLATIONS.get(lang, {}).get(key)

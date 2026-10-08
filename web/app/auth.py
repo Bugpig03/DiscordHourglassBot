@@ -12,6 +12,7 @@ from flask import (
     session,
     url_for,
     flash,
+    abort,
 )
 from app.config import Config
 from app.database import Users, Stats, Servers
@@ -114,13 +115,13 @@ def login():
     next_url = _safe_redirect_target(request.args.get("next") or request.referrer or "/")
     session["oauth_next_url"] = next_url
 
-    client_id = Config.DISCORD_CLIENT_ID
-    client_secret = Config.DISCORD_CLIENT_SECRET
-    redirect_uri = Config.DISCORD_REDIRECT_URI
+    client_id = current_app.config.get("DISCORD_CLIENT_ID", Config.DISCORD_CLIENT_ID)
+    client_secret = current_app.config.get("DISCORD_CLIENT_SECRET", Config.DISCORD_CLIENT_SECRET)
+    redirect_uri = current_app.config.get("DISCORD_REDIRECT_URI", Config.DISCORD_REDIRECT_URI)
 
     # If secret is missing or explicit dev parameter, use dev-login
     if not client_secret or request.args.get("dev") == "1":
-        if Config.AUTH_DEV_MODE:
+        if current_app.config.get("AUTH_DEV_MODE", Config.AUTH_DEV_MODE):
             return redirect(url_for("auth.dev_login"))
         flash("Discord OAuth2 secret non configuré sur ce serveur.", "error")
         return redirect(next_url)
@@ -235,9 +236,9 @@ def logout():
 
 @auth_bp.route("/dev-login")
 def dev_login():
-    """Provide a quick one-click local login selector for testing privacy rules."""
-    if not Config.AUTH_DEV_MODE:
-        return redirect("/")
+    """Provide a quick one-click local login selector for testing privacy rules in dev mode."""
+    if not current_app.config.get("AUTH_DEV_MODE", Config.AUTH_DEV_MODE):
+        abort(404)
 
     next_url = session.get("oauth_next_url", request.args.get("next") or request.referrer or "/")
     session["oauth_next_url"] = next_url
@@ -266,8 +267,8 @@ def dev_login():
 @auth_bp.route("/dev-login/<int:user_id>")
 def dev_login_as(user_id: int):
     """Authenticate immediately as a specified user ID in local dev mode."""
-    if not Config.AUTH_DEV_MODE:
-        return redirect("/")
+    if not current_app.config.get("AUTH_DEV_MODE", Config.AUTH_DEV_MODE):
+        abort(404)
 
     next_url = session.pop("oauth_next_url", "/")
 
