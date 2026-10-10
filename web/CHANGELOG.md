@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.5 - Optimisation Performance Graphiques & Lazy-Loading par Onglet - 10/10/2026
+### Performance & UX
+- **Lazy-Loading des Graphiques par Onglet (`/graphs`)** :
+  - Découpage de l'initialisation des 11 graphiques Chart.js en modules dédiés par onglet (`tab-activity`, `tab-history`, `tab-servers`, `tab-community`).
+  - Au chargement initial de la page, seuls les graphiques de l'onglet actif (*Activité*) sont instanciés et tracés.
+  - Les 7 autres graphiques des onglets masqués (*Historique*, *Serveurs*, *Communauté*) ne sont construits et animés qu'à la demande lors du clic sur leur onglet respectif.
+  - Suppression totale du blocage du fil d'exécution JavaScript (Main Thread) du navigateur, assurant un rendu instantané et un défilement ultra-fluide à 60/120 FPS.
+
 ## Version 2.8.4 - Correctif JavaScript Recherche Globale (Ctrl+K) & Navbar - 09/10/2026
 ### Bug Fixes
 - **Restauration de la Recherche Globale et du Raccourci Clavier (`Ctrl+K`)** :

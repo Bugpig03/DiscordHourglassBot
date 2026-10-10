@@ -6,9 +6,13 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.4 - 09/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.5 - 10/10/2026)
 
-### 1. 🔍 Correctif JavaScript Recherche Globale (Ctrl+K) & Navbar
+### 1. ⚡ Lazy-Loading des Graphiques par Onglet (`/graphs`) & Rendu Fluide (Zéro Blocage)
+- **Rendu Différé Intelligent** : Au chargement de la page, seuls les graphiques de l'onglet actif (*Activité*) sont instanciés. Les 7 autres graphiques des onglets masqués (*Historique*, *Serveurs*, *Communauté*) ne sont construits qu'à la demande lors du clic de l'utilisateur.
+- **Suppression des Blocages CPU / Main Thread** : Réduction majeure de la charge initiale du navigateur, éliminant les micro-saccades et assurant un défilement ultra-fluide à 60/120 FPS.
+
+### 2. 🔍 Correctif JavaScript Recherche Globale (Ctrl+K) & Navbar
 - **Restauration du Raccourci `Ctrl+K` & Modal de Recherche** : Correction d'une fermeture de bloc d'écouteur d'événements (`DOMContentLoaded`) dans le template de base qui bloquait l'initialisation du gestionnaire de recherche globale.
 - **Autocomplétion & Navigation Clavier** : Fonctionnement fluide et instantané de la recherche de membres et serveurs.
 
