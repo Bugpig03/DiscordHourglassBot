@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.6 - Chargement Asynchrone des Analyses & Spinners de Chargement - 10/10/2026
+### Performance & UX
+- **Navigation Instantanée & Rendu Asynchrone (`/graphs`)** :
+  - Élimination complète du délai d'attente de 2 secondes à l'ouverture de la page d'analyses.
+  - Séparation du rendu HTML initial (< 75 ms) et du traitement analytique SQL via le nouvel endpoint d'API dédié `GET /api/graphs/data`.
+- **Spinners de Chargement Circulaires & Placeholders Shimmer** :
+  - Intégration d'indicateurs de chargement circulaires bicolores animés (`.chart-spinner-ring`) dans chaque conteneur de graphique et sur la matrice punchcard horaire.
+  - Affichage d'effets skeleton shimmer discrets sur les cartes récapitulatives KPI pendant la récupération en arrière-plan.
+  - Transition fluide en fondu (fade-out) des indicateurs de chargement dès la réception et le tracé des graphiques.
+
 ## Version 2.8.5 - Optimisation Performance Graphiques & Lazy-Loading par Onglet - 10/10/2026
 ### Performance & UX
 - **Lazy-Loading des Graphiques par Onglet (`/graphs`)** :

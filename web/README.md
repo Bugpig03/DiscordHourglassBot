@@ -6,9 +6,14 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.5 - 10/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.6 - 10/10/2026)
 
-### 1. ⚡ Lazy-Loading des Graphiques par Onglet (`/graphs`) & Rendu Fluide (Zéro Blocage)
+### 1. 🚀 Chargement Asynchrone des Graphiques & Spinners Dédiés (`/graphs`)
+- **Navigation Instantanée (< 75 ms)** : Suppression intégrale de la latence de 2 secondes au clic sur *Analyses & Graphiques*. La page s'ouvre instantanément sans blocage du navigateur.
+- **Ronds de Chargement Dédiés** : Affichage d'indicateurs circulaires animés (`.chart-spinner-ring`) au centre de chaque cadre de graphique et de la matrice punchcard horaire avec message d'attente localisé.
+- **API Background Fetch (`/api/graphs/data`)** : Déport des calculs SQL lourds en arrière-plan et injection fluide des métriques (KPIs, badges et tracés) avec transition fondu (fade-out) sans aucun gel de l'interface.
+
+### 2. ⚡ Lazy-Loading des Graphiques par Onglet (`/graphs`) & Rendu Fluide (Zéro Blocage)
 - **Rendu Différé Intelligent** : Au chargement de la page, seuls les graphiques de l'onglet actif (*Activité*) sont instanciés. Les 7 autres graphiques des onglets masqués (*Historique*, *Serveurs*, *Communauté*) ne sont construits qu'à la demande lors du clic de l'utilisateur.
 - **Suppression des Blocages CPU / Main Thread** : Réduction majeure de la charge initiale du navigateur, éliminant les micro-saccades et assurant un défilement ultra-fluide à 60/120 FPS.
 

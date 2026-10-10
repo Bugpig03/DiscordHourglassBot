@@ -343,6 +343,7 @@ TRANSLATIONS = {
         # Graphs Page
         "graphs.title": "Graphiques & Statistiques - Hourglass",
         "graphs.heading": "Analyses Graphiques & Métriques Globales",
+        "graphs.loading": "Chargement des analyses...",
         "graphs.kpi_voice": "Temps total en vocal",
         "graphs.kpi_messages": "Messages cumulés",
         "graphs.kpi_avg_voice": "Moyenne vocale / mois",
@@ -827,6 +828,7 @@ TRANSLATIONS = {
         # Graphs Page
         "graphs.title": "Graphs & Statistics - Hourglass",
         "graphs.heading": "Graphical Analytics & Global Metrics",
+        "graphs.loading": "Loading analytics...",
         "graphs.kpi_voice": "Total voice time",
         "graphs.kpi_messages": "Cumulative messages",
         "graphs.kpi_avg_voice": "Monthly voice avg",

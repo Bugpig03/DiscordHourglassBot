@@ -8,22 +8,65 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
-<!-- Embedded Chart Data (safe from HTML attribute quote truncation) -->
-<script type="application/json" id="totalHoursData">{{ chart_data_json|safe }}</script>
-<script type="application/json" id="totalDailyHoursData">{{ daily_chart_data_json|safe }}</script>
-<script type="application/json" id="totalMessagesData">{{ messages_chart_data_json|safe }}</script>
-<script type="application/json" id="totalDailyMessagesData">{{ daily_messages_chart_data_json|safe }}</script>
-<script type="application/json" id="monthlyHoursData">{{ monthly_chart_data_json|safe }}</script>
-<script type="application/json" id="monthlyMessagesData">{{ monthly_messages_chart_data_json|safe }}</script>
-<script type="application/json" id="dailyActivityData">{{ daily_activity_chart_data_json|safe }}</script>
-<script type="application/json" id="serversPieData">{{ chart_data_json_pie_server|safe }}</script>
-<script type="application/json" id="serversMessagesPieData">{{ server_messages_pie_json|safe }}</script>
-<script type="application/json" id="topUsersData">{{ top_users_chart_json|safe }}</script>
-<script type="application/json" id="globalHourlyData">{{ global_hourly_chart_json|safe }}</script>
-<script type="application/json" id="presence48hData">{{ presence_48h_chart_json|safe }}</script>
-<script type="application/json" id="userGrowthData">{{ user_growth_chart_json|safe }}</script>
-
 <style>
+/* Circular loading spinner overlay */
+.chart-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 12px;
+    z-index: 15;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+.chart-loading-overlay.loaded {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+.chart-spinner-ring {
+    width: 44px;
+    height: 44px;
+    border: 3.5px solid rgba(56, 189, 248, 0.15);
+    border-top: 3.5px solid #38bdf8;
+    border-right: 3.5px solid #818cf8;
+    border-radius: 50%;
+    animation: chartSpin 0.85s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+}
+@keyframes chartSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.chart-spinner-text {
+    margin-top: 12px;
+    font-size: 0.88rem;
+    color: #94a3b8;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+/* KPI Skeleton Placeholder */
+.kpi-skeleton {
+    display: inline-block;
+    width: 65px;
+    height: 22px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: kpiShimmer 1.5s infinite;
+    border-radius: 6px;
+    vertical-align: middle;
+}
+@keyframes kpiShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 /* Granularity Toggle Group Styles */
 .granularity-toggle-group {
     display: inline-flex;
@@ -198,7 +241,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('graphs.kpi_voice') }}</span>
-            <span class="home-stats-value">{{ summary_stats.total_hours | round(1) | thousands_fr }} {{ t('graphs.hours_unit') }}</span>
+            <span class="home-stats-value" id="kpiTotalHours"><span class="kpi-skeleton"></span></span>
         </div>
     </div>
 
@@ -208,7 +251,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('graphs.kpi_messages') }}</span>
-            <span class="home-stats-value">{{ summary_stats.total_messages | thousands_fr }}</span>
+            <span class="home-stats-value" id="kpiTotalMessages"><span class="kpi-skeleton"></span></span>
         </div>
     </div>
 
@@ -218,7 +261,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('graphs.kpi_avg_voice') }}</span>
-            <span class="home-stats-value">{{ summary_stats.avg_monthly_hours | thousands_fr }} {{ t('graphs.hours_unit') }}</span>
+            <span class="home-stats-value" id="kpiAvgMonthlyHours"><span class="kpi-skeleton"></span></span>
         </div>
     </div>
 
@@ -228,7 +271,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('graphs.kpi_avg_messages') }}</span>
-            <span class="home-stats-value">{{ summary_stats.avg_monthly_messages | thousands_fr }}</span>
+            <span class="home-stats-value" id="kpiAvgMonthlyMessages"><span class="kpi-skeleton"></span></span>
         </div>
     </div>
 
@@ -238,7 +281,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('graphs.kpi_analyzed_servers') }}</span>
-            <span class="home-stats-value">{{ summary_stats.total_servers | thousands_fr }}</span>
+            <span class="home-stats-value" id="kpiTotalServers"><span class="kpi-skeleton"></span></span>
         </div>
     </div>
 </div>
@@ -297,11 +340,12 @@
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_cumul_hours_title') }}</div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_cumul_hours_desc') }}</div>
             </div>
-            <span style="background: rgba(57, 146, 190, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.total_label') }} {{ summary_stats.total_hours | round(1) | thousands_fr }} {{ t('graphs.hours_unit') }}
+            <span id="badgeTotalHours" style="background: rgba(57, 146, 190, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                {{ t('graphs.total_label') }} <span class="val">--</span> {{ t('graphs.hours_unit') }}
             </span>
         </div>
         <div style="position: relative; height: 380px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="myChart"></canvas>
         </div>
     </div>
@@ -313,11 +357,12 @@
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_cumul_msgs_title') }}</div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_cumul_msgs_desc') }}</div>
             </div>
-            <span style="background: rgba(88, 101, 242, 0.2); color: #a5b4fc; border: 1px solid rgba(88, 101, 242, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.total_label') }} {{ summary_stats.total_messages | thousands_fr }} {{ t('graphs.msgs_unit') }}
+            <span id="badgeTotalMessages" style="background: rgba(88, 101, 242, 0.2); color: #a5b4fc; border: 1px solid rgba(88, 101, 242, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                {{ t('graphs.total_label') }} <span class="val">--</span> {{ t('graphs.msgs_unit') }}
             </span>
         </div>
         <div style="position: relative; height: 380px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="messagesChart"></canvas>
         </div>
     </div>
@@ -342,11 +387,12 @@
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_monthly_hours_title') }}</div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_monthly_hours_desc') }}</div>
             </div>
-            <span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.avg_label') }} {{ summary_stats.avg_monthly_hours | thousands_fr }} {{ t('graphs.unit_hours_per_month') }}
+            <span id="badgeAvgMonthlyHours" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                {{ t('graphs.avg_label') }} <span class="val">--</span> {{ t('graphs.unit_hours_per_month') }}
             </span>
         </div>
         <div style="position: relative; height: 380px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="monthlyChart"></canvas>
         </div>
     </div>
@@ -358,11 +404,12 @@
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_monthly_msgs_title') }}</div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_monthly_msgs_desc') }}</div>
             </div>
-            <span style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.avg_label') }} {{ summary_stats.avg_monthly_messages | thousands_fr }} {{ t('graphs.unit_msgs_per_month') }}
+            <span id="badgeAvgMonthlyMsgs" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                {{ t('graphs.avg_label') }} <span class="val">--</span> {{ t('graphs.unit_msgs_per_month') }}
             </span>
         </div>
         <div style="position: relative; height: 380px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="monthlyMessagesChart"></canvas>
         </div>
     </div>
@@ -379,6 +426,7 @@
             </span>
         </div>
         <div style="position: relative; height: 380px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="dailyActivityChart"></canvas>
         </div>
     </div>
@@ -396,15 +444,16 @@
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                    <span>{{ 'Pic Vocal' if current_lang == 'fr' else 'Voice Peak' }} : {{ global_hourly_data.peak_voice_hour }}</span>
+                    <span id="badgeVoicePeak">{{ 'Pic Vocal' if current_lang == 'fr' else 'Voice Peak' }} : --</span>
                 </span>
                 <span style="background: rgba(165, 180, 252, 0.15); color: #a5b4fc; border: 1px solid rgba(165, 180, 252, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span>{{ 'Pic Messages' if current_lang == 'fr' else 'Messages Peak' }} : {{ global_hourly_data.peak_messages_hour }}</span>
+                    <span id="badgeMessagesPeak">{{ 'Pic Messages' if current_lang == 'fr' else 'Messages Peak' }} : --</span>
                 </span>
             </div>
         </div>
         <div style="position: relative; height: 380px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="globalHourlyChart"></canvas>
         </div>
     </div>
@@ -432,45 +481,13 @@
             </div>
         </div>
 
-        <div style="overflow-x: auto; padding: 10px 0;">
-            <div style="min-width: 680px;">
-                <!-- Header Heures (00h à 23h) -->
-                <div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 6px; text-align: center; font-size: 0.72rem; color: #64748b; font-weight: 600;">
-                    <div></div>
-                    {% for h in range(24) %}
-                    <div>{{ '%02d' % h }}h</div>
-                    {% endfor %}
-                </div>
-
-                <!-- Lignes des 7 jours -->
-                {% for row in punchcard_data.days %}
-                <div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 4px; align-items: center;">
-                    <div style="font-size: 0.82rem; font-weight: 700; color: #94a3b8; text-align: right; padding-right: 12px;">
-                        {{ row.day_name }}
-                    </div>
-                    {% for c in row.hours %}
-                    <div style="height: 24px; border-radius: 4px; transition: transform 0.15s ease; cursor: pointer;
-                        {% if c.intensity == 0 %}
-                            background: rgba(255, 255, 255, 0.03);
-                        {% elif c.intensity <= 0.25 %}
-                            background: rgba(56, 189, 248, 0.25);
-                        {% elif c.intensity <= 0.50 %}
-                            background: rgba(56, 189, 248, 0.55);
-                        {% elif c.intensity <= 0.75 %}
-                            background: rgba(129, 140, 248, 0.8);
-                        {% else %}
-                            background: #f43f5e; box-shadow: 0 0 8px rgba(244, 63, 94, 0.5);
-                        {% endif %}"
-                        title="{{ row.day_name }} à {{ c.hour }}h00 : {{ c.voice_hours }}h vocal • {{ c.messages }} messages"
-                        onmouseover="this.style.transform='scale(1.2)';"
-                        onmouseout="this.style.transform='scale(1)';">
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endfor %}
+        <div id="punchcardContainer" style="position: relative; min-height: 220px;">
+            <div class="chart-loading-overlay">
+                <div class="chart-spinner-ring"></div>
+                <span class="chart-spinner-text">{{ t('graphs.loading') }}</span>
             </div>
-        </div>
-    </div>
+            <div id="punchcardContent" style="overflow-x: auto; padding: 10px 0;"></div>
+        </div></div>
 </div>
 
 <!-- =================================================================== -->
@@ -499,7 +516,8 @@
                 </span>
             </div>
             <div style="position: relative; min-height: 380px; width: 100%; display: flex; justify-content: center; align-items: center;">
-                <canvas id="serversPieChart" style="max-height: 360px; width: 100%;"></canvas>
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
+            <canvas id="serversPieChart" style="max-height: 360px; width: 100%;"></canvas>
             </div>
         </div>
 
@@ -515,7 +533,8 @@
                 </span>
             </div>
             <div style="position: relative; min-height: 380px; width: 100%; display: flex; justify-content: center; align-items: center;">
-                <canvas id="serversMessagesPieChart" style="max-height: 360px; width: 100%;"></canvas>
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
+            <canvas id="serversMessagesPieChart" style="max-height: 360px; width: 100%;"></canvas>
             </div>
         </div>
     </div>
@@ -561,6 +580,7 @@
             </div>
         </div>
         <div style="position: relative; height: 440px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="topUsersHorizontalChart"></canvas>
         </div>
     </div>
@@ -575,11 +595,12 @@
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.presence_48h_desc') }}</div>
             </div>
             <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.presence_48h_badge', ratio=presence_48h_data.avg_ratio) }}
+                <span id="badgePresence">{{ 'Taux connectés : --%' if current_lang == 'fr' else 'Online ratio: --%' }}</span>
             </span>
         </div>
 
         <div style="position: relative; height: 420px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="presence48hChart"></canvas>
         </div>
     </div>
@@ -596,6 +617,7 @@
             </span>
         </div>
         <div style="position: relative; height: 380px; width: 100%;">
+            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
             <canvas id="userGrowthChart"></canvas>
         </div>
     </div>
@@ -608,8 +630,12 @@
 // Global chart instances registry for clean responsive resize on tab switch
 const activeChartInstances = [];
 const initializedTabs = new Set();
+let apiData = null;
+let currentActiveTab = 'tab-activity';
 
 function switchGraphTab(tabId) {
+    currentActiveTab = tabId;
+
     // 1. Toggle Tab Button States
     document.querySelectorAll('.graphs-tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
@@ -708,20 +734,131 @@ document.addEventListener('DOMContentLoaded', function() {
         '#64748b'  // Slate (Autres)
     ];
 
+    function updateKPIs(stats) {
+        if (!stats) return;
+        const elH = document.getElementById('kpiTotalHours');
+        if (elH) elH.textContent = `${Number(stats.total_hours || 0).toLocaleString(langLocale, { minimumFractionDigits: 0, maximumFractionDigits: 1 })} ${hoursUnit}`;
+
+        const elM = document.getElementById('kpiTotalMessages');
+        if (elM) elM.textContent = Number(stats.total_messages || 0).toLocaleString(langLocale);
+
+        const elAvgH = document.getElementById('kpiAvgMonthlyHours');
+        if (elAvgH) elAvgH.textContent = `${Number(stats.avg_monthly_hours || 0).toLocaleString(langLocale, { minimumFractionDigits: 0, maximumFractionDigits: 1 })} ${hoursUnit}`;
+
+        const elAvgM = document.getElementById('kpiAvgMonthlyMessages');
+        if (elAvgM) elAvgM.textContent = Number(stats.avg_monthly_messages || 0).toLocaleString(langLocale);
+
+        const elS = document.getElementById('kpiTotalServers');
+        if (elS) elS.textContent = Number(stats.total_servers || 0).toLocaleString(langLocale);
+    }
+
+    function updateBadges(data) {
+        if (!data) return;
+        const stats = data.summary_stats || {};
+
+        const bHours = document.getElementById('badgeTotalHours');
+        if (bHours) {
+            const valSpan = bHours.querySelector('.val');
+            if (valSpan) valSpan.textContent = Number(stats.total_hours || 0).toLocaleString(langLocale, { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+        }
+
+        const bMsgs = document.getElementById('badgeTotalMessages');
+        if (bMsgs) {
+            const valSpan = bMsgs.querySelector('.val');
+            if (valSpan) valSpan.textContent = Number(stats.total_messages || 0).toLocaleString(langLocale);
+        }
+
+        const bAvgH = document.getElementById('badgeAvgMonthlyHours');
+        if (bAvgH) {
+            const valSpan = bAvgH.querySelector('.val');
+            if (valSpan) valSpan.textContent = Number(stats.avg_monthly_hours || 0).toLocaleString(langLocale, { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+        }
+
+        const bAvgM = document.getElementById('badgeAvgMonthlyMsgs');
+        if (bAvgM) {
+            const valSpan = bAvgM.querySelector('.val');
+            if (valSpan) valSpan.textContent = Number(stats.avg_monthly_messages || 0).toLocaleString(langLocale);
+        }
+
+        if (data.global_hourly_chart) {
+            const bVoicePeak = document.getElementById('badgeVoicePeak');
+            if (bVoicePeak) {
+                bVoicePeak.textContent = `${isEn ? 'Voice Peak' : 'Pic Vocal'} : ${data.global_hourly_chart.peak_voice_hour || '--'}`;
+            }
+            const bMsgPeak = document.getElementById('badgeMessagesPeak');
+            if (bMsgPeak) {
+                bMsgPeak.textContent = `${isEn ? 'Messages Peak' : 'Pic Messages'} : ${data.global_hourly_chart.peak_messages_hour || '--'}`;
+            }
+        }
+
+        if (data.presence_48h_chart) {
+            const bPresence = document.getElementById('badgePresence');
+            if (bPresence) {
+                bPresence.textContent = `${isEn ? 'Online ratio: ' : 'Taux connectés : '}${data.presence_48h_chart.avg_ratio || 0}%`;
+            }
+        }
+    }
+
+    function renderPunchcard(punchcardData) {
+        const container = document.getElementById('punchcardContent');
+        if (!container || !punchcardData || !punchcardData.days) return;
+
+        const dayNamesEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        let html = '<div style="min-width: 680px;">';
+        html += '<div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 6px; text-align: center; font-size: 0.72rem; color: #64748b; font-weight: 600;"><div></div>';
+        for (let h = 0; h < 24; h++) {
+            const hStr = h < 10 ? '0' + h : '' + h;
+            html += `<div>${hStr}h</div>`;
+        }
+        html += '</div>';
+
+        punchcardData.days.forEach(row => {
+            const dayLabel = isEn ? (dayNamesEn[row.day_index] || row.day_name) : row.day_name;
+            html += '<div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 4px; align-items: center;">';
+            html += `<div style="font-size: 0.82rem; font-weight: 700; color: #94a3b8; text-align: right; padding-right: 12px;">${dayLabel}</div>`;
+
+            (row.hours || []).forEach(c => {
+                let bg = 'rgba(255, 255, 255, 0.03)';
+                let shadow = '';
+                if (c.intensity > 0.75) {
+                    bg = '#f43f5e';
+                    shadow = 'box-shadow: 0 0 8px rgba(244, 63, 94, 0.5);';
+                } else if (c.intensity > 0.50) {
+                    bg = 'rgba(129, 140, 248, 0.8)';
+                } else if (c.intensity > 0.25) {
+                    bg = 'rgba(56, 189, 248, 0.55)';
+                } else if (c.intensity > 0) {
+                    bg = 'rgba(56, 189, 248, 0.25)';
+                }
+
+                const title = isEn
+                    ? `${dayLabel} at ${c.hour}:00 : ${c.voice_hours}h voice • ${c.messages} messages`
+                    : `${dayLabel} à ${c.hour}h00 : ${c.voice_hours}h vocal • ${c.messages} messages`;
+
+                html += `<div style="height: 24px; border-radius: 4px; transition: transform 0.15s ease; cursor: pointer; background: ${bg}; ${shadow}" title="${title}" onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';"></div>`;
+            });
+
+            html += '</div>';
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
     // ===================================================================
     // TAB: HISTORIQUE (myChart & messagesChart)
     // ===================================================================
     function initTabHistoryCharts() {
+        if (!apiData) return;
         if (c1 || c2) return;
         const isDay = (globalGranularity === 'day');
 
         // -------------------------------------------------------------------
         // 1. Line Chart: Cumulative Hours Over Time
         // -------------------------------------------------------------------
-        const totalHoursEl = document.getElementById('totalHoursData');
-        const totalDailyHoursEl = document.getElementById('totalDailyHoursData');
-        if (totalHoursEl) totalHoursData = JSON.parse(totalHoursEl.textContent);
-        if (totalDailyHoursEl) totalDailyHoursData = JSON.parse(totalDailyHoursEl.textContent);
+        totalHoursData = apiData.chart_data;
+        totalDailyHoursData = apiData.daily_chart_data;
 
         if (totalHoursData) {
             const activeHours = (isDay && totalDailyHoursData) ? totalDailyHoursData : totalHoursData;
@@ -738,1201 +875,1197 @@ document.addEventListener('DOMContentLoaded', function() {
                     datasets: [{
                         label: isEn ? 'Cumulative hours' : 'Heures cumulées',
                         data: activeHours.hours,
-                    borderColor: '#38bdf8',
-                    backgroundColor: lineGradient,
-                    borderWidth: 3,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 3,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: '#38bdf8',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
+                        borderColor: '#38bdf8',
+                        backgroundColor: lineGradient,
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#38bdf8',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: 'bold' }
-                        }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#38bdf8',
-                        borderColor: 'rgba(56, 189, 248, 0.3)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            title: function(items) {
-                                if (!items.length) return '';
-                                const item = items[0];
-                                const currentData = (globalGranularity === 'day' && totalDailyHoursData) ? totalDailyHoursData : totalHoursData;
-                                const rawDate = (currentData && currentData.labels && currentData.labels[item.dataIndex])
-                                    || (item.parsed && item.parsed.x)
-                                    || item.label;
-                                if (rawDate) {
-                                    const d = (typeof rawDate === 'string' && rawDate.includes('-')) 
-                                        ? new Date(rawDate + 'T00:00:00') 
-                                        : new Date(rawDate);
-                                    if (!isNaN(d.getTime())) {
-                                        return d.toLocaleDateString(langLocale, { day: 'numeric', month: 'long', year: 'numeric' });
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#38bdf8',
+                            borderColor: 'rgba(56, 189, 248, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            callbacks: {
+                                title: function(items) {
+                                    if (!items.length) return '';
+                                    const item = items[0];
+                                    const currentData = (globalGranularity === 'day' && totalDailyHoursData) ? totalDailyHoursData : totalHoursData;
+                                    const rawDate = (currentData && currentData.labels && currentData.labels[item.dataIndex])
+                                        || (item.parsed && item.parsed.x)
+                                        || item.label;
+                                    if (rawDate) {
+                                        const d = (typeof rawDate === 'string' && rawDate.includes('-')) 
+                                            ? new Date(rawDate + 'T00:00:00') 
+                                            : new Date(rawDate);
+                                        if (!isNaN(d.getTime())) {
+                                            return d.toLocaleDateString(langLocale, { day: 'numeric', month: 'long', year: 'numeric' });
+                                        }
                                     }
+                                    return item.label || '';
+                                },
+                                label: function(context) {
+                                    const val = context.parsed.y;
+                                    const dataArr = context.dataset.data;
+                                    const idx = context.dataIndex;
+                                    let deltaStr = '';
+                                    if (idx > 0 && dataArr && dataArr.length > idx) {
+                                        const prev = typeof dataArr[idx - 1] === 'number' ? dataArr[idx - 1] : (dataArr[idx - 1]?.y ?? 0);
+                                        const diff = Math.round((val - prev) * 10) / 10;
+                                        const diffSign = diff >= 0 ? '+' : '';
+                                        const periodText = isEn
+                                            ? (globalGranularity === 'day' ? 'this day' : 'this month')
+                                            : (globalGranularity === 'day' ? 'ce jour' : 'ce mois');
+                                        deltaStr = ` (${diffSign}${diff.toLocaleString(langLocale)} h ${periodText})`;
+                                    } else if (idx === 0) {
+                                        deltaStr = isEn ? ' (baseline)' : ' (point de départ)';
+                                    }
+                                    return ` ${val.toLocaleString(langLocale)} ${isEn ? 'hours' : 'heures'}${deltaStr}`;
                                 }
-                                return item.label || '';
-                            },
-                            label: function(context) {
-                                const val = context.parsed.y;
-                                const dataArr = context.dataset.data;
-                                const idx = context.dataIndex;
-                                let deltaStr = '';
-                                if (idx > 0 && dataArr && dataArr.length > idx) {
-                                    const prev = typeof dataArr[idx - 1] === 'number' ? dataArr[idx - 1] : (dataArr[idx - 1]?.y ?? 0);
-                                    const diff = Math.round((val - prev) * 10) / 10;
-                                    const diffSign = diff >= 0 ? '+' : '';
-                                    const periodText = isEn
-                                        ? (globalGranularity === 'day' ? 'this day' : 'this month')
-                                        : (globalGranularity === 'day' ? 'ce jour' : 'ce mois');
-                                    deltaStr = ` (${diffSign}${diff.toLocaleString(langLocale)} h ${periodText})`;
-                                } else if (idx === 0) {
-                                    deltaStr = isEn ? ' (baseline)' : ' (point de départ)';
-                                }
-                                return ` ${val.toLocaleString(langLocale)} ${isEn ? 'hours' : 'heures'}${deltaStr}`;
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: { unit: isDay ? 'day' : 'month' },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: '#94a3b8'
-                        }
                     },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.06)',
-                            drawBorder: false
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: isDay ? 'day' : 'month' },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
                         },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(value) {
-                                return value.toLocaleString(langLocale) + ' ' + hoursUnit;
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.06)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return value.toLocaleString(langLocale) + ' ' + hoursUnit;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-        activeChartInstances.push(c1);
-    }
+            });
+            activeChartInstances.push(c1);
+        }
 
-    // -------------------------------------------------------------------
-    // 2. Line Chart: Cumulative Messages Over Time
-    // -------------------------------------------------------------------
-    const totalMessagesEl = document.getElementById('totalMessagesData');
-    const totalDailyMessagesEl = document.getElementById('totalDailyMessagesData');
-    if (totalMessagesEl) totalMessagesData = JSON.parse(totalMessagesEl.textContent);
-    if (totalDailyMessagesEl) totalDailyMessagesData = JSON.parse(totalDailyMessagesEl.textContent);
+        // -------------------------------------------------------------------
+        // 2. Line Chart: Cumulative Messages Over Time
+        // -------------------------------------------------------------------
+        totalMessagesData = apiData.messages_chart_data;
+        totalDailyMessagesData = apiData.daily_messages_chart_data;
 
-    if (totalMessagesData) {
-        const activeMsgs = (isDay && totalDailyMessagesData) ? totalDailyMessagesData : totalMessagesData;
-        const messagesCtx = document.getElementById('messagesChart').getContext('2d');
+        if (totalMessagesData) {
+            const activeMsgs = (isDay && totalDailyMessagesData) ? totalDailyMessagesData : totalMessagesData;
+            const messagesCtx = document.getElementById('messagesChart').getContext('2d');
 
-        const messagesGradient = messagesCtx.createLinearGradient(0, 0, 0, 350);
-        messagesGradient.addColorStop(0, 'rgba(88, 101, 242, 0.35)');
-        messagesGradient.addColorStop(1, 'rgba(88, 101, 242, 0.00)');
+            const messagesGradient = messagesCtx.createLinearGradient(0, 0, 0, 350);
+            messagesGradient.addColorStop(0, 'rgba(88, 101, 242, 0.35)');
+            messagesGradient.addColorStop(1, 'rgba(88, 101, 242, 0.00)');
 
-        c2 = new Chart(messagesCtx, {
-            type: 'line',
-            data: {
-                labels: activeMsgs.labels,
-                datasets: [{
-                    label: isEn ? 'Cumulative messages' : 'Messages cumulés',
-                    data: activeMsgs.messages,
-                    borderColor: '#5865F2',
-                    backgroundColor: messagesGradient,
-                    borderWidth: 3,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 3,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: '#5865F2',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
+            c2 = new Chart(messagesCtx, {
+                type: 'line',
+                data: {
+                    labels: activeMsgs.labels,
+                    datasets: [{
+                        label: isEn ? 'Cumulative messages' : 'Messages cumulés',
+                        data: activeMsgs.messages,
+                        borderColor: '#5865F2',
+                        backgroundColor: messagesGradient,
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#5865F2',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: 'bold' }
-                        }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#a5b4fc',
-                        borderColor: 'rgba(88, 101, 242, 0.4)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            title: function(items) {
-                                if (!items.length) return '';
-                                const item = items[0];
-                                const currentData = (globalGranularity === 'day' && totalDailyMessagesData) ? totalDailyMessagesData : totalMessagesData;
-                                const rawDate = (currentData && currentData.labels && currentData.labels[item.dataIndex])
-                                    || (item.parsed && item.parsed.x)
-                                    || item.label;
-                                if (rawDate) {
-                                    const d = (typeof rawDate === 'string' && rawDate.includes('-')) 
-                                        ? new Date(rawDate + 'T00:00:00') 
-                                        : new Date(rawDate);
-                                    if (!isNaN(d.getTime())) {
-                                        return d.toLocaleDateString(langLocale, { day: 'numeric', month: 'long', year: 'numeric' });
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#a5b4fc',
+                            borderColor: 'rgba(88, 101, 242, 0.4)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            callbacks: {
+                                title: function(items) {
+                                    if (!items.length) return '';
+                                    const item = items[0];
+                                    const currentData = (globalGranularity === 'day' && totalDailyMessagesData) ? totalDailyMessagesData : totalMessagesData;
+                                    const rawDate = (currentData && currentData.labels && currentData.labels[item.dataIndex])
+                                        || (item.parsed && item.parsed.x)
+                                        || item.label;
+                                    if (rawDate) {
+                                        const d = (typeof rawDate === 'string' && rawDate.includes('-')) 
+                                            ? new Date(rawDate + 'T00:00:00') 
+                                            : new Date(rawDate);
+                                        if (!isNaN(d.getTime())) {
+                                            return d.toLocaleDateString(langLocale, { day: 'numeric', month: 'long', year: 'numeric' });
+                                        }
                                     }
+                                    return item.label || '';
+                                },
+                                label: function(context) {
+                                    const val = context.parsed.y;
+                                    const dataArr = context.dataset.data;
+                                    const idx = context.dataIndex;
+                                    let deltaStr = '';
+                                    if (idx > 0 && dataArr && dataArr.length > idx) {
+                                        const prev = typeof dataArr[idx - 1] === 'number' ? dataArr[idx - 1] : (dataArr[idx - 1]?.y ?? 0);
+                                        const diff = Math.round(val - prev);
+                                        const diffSign = diff >= 0 ? '+' : '';
+                                        const periodText = isEn
+                                            ? (globalGranularity === 'day' ? 'this day' : 'this month')
+                                            : (globalGranularity === 'day' ? 'ce jour' : 'ce mois');
+                                        deltaStr = ` (${diffSign}${diff.toLocaleString(langLocale)} ${periodText})`;
+                                    } else if (idx === 0) {
+                                        deltaStr = isEn ? ' (baseline)' : ' (point de départ)';
+                                    }
+                                    return ` ${val.toLocaleString(langLocale)} messages${deltaStr}`;
                                 }
-                                return item.label || '';
-                            },
-                            label: function(context) {
-                                const val = context.parsed.y;
-                                const dataArr = context.dataset.data;
-                                const idx = context.dataIndex;
-                                let deltaStr = '';
-                                if (idx > 0 && dataArr && dataArr.length > idx) {
-                                    const prev = typeof dataArr[idx - 1] === 'number' ? dataArr[idx - 1] : (dataArr[idx - 1]?.y ?? 0);
-                                    const diff = Math.round(val - prev);
-                                    const diffSign = diff >= 0 ? '+' : '';
-                                    const periodText = isEn
-                                        ? (globalGranularity === 'day' ? 'this day' : 'this month')
-                                        : (globalGranularity === 'day' ? 'ce jour' : 'ce mois');
-                                    deltaStr = ` (${diffSign}${diff.toLocaleString(langLocale)} ${periodText})`;
-                                } else if (idx === 0) {
-                                    deltaStr = isEn ? ' (baseline)' : ' (point de départ)';
-                                }
-                                return ` ${val.toLocaleString(langLocale)} messages${deltaStr}`;
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: { unit: isDay ? 'day' : 'month' },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: '#94a3b8'
-                        }
                     },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.06)',
-                            drawBorder: false
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: isDay ? 'day' : 'month' },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
                         },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(value) {
-                                return value.toLocaleString(langLocale) + ' ' + msgsUnit;
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.06)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return value.toLocaleString(langLocale) + ' ' + msgsUnit;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-        activeChartInstances.push(c2);
+            });
+            activeChartInstances.push(c2);
+        }
     }
-}
 
     // ===================================================================
     // TAB: ACTIVITÉ PÉRIODIQUE (monthlyChart, monthlyMessagesChart, dailyActivityChart, globalHourlyChart)
     // ===================================================================
     function initTabActivityCharts() {
+        if (!apiData) return;
+
         // -------------------------------------------------------------------
         // 3. Bar Chart: Monthly Hours & Average
         // -------------------------------------------------------------------
-    const monthlyHoursEl = document.getElementById('monthlyHoursData');
-    if (monthlyHoursEl) {
-        const monthlyData = JSON.parse(monthlyHoursEl.textContent);
-        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        const monthlyData = apiData.monthly_chart_data;
+        if (monthlyData) {
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
 
-        const completedMonths = monthlyData.hours.length > 1 ? monthlyData.hours.slice(0, -1) : monthlyData.hours;
-        const avg = completedMonths.reduce((a, b) => a + b, 0) / Math.max(1, completedMonths.length);
+            const completedMonths = monthlyData.hours.length > 1 ? monthlyData.hours.slice(0, -1) : monthlyData.hours;
+            const avg = completedMonths.reduce((a, b) => a + b, 0) / Math.max(1, completedMonths.length);
 
-        const c3 = new Chart(monthlyCtx, {
-            type: 'bar',
-            data: {
-                labels: monthlyData.labels,
-                datasets: [
-                    {
-                        label: isEn ? 'Monthly hours' : 'Heures du mois',
-                        data: monthlyData.hours,
-                        backgroundColor: '#38bdf8',
-                        hoverBackgroundColor: '#0284c7',
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        order: 2
-                    },
-                    {
-                        label: (isEn ? 'Average' : 'Moyenne') + ` (${avg.toFixed(1)} ${hoursUnit})`,
-                        data: Array(monthlyData.hours.length).fill(Number(avg.toFixed(1))),
-                        type: 'line',
-                        borderColor: '#fbbf24',
-                        borderWidth: 2.5,
-                        borderDash: [6, 6],
-                        pointRadius: 0,
-                        fill: false,
-                        order: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: 'bold' }
+            const c3 = new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: monthlyData.labels,
+                    datasets: [
+                        {
+                            label: isEn ? 'Monthly hours' : 'Heures du mois',
+                            data: monthlyData.hours,
+                            backgroundColor: '#38bdf8',
+                            hoverBackgroundColor: '#0284c7',
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            order: 2
+                        },
+                        {
+                            label: (isEn ? 'Average' : 'Moyenne') + ` (${avg.toFixed(1)} ${hoursUnit})`,
+                            data: Array(monthlyData.hours.length).fill(Number(avg.toFixed(1))),
+                            type: 'line',
+                            borderColor: '#fbbf24',
+                            borderWidth: 2.5,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1
                         }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(56, 189, 248, 0.3)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            label: function(context) {
-                                if (context.dataset.type === 'line') {
-                                    return ` ${isEn ? 'Average:' : 'Moyenne :'} ${context.parsed.y.toLocaleString(langLocale)} ${hoursUnit}`;
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(56, 189, 248, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.type === 'line') {
+                                        return ` ${isEn ? 'Average:' : 'Moyenne :'} ${context.parsed.y.toLocaleString(langLocale)} ${hoursUnit}`;
+                                    }
+                                    return ` ${isEn ? 'Activity:' : 'Activité :'} ${context.parsed.y.toLocaleString(langLocale)} ${isEn ? 'hours' : 'heures'}`;
                                 }
-                                return ` ${isEn ? 'Activity:' : 'Activité :'} ${context.parsed.y.toLocaleString(langLocale)} ${isEn ? 'hours' : 'heures'}`;
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#94a3b8', maxRotation: 45 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
                             }
                         }
                     }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: '#94a3b8', maxRotation: 45 }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
-                        }
-                    }
                 }
-            }
-        });
-        activeChartInstances.push(c3);
-    }
+            });
+            activeChartInstances.push(c3);
+        }
 
-    // -------------------------------------------------------------------
-    // 4. Bar Chart: Monthly Messages & Average
-    // -------------------------------------------------------------------
-    const monthlyMessagesEl = document.getElementById('monthlyMessagesData');
-    if (monthlyMessagesEl) {
-        const monthlyMessagesData = JSON.parse(monthlyMessagesEl.textContent);
-        const monthlyMessagesCtx = document.getElementById('monthlyMessagesChart').getContext('2d');
+        // -------------------------------------------------------------------
+        // 4. Bar Chart: Monthly Messages & Average
+        // -------------------------------------------------------------------
+        const monthlyMessagesData = apiData.monthly_messages_chart_data;
+        if (monthlyMessagesData) {
+            const monthlyMessagesCtx = document.getElementById('monthlyMessagesChart').getContext('2d');
 
-        const completedMsgMonths = monthlyMessagesData.messages.length > 1 ? monthlyMessagesData.messages.slice(0, -1) : monthlyMessagesData.messages;
-        const avgMsg = completedMsgMonths.reduce((a, b) => a + b, 0) / Math.max(1, completedMsgMonths.length);
+            const completedMsgMonths = monthlyMessagesData.messages.length > 1 ? monthlyMessagesData.messages.slice(0, -1) : monthlyMessagesData.messages;
+            const avgMsg = completedMsgMonths.reduce((a, b) => a + b, 0) / Math.max(1, completedMsgMonths.length);
 
-        const c4 = new Chart(monthlyMessagesCtx, {
-            type: 'bar',
-            data: {
-                labels: monthlyMessagesData.labels,
-                datasets: [
-                    {
-                        label: isEn ? 'Monthly messages' : 'Messages du mois',
-                        data: monthlyMessagesData.messages,
-                        backgroundColor: '#5865F2',
-                        hoverBackgroundColor: '#4752c4',
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        order: 2
-                    },
-                    {
-                        label: (isEn ? 'Average' : 'Moyenne') + ` (${Math.round(avgMsg).toLocaleString(langLocale)} ${msgsUnit})`,
-                        data: Array(monthlyMessagesData.messages.length).fill(Math.round(avgMsg)),
-                        type: 'line',
-                        borderColor: '#f472b6',
-                        borderWidth: 2.5,
-                        borderDash: [6, 6],
-                        pointRadius: 0,
-                        fill: false,
-                        order: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: 'bold' }
+            const c4 = new Chart(monthlyMessagesCtx, {
+                type: 'bar',
+                data: {
+                    labels: monthlyMessagesData.labels,
+                    datasets: [
+                        {
+                            label: isEn ? 'Monthly messages' : 'Messages du mois',
+                            data: monthlyMessagesData.messages,
+                            backgroundColor: '#5865F2',
+                            hoverBackgroundColor: '#4752c4',
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            order: 2
+                        },
+                        {
+                            label: (isEn ? 'Average' : 'Moyenne') + ` (${Math.round(avgMsg).toLocaleString(langLocale)} ${msgsUnit})`,
+                            data: Array(monthlyMessagesData.messages.length).fill(Math.round(avgMsg)),
+                            type: 'line',
+                            borderColor: '#f472b6',
+                            borderWidth: 2.5,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1
                         }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(88, 101, 242, 0.3)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            label: function(context) {
-                                if (context.dataset.type === 'line') {
-                                    return ` ${isEn ? 'Average:' : 'Moyenne :'} ${context.parsed.y.toLocaleString(langLocale)} messages`;
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(88, 101, 242, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.type === 'line') {
+                                        return ` ${isEn ? 'Average:' : 'Moyenne :'} ${context.parsed.y.toLocaleString(langLocale)} messages`;
+                                    }
+                                    return ` ${isEn ? 'Messages:' : 'Messages :'} ${context.parsed.y.toLocaleString(langLocale)}`;
                                 }
-                                return ` ${isEn ? 'Messages:' : 'Messages :'} ${context.parsed.y.toLocaleString(langLocale)}`;
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#94a3b8', maxRotation: 45 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
                             }
                         }
                     }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: '#94a3b8', maxRotation: 45 }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
-                        }
-                    }
                 }
-            }
-        });
-        activeChartInstances.push(c4);
-    }
+            });
+            activeChartInstances.push(c4);
+        }
 
-    // -------------------------------------------------------------------
-    // 5. Area Chart: 30-Day Daily Activity
-    // -------------------------------------------------------------------
-    const dailyActivityEl = document.getElementById('dailyActivityData');
-    if (dailyActivityEl) {
-        const dailyData = JSON.parse(dailyActivityEl.textContent);
-        const dailyCtx = document.getElementById('dailyActivityChart').getContext('2d');
+        // -------------------------------------------------------------------
+        // 5. Area Chart: 30-Day Daily Activity
+        // -------------------------------------------------------------------
+        const dailyData = apiData.daily_activity_chart_data;
+        if (dailyData) {
+            const dailyCtx = document.getElementById('dailyActivityChart').getContext('2d');
 
-        const dailyGradient = dailyCtx.createLinearGradient(0, 0, 0, 350);
-        dailyGradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
-        dailyGradient.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+            const dailyGradient = dailyCtx.createLinearGradient(0, 0, 0, 350);
+            dailyGradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+            dailyGradient.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
 
-        const c5 = new Chart(dailyCtx, {
-            type: 'line',
-            data: {
-                labels: dailyData.labels,
-                datasets: [{
-                    label: isEn ? 'Voice hours' : 'Heures en vocal',
-                    data: dailyData.hours,
-                    borderColor: '#10b981',
-                    backgroundColor: dailyGradient,
-                    borderWidth: 3,
-                    tension: 0.35,
-                    fill: true,
-                    pointRadius: 4,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: '#10b981',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: 'bold' }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#34d399',
-                        borderColor: 'rgba(16, 185, 129, 0.3)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            title: function(items) {
-                                return items.length ? ((isEn ? 'Date: ' : 'Date : ') + items[0].label) : '';
-                            },
-                            label: function(context) {
-                                const msgs = dailyData.messages[context.dataIndex] || 0;
-                                return isEn ? [
-                                    ` Activity: ${context.parsed.y.toLocaleString(langLocale)} hours`,
-                                    ` Messages: ${msgs.toLocaleString(langLocale)} messages`
-                                ] : [
-                                    ` Activité : ${context.parsed.y.toLocaleString(langLocale)} heures`,
-                                    ` Messages : ${msgs.toLocaleString(langLocale)} messages`
-                                ];
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.04)', drawBorder: false },
-                        ticks: { color: '#94a3b8', maxRotation: 45 }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
-                        }
-                    }
-                }
-            }
-        });
-        activeChartInstances.push(c5);
-    }
-
-    // -------------------------------------------------------------------
-    // 5b. Global 24h Hourly Activity & Peak Hours
-    // -------------------------------------------------------------------
-    const globalHourlyEl = document.getElementById('globalHourlyData');
-    if (globalHourlyEl) {
-        const hData = JSON.parse(globalHourlyEl.textContent);
-        const gCtx = document.getElementById('globalHourlyChart').getContext('2d');
-
-        const cGlobalHourly = new Chart(gCtx, {
-            type: 'line',
-            data: {
-                labels: hData.labels,
-                datasets: [
-                    {
-                        label: isEn ? 'Avg Voice (h/day)' : 'Moyenne vocale (h/jour)',
-                        data: hData.voice_hours,
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                        borderWidth: 2.5,
-                        fill: true,
+            const c5 = new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: dailyData.labels,
+                    datasets: [{
+                        label: isEn ? 'Voice hours' : 'Heures en vocal',
+                        data: dailyData.hours,
+                        borderColor: '#10b981',
+                        backgroundColor: dailyGradient,
+                        borderWidth: 3,
                         tension: 0.35,
+                        fill: true,
                         pointRadius: 4,
                         pointHoverRadius: 7,
-                        pointBackgroundColor: '#38bdf8',
-                        yAxisID: 'y'
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     },
-                    {
-                        label: isEn ? 'Avg Messages (msgs/day)' : 'Moyenne messages (msgs/jour)',
-                        data: hData.messages_count,
-                        borderColor: '#a5b4fc',
-                        backgroundColor: 'rgba(165, 180, 252, 0.08)',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        fill: false,
-                        tension: 0.35,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#a5b4fc',
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: { color: '#e2e8f0', font: { weight: '600' } }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(56, 189, 248, 0.3)',
-                        borderWidth: 1,
-                        padding: 12,
-                        callbacks: {
-                            label: function(ctx) {
-                                if (ctx.datasetIndex === 0) {
-                                    return ` 🎙️ ${ctx.parsed.y} ${isEn ? 'h/day' : 'h/jour'}`;
-                                } else {
-                                    return ` 💬 ${ctx.parsed.y.toLocaleString(langLocale)} ${isEn ? 'msgs/day' : 'msgs/jour'}`;
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#34d399',
+                            borderColor: 'rgba(16, 185, 129, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            callbacks: {
+                                title: function(items) {
+                                    return items.length ? ((isEn ? 'Date: ' : 'Date : ') + items[0].label) : '';
+                                },
+                                label: function(context) {
+                                    const msgs = dailyData.messages[context.dataIndex] || 0;
+                                    return isEn ? [
+                                        ` Activity: ${context.parsed.y.toLocaleString(langLocale)} hours`,
+                                        ` Messages: ${msgs.toLocaleString(langLocale)} messages`
+                                    ] : [
+                                        ` Activité : ${context.parsed.y.toLocaleString(langLocale)} heures`,
+                                        ` Messages : ${msgs.toLocaleString(langLocale)} messages`
+                                    ];
                                 }
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                        ticks: { color: '#94a3b8' }
                     },
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: {
-                            color: '#38bdf8',
-                            callback: function(v) { return v + ' ' + (isEn ? 'h/day' : 'h/jour'); }
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        beginAtZero: true,
-                        grid: { drawOnChartArea: false },
-                        ticks: {
-                            color: '#a5b4fc',
-                            callback: function(v) { return v.toLocaleString(langLocale) + ' ' + (isEn ? 'msgs/day' : 'msgs/jour'); }
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.04)', drawBorder: false },
+                            ticks: { color: '#94a3b8', maxRotation: 45 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
+                            }
                         }
                     }
                 }
-            }
-        });
-        activeChartInstances.push(cGlobalHourly);
+            });
+            activeChartInstances.push(c5);
+        }
+
+        // -------------------------------------------------------------------
+        // 5b. Global 24h Hourly Activity & Peak Hours
+        // -------------------------------------------------------------------
+        const hData = apiData.global_hourly_chart;
+        if (hData) {
+            const gCtx = document.getElementById('globalHourlyChart').getContext('2d');
+
+            const cGlobalHourly = new Chart(gCtx, {
+                type: 'line',
+                data: {
+                    labels: hData.labels,
+                    datasets: [
+                        {
+                            label: isEn ? 'Avg Voice (h/day)' : 'Moyenne vocale (h/jour)',
+                            data: hData.voice_hours,
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#38bdf8',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: isEn ? 'Avg Messages (msgs/day)' : 'Moyenne messages (msgs/jour)',
+                            data: hData.messages_count,
+                            borderColor: '#a5b4fc',
+                            backgroundColor: 'rgba(165, 180, 252, 0.08)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#a5b4fc',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { color: '#e2e8f0', font: { weight: '600' } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(56, 189, 248, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.datasetIndex === 0) {
+                                        return ` 🎙️ ${ctx.parsed.y} ${isEn ? 'h/day' : 'h/jour'}`;
+                                    } else {
+                                        return ` 💬 ${ctx.parsed.y.toLocaleString(langLocale)} ${isEn ? 'msgs/day' : 'msgs/jour'}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                            ticks: {
+                                color: '#38bdf8',
+                                callback: function(v) { return v + ' ' + (isEn ? 'h/day' : 'h/jour'); }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            ticks: {
+                                color: '#a5b4fc',
+                                callback: function(v) { return v.toLocaleString(langLocale) + ' ' + (isEn ? 'msgs/day' : 'msgs/jour'); }
+                            }
+                        }
+                    }
+                }
+            });
+            activeChartInstances.push(cGlobalHourly);
+        }
     }
-}
 
     // ===================================================================
     // TAB: COMPARATIF SERVEURS (serversPieChart, serversMessagesPieChart)
     // ===================================================================
     function initTabServersCharts() {
+        if (!apiData) return;
+
         // -------------------------------------------------------------------
         // 6. Doughnut Chart: Top 10 Servers Breakdown (Hours)
         // -------------------------------------------------------------------
-    const pieDataEl = document.getElementById('serversPieData');
-    if (pieDataEl) {
-        const pieData = JSON.parse(pieDataEl.textContent);
-        const pieCtx = document.getElementById('serversPieChart').getContext('2d');
+        const pieData = apiData.chart_data_pie_server;
+        if (pieData) {
+            const pieCtx = document.getElementById('serversPieChart').getContext('2d');
 
-        const c6 = new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: pieData.labels,
-                datasets: [{
-                    data: pieData.hours,
-                    backgroundColor: modernPalette.slice(0, pieData.labels.length),
-                    borderColor: '#15202e',
-                    borderWidth: 2,
-                    hoverOffset: 12
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '55%',
-                layout: { padding: 10 },
-                plugins: {
-                    legend: {
-                        position: window.innerWidth < 768 ? 'bottom' : 'right',
-                        labels: {
-                            color: '#cbd5e1',
+            const c6 = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: pieData.labels,
+                    datasets: [{
+                        data: pieData.hours,
+                        backgroundColor: modernPalette.slice(0, pieData.labels.length),
+                        borderColor: '#15202e',
+                        borderWidth: 2,
+                        hoverOffset: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '55%',
+                    layout: { padding: 10 },
+                    plugins: {
+                        legend: {
+                            position: window.innerWidth < 768 ? 'bottom' : 'right',
+                            labels: {
+                                color: '#cbd5e1',
+                                padding: 12,
+                                font: { size: 11, weight: '500' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
                             padding: 12,
-                            font: { size: 11, weight: '500' },
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const val = context.parsed;
-                                const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${percentage}%)`;
+                            boxPadding: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const val = context.parsed;
+                                    const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${percentage}%)`;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-        activeChartInstances.push(c6);
-    }
+            });
+            activeChartInstances.push(c6);
+        }
 
-    // -------------------------------------------------------------------
-    // 7. Doughnut Chart: Top 10 Servers Breakdown (Messages)
-    // -------------------------------------------------------------------
-    const serverMessagesPieEl = document.getElementById('serversMessagesPieData');
-    if (serverMessagesPieEl) {
-        const serverMessagesData = JSON.parse(serverMessagesPieEl.textContent);
-        const serverMessagesPieCtx = document.getElementById('serversMessagesPieChart').getContext('2d');
+        // -------------------------------------------------------------------
+        // 7. Doughnut Chart: Top 10 Servers Breakdown (Messages)
+        // -------------------------------------------------------------------
+        const serverMessagesData = apiData.server_messages_pie;
+        if (serverMessagesData) {
+            const serverMessagesPieCtx = document.getElementById('serversMessagesPieChart').getContext('2d');
 
-        const c7 = new Chart(serverMessagesPieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: serverMessagesData.labels,
-                datasets: [{
-                    data: serverMessagesData.messages,
-                    backgroundColor: modernPalette.slice(0, serverMessagesData.labels.length),
-                    borderColor: '#15202e',
-                    borderWidth: 2,
-                    hoverOffset: 12
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '55%',
-                layout: { padding: 10 },
-                plugins: {
-                    legend: {
-                        position: window.innerWidth < 768 ? 'bottom' : 'right',
-                        labels: {
-                            color: '#cbd5e1',
+            const c7 = new Chart(serverMessagesPieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: serverMessagesData.labels,
+                    datasets: [{
+                        data: serverMessagesData.messages,
+                        backgroundColor: modernPalette.slice(0, serverMessagesData.labels.length),
+                        borderColor: '#15202e',
+                        borderWidth: 2,
+                        hoverOffset: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '55%',
+                    layout: { padding: 10 },
+                    plugins: {
+                        legend: {
+                            position: window.innerWidth < 768 ? 'bottom' : 'right',
+                            labels: {
+                                color: '#cbd5e1',
+                                padding: 12,
+                                font: { size: 11, weight: '500' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
                             padding: 12,
-                            font: { size: 11, weight: '500' },
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const val = context.parsed;
-                                const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                return ` ${val.toLocaleString(langLocale)} ${msgsUnit} (${percentage}%)`;
+                            boxPadding: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const val = context.parsed;
+                                    const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    return ` ${val.toLocaleString(langLocale)} ${msgsUnit} (${percentage}%)`;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-        activeChartInstances.push(c7);
+            });
+            activeChartInstances.push(c7);
+        }
     }
-}
 
     // ===================================================================
     // TAB: COMMUNAUTÉ & MEMBRES (topUsersHorizontalChart, presence48hChart, userGrowthChart)
     // ===================================================================
     function initTabCommunityCharts() {
+        if (!apiData) return;
+
         // -------------------------------------------------------------------
         // 8. Horizontal Bar Chart: Top 10 Users by Hours / Messages / Dual
         // -------------------------------------------------------------------
-    let c8Instance = null;
-    const topUsersEl = document.getElementById('topUsersData');
-    if (topUsersEl) {
-        const topUsersRaw = JSON.parse(topUsersEl.textContent);
-        const topUsersCtx = document.getElementById('topUsersHorizontalChart').getContext('2d');
+        let c8Instance = null;
+        const topUsersRaw = apiData.top_users_chart;
+        if (topUsersRaw) {
+            const topUsersCtx = document.getElementById('topUsersHorizontalChart').getContext('2d');
 
-        const vocalSet = topUsersRaw.vocal || topUsersRaw;
-        const messagesSet = topUsersRaw.messages || topUsersRaw;
+            const vocalSet = topUsersRaw.vocal || topUsersRaw;
+            const messagesSet = topUsersRaw.messages || topUsersRaw;
 
-        function formatRankLabel(name, index) {
-            return `#${index + 1}  ${name}`;
-        }
+            function formatRankLabel(name, index) {
+                return `#${index + 1}  ${name}`;
+            }
 
-        function getPodiumColor(index, alpha = 0.85) {
-            if (index === 0) return `rgba(245, 158, 11, ${alpha})`; // Gold
-            if (index === 1) return `rgba(148, 163, 184, ${alpha})`; // Silver
-            if (index === 2) return `rgba(217, 119, 6, ${alpha})`; // Bronze
-            return `rgba(20, 184, 166, ${alpha})`; // Teal/Emerald
-        }
+            function getPodiumColor(index, alpha = 0.85) {
+                if (index === 0) return `rgba(245, 158, 11, ${alpha})`; // Gold
+                if (index === 1) return `rgba(148, 163, 184, ${alpha})`; // Silver
+                if (index === 2) return `rgba(217, 119, 6, ${alpha})`; // Bronze
+                return `rgba(20, 184, 166, ${alpha})`; // Teal/Emerald
+            }
 
-        function getPodiumBorder(index) {
-            if (index === 0) return '#fbbf24';
-            if (index === 1) return '#cbd5e1';
-            if (index === 2) return '#f97316';
-            return '#2dd4bf';
-        }
+            function getPodiumBorder(index) {
+                if (index === 0) return '#fbbf24';
+                if (index === 1) return '#cbd5e1';
+                if (index === 2) return '#f97316';
+                return '#2dd4bf';
+            }
 
-        function getMessageColor(index, alpha = 0.85) {
-            if (index === 0) return `rgba(245, 158, 11, ${alpha})`;
-            if (index === 1) return `rgba(148, 163, 184, ${alpha})`;
-            if (index === 2) return `rgba(217, 119, 6, ${alpha})`;
-            return `rgba(168, 85, 247, ${alpha})`; // Purple/Violet
-        }
+            function getMessageColor(index, alpha = 0.85) {
+                if (index === 0) return `rgba(245, 158, 11, ${alpha})`;
+                if (index === 1) return `rgba(148, 163, 184, ${alpha})`;
+                if (index === 2) return `rgba(217, 119, 6, ${alpha})`;
+                return `rgba(168, 85, 247, ${alpha})`; // Purple/Violet
+            }
 
-        function getMessageBorder(index) {
-            if (index === 0) return '#fbbf24';
-            if (index === 1) return '#cbd5e1';
-            if (index === 2) return '#f97316';
-            return '#c084fc';
-        }
+            function getMessageBorder(index) {
+                if (index === 0) return '#fbbf24';
+                if (index === 1) return '#cbd5e1';
+                if (index === 2) return '#f97316';
+                return '#c084fc';
+            }
 
-        function buildTopUsersConfig(mode) {
-            if (mode === 'messages') {
-                const labels = messagesSet.labels.map((n, i) => formatRankLabel(n, i));
-                return {
-                    labels: labels,
-                    datasets: [{
-                        label: isEn ? 'Messages sent' : 'Messages envoyés',
-                        data: messagesSet.messages,
-                        backgroundColor: messagesSet.messages.map((_, i) => getMessageColor(i, 0.85)),
-                        borderColor: messagesSet.messages.map((_, i) => getMessageBorder(i)),
-                        borderWidth: 1.5,
-                        borderRadius: 8,
-                        borderSkipped: false
-                    }],
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            position: 'bottom',
-                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                            ticks: {
-                                color: '#94a3b8',
-                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
+            function buildTopUsersConfig(mode) {
+                if (mode === 'messages') {
+                    const labels = messagesSet.labels.map((n, i) => formatRankLabel(n, i));
+                    return {
+                        labels: labels,
+                        datasets: [{
+                            label: isEn ? 'Messages sent' : 'Messages envoyés',
+                            data: messagesSet.messages,
+                            backgroundColor: messagesSet.messages.map((_, i) => getMessageColor(i, 0.85)),
+                            borderColor: messagesSet.messages.map((_, i) => getMessageBorder(i)),
+                            borderWidth: 1.5,
+                            borderRadius: 8,
+                            borderSkipped: false
+                        }],
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                position: 'bottom',
+                                grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                                ticks: {
+                                    color: '#94a3b8',
+                                    callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
+                                }
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
                             }
-                        },
-                        y: {
-                            grid: { display: false, drawBorder: false },
-                            ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
                         }
-                    }
-                };
-            } else if (mode === 'dual') {
-                const labels = vocalSet.labels.map((n, i) => formatRankLabel(n, i));
-                return {
-                    labels: labels,
-                    datasets: [
-                        {
+                    };
+                } else if (mode === 'dual') {
+                    const labels = vocalSet.labels.map((n, i) => formatRankLabel(n, i));
+                    return {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: isEn ? 'Voice hours' : 'Heures en vocal',
+                                data: vocalSet.hours,
+                                xAxisID: 'x',
+                                backgroundColor: 'rgba(20, 184, 166, 0.85)',
+                                borderColor: '#2dd4bf',
+                                borderWidth: 1.5,
+                                borderRadius: 6,
+                                borderSkipped: false
+                            },
+                            {
+                                label: isEn ? 'Messages sent' : 'Messages envoyés',
+                                data: vocalSet.messages,
+                                xAxisID: 'x1',
+                                backgroundColor: 'rgba(236, 72, 153, 0.85)',
+                                borderColor: '#f472b6',
+                                borderWidth: 1.5,
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }
+                        ],
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                position: 'bottom',
+                                title: {
+                                    display: true,
+                                    text: isEn ? 'Voice hours' : 'Heures en vocal',
+                                    color: '#2dd4bf',
+                                    font: { weight: '600' }
+                                },
+                                grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                                ticks: {
+                                    color: '#2dd4bf',
+                                    callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
+                                }
+                            },
+                            x1: {
+                                beginAtZero: true,
+                                position: 'top',
+                                title: {
+                                    display: true,
+                                    text: isEn ? 'Messages sent' : 'Messages envoyés',
+                                    color: '#f472b6',
+                                    font: { weight: '600' }
+                                },
+                                grid: { display: false },
+                                ticks: {
+                                    color: '#f472b6',
+                                    callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
+                                }
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
+                            }
+                        }
+                    };
+                } else {
+                    // vocal mode (default)
+                    const labels = vocalSet.labels.map((n, i) => formatRankLabel(n, i));
+                    return {
+                        labels: labels,
+                        datasets: [{
                             label: isEn ? 'Voice hours' : 'Heures en vocal',
                             data: vocalSet.hours,
-                            xAxisID: 'x',
-                            backgroundColor: 'rgba(20, 184, 166, 0.85)',
-                            borderColor: '#2dd4bf',
+                            backgroundColor: vocalSet.hours.map((_, i) => getPodiumColor(i, 0.85)),
+                            borderColor: vocalSet.hours.map((_, i) => getPodiumBorder(i)),
                             borderWidth: 1.5,
-                            borderRadius: 6,
+                            borderRadius: 8,
                             borderSkipped: false
+                        }],
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                position: 'bottom',
+                                grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                                ticks: {
+                                    color: '#94a3b8',
+                                    callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
+                                }
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
+                            }
+                        }
+                    };
+                }
+            }
+
+            const initialCfg = buildTopUsersConfig('vocal');
+            c8Instance = new Chart(topUsersCtx, {
+                type: 'bar',
+                data: {
+                    labels: initialCfg.labels,
+                    datasets: initialCfg.datasets
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(20, 184, 166, 0.4)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            callbacks: {
+                                title: function(items) {
+                                    return items.length ? items[0].label : '';
+                                },
+                                label: function(context) {
+                                    const ds = context.dataset;
+                                    const isMsgs = ds.label && ds.label.toLowerCase().includes('message');
+                                    if (isMsgs) {
+                                        return isEn ? ` Messages: ${context.parsed.x.toLocaleString(langLocale)}` : ` Messages : ${context.parsed.x.toLocaleString(langLocale)}`;
+                                    }
+                                    const msgsVal = vocalSet.messages[context.dataIndex] || 0;
+                                    return isEn ? [
+                                        ` Voice time: ${context.parsed.x.toLocaleString(langLocale)} hours`,
+                                        ` Messages sent: ${msgsVal.toLocaleString(langLocale)}`
+                                    ] : [
+                                        ` Temps vocal : ${context.parsed.x.toLocaleString(langLocale)} heures`,
+                                        ` Messages envoyés : ${msgsVal.toLocaleString(langLocale)}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: initialCfg.scales
+                }
+            });
+            activeChartInstances.push(c8Instance);
+
+            window.switchTopUsersMode = function(mode) {
+                const btnVocal = document.getElementById('btnTopVocal');
+                const btnMessages = document.getElementById('btnTopMessages');
+                const btnDual = document.getElementById('btnTopDual');
+
+                if (btnVocal) btnVocal.className = 'chart-toggle-btn' + (mode === 'vocal' ? ' active-teal' : '');
+                if (btnMessages) btnMessages.className = 'chart-toggle-btn' + (mode === 'messages' ? ' active-purple' : '');
+                if (btnDual) btnDual.className = 'chart-toggle-btn' + (mode === 'dual' ? ' active' : '');
+
+                const nextCfg = buildTopUsersConfig(mode);
+                c8Instance.data.labels = nextCfg.labels;
+                c8Instance.data.datasets = nextCfg.datasets;
+                c8Instance.options.scales = nextCfg.scales;
+                c8Instance.update();
+            };
+        }
+
+        // -------------------------------------------------------------------
+        // 9. 48-Hour Presence Ratio & Discord Status Distribution
+        // -------------------------------------------------------------------
+        const pData = apiData.presence_48h_chart;
+        if (pData) {
+            const pCtx = document.getElementById('presence48hChart').getContext('2d');
+
+            const cPresence = new Chart(pCtx, {
+                type: 'line',
+                data: {
+                    labels: pData.labels,
+                    datasets: [
+                        {
+                            label: isEn ? 'Online' : 'En ligne',
+                            data: pData.online,
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.25)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#22c55e',
+                            yAxisID: 'y'
                         },
                         {
-                            label: isEn ? 'Messages sent' : 'Messages envoyés',
-                            data: vocalSet.messages,
-                            xAxisID: 'x1',
-                            backgroundColor: 'rgba(236, 72, 153, 0.85)',
-                            borderColor: '#f472b6',
+                            label: isEn ? 'Idle' : 'Absent',
+                            data: pData.idle,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#f59e0b',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: isEn ? 'Do Not Disturb' : 'Ne pas déranger',
+                            data: pData.dnd,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#ef4444',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: isEn ? 'Offline / Invisible' : 'Hors-ligne / Invisible',
+                            data: pData.offline,
+                            borderColor: '#64748b',
+                            backgroundColor: 'rgba(100, 116, 139, 0.15)',
                             borderWidth: 1.5,
-                            borderRadius: 6,
-                            borderSkipped: false
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 1,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#64748b',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: isEn ? 'Connected Ratio (%)' : 'Taux de connectés (%)',
+                            data: pData.ratio_connected,
+                            borderColor: '#a855f7',
+                            borderWidth: 2.5,
+                            borderDash: [6, 4],
+                            fill: false,
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#a855f7',
+                            yAxisID: 'y1'
                         }
-                    ],
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            position: 'bottom',
-                            title: {
-                                display: true,
-                                text: isEn ? 'Voice hours' : 'Heures en vocal',
-                                color: '#2dd4bf',
-                                font: { weight: '600' }
-                            },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                            ticks: {
-                                color: '#2dd4bf',
-                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: '600', size: 12 },
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 14
                             }
                         },
-                        x1: {
-                            beginAtZero: true,
-                            position: 'top',
-                            title: {
-                                display: true,
-                                text: isEn ? 'Messages sent' : 'Messages envoyés',
-                                color: '#f472b6',
-                                font: { weight: '600' }
-                            },
-                            grid: { display: false },
-                            ticks: {
-                                color: '#f472b6',
-                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + msgsUnit; }
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.yAxisID === 'y1') {
+                                        return ` ${ctx.dataset.label} : ${ctx.parsed.y}%`;
+                                    }
+                                    return ` ${ctx.dataset.label} : ${ctx.parsed.y} membres`;
+                                }
                             }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                            ticks: { color: '#94a3b8', maxTicksLimit: 16 }
                         },
                         y: {
-                            grid: { display: false, drawBorder: false },
-                            ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
+                            type: 'linear',
+                            position: 'left',
+                            stacked: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: isEn ? 'Number of members' : 'Nombre de membres',
+                                color: '#94a3b8',
+                                font: { weight: '600' }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: isEn ? 'Connected ratio (%)' : 'Taux de connectés (%)',
+                                color: '#a855f7',
+                                font: { weight: '600' }
+                            },
+                            grid: { drawOnChartArea: false },
+                            ticks: {
+                                color: '#a855f7',
+                                callback: function(v) { return v + '%'; }
+                            }
                         }
                     }
-                };
-            } else {
-                // vocal mode (default)
-                const labels = vocalSet.labels.map((n, i) => formatRankLabel(n, i));
-                return {
-                    labels: labels,
+                }
+            });
+            activeChartInstances.push(cPresence);
+        }
+
+        // -------------------------------------------------------------------
+        // 10. Bar Chart: Monthly Community Growth (New Users)
+        // -------------------------------------------------------------------
+        const userGrowthData = apiData.user_growth_chart;
+        if (userGrowthData) {
+            const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+
+            const c10 = new Chart(userGrowthCtx, {
+                type: 'bar',
+                data: {
+                    labels: userGrowthData.labels,
                     datasets: [{
-                        label: isEn ? 'Voice hours' : 'Heures en vocal',
-                        data: vocalSet.hours,
-                        backgroundColor: vocalSet.hours.map((_, i) => getPodiumColor(i, 0.85)),
-                        borderColor: vocalSet.hours.map((_, i) => getPodiumBorder(i)),
-                        borderWidth: 1.5,
-                        borderRadius: 8,
+                        label: isEn ? 'New registered members' : 'Nouveaux membres enregistrés',
+                        data: userGrowthData.new_users,
+                        backgroundColor: '#a855f7',
+                        hoverBackgroundColor: '#9333ea',
+                        borderRadius: 6,
                         borderSkipped: false
-                    }],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#c084fc',
+                            borderColor: 'rgba(168, 85, 247, 0.4)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.parsed.y.toLocaleString(langLocale)} ${isEn ? 'new members' : 'nouveaux membres'}`;
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#94a3b8', maxRotation: 45 }
+                        },
+                        y: {
                             beginAtZero: true,
-                            position: 'bottom',
                             grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
                             ticks: {
                                 color: '#94a3b8',
-                                callback: function(val) { return val.toLocaleString(langLocale) + ' ' + hoursUnit; }
+                                stepSize: 5,
+                                callback: function(val) { return val.toLocaleString(langLocale); }
                             }
-                        },
-                        y: {
-                            grid: { display: false, drawBorder: false },
-                            ticks: { color: '#e2e8f0', font: { weight: '600', size: 12 } }
                         }
                     }
-                };
-            }
+                }
+            });
+            activeChartInstances.push(c10);
         }
-
-        const initialCfg = buildTopUsersConfig('vocal');
-        c8Instance = new Chart(topUsersCtx, {
-            type: 'bar',
-            data: {
-                labels: initialCfg.labels,
-                datasets: initialCfg.datasets
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: 'bold' }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(20, 184, 166, 0.4)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            title: function(items) {
-                                return items.length ? items[0].label : '';
-                            },
-                            label: function(context) {
-                                const ds = context.dataset;
-                                const isMsgs = ds.label && ds.label.toLowerCase().includes('message');
-                                if (isMsgs) {
-                                    return isEn ? ` Messages: ${context.parsed.x.toLocaleString(langLocale)}` : ` Messages : ${context.parsed.x.toLocaleString(langLocale)}`;
-                                }
-                                const msgsVal = vocalSet.messages[context.dataIndex] || 0;
-                                return isEn ? [
-                                    ` Voice time: ${context.parsed.x.toLocaleString(langLocale)} hours`,
-                                    ` Messages sent: ${msgsVal.toLocaleString(langLocale)}`
-                                ] : [
-                                    ` Temps vocal : ${context.parsed.x.toLocaleString(langLocale)} heures`,
-                                    ` Messages envoyés : ${msgsVal.toLocaleString(langLocale)}`
-                                ];
-                            }
-                        }
-                    }
-                },
-                scales: initialCfg.scales
-            }
-        });
-        activeChartInstances.push(c8Instance);
-
-        window.switchTopUsersMode = function(mode) {
-            const btnVocal = document.getElementById('btnTopVocal');
-            const btnMessages = document.getElementById('btnTopMessages');
-            const btnDual = document.getElementById('btnTopDual');
-
-            if (btnVocal) btnVocal.className = 'chart-toggle-btn' + (mode === 'vocal' ? ' active-teal' : '');
-            if (btnMessages) btnMessages.className = 'chart-toggle-btn' + (mode === 'messages' ? ' active-purple' : '');
-            if (btnDual) btnDual.className = 'chart-toggle-btn' + (mode === 'dual' ? ' active' : '');
-
-            const nextCfg = buildTopUsersConfig(mode);
-            c8Instance.data.labels = nextCfg.labels;
-            c8Instance.data.datasets = nextCfg.datasets;
-            c8Instance.options.scales = nextCfg.scales;
-            c8Instance.update();
-        };
     }
-
-    // -------------------------------------------------------------------
-    // 9. 48-Hour Presence Ratio & Discord Status Distribution
-    // -------------------------------------------------------------------
-    const presenceEl = document.getElementById('presence48hData');
-    if (presenceEl) {
-        const pData = JSON.parse(presenceEl.textContent);
-        const pCtx = document.getElementById('presence48hChart').getContext('2d');
-
-        const cPresence = new Chart(pCtx, {
-            type: 'line',
-            data: {
-                labels: pData.labels,
-                datasets: [
-                    {
-                        label: isEn ? 'Online' : 'En ligne',
-                        data: pData.online,
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.25)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#22c55e',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: isEn ? 'Idle' : 'Absent',
-                        data: pData.idle,
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#f59e0b',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: isEn ? 'Do Not Disturb' : 'Ne pas déranger',
-                        data: pData.dnd,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#ef4444',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: isEn ? 'Offline / Invisible' : 'Hors-ligne / Invisible',
-                        data: pData.offline,
-                        borderColor: '#64748b',
-                        backgroundColor: 'rgba(100, 116, 139, 0.15)',
-                        borderWidth: 1.5,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 1,
-                        pointHoverRadius: 5,
-                        pointBackgroundColor: '#64748b',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: isEn ? 'Connected Ratio (%)' : 'Taux de connectés (%)',
-                        data: pData.ratio_connected,
-                        borderColor: '#a855f7',
-                        borderWidth: 2.5,
-                        borderDash: [6, 4],
-                        fill: false,
-                        tension: 0.35,
-                        pointRadius: 3,
-                        pointHoverRadius: 7,
-                        pointBackgroundColor: '#a855f7',
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: '600', size: 12 },
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            padding: 14
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.96)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(255, 255, 255, 0.15)',
-                        borderWidth: 1,
-                        padding: 12,
-                        callbacks: {
-                            label: function(ctx) {
-                                if (ctx.dataset.yAxisID === 'y1') {
-                                    return ` ${ctx.dataset.label} : ${ctx.parsed.y}%`;
-                                }
-                                return ` ${ctx.dataset.label} : ${ctx.parsed.y} membres`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                        ticks: { color: '#94a3b8', maxTicksLimit: 16 }
-                    },
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        stacked: true,
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: isEn ? 'Number of members' : 'Nombre de membres',
-                            color: '#94a3b8',
-                            font: { weight: '600' }
-                        },
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: { color: '#94a3b8' }
-                    },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        min: 0,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: isEn ? 'Connected ratio (%)' : 'Taux de connectés (%)',
-                            color: '#a855f7',
-                            font: { weight: '600' }
-                        },
-                        grid: { drawOnChartArea: false },
-                        ticks: {
-                            color: '#a855f7',
-                            callback: function(v) { return v + '%'; }
-                        }
-                    }
-                }
-            }
-        });
-        activeChartInstances.push(cPresence);
-    }
-
-    // -------------------------------------------------------------------
-    // 10. Bar Chart: Monthly Community Growth (New Users)
-    // -------------------------------------------------------------------
-    const userGrowthEl = document.getElementById('userGrowthData');
-    if (userGrowthEl) {
-        const userGrowthData = JSON.parse(userGrowthEl.textContent);
-        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
-
-        const c10 = new Chart(userGrowthCtx, {
-            type: 'bar',
-            data: {
-                labels: userGrowthData.labels,
-                datasets: [{
-                    label: isEn ? 'New registered members' : 'Nouveaux membres enregistrés',
-                    data: userGrowthData.new_users,
-                    backgroundColor: '#a855f7',
-                    hoverBackgroundColor: '#9333ea',
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { weight: 'bold' }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#c084fc',
-                        borderColor: 'rgba(168, 85, 247, 0.4)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        callbacks: {
-                            label: function(context) {
-                                return ` ${context.parsed.y.toLocaleString(langLocale)} ${isEn ? 'new members' : 'nouveaux membres'}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: '#94a3b8', maxRotation: 45 }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                        ticks: {
-                            color: '#94a3b8',
-                            stepSize: 5,
-                            callback: function(val) { return val.toLocaleString(langLocale); }
-                        }
-                    }
-                }
-            }
-        });
-        activeChartInstances.push(c10);
-    }
-}
 
     // Tab dispatcher for on-demand lazy chart initialization
     function initChartsForTab(tabId) {
+        if (!apiData) return;
         if (initializedTabs.has(tabId)) return;
         initializedTabs.add(tabId);
 
@@ -1953,6 +2086,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentHash = window.location.hash ? window.location.hash.replace('#', '') : '';
     const initialTab = validTabs.includes(currentHash) ? currentHash : 'tab-activity';
     switchGraphTab(initialTab);
+
+    // Fetch data asynchronously in background
+    fetch('/api/graphs/data')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            apiData = data;
+            totalHoursData = data.chart_data;
+            totalDailyHoursData = data.daily_chart_data;
+            totalMessagesData = data.messages_chart_data;
+            totalDailyMessagesData = data.daily_messages_chart_data;
+
+            updateKPIs(data.summary_stats);
+            updateBadges(data);
+            renderPunchcard(data.punchcard_data);
+
+            // Initialize charts for currently open tab
+            if (currentActiveTab) {
+                initChartsForTab(currentActiveTab);
+            }
+
+            // Hide all loading spinners smoothly
+            document.querySelectorAll('.chart-loading-overlay').forEach(el => {
+                el.classList.add('loaded');
+            });
+        })
+        .catch(err => {
+            console.error('Failed to load graphs data:', err);
+            document.querySelectorAll('.chart-spinner-text').forEach(el => {
+                el.textContent = isEn ? 'Error loading data' : 'Erreur de chargement';
+                el.style.color = '#ef4444';
+            });
+        });
 });
 </script>
 {% endblock %}
