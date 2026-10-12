@@ -1,5 +1,20 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.7 - Persistance des Sessions, Confidentialité Présence & Compteurs Serveur Publics - 12/10/2026
+### Sécurité & Confidentialité
+- **Confidentialité Renforcée du Statut Discord Individuel (`/profile/<user>`)** :
+  - La pastille de présence Discord (en ligne, absent, ne pas déranger, hors-ligne) et l'indicateur d'activité vocale en direct sont désormais strictement masqués pour les visiteurs sans serveur commun.
+  - Le statut d'un utilisateur n'est visible que s'il s'agit de son propre profil ou si le visiteur connecté partage au moins un serveur Discord en commun avec lui.
+- **Compteurs de Présence Serveur Agrégés et Publics (`/server/<id>`)** :
+  - Les statistiques globales du serveur (en ligne, absent, ne pas déranger, hors-ligne/invisible et en vocal) sont désormais accessibles à tous les visiteurs sans restriction de rôle ou d'appartenance.
+  - Optimisation SQL de l'agrégation directe par statut garantissant des temps de réponse instantanés sans surcharge mémoire.
+
+### Authentification & Sessions
+- **Durabilité & Persistance Étendue des Sessions (60 jours)** :
+  - Élimination des déconnexions intempestives forçant à se reconnecter constamment via Discord OAuth2.
+  - Configuration de cookies de session permanents (`PERMANENT_SESSION_LIFETIME = timedelta(days=60)` avec `SameSite="Lax"` et `HttpOnly=True`).
+  - Maintien transparent de la session à travers la fermeture du navigateur et des onglets.
+
 ## Version 2.8.6 - Chargement Asynchrone des Analyses & Spinners de Chargement - 10/10/2026
 ### Performance & UX
 - **Navigation Instantanée & Rendu Asynchrone (`/graphs`)** :

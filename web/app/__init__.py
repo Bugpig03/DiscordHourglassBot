@@ -18,6 +18,7 @@ from app.auth import (
     get_current_user,
     is_authenticated,
     can_view_user_sessions,
+    can_view_user_presence,
     can_view_server_private_data,
 )
 
@@ -34,13 +35,11 @@ def create_app():
     init_app(app)
 
     @app.before_request
-    def force_global_session_reset():
-        """Ensure all sessions are cleared on update to prevent stale session states."""
+    def ensure_persistent_session():
+        """Ensure authenticated user sessions stay persistent for 60 days across browser restarts."""
         from flask import session
-        auth_version = "2.8.3"
-        if session.get("auth_session_ver") != auth_version:
-            session.clear()
-            session["auth_session_ver"] = auth_version
+        if session.get("user"):
+            session.permanent = True
 
     @app.context_processor
     def inject_i18n():
@@ -57,6 +56,7 @@ def create_app():
             "current_user": get_current_user(),
             "is_authenticated": is_authenticated(),
             "can_view_user_sessions": can_view_user_sessions,
+            "can_view_user_presence": can_view_user_presence,
             "can_view_server_private_data": can_view_server_private_data,
             "t": lambda key, **kwargs: get_text(key, lang=lang, **kwargs)
         }

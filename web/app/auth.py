@@ -64,6 +64,54 @@ def can_view_user_sessions(target_user_id: int | str) -> bool:
     return str(current_user.get("id")) == str(target_user_id)
 
 
+def can_view_user_presence(target_user_id: int | str) -> bool:
+    """Determine if current visitor can view Discord presence status of a user.
+
+    Strict privacy rule:
+    - Only visible if the viewer is the user themselves, OR
+    - If the viewer is authenticated AND shares at least one mutual server with the target user.
+    """
+    if not is_authenticated():
+        return False
+    current_user = get_current_user()
+    if not current_user:
+        return False
+
+    try:
+        int_target = int(target_user_id)
+        int_current = int(current_user.get("id", 0))
+    except (ValueError, TypeError):
+        return False
+
+    # 1. User viewing their own profile
+    if int_current == int_target:
+        return True
+
+    # 2. Check mutual servers between viewer and target
+    viewer_guilds = get_current_user_guild_ids()
+    try:
+        viewer_db_guilds = {
+            int(r.server_id)
+            for r in Stats.select(Stats.server_id).where(Stats.user_id == int_current)
+        }
+        viewer_guilds |= viewer_db_guilds
+    except Exception:
+        pass
+
+    if not viewer_guilds:
+        return False
+
+    try:
+        target_guilds = {
+            int(r.server_id)
+            for r in Stats.select(Stats.server_id).where(Stats.user_id == int_target)
+        }
+    except Exception:
+        target_guilds = set()
+
+    return bool(viewer_guilds & target_guilds)
+
+
 def can_view_server_private_data(server_id: int | str) -> bool:
     """Determine if current visitor can view private server details (voice sessions & live presence).
 
@@ -175,7 +223,8 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
         except Exception:
             pass
 
-        # Store authenticated user session
+        # Store authenticated user session (permanent 60-day cookie)
+        session.permanent = True
         session["user"] = {
             "id": user_id,
             "username": user_json.get("username", "DiscordUser"),

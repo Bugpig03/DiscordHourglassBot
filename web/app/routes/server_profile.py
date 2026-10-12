@@ -63,31 +63,73 @@ def server(server_id: str):
         charts=charts,
         punchcard=punchcard,
         can_view_sessions=has_server_access,
-        can_view_presence=has_server_access,
+        can_view_presence=True,
     )
 
 
 def load_server_profile_stats(server_id: str | int, search_query: str = "", lang: str = "fr", has_server_access: bool = True) -> dict:
     """Compile aggregated metrics and member leaderboard for a given server."""
+    int_server_id = int(server_id)
     users = load_users_from_server(server_id, search_query, lang=lang, has_server_access=has_server_access)
 
-    # Compute presence breakdown across active members (only if user has access to server presence)
-    presence_counts = None
-    if has_server_access:
-        members_for_counts = users if not search_query else load_users_from_server(server_id, search_query="", lang=lang, has_server_access=True)
-        online_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "online")
-        idle_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "idle")
-        dnd_count = sum(1 for u in members_for_counts if u.get("presence", {}).get("status") == "dnd")
-        voice_count = sum(1 for u in members_for_counts if u.get("is_in_voice"))
-        offline_count = max(0, len(members_for_counts) - (online_count + idle_count + dnd_count))
+    # Aggregate presence breakdown across the server (public for all viewers)
+    live_status = get_server_live_status(int_server_id)
+    has_live_data = bool(
+        live_status
+        and (
+            live_status.get("online_count", 0) > 0
+            or live_status.get("idle_count", 0) > 0
+            or live_status.get("dnd_count", 0) > 0
+            or live_status.get("offline_count", 0) > 0
+        )
+    )
 
+    if has_live_data:
+        presence_counts = {
+            "online": live_status.get("online_count", 0),
+            "idle": live_status.get("idle_count", 0),
+            "dnd": live_status.get("dnd_count", 0),
+            "offline": live_status.get("offline_count", 0),
+            "voice": live_status.get("voice_count", 0),
+            "total": (
+                live_status.get("online_count", 0)
+                + live_status.get("idle_count", 0)
+                + live_status.get("dnd_count", 0)
+                + live_status.get("offline_count", 0)
+            ),
+        }
+    else:
+        # Fallback to computing directly from UserPresence and Stats
+        from app.database import UserPresence
+        status_map = {
+            r["status"]: r["count"]
+            for r in (
+                Stats
+                .select(UserPresence.status, fn.COUNT(Stats.user_id).alias("count"))
+                .join(UserPresence, on=(Stats.user_id == UserPresence.user_id))
+                .where(Stats.server_id == int_server_id)
+                .group_by(UserPresence.status)
+                .dicts()
+            )
+        }
+        online_count = status_map.get("online", 0)
+        idle_count = status_map.get("idle", 0)
+        dnd_count = status_map.get("dnd", 0)
+        total_members = Stats.select(fn.COUNT(Stats.user_id)).where(Stats.server_id == int_server_id).scalar() or 0
+        offline_count = max(0, total_members - (online_count + idle_count + dnd_count))
+        voice_count = (
+            VoiceSessions
+            .select(fn.COUNT(fn.DISTINCT(VoiceSessions.user_id)))
+            .where((VoiceSessions.server_id == int_server_id) & (VoiceSessions.left_at.is_null(True)))
+            .scalar() or 0
+        )
         presence_counts = {
             "online": online_count,
             "idle": idle_count,
             "dnd": dnd_count,
             "offline": offline_count,
             "voice": voice_count,
-            "total": len(members_for_counts)
+            "total": total_members,
         }
 
     return {
@@ -103,9 +145,9 @@ def load_server_profile_stats(server_id: str | int, search_query: str = "", lang
         "users": users,
         "presence_counts": presence_counts,
         "join_date": get_server_join_date(server_id, lang=lang),
-        "live_status": get_server_live_status(server_id) if has_server_access else None,
-        "is_bot_present": getattr(Servers.get_or_none(Servers.server_id == int(server_id)), 'is_bot_present', True),
-        "can_view_presence": has_server_access,
+        "live_status": live_status,
+        "is_bot_present": getattr(Servers.get_or_none(Servers.server_id == int_server_id), 'is_bot_present', True),
+        "can_view_presence": True,
         "can_view_sessions": has_server_access,
     }
 

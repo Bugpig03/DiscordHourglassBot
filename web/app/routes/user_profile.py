@@ -35,7 +35,7 @@ from app.functions import (
     get_user_voice_companions,
 )
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges
-from app.auth import can_view_user_sessions
+from app.auth import can_view_user_sessions, can_view_user_presence
 
 user_profile_bp = Blueprint("user_profile", __name__)
 
@@ -123,7 +123,8 @@ def profile(username: str):
     display_username = target_user.username or f"User {user_id}"
 
     lang = request.cookies.get("lang", "fr")
-    stats = load_user_profile_stats(user_id, display_username)
+    can_view_presence = can_view_user_presence(user_id)
+    stats = load_user_profile_stats(user_id, display_username, can_view_presence=can_view_presence)
     charts = load_user_charts_data(user_id, stats["user_servers_stats"], lang=lang)
 
     # Check if there are other users with the same username
@@ -162,12 +163,13 @@ def profile(username: str):
         heatmap_annual=heatmap_annual,
         heatmap_monthly=heatmap_monthly,
         voice_companions=voice_companions,
+        can_view_presence=can_view_presence,
         has_homonyms=(homonyms_count > 0),
         homonyms_count=homonyms_count
     )
 
 
-def load_user_profile_stats(user_id: int, username: str) -> dict:
+def load_user_profile_stats(user_id: int, username: str, can_view_presence: bool = True) -> dict:
     """Compile comprehensive profile data and voice-sorted server breakdown for a user."""
     avatar_url = get_user_avatar_url(user_id)
     rank = get_global_rank_by_user_id_seconds(user_id)
@@ -182,8 +184,9 @@ def load_user_profile_stats(user_id: int, username: str) -> dict:
 
     user_servers_stats = get_user_servers_stats(user_id)
 
-    presence = get_user_presence(user_id)
-    active_voice = get_user_active_voice(user_id)
+    # Privacy protection: presence & active voice are only exposed if visitor shares a server
+    presence = get_user_presence(user_id) if can_view_presence else None
+    active_voice = get_user_active_voice(user_id) if can_view_presence else None
 
     return {
         "user_id": str(user_id),
@@ -201,6 +204,7 @@ def load_user_profile_stats(user_id: int, username: str) -> dict:
         "raw_join_date": get_user_raw_join_date(user_id),
         "presence": presence,
         "active_voice": active_voice,
+        "can_view_presence": can_view_presence,
     }
 
 

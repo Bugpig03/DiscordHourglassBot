@@ -6,9 +6,18 @@ Application web moderne permettant de visualiser et d'analyser en temps réel le
 
 ---
 
-## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.6 - 10/10/2026)
+## 🚀 Dernières Nouveautés & Mises à Jour (Version 2.8.7 - 12/10/2026)
 
-### 1. 🚀 Chargement Asynchrone des Graphiques & Spinners Dédiés (`/graphs`)
+### 1. 🔒 Confidentialité du Statut Discord & Compteurs Serveurs Publics
+- **Protection de la Vie Privée Individuelle (`/profile/<user>`)** : Le statut de présence Discord (pastille d'état en ligne/absent/dnd/hors-ligne et salon vocal actif) est désormais strictement masqué si le visiteur ne partage aucun serveur Discord en commun avec l'utilisateur ciblé.
+- **Compteurs de Présence Serveur Publics (`/server/<id>`)** : Les métriques globales et anonymisées du serveur (membres en ligne, inactifs, dnd, hors-ligne et en vocal) sont visibles par tous les visiteurs sans restriction.
+- **Agrégation SQL Directe** : Calcul performant et optimisé des totaux de présence par statut sans surcharge mémoire.
+
+### 2. 🔑 Persistance et Durabilité des Sessions Discord (60 jours)
+- **Fin des Déconnexions Répétées** : Les sessions utilisateur restent actives pendant 60 jours sans nécessiter de reconnexion intempestive à chaque réouverture de navigateur.
+- **Cookies Sécurisés et Durables** : Activation de `PERMANENT_SESSION_LIFETIME` avec `session.permanent = True`, `SameSite="Lax"` et `HttpOnly=True`.
+
+### 3. 🚀 Chargement Asynchrone des Graphiques & Spinners Dédiés (v2.8.6)
 - **Navigation Instantanée (< 75 ms)** : Suppression intégrale de la latence de 2 secondes au clic sur *Analyses & Graphiques*. La page s'ouvre instantanément sans blocage du navigateur.
 - **Ronds de Chargement Dédiés** : Affichage d'indicateurs circulaires animés (`.chart-spinner-ring`) au centre de chaque cadre de graphique et de la matrice punchcard horaire avec message d'attente localisé.
 - **API Background Fetch (`/api/graphs/data`)** : Déport des calculs SQL lourds en arrière-plan et injection fluide des métriques (KPIs, badges et tracés) avec transition fondu (fade-out) sans aucun gel de l'interface.

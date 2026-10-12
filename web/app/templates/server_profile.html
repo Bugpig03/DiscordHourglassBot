@@ -286,8 +286,8 @@
         <span class="small-text gray">{{ t('server_profile.sorted_by_voice') }}</span>
     </div>
 
-    <!-- Presence Breakdown Bar for this server (Protected for server members) -->
-    {% if can_view_presence and stats.presence_counts %}
+    <!-- Presence Breakdown Bar for this server (Aggregated counts visible to all visitors) -->
+    {% if stats.presence_counts %}
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
         <!-- En ligne -->
         <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.82rem; font-weight: 600; color: #34d399;">
@@ -316,16 +316,6 @@
             <span><strong>{{ stats.presence_counts.voice }}</strong> {{ 'en vocal' if current_lang == 'fr' else 'in voice' }}</span>
         </div>
         {% endif %}
-    </div>
-    {% elif not can_view_presence %}
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 5px 14px; font-size: 0.82rem; color: #94a3b8;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span>{{ t('privacy.server_presence_locked') }}</span>
-            {% if not is_authenticated %}
-            <a href="{{ url_for('auth.login', next=request.path) }}" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-left: 4px;">{{ t('auth.login_short') }}</a>
-            {% endif %}
-        </div>
     </div>
     {% endif %}
 

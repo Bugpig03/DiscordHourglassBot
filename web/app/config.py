@@ -2,6 +2,7 @@
 
 import os
 import re
+from datetime import timedelta
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if present
@@ -33,14 +34,24 @@ def load_app_version() -> tuple[str, str]:
                             return match.group(1), match.group(2)
             except Exception:
                 pass
-    return "2.8.6", "10/10/2026"
+    return "2.8.7", "12/10/2026"
 
 
 class Config:
     """Flask application configuration settings loaded from environment variables."""
 
-    # Rotated secret key to disconnect all existing client sessions cleanly
-    SECRET_KEY = os.environ.get("SECRET_KEY", "hourglass_session_secret_v283_force_logout")
+    # Stable secret key for signing session cookies
+    SECRET_KEY = (
+        os.environ.get("SECRET_KEY")
+        or os.environ.get("FLASK_SECRET_KEY")
+        or "hourglass_session_secret_v283_force_logout"
+    )
+
+    # 60-day persistent session lifetime across browser restarts
+    PERMANENT_SESSION_LIFETIME = timedelta(days=60)
+    SESSION_COOKIE_NAME = "hourglass_session"
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
     DB_NAME = os.environ.get("POSTGRESQL_DBNAME", "devhourglass")
     DB_USER = os.environ.get("POSTGRESQL_USER", "postgres")
     DB_PASSWORD = os.environ.get("POSTGRESQL_PASSWORD", "admin")

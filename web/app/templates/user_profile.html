@@ -253,9 +253,9 @@
             <!-- Avatar avec cadre rouge si vocal et pastille de statut -->
             <div style="position: relative; display: inline-block;">
                 <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" 
-                     class="big-pp {% if stats.active_voice %}pp-in-voice{% else %}border-user{% endif %}" 
+                     class="big-pp {% if can_view_presence and stats.active_voice %}pp-in-voice{% else %}border-user{% endif %}" 
                      alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
-                {% if stats.presence %}
+                {% if can_view_presence and stats.presence %}
                 <span class="status-indicator-badge status-{{ stats.presence.status }}" 
                       title="{{ stats.presence.label_fr if current_lang == 'fr' else stats.presence.label_en }}"></span>
                 {% endif %}
@@ -282,7 +282,7 @@
                     </span>
 
                     <!-- Live Active Voice Indicator -->
-                    {% if stats.active_voice %}
+                    {% if can_view_presence and stats.active_voice %}
                     <span style="background: rgba(35, 165, 90, 0.15); color: #4ade80; border: 1px solid #23a55a; border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
                         <span style="width: 8px; height: 8px; border-radius: 50%; background: #23a55a; display: inline-block;"></span>
                         <span>🎙️ En vocal : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }})</span>

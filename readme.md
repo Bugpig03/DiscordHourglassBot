@@ -1,13 +1,13 @@
 # ⏳ HOURGLASS - Discord Activity & Analytics Suite
 
 [![Bot Version](https://img.shields.io/badge/Bot-v3.0.4_(Go)-00ADD8?style=flat-square&logo=go)](https://golang.org)
-[![Web Dashboard](https://img.shields.io/badge/Dashboard-v2.8.6_(Flask)-000000?style=flat-square&logo=flask)](https://hourglassbot.net)
+[![Web Dashboard](https://img.shields.io/badge/Dashboard-v2.8.7_(Flask)-000000?style=flat-square&logo=flask)](https://hourglassbot.net)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_16-4169E1?style=flat-square&logo=postgresql)](https://www.postgresql.org)
 [![Docker](https://img.shields.io/badge/Deploy-Docker_Compose-2496ED?style=flat-square&logo=docker)](https://www.docker.com)
 [![GDPR Compliant](https://img.shields.io/badge/GDPR-Compliant-10B981?style=flat-square)](https://hourglassbot.net/privacy)
 
 **Hourglass** est une suite analytique et de gamification haute performance pour Discord.  
-Le projet combine un **bot Discord natif écrit en Go (v3.0.4)** pour une capture d'événements ultra-rapide et légère en mémoire, et un **tableau de bord web interactif en Flask / Python (v2.8.6)** offrant des métriques détaillées, des visualisations graphiques avancées, l'authentification Discord avec contrôle d'accès strict et des cartes statistiques exportables.
+Le projet combine un **bot Discord natif écrit en Go (v3.0.4)** pour une capture d'événements ultra-rapide et légère en mémoire, et un **tableau de bord web interactif en Flask / Python (v2.8.7)** offrant des métriques détaillées, des visualisations graphiques avancées, l'authentification Discord avec contrôle d'accès strict et des cartes statistiques exportables.
 
 ---
 
@@ -24,7 +24,7 @@ DiscordHourglassBot/
 │   ├── Dockerfile          # Image multi-stage Docker ultra-légère pour le bot
 │   └── main.go             # Point d'entrée principal du bot Go
 │
-├── web/                    # Dashboard Web v2.8.6 en Python (Flask, Chart.js, Bilingue FR/EN)
+├── web/                    # Dashboard Web v2.8.7 en Python (Flask, Chart.js, Bilingue FR/EN)
 │   ├── app/                # Application Flask (routes, templates, composants, gamification, API)
 │   ├── Dockerfile          # Image Docker du dashboard web
 │   ├── run.py              # Serveur Flask / WSGI
@@ -60,6 +60,7 @@ DiscordHourglassBot/
 ### ⚖️ Respect de la Vie Privée & RGPD
 - **Minimisation stricte** : Aucun contenu de message textuel n'est jamais lu ou stocké.
 - **Aucune écoute audio** : Aucun flux vocal n'est capté ni enregistré.
+- **Confidentialité des statuts Discord** : Le statut de présence d'un utilisateur (en ligne, absent, dnd, salon actif) n'est exposé qu'aux personnes partageant au moins un serveur Discord en commun avec lui. Les données d'un profil serveur sont quant à elles agrégées anonymement.
 - **Droit à l'oubli** : Procédure de purge complète des données sous 72h.
 
 ---
