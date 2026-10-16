@@ -1,5 +1,30 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.9 - Cache des Analyses, Avatars Allégés & Aperçus de Liens Discord - 17/10/2026
+### Performance
+- **Cache de 5 minutes sur les analyses globales (`GET /api/graphs/data`)** :
+  - Les ~30 requêtes SQL de la page `/graphs` ne sont plus exécutées qu'une fois toutes les 5 minutes par worker (clé : langue + fuseau horaire). Réponse ~150 ms → ~30 ms.
+- **Avatars Discord servis en 256 px au lieu de 1024 px** :
+  - Réécriture automatique des URL `cdn.discordapp.com` dans les pages HTML et l'API JSON (recherche Ctrl+K), soit ~16x moins de pixels téléchargés sur `/users`, `/server/<id>` et les classements.
+  - Chargement différé natif (`loading="lazy"`) sur les images Discord.
+- **Cache navigateur des fichiers statiques (7 jours)** : `styles.css` et `charts.js` sont versionnés automatiquement d'après leur date de modification (`?v=<horodatage>`), plus besoin d'incrémenter `v=30` à la main.
+- **Chart.js épinglé (`4.5.1`) et adaptateur date-fns (`3.0.0`)** : une future version majeure publiée sur le CDN ne peut plus casser les graphiques en production.
+
+### Graphiques
+- **États vides explicites** : sur les fiches serveur et les profils, le graphique d'affluence horaire et le punchcard affichent « Pas encore assez d'activité » au lieu d'une courbe plate ou d'une grille vide ; les pastilles « Pic vocal / Pic messages : - » sont masquées dans ce cas.
+- **Période en cours signalée** : le mois en cours (barres mensuelles) et la journée en cours (courbes journalières) sont estompés ou en pointillés, avec la mention « Mois en cours : données partielles » / « Aujourd'hui : journée en cours » dans l'infobulle, au lieu de ressembler à une chute d'activité.
+- **Grilles de cartes équilibrées** : 4 cartes en 4 colonnes (2×2 sur écran moyen) sur les profils et serveurs, 5 cartes en 5 colonnes (3 + 2 élargies) sur `/graphs` : plus de carte isolée seule sur sa ligne.
+- Nouveau fichier partagé `static/js/charts.js` (helpers Chart.js communs à toutes les pages).
+
+### UX & Partage
+- **Aperçus de liens enrichis (Open Graph)** : les liens partagés sur Discord affichent un titre, une description et une image. Les profils montrent l'avatar, le niveau, les heures en vocal, les messages et les badges ; les serveurs affichent leurs totaux.
+- **Balise `meta description`** sur toutes les pages (référencement).
+- **Mobile** : les onglets « Joueur vs Joueur / Serveur vs Serveur » et des classements ne provoquent plus de défilement horizontal sur petits écrans.
+- **Traduction** : « SERVERS ACTIFS » / « Servers connectés » → « SERVEURS ACTIFS » / « Serveurs connectés » sur l'accueil.
+
+### Technique
+- Prise en compte de `X-Forwarded-Proto` derrière le reverse proxy (`ProxyFix`) pour générer des URL absolues en `https`.
+
 ## Version 2.8.8 - Durcissement Sécurité des Sessions & OAuth2 - 16/10/2026
 ### Sécurité
 - **Suppression de la clé secrète Flask codée en dur** :

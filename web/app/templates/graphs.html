@@ -5,8 +5,9 @@
 {% block content %}
 
 <!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
 
 <style>
 /* Circular loading spinner overlay */
@@ -234,7 +235,7 @@
 
 <br>
 <!-- KPI Summary Cards (Always Visible) -->
-<div class="home-stats-container" style="margin-bottom: 25px;">
+<div class="home-stats-container stats-5" style="margin-bottom: 25px;">
     <div class="home-stats-box">
         <div class="home-stats-icon">
             <img src="{{ url_for('static', filename='icons/hourglass.png') }}" alt="Icon Hourglass">
@@ -1131,7 +1132,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {
                             label: isEn ? 'Monthly hours' : 'Heures du mois',
                             data: monthlyData.hours,
-                            backgroundColor: '#38bdf8',
+                            ...HG.partialBar('#38bdf8'),
                             hoverBackgroundColor: '#0284c7',
                             borderRadius: 6,
                             borderSkipped: false,
@@ -1195,6 +1196,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+            HG.setPartial(c3, monthlyData.partial);
+            c3.update();
             activeChartInstances.push(c3);
         }
 
@@ -1216,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {
                             label: isEn ? 'Monthly messages' : 'Messages du mois',
                             data: monthlyMessagesData.messages,
-                            backgroundColor: '#5865F2',
+                            ...HG.partialBar('#5865F2'),
                             hoverBackgroundColor: '#4752c4',
                             borderRadius: 6,
                             borderSkipped: false,
@@ -1280,6 +1283,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+            HG.setPartial(c4, monthlyMessagesData.partial);
+            c4.update();
             activeChartInstances.push(c4);
         }
 
@@ -1301,6 +1306,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     datasets: [{
                         label: isEn ? 'Voice hours' : 'Heures en vocal',
                         data: dailyData.hours,
+                        segment: HG.partialSegment,
                         borderColor: '#10b981',
                         backgroundColor: dailyGradient,
                         borderWidth: 3,
@@ -1369,6 +1375,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+            HG.setPartial(c5, dailyData.partial);
+            c5.update();
             activeChartInstances.push(c5);
         }
 

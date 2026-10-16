@@ -1,6 +1,9 @@
 """Flask application factory and blueprint registration."""
 
+import os
+import re
 from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import Config
 from app.database import init_app
 from app.translations import get_text
@@ -23,10 +26,25 @@ from app.auth import (
 )
 
 
+# The bot stores Discord avatars at 1024px while the site shows them at 32-160px:
+# serve a 256px variant (sharp on retina, ~16x lighter) and let the browser load off-screen images lazily.
+DISCORD_AVATAR_SIZE_RE = re.compile(r"(https://cdn\.discordapp\.com/(?:avatars|icons|embed/avatars)/[^\"'\s?]+)\?size=(?:512|1024|2048|4096)")
+# Only remote Discord images are lazy-loaded: local icons are tiny, cached and often above the fold
+IMG_WITHOUT_LOADING_RE = re.compile(r"<img(?=[^>]*\bsrc=[\"']https://cdn\.discordapp\.com/)(?![^>]*\bloading=)")
+
+
+def optimize_response_images(body: str) -> str:
+    """Downsize Discord CDN avatar URLs and add native lazy-loading to <img> tags."""
+    body = DISCORD_AVATAR_SIZE_RE.sub(r"\1?size=256", body)
+    return IMG_WITHOUT_LOADING_RE.sub('<img loading="lazy"', body)
+
 
 def create_app():
     """Create, configure, and return the Flask application instance."""
     app = Flask(__name__)
+
+    # Behind the openresty reverse proxy: honour X-Forwarded-Proto so absolute URLs (og:image, og:url) use https
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=0, x_proto=1, x_host=0, x_port=0, x_prefix=0)
 
     # Load configuration from Config class
     app.config.from_object(Config)
@@ -41,6 +59,25 @@ def create_app():
         if session.get("user"):
             session.permanent = True
 
+    @app.after_request
+    def optimize_images(response):
+        """Apply avatar downsizing and lazy-loading to HTML pages and JSON API payloads."""
+        if response.direct_passthrough or response.status_code != 200:
+            return response
+        if response.mimetype in ("text/html", "application/json"):
+            body = response.get_data(as_text=True)
+            optimized = optimize_response_images(body)
+            if optimized != body:
+                response.set_data(optimized)
+        return response
+
+    def asset_version(filename: str) -> int:
+        """Cache-busting token for a static file: changes whenever the file changes on disk."""
+        try:
+            return int(os.path.getmtime(os.path.join(app.static_folder, filename)))
+        except OSError:
+            return 0
+
     @app.context_processor
     def inject_i18n():
         """Inject current language, detected timezone, and translation helper into all templates."""
@@ -52,6 +89,7 @@ def create_app():
             "current_lang": lang,
             "user_tz": get_user_timezone(),
             "app_version": Config.APP_VERSION,
+            "asset_version": asset_version,
             "app_version_date": Config.APP_VERSION_DATE,
             "current_user": get_current_user(),
             "is_authenticated": is_authenticated(),

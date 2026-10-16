@@ -1,5 +1,7 @@
 """Data visualization and analytics graph routes."""
 
+import threading
+import time
 from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify
 from peewee import fn, JOIN
@@ -18,10 +20,34 @@ from app.functions import (
     get_presence_history_48h,
     get_monthly_new_users_growth,
     get_month_abbr,
+    get_partial_period,
     get_hourly_punchcard_data,
+    get_user_timezone,
 )
 
 graphs_bp = Blueprint("graphs", __name__)
+
+# Global analytics are identical for every visitor sharing a language and timezone:
+# cache them per Gunicorn worker for 5 minutes instead of running ~30 SQL queries per page view.
+GRAPHS_CACHE_TTL_SECONDS = 300
+_graphs_cache: dict[tuple[str, str], tuple[float, dict]] = {}
+_graphs_cache_lock = threading.Lock()
+
+
+def get_cached_graphs_data(lang: str, tz_name: str) -> dict:
+    """Return graph data from the in-memory cache, recomputing it once expired."""
+    key = (lang, tz_name)
+    now = time.monotonic()
+    with _graphs_cache_lock:
+        cached = _graphs_cache.get(key)
+        if cached and now - cached[0] < GRAPHS_CACHE_TTL_SECONDS:
+            return cached[1]
+        # Computing under the lock avoids several threads recomputing the same expired entry at once
+        data = compute_graphs_data(lang=lang)
+        for k in [k for k, (ts, _) in _graphs_cache.items() if now - ts >= GRAPHS_CACHE_TTL_SECONDS]:
+            del _graphs_cache[k]
+        _graphs_cache[key] = (now, data)
+        return data
 
 
 def compute_graphs_data(lang: str = "fr") -> dict:
@@ -63,6 +89,7 @@ def compute_graphs_data(lang: str = "fr") -> dict:
             for row in monthly_diff_data
         ],
         "hours": [row["hours_this_month"] for row in monthly_diff_data],
+        "partial": get_partial_period(monthly_diff_data, "month"),
     }
 
     # 4. Monthly delta bar chart (Messages)
@@ -74,6 +101,7 @@ def compute_graphs_data(lang: str = "fr") -> dict:
             for row in monthly_messages_diff_data
         ],
         "messages": [row["messages_this_month"] for row in monthly_messages_diff_data],
+        "partial": get_partial_period(monthly_messages_diff_data, "month"),
     }
 
     # 5. 30-Day daily activity area chart
@@ -85,6 +113,7 @@ def compute_graphs_data(lang: str = "fr") -> dict:
         ],
         "hours": [row["hours"] for row in daily_activity_data],
         "messages": [row["messages"] for row in daily_activity_data],
+        "partial": get_partial_period(daily_activity_data, "day"),
     }
 
     # 6. Server breakdown (Hours): Top 10 servers + Others group
@@ -262,5 +291,7 @@ def graphs():
 def api_graphs_data():
     """Asynchronous JSON endpoint returning analytical metrics for background loading."""
     lang = request.cookies.get("lang", "fr")
-    data = compute_graphs_data(lang=lang)
+    if lang not in ("fr", "en"):
+        lang = "fr"
+    data = get_cached_graphs_data(lang, get_user_timezone())
     return jsonify(data)

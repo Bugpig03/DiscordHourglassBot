@@ -418,6 +418,19 @@ def interpolate_pre_routine_progression(result: list[dict], value_key: str = "to
     return result
 
 
+def get_partial_period(rows: list[dict], kind: str) -> str | None:
+    """Return 'month' or 'day' when the last point of a chronological series is the still-running period.
+
+    Charts use it to fade/dash the current month or today instead of showing it as a sudden drop.
+    Daily series always end on today; monthly series only when the current month already has activity.
+    """
+    if not rows:
+        return None
+    if kind == "day":
+        return "day"
+    return "month" if rows[-1].get("month") == datetime.now().strftime("%Y-%m-01") else None
+
+
 def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Sum voice hours by month directly from VoiceSessions for cumulative trend charting."""
     query = (
@@ -1523,7 +1536,8 @@ def get_hourly_activity_distribution(server_id: int | None = None, user_id: int 
         "voice_hours": voice_hours,
         "messages_count": messages_count,
         "peak_voice_hour": labels[peak_v_idx] if any(voice_hours) else "-",
-        "peak_messages_hour": labels[peak_m_idx] if any(messages_count) else "-"
+        "peak_messages_hour": labels[peak_m_idx] if any(messages_count) else "-",
+        "has_data": any(voice_hours) or any(messages_count),
     }
 
 

@@ -4,7 +4,8 @@
 
 {% block content %}
 <!-- Load Chart.js for dashboard activity chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
 
 <!-- Embedded Chart Data -->
 <script type="application/json" id="homeDailyChartData">{{ stats.daily_chart_json|safe }}</script>
@@ -95,7 +96,7 @@
     <!-- 4. Active Servers -->
     <div class="dashboard-kpi-card accent-amber">
         <div class="dashboard-kpi-top">
-            <span class="dashboard-kpi-label">{{ 'SERVERS ACTIFS' if current_lang == 'fr' else 'ACTIVE SERVERS' }}</span>
+            <span class="dashboard-kpi-label">{{ 'SERVEURS ACTIFS' if current_lang == 'fr' else 'ACTIVE SERVERS' }}</span>
             <div class="dashboard-kpi-icon icon-servers">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
             </div>
@@ -106,7 +107,7 @@
         <div class="dashboard-kpi-footer">
             <div class="dashboard-kpi-pill pill-amber">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span>{{ 'Servers connectés' if current_lang == 'fr' else 'Connected servers' }}</span>
+                <span>{{ 'Serveurs connectés' if current_lang == 'fr' else 'Connected servers' }}</span>
             </div>
         </div>
     </div>
@@ -207,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const chartData = JSON.parse(rawDataEl.textContent);
         const ctx = document.getElementById('homeActivityChart').getContext('2d');
         
-        new Chart(ctx, {
+        const homeChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: chartData.labels,
@@ -223,7 +224,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         pointRadius: 2,
                         pointHoverRadius: 5,
                         pointBackgroundColor: '#38bdf8',
-                        yAxisID: 'y'
+                        yAxisID: 'y',
+                        segment: HG.partialSegment
                     },
                     {
                         label: "{{ 'Messages' if current_lang == 'fr' else 'Messages' }}",
@@ -236,7 +238,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         pointRadius: 2,
                         pointHoverRadius: 5,
                         pointBackgroundColor: '#10b981',
-                        yAxisID: 'y1'
+                        yAxisID: 'y1',
+                        segment: HG.partialSegment
                     }
                 ]
             },
@@ -280,6 +283,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        HG.setPartial(homeChart, chartData.partial);
+        homeChart.update();
     } catch(e) {
         console.error('Error rendering home activity chart:', e);
     }

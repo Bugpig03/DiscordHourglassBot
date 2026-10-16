@@ -5,7 +5,7 @@ from peewee import fn, SQL
 from app.database import db, Users, Servers, Stats, VoiceSessions, MessageEvents, LiveServerStatus
 from app.functions import (
     format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta,
-    get_daily_activity_last_30_days, get_top_users_podium, get_top_servers_podium,
+    get_daily_activity_last_30_days, get_partial_period, get_top_users_podium, get_top_servers_podium,
     get_month_abbr
 )
 
@@ -75,7 +75,8 @@ def load_dashboard_stats() -> dict:
             for row in daily_activity_data
         ],
         "hours": [row["hours"] for row in daily_activity_data],
-        "messages": [row["messages"] for row in daily_activity_data]
+        "messages": [row["messages"] for row in daily_activity_data],
+        "partial": get_partial_period(daily_activity_data, "day"),
     })
 
     # Podiums (Top 3 Members & Top 3 Servers)

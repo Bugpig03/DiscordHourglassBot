@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 
 {% block title %}{{ t('server_profile.title', servername=stats.servername) }}{% endblock %}
+{% block meta_description %}{% if current_lang == 'fr' %}{{ stats.servername }} : {{ stats.total_time_hours | thousands_fr }} h en vocal, {{ stats.total_message | thousands_fr }} messages, {{ stats.users | length }} membres actifs suivis par Hourglass.{% else %}{{ stats.servername }}: {{ stats.total_time_hours | thousands_fr }} h in voice, {{ stats.total_message | thousands_fr }} messages, {{ stats.users | length }} active members tracked by Hourglass.{% endif %}{% endblock %}
+{% block og_image %}{{ stats.avatar_url or url_for('static', filename='images/hourglass_logo_white.png', _external=True) }}{% endblock %}
+
 
 {% block content %}
 
 <!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
 
 <!-- Embedded Chart Data for Server -->
 <script type="application/json" id="serverHoursProgressionData">{{ charts.chart_data_json|safe }}</script>
@@ -20,7 +24,7 @@
 <script type="application/json" id="serverTopMembersPieData">{{ charts.top_members_pie_json|safe }}</script>
 <script type="application/json" id="serverVoiceChannelsData">{{ charts.voice_channels_pie_json|safe }}</script>
 <script type="application/json" id="serverTextChannelsData">{{ charts.text_channels_pie_json|safe }}</script>
-<script type="application/json" id="serverHourlyActivityData">{{ charts.hourly_activity_json|safe }}</script>
+{% if charts.has_hourly_data %}<script type="application/json" id="serverHourlyActivityData">{{ charts.hourly_activity_json|safe }}</script>{% endif %}
 
 <style>
 /* Granularity Toggle Group Styles */
@@ -213,7 +217,7 @@
 </div>
 
 <!-- Server KPI Cards -->
-<div class="home-stats-container" style="margin-bottom: 25px;">
+<div class="home-stats-container stats-4" style="margin-bottom: 25px;">
     <div class="home-stats-box">
         <div class="home-stats-icon">
             <img src="{{ url_for('static', filename='icons/rank.png') }}" alt="Icon Rank">
@@ -533,11 +537,13 @@
                 {{ t('channels.section_title') }}
             </h2>
         </div>
+        {% if charts.has_hourly_data %}
         <div style="display: flex; align-items: center; gap: 10px;">
             <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold;">
                 {{ t('channels.peak_hours_badge', hour=charts.peak_voice_hour) }}
             </span>
         </div>
+        {% endif %}
     </div>
 
     <!-- Graphique 1 : Affluence & Rythme Horaire (24h) -->
@@ -547,6 +553,7 @@
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('channels.hourly_title') }}</div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.hourly_desc') }}</div>
             </div>
+            {% if charts.has_hourly_data %}
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
@@ -557,10 +564,15 @@
                     <span>{{ 'Pic messages' if current_lang == 'fr' else 'Messages peak' }} : {{ charts.peak_messages_hour }}</span>
                 </span>
             </div>
+            {% endif %}
         </div>
+        {% if charts.has_hourly_data %}
         <div style="position: relative; height: 320px; width: 100%;">
             <canvas id="serverHourlyChart"></canvas>
         </div>
+        {% else %}
+        {% include "partials/chart_empty_state.html" %}
+        {% endif %}
     </div>
 
     <!-- Graphique 2 : Punchcard Horaire (Matrice 7 Jours x 24 Heures) -->
@@ -575,6 +587,7 @@
                     {{ 'Visualisation de l’intensité d’activité sur la semaine (croisement jours de la semaine et 24 heures).' if current_lang == 'fr' else 'Activity density matrix across all 7 days of the week and 24 hours.' }}
                 </div>
             </div>
+            {% if punchcard.has_data %}
             <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #64748b;">
                 <span>{{ 'Calme' if current_lang == 'fr' else 'Low' }}</span>
                 <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(255,255,255,0.04); display: inline-block;"></span>
@@ -584,8 +597,12 @@
                 <span style="width: 12px; height: 12px; border-radius: 3px; background: #f43f5e; box-shadow: 0 0 6px rgba(244,63,94,0.6); display: inline-block;"></span>
                 <span>{{ 'Intense' if current_lang == 'fr' else 'Peak' }}</span>
             </div>
+            {% endif %}
         </div>
 
+        {% if not punchcard.has_data %}
+        {% include "partials/chart_empty_state.html" %}
+        {% else %}
         <div style="overflow-x: auto; padding: 10px 0;">
             <div style="min-width: 680px;">
                 <!-- Header Heures (00h à 23h) -->
@@ -624,6 +641,7 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Répartition par Salon (Vocal & Textuel en grille 2 colonnes) -->
@@ -857,6 +875,7 @@ function switchServerGranularity(mode) {
         const avg = isDay ? Number('{{ charts.avg_daily_hours }}') : Number('{{ charts.avg_hours }}');
         const unit = isDay ? '{{ t("charts.unit_hours_per_day") }}' : '{{ t("graphs.unit_hours_per_month") }}';
         
+        HG.setPartial(serverMonthlyHoursChartInstance, data.partial);
         serverMonthlyHoursChartInstance.data.labels = data.labels;
         serverMonthlyHoursChartInstance.data.datasets[0].data = data.hours;
         serverMonthlyHoursChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily hours' : 'Heures du jour') : (isEn ? 'Monthly hours' : 'Heures du mois');
@@ -878,6 +897,7 @@ function switchServerGranularity(mode) {
         const avg = isDay ? Number('{{ charts.avg_daily_msgs }}') : Number('{{ charts.avg_msgs }}');
         const unit = isDay ? '{{ t("charts.unit_msgs_per_day") }}' : '{{ t("graphs.unit_msgs_per_month") }}';
 
+        HG.setPartial(serverMonthlyMsgsChartInstance, data.partial);
         serverMonthlyMsgsChartInstance.data.labels = data.labels;
         serverMonthlyMsgsChartInstance.data.datasets[0].data = data.messages;
         serverMonthlyMsgsChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily messages' : 'Messages du jour') : (isEn ? 'Monthly messages' : 'Messages du mois');
@@ -1135,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {
                         label: isEn ? 'Monthly hours' : 'Heures du mois',
                         data: sMonthlyHoursBarData.hours,
-                        backgroundColor: '#38bdf8',
+                        ...HG.partialBar('#38bdf8'),
                         borderRadius: 6,
                         order: 2
                     },
@@ -1174,6 +1194,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        HG.setPartial(serverMonthlyHoursChartInstance, sMonthlyHoursBarData.partial);
+        serverMonthlyHoursChartInstance.update();
         serverChartInstances.push(serverMonthlyHoursChartInstance);
     }
 
@@ -1191,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {
                         label: isEn ? 'Monthly messages' : 'Messages du mois',
                         data: sMonthlyMsgsBarData.messages,
-                        backgroundColor: '#5865F2',
+                        ...HG.partialBar('#5865F2'),
                         borderRadius: 6,
                         order: 2
                     },
@@ -1230,6 +1252,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        HG.setPartial(serverMonthlyMsgsChartInstance, sMonthlyMsgsBarData.partial);
+        serverMonthlyMsgsChartInstance.update();
         serverChartInstances.push(serverMonthlyMsgsChartInstance);
     }
 

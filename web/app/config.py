@@ -82,6 +82,9 @@ class Config:
     SESSION_COOKIE_NAME = "hourglass_session"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+
+    # Static assets: styles.css is cache-busted with ?v=<app version>, icons/images almost never change
+    SEND_FILE_MAX_AGE_DEFAULT = timedelta(days=7)
     DB_NAME = os.environ.get("POSTGRESQL_DBNAME", "devhourglass")
     DB_USER = os.environ.get("POSTGRESQL_USER", "postgres")
     DB_PASSWORD = os.environ.get("POSTGRESQL_PASSWORD", "admin")

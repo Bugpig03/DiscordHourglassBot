@@ -883,9 +883,11 @@ body {
   .top-tab-btn,
   .nav-menu-item-short a {
     flex: 1;
+    min-width: 0;
     justify-content: center;
-    padding: 10px 14px;
-    font-size: 0.9rem;
+    gap: 6px;
+    padding: 10px 8px;
+    font-size: 0.86rem;
   }
 }
 
@@ -5292,3 +5294,82 @@ footer {
   }
 }
 
+
+/* --------------------------------------------------------------------------
+   Empty states for charts without enough data (new servers, small profiles)
+   -------------------------------------------------------------------------- */
+.chart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 220px;
+  padding: 30px 20px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.015);
+  text-align: center;
+}
+
+.chart-empty-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+}
+
+.chart-empty-state-title {
+  color: #e2e8f0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.chart-empty-state-text {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  max-width: 420px;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   KPI grids sized to their card count (no orphan card alone on a row)
+   -------------------------------------------------------------------------- */
+.home-stats-container.stats-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.home-stats-container.stats-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1150px) {
+  .home-stats-container.stats-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* 3 cards on the first row, 2 wider cards on the second */
+  .home-stats-container.stats-5 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .home-stats-container.stats-5 > :nth-child(-n + 3) {
+    grid-column: span 2;
+  }
+  .home-stats-container.stats-5 > :nth-child(n + 4) {
+    grid-column: span 3;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-stats-container.stats-4,
+  .home-stats-container.stats-5 {
+    grid-template-columns: 1fr;
+  }
+  .home-stats-container.stats-5 > * {
+    grid-column: auto;
+  }
+}

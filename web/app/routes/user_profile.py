@@ -26,6 +26,7 @@ from app.functions import (
     get_daily_hours_diff,
     get_daily_messages_diff,
     get_month_abbr,
+    get_partial_period,
     get_user_presence,
     get_user_active_voice,
     get_hourly_activity_distribution,
@@ -245,7 +246,8 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
             f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} {datetime.strptime(row['month'], '%Y-%m-%d').year}"
             for row in monthly_diff_data
         ],
-        "hours": [row["hours_this_month"] for row in monthly_diff_data]
+        "hours": [row["hours_this_month"] for row in monthly_diff_data],
+        "partial": get_partial_period(monthly_diff_data, "month"),
     })
 
     # 3b. Daily voice hours deltas (last 30 days)
@@ -255,7 +257,8 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
             f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
             for row in daily_hours_diff_data
         ],
-        "hours": [row["hours_this_day"] for row in daily_hours_diff_data]
+        "hours": [row["hours_this_day"] for row in daily_hours_diff_data],
+        "partial": get_partial_period(daily_hours_diff_data, "day"),
     })
 
     # 4. Monthly messages deltas
@@ -265,7 +268,8 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
             f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} {datetime.strptime(row['month'], '%Y-%m-%d').year}"
             for row in monthly_messages_diff_data
         ],
-        "messages": [row["messages_this_month"] for row in monthly_messages_diff_data]
+        "messages": [row["messages_this_month"] for row in monthly_messages_diff_data],
+        "partial": get_partial_period(monthly_messages_diff_data, "month"),
     })
 
     # 4b. Daily messages deltas (last 30 days)
@@ -275,7 +279,8 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
             f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
             for row in daily_messages_diff_data
         ],
-        "messages": [row["messages_this_day"] for row in daily_messages_diff_data]
+        "messages": [row["messages_this_day"] for row in daily_messages_diff_data],
+        "partial": get_partial_period(daily_messages_diff_data, "day"),
     })
 
     # 5. User's servers distribution doughnut (Top 10 servers by time spent + Autres)
@@ -352,6 +357,7 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
         "has_favorite_channels": favorite_channels["has_data"],
         "hourly_activity_json": hourly_activity_json,
         "peak_voice_hour": hourly_activity["peak_voice_hour"],
+        "has_hourly_data": hourly_activity["has_data"],
         "peak_messages_hour": hourly_activity["peak_messages_hour"],
         "recent_sessions": recent_sessions,
         "can_view_sessions": can_view_sessions,

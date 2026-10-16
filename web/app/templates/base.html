@@ -5,10 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hourglass Bot{% endblock %}</title>
+    {% set page_description %}{% block meta_description %}{{ 'Statistiques vocales et textuelles de vos serveurs Discord : temps en vocal, messages, classements, badges et graphiques.' if current_lang == 'fr' else 'Voice and text statistics for your Discord servers: voice time, messages, leaderboards, badges and charts.' }}{% endblock %}{% endset %}
+    <meta name="description" content="{{ page_description | trim }}">
+    <meta property="og:site_name" content="Hourglass">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ self.title() | striptags | trim }}">
+    <meta property="og:description" content="{{ page_description | trim }}">
+    <meta property="og:url" content="{{ request.base_url }}">
+    <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/hourglass_logo_white.png', _external=True) }}{% endblock %}">
+    <meta name="theme-color" content="#5865f2">
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
     <link
     rel="stylesheet"
-    href="{{ url_for('static', filename='styles.css', v=30) }}"
+    href="{{ url_for('static', filename='styles.css', v=asset_version('styles.css')) }}"
     >
     <script>
         // Automatic visitor timezone detection with DST support
