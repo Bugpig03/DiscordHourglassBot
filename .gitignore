@@ -6,3 +6,4 @@ venv/
 *.exe~
 *.dll
 
+.flask_secret_key

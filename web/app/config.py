@@ -1,7 +1,9 @@
 """Application configuration module."""
 
+import hashlib
 import os
 import re
+import secrets
 from datetime import timedelta
 from dotenv import load_dotenv
 
@@ -34,18 +36,46 @@ def load_app_version() -> tuple[str, str]:
                             return match.group(1), match.group(2)
             except Exception:
                 pass
-    return "2.8.7", "12/10/2026"
+    return "2.8.8", "16/10/2026"
+
+
+def load_secret_key() -> str:
+    """Return the session signing key without ever falling back to a value published in the source code.
+
+    Priority: SECRET_KEY / FLASK_SECRET_KEY env var, then a key derived from DISCORD_CLIENT_SECRET
+    (stable across Gunicorn workers), then a random key persisted once in web/.flask_secret_key.
+    """
+    configured = os.environ.get("SECRET_KEY") or os.environ.get("FLASK_SECRET_KEY")
+    if configured:
+        return configured
+
+    client_secret = os.environ.get("DISCORD_CLIENT_SECRET")
+    if client_secret:
+        return hashlib.sha256(f"hourglass-session:{client_secret}".encode()).hexdigest()
+
+    key_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".flask_secret_key")
+    try:
+        # O_EXCL: the first Gunicorn worker creates the key, the others read the same one
+        fd = os.open(key_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(secrets.token_hex(32))
+    except FileExistsError:
+        pass
+    try:
+        with open(key_path, "r", encoding="utf-8") as f:
+            key = f.read().strip()
+        if key:
+            return key
+    except OSError:
+        pass
+    return secrets.token_hex(32)
 
 
 class Config:
     """Flask application configuration settings loaded from environment variables."""
 
-    # Stable secret key for signing session cookies
-    SECRET_KEY = (
-        os.environ.get("SECRET_KEY")
-        or os.environ.get("FLASK_SECRET_KEY")
-        or "hourglass_session_secret_v283_force_logout"
-    )
+    # Secret key for signing session cookies (set FLASK_SECRET_KEY in production)
+    SECRET_KEY = load_secret_key()
 
     # 60-day persistent session lifetime across browser restarts
     PERMANENT_SESSION_LIFETIME = timedelta(days=60)

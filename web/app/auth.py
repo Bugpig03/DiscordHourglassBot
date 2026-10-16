@@ -370,7 +370,8 @@ def token_login():
     state = data.get("state")
     expected_state = session.get("oauth_state")
 
-    if expected_state and state and state != expected_state:
+    # The state must always be present and match the one issued by /auth/oauth (CSRF / login injection)
+    if not expected_state or not state or not secrets.compare_digest(str(state), expected_state):
         return {"success": False, "error": "Invalid state"}, 400
 
     if not access_token:

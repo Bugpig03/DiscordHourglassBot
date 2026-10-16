@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
 from peewee import JOIN, fn
-from app.database import Users, Stats, VoiceSessions, Servers
+from app.database import Users, Stats, VoiceSessions, Servers, UserPresence
 from app.gamification import calculate_user_xp_and_level
 from app.functions import (
     get_servername_by_server_id,
@@ -26,7 +26,7 @@ from app.functions import (
     get_daily_messages_diff,
     get_month_abbr,
     get_server_live_status,
-    get_user_presence,
+    format_presence,
     get_server_channels_voice_breakdown,
     get_server_channels_messages_breakdown,
     get_hourly_activity_distribution,
@@ -54,7 +54,9 @@ def server(server_id: str):
     has_server_access = can_view_server_private_data(server_id)
 
     stats = load_server_profile_stats(server_id, search_query=search_query, lang=lang, has_server_access=has_server_access)
-    charts = load_server_charts_data(server_id, lang=lang, has_server_access=has_server_access)
+    # The doughnut needs the unfiltered ranking: reuse the member list when no search is active
+    all_members = stats["users"] if not search_query else None
+    charts = load_server_charts_data(server_id, lang=lang, has_server_access=has_server_access, all_members=all_members)
     punchcard = get_hourly_punchcard_data(server_id)
 
     return render_template(
@@ -100,7 +102,6 @@ def load_server_profile_stats(server_id: str | int, search_query: str = "", lang
         }
     else:
         # Fallback to computing directly from UserPresence and Stats
-        from app.database import UserPresence
         status_map = {
             r["status"]: r["count"]
             for r in (
@@ -152,7 +153,7 @@ def load_server_profile_stats(server_id: str | int, search_query: str = "", lang
     }
 
 
-def load_users_from_server(server_id: str | int, search_query: str = "", lang: str = "fr", has_server_access: bool = True) -> list[dict]:
+def load_users_from_server(server_id: str | int, search_query: str = "", lang: str = "fr", has_server_access: bool = False) -> list[dict]:
     """Retrieve members with activity on a server, ranked by voice time descending."""
     query = (
         Stats
@@ -206,6 +207,14 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
     except Exception:
         pass
 
+    # Fetch all member presences in one query instead of one query per member
+    presence_by_user = {}
+    if has_server_access and user_ids:
+        presence_by_user = {
+            p.user_id: p.status
+            for p in UserPresence.select(UserPresence.user_id, UserPresence.status).where(UserPresence.user_id.in_(user_ids))
+        }
+
     result = []
     for rank, row in enumerate(filtered, start=1):
         default_username = f"Member {row['user_id']}" if lang == "en" else f"Membre {row['user_id']}"
@@ -225,13 +234,13 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
             "messages_count": messages,
             "level": xp_info["level"],
             "total_xp": xp_info["total_xp"],
-            "presence": get_user_presence(row["user_id"]) if has_server_access else None,
+            "presence": format_presence(presence_by_user.get(row["user_id"])) if has_server_access else None,
             "is_in_voice": (row["user_id"] in active_voice_ids) if has_server_access else False,
         })
     return result
 
 
-def load_server_charts_data(server_id: str | int, lang: str = "fr", has_server_access: bool = True) -> dict:
+def load_server_charts_data(server_id: str | int, lang: str = "fr", has_server_access: bool = False, all_members: list[dict] | None = None) -> dict:
     """Compile chart data for a specific server: cumulative curves, monthly deltas, and top members doughnut."""
     int_server_id = int(server_id)
 
@@ -304,7 +313,8 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr", has_server_a
     })
 
     # 5. Top 10 members distribution doughnut
-    all_members = load_users_from_server(server_id, lang=lang)
+    if all_members is None:
+        all_members = load_users_from_server(server_id, lang=lang)
     top_10 = all_members[:10]
     remaining = all_members[10:]
 

@@ -1199,7 +1199,12 @@ def get_monthly_new_users_growth() -> list[dict]:
 def get_user_presence(user_id: int) -> dict:
     """Retrieve real-time presence status (online, idle, dnd, offline) for a user."""
     p = UserPresence.select().where(UserPresence.user_id == user_id).first()
-    status = p.status if p else "offline"
+    return format_presence(p.status if p else None)
+
+
+def format_presence(status: str | None) -> dict:
+    """Build the display labels and colors for a raw Discord presence status."""
+    status = status or "offline"
     labels = {
         "online": {"fr": "En ligne", "en": "Online", "color": "#10b981", "bg": "rgba(16, 185, 129, 0.15)", "border": "#10b981"},
         "idle": {"fr": "Absent", "en": "Idle", "color": "#f59e0b", "bg": "rgba(245, 158, 11, 0.15)", "border": "#f59e0b"},

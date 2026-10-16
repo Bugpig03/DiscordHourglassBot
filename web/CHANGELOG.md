@@ -1,5 +1,20 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.8.8 - Durcissement Sécurité des Sessions & OAuth2 - 16/10/2026
+### Sécurité
+- **Suppression de la clé secrète Flask codée en dur** :
+  - La clé de signature des cookies n'a plus de valeur par défaut publiée dans le dépôt (qui permettait de forger une session et d'usurper un compte).
+  - Ordre de résolution : `SECRET_KEY` / `FLASK_SECRET_KEY`, sinon clé dérivée de `DISCORD_CLIENT_SECRET`, sinon clé aléatoire persistée dans `web/.flask_secret_key` (partagée entre les workers Gunicorn).
+- **Vérification stricte du paramètre `state` OAuth2 (`POST /auth/token-login`)** :
+  - Le `state` est désormais obligatoire et comparé en temps constant ; l'omettre ne permet plus de contourner la protection CSRF du flux implicite.
+- **Mode debug Flask désactivé par défaut** dans `run.py` (activable via `FLASK_DEBUG=true` en local).
+
+### Performance
+- **Fiche serveur (`/server/<id>`) : 187 → 49 requêtes SQL** (323 → 51 pour un membre connecté) :
+  - Statuts de présence des membres récupérés en une seule requête au lieu d'une par membre.
+  - La liste des membres n'est plus rechargée une seconde fois pour le graphique « Top 10 membres ».
+  - `load_users_from_server` ne charge plus les présences par défaut (le comparateur `/versus` n'en a pas besoin).
+
 ## Version 2.8.7 - Persistance des Sessions, Confidentialité Présence & Compteurs Serveur Publics - 12/10/2026
 ### Sécurité & Confidentialité
 - **Confidentialité Renforcée du Statut Discord Individuel (`/profile/<user>`)** :
