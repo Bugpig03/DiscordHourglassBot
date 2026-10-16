@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.9.0 - Refonte de la Lisibilité des Graphiques & Calendrier d'Activité - 17/10/2026
+### Graphiques
+- **Séries denses allégées** : sur les courbes de 30 jours, les séries de plus de 30 mois et les graphiques sur 24 h, l'axe horizontal n'affiche plus qu'environ 8 libellés à l'horizontale (au lieu de toutes les dates inclinées à 45°), et les points n'apparaissent qu'au survol. Appliqué automatiquement à toutes les pages via un plugin Chart.js partagé (`hgDenseSeries`).
+- **Accueil : barres + courbe au lieu de deux courbes superposées** : les heures en vocal sont des barres (axe gauche « Heures »), les messages une courbe (axe droit « Messages ») ; les axes sont titrés et colorés, l'infobulle affiche les deux valeurs formatées.
+- **Formatage des nombres unifié** : légendes de moyenne, pourcentages des donuts et cartes de stats des profils/serveurs suivent la langue du site (`1 826,8 h` en français, `1,826.8 h` en anglais). Nouveau filtre Jinja `num` et helper JS `HG.fmt`, au rendu identique.
+
+### Calendrier d'activité (profil)
+- **Grille alignée sur les jours de la semaine** : chaque colonne est désormais une semaine commençant le lundi (la grille démarrait auparavant sur un jour quelconque, les lignes ne correspondaient à aucun jour précis).
+- **Repères de lecture** : noms des mois au-dessus des colonnes et jours de la semaine (Lun / Mer / Ven) sur le côté.
+- **Infobulle instantanée et stylée** au survol d'une case : « 12 oct. 2026 : 3,2 h · 45 messages » (ou « aucune activité »).
+
 ## Version 2.8.9 - Cache des Analyses, Avatars Allégés & Aperçus de Liens Discord - 17/10/2026
 ### Performance
 - **Cache de 5 minutes sur les analyses globales (`GET /api/graphs/data`)** :

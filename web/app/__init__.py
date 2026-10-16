@@ -114,6 +114,19 @@ def create_app():
         """Shortcut redirect to the unified auth.login page."""
         return redirect(url_for("auth.login", **request.args))
 
+    @app.template_filter("num")
+    def format_number(value, decimals: int = 0):
+        """Locale-aware number: '1 826,8' in French, '1,826.8' in English (same output as HG.fmt in JS)."""
+        try:
+            number = float(value or 0)
+        except (ValueError, TypeError):
+            return str(value)
+        formatted = f"{number:,.{decimals}f}"
+        if request.cookies.get("lang", "fr") == "en":
+            return formatted
+        # Narrow no-break space for thousands and comma for decimals, as Intl.NumberFormat('fr-FR') does
+        return formatted.replace(",", " ").replace(".", ",")
+
     @app.template_filter("thousands_fr")
     def thousands_fr(value):
         """Format an integer, float, or numeric string with spaces as thousand separators (e.g. 1 234 567 or 12 345.6)."""

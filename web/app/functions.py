@@ -1881,6 +1881,7 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
     Retourne les données pour les X derniers jours avec calcul de streak (flammes).
     """
     import re
+    lang = request.cookies.get("lang", "fr") if has_request_context() else "fr"
     user_tz = get_user_timezone()
     clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
     if not clean_tz:
@@ -1960,6 +1961,7 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
 
         day_list.append({
             "date": date_str,
+            "label": f"{curr.day} {get_month_abbr(curr.month, lang) if lang == 'en' else get_month_abbr(curr.month, lang).lower()} {curr.year}",
             "day_name": curr.strftime("%a"),
             "voice_seconds": v_sec,
             "voice_hours": v_hrs,
@@ -1985,8 +1987,23 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
             break
     current_streak = streak_count
 
+    # Calendar layout: columns are weeks starting on Monday, so pad the first week with blank cells
+    leading_blanks = start_date.weekday()
+    month_markers = []
+    for idx in range(len(day_list)):
+        day_date = start_date + timedelta(days=idx)
+        column = (leading_blanks + idx) // 7
+        if day_date.day == 1 or idx == 0:
+            # Drop a marker too close to the next one (e.g. the partial first month)
+            if month_markers and column - month_markers[-1]["column"] < 3:
+                month_markers.pop()
+            month_markers.append({"column": column, "label": get_month_abbr(day_date.month, lang)})
+
     return {
         "days": day_list,
+        "leading_blanks": leading_blanks,
+        "week_count": (leading_blanks + len(day_list) + 6) // 7,
+        "month_markers": month_markers,
         "total_active_days": total_active_days,
         "current_streak": current_streak,
         "max_streak": max_streak,

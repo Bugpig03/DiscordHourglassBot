@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ t('user_profile.title', username=stats.username) }}{% endblock %}
-{% block meta_description %}{% if current_lang == 'fr' %}Niveau {{ gamification.xp_info.level }} · {{ stats.total_time_hours | thousands_fr }} h en vocal · {{ stats.total_message | thousands_fr }} messages · {{ gamification.unlocked_count }}/{{ gamification.total_badges }} badges sur Hourglass.{% else %}Level {{ gamification.xp_info.level }} · {{ stats.total_time_hours | thousands_fr }} h in voice · {{ stats.total_message | thousands_fr }} messages · {{ gamification.unlocked_count }}/{{ gamification.total_badges }} badges on Hourglass.{% endif %}{% endblock %}
+{% block meta_description %}{% if current_lang == 'fr' %}Niveau {{ gamification.xp_info.level }} · {{ stats.total_time_hours | num(1) }} h en vocal · {{ stats.total_message | num }} messages · {{ gamification.unlocked_count }}/{{ gamification.total_badges }} badges sur Hourglass.{% else %}Level {{ gamification.xp_info.level }} · {{ stats.total_time_hours | num(1) }} h in voice · {{ stats.total_message | num }} messages · {{ gamification.unlocked_count }}/{{ gamification.total_badges }} badges on Hourglass.{% endif %}{% endblock %}
 {% block og_image %}{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png', _external=True) }}{% endblock %}
 
 
@@ -200,6 +200,58 @@
     z-index: 10;
     filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.7));
 }
+.heatmap-annual-layout {
+    display: flex;
+    gap: 8px;
+    width: max-content;
+}
+.heatmap-weekday-labels {
+    display: grid;
+    grid-template-rows: repeat(7, 13px);
+    gap: 3.5px;
+    margin-top: 20px;
+    font-size: 0.68rem;
+    line-height: 13px;
+    color: #64748b;
+}
+.heatmap-month-labels {
+    display: grid;
+    gap: 3.5px;
+    height: 16px;
+    margin-bottom: 4px;
+    font-size: 0.7rem;
+    color: #64748b;
+}
+.heatmap-month-labels span {
+    white-space: nowrap;
+}
+.heatmap-cell-blank,
+.heatmap-cell-blank:hover {
+    background: transparent;
+    cursor: default;
+    transform: none;
+    filter: none;
+}
+.heatmap-tooltip {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transform: translate(-50%, -100%);
+    transition: opacity 0.12s ease;
+}
+.heatmap-tooltip.visible {
+    opacity: 1;
+}
 .heatmap-level-0 { background: rgba(255, 255, 255, 0.05); }
 .heatmap-level-1 { background: #0e4429; }
 .heatmap-level-2 { background: #006d32; }
@@ -354,7 +406,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.activity_30d') }}</span>
-            <span class="home-stats-value">{{ (stats.total_time_last_30d / 3600) | round(1) }} {{ t('top.hours_unit') }}</span>
+            <span class="home-stats-value">{{ (stats.total_time_last_30d / 3600) | num(1) }} {{ t('top.hours_unit') }}</span>
         </div>
     </div>
 
@@ -364,7 +416,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.total_voice') }}</span>
-            <span class="home-stats-value">{{ stats.total_time_hours }} {{ t('top.hours_unit') }}</span>
+            <span class="home-stats-value">{{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}</span>
         </div>
     </div>
 
@@ -374,7 +426,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.total_messages') }}</span>
-            <span class="home-stats-value">{{ stats.total_message | thousands_fr }}</span>
+            <span class="home-stats-value">{{ stats.total_message | num }}</span>
         </div>
     </div>
 </div>
@@ -518,13 +570,37 @@
         <!-- Vue 1: Grille Annuelle (52 colonnes x 7 lignes GitHub-style) -->
         <div id="heatmapAnnualContainer" style="display: block;">
             <div class="heatmap-calendar-wrap">
-                <div class="heatmap-grid-annual">
-                    {% for day in heatmap_annual.days %}
-                    <div class="heatmap-cell heatmap-level-{{ day.level }}" 
-                         title="{{ day.date }} : {{ day.voice_hours }}h vocal ({{ day.formatted_time }}) • {{ day.messages }} msgs"></div>
-                    {% endfor %}
+                <div class="heatmap-annual-layout">
+                    <!-- Weekday labels (rows are Monday → Sunday) -->
+                    <div class="heatmap-weekday-labels" aria-hidden="true">
+                        {% for label in (['Lun', '', 'Mer', '', 'Ven', '', ''] if current_lang == 'fr' else ['Mon', '', 'Wed', '', 'Fri', '', '']) %}
+                        <span>{{ label }}</span>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <!-- Month labels aligned on the week columns -->
+                        <div class="heatmap-month-labels" aria-hidden="true" style="grid-template-columns: repeat({{ heatmap_annual.week_count }}, 13px);">
+                            {% for marker in heatmap_annual.month_markers %}
+                            <span style="grid-column: {{ marker.column + 1 }};">{{ marker.label }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="heatmap-grid-annual">
+                            {% for _ in range(heatmap_annual.leading_blanks) %}
+                            <div class="heatmap-cell heatmap-cell-blank"></div>
+                            {% endfor %}
+                            {% for day in heatmap_annual.days %}
+                            {% if day.level == 0 %}
+                            {% set tip = day.label ~ ' : ' ~ ('aucune activité' if current_lang == 'fr' else 'no activity') %}
+                            {% else %}
+                            {% set tip = day.label ~ ' : ' ~ (day.voice_hours | num(1)) ~ ' h · ' ~ (day.messages | num) ~ ' messages' %}
+                            {% endif %}
+                            <div class="heatmap-cell heatmap-level-{{ day.level }}" data-tip="{{ tip }}" aria-label="{{ tip }}"></div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
+            <div id="heatmapTooltip" class="heatmap-tooltip" role="tooltip"></div>
 
             <!-- Légende -->
             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 0.78rem; color: #64748b;">
@@ -774,7 +850,7 @@
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('user_profile.chart_hours_desc') }}</div>
             </div>
             <span style="background: rgba(57, 146, 190, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.total_label') }} {{ stats.total_time_hours }} {{ t('top.hours_unit') }}
+                {{ t('user_profile.total_label') }} {{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}
             </span>
         </div>
         <div style="position: relative; height: 350px; width: 100%;">
@@ -790,7 +866,7 @@
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('user_profile.chart_msgs_desc') }}</div>
             </div>
             <span style="background: rgba(88, 101, 242, 0.2); color: #a5b4fc; border: 1px solid rgba(88, 101, 242, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.total_label') }} {{ stats.total_message | thousands_fr }} {{ t('top.msgs_unit') }}
+                {{ t('user_profile.total_label') }} {{ stats.total_message | num }} {{ t('top.msgs_unit') }}
             </span>
         </div>
         <div style="position: relative; height: 350px; width: 100%;">
@@ -1080,7 +1156,7 @@ function switchUserGranularity(mode) {
         userMonthlyHoursChartInstance.data.datasets[0].data = data.hours;
         userMonthlyHoursChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily hours' : 'Heures du jour') : (isEn ? 'Monthly hours' : 'Heures du mois');
         userMonthlyHoursChartInstance.data.datasets[1].data = Array(data.hours.length).fill(avg);
-        userMonthlyHoursChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')';
+        userMonthlyHoursChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + HG.fmt(avg, 1) + ' ' + hoursUnit + ')';
         userMonthlyHoursChartInstance.update();
 
         const hTitle = document.getElementById('userHoursBarTitle');
@@ -1354,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         order: 2
                     },
                     {
-                        label: (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')',
+                        label: (isEn ? 'Average (' : 'Moyenne (') + HG.fmt(avg, 1) + ' ' + hoursUnit + ')',
                         data: Array(uMonthlyHoursBarData.hours.length).fill(Number(avg.toFixed(1))),
                         type: 'line',
                         borderColor: '#fbbf24',
@@ -1496,7 +1572,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: function(ctx) {
                                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                 const val = ctx.parsed;
-                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                const pct = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
                                 return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${pct}%)`;
                             }
                         }
@@ -1628,7 +1704,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: function(ctx) {
                                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                 const val = ctx.parsed;
-                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                const pct = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
                                 return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${pct}%)`;
                             }
                         }
@@ -1645,6 +1721,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (validTabs.includes(currentHash)) {
         switchUserProfileTab(currentHash);
     }
+});
+
+// Instant styled tooltip for the activity calendar (native titles are slow and unstyled)
+document.addEventListener('DOMContentLoaded', function() {
+    const grid = document.querySelector('.heatmap-grid-annual');
+    const tooltip = document.getElementById('heatmapTooltip');
+    if (!grid || !tooltip) return;
+
+    grid.addEventListener('mouseover', function(e) {
+        const cell = e.target.closest('[data-tip]');
+        if (!cell) return;
+        const rect = cell.getBoundingClientRect();
+        tooltip.textContent = cell.dataset.tip;
+        tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+        tooltip.style.top = (rect.top - 8) + 'px';
+        tooltip.classList.add('visible');
+    });
+    grid.addEventListener('mouseleave', function() {
+        tooltip.classList.remove('visible');
+    });
 });
 
 function toggleHeatmapView(mode) {

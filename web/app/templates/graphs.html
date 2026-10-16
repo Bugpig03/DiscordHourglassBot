@@ -1139,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             order: 2
                         },
                         {
-                            label: (isEn ? 'Average' : 'Moyenne') + ` (${avg.toFixed(1)} ${hoursUnit})`,
+                            label: (isEn ? 'Average' : 'Moyenne') + ` (${HG.fmt(avg, 1)} ${hoursUnit})`,
                             data: Array(monthlyData.hours.length).fill(Number(avg.toFixed(1))),
                             type: 'line',
                             borderColor: '#fbbf24',
@@ -1534,7 +1534,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 label: function(context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const val = context.parsed;
-                                    const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    const percentage = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
                                     return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${percentage}%)`;
                                 }
                             }
@@ -1592,7 +1592,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 label: function(context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const val = context.parsed;
-                                    const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    const percentage = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
                                     return ` ${val.toLocaleString(langLocale)} ${msgsUnit} (${percentage}%)`;
                                 }
                             }

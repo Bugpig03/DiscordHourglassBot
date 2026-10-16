@@ -5,6 +5,39 @@
 
     HG.locale = isEn ? 'en-US' : 'fr-FR';
 
+    // Locale-aware number formatting, consistent with the server-side `num` Jinja filter
+    HG.fmt = function (value, decimals = 0) {
+        return Number(value || 0).toLocaleString(HG.locale, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
+    };
+
+    /* ----------------------------------------------------------------------
+       Dense time series (30 days, 30+ months, 24 hours): keep ~8 horizontal
+       labels instead of every rotated date, and show points only on hover.
+       ---------------------------------------------------------------------- */
+    const DENSE_THRESHOLD = 14;
+    Chart.register({
+        id: 'hgDenseSeries',
+        beforeInit(chart) {
+            const cfg = chart.config;
+            const labels = (cfg.data && cfg.data.labels) || [];
+            const x = cfg.options && cfg.options.scales && cfg.options.scales.x;
+            if (!x || labels.length <= DENSE_THRESHOLD) return;
+
+            x.ticks = Object.assign({}, x.ticks, { autoSkip: true, maxTicksLimit: 8, maxRotation: 0, minRotation: 0 });
+            (cfg.data.datasets || []).forEach((ds) => {
+                const type = ds.type || cfg.type;
+                if (type === 'line') {
+                    ds.pointRadius = 0;
+                    ds.pointHoverRadius = ds.pointHoverRadius || 5;
+                    ds.pointHitRadius = 12;
+                }
+            });
+        },
+    });
+
     /* ----------------------------------------------------------------------
        Current (unfinished) period: the last month / today is drawn faded or
        dashed so it never reads as a sudden drop next to complete periods.

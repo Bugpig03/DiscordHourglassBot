@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ t('server_profile.title', servername=stats.servername) }}{% endblock %}
-{% block meta_description %}{% if current_lang == 'fr' %}{{ stats.servername }} : {{ stats.total_time_hours | thousands_fr }} h en vocal, {{ stats.total_message | thousands_fr }} messages, {{ stats.users | length }} membres actifs suivis par Hourglass.{% else %}{{ stats.servername }}: {{ stats.total_time_hours | thousands_fr }} h in voice, {{ stats.total_message | thousands_fr }} messages, {{ stats.users | length }} active members tracked by Hourglass.{% endif %}{% endblock %}
+{% block meta_description %}{% if current_lang == 'fr' %}{{ stats.servername }} : {{ stats.total_time_hours | num(1) }} h en vocal, {{ stats.total_message | num }} messages, {{ stats.users | length }} membres actifs suivis par Hourglass.{% else %}{{ stats.servername }}: {{ stats.total_time_hours | num(1) }} h in voice, {{ stats.total_message | num }} messages, {{ stats.users | length }} active members tracked by Hourglass.{% endif %}{% endblock %}
 {% block og_image %}{{ stats.avatar_url or url_for('static', filename='images/hourglass_logo_white.png', _external=True) }}{% endblock %}
 
 
@@ -234,7 +234,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('server_profile.activity_30d') }}</span>
-            <span class="home-stats-value">{{ (stats.total_time_last_30d.seconds / 3600) | round(1) }} {{ t('top.hours_unit') }}</span>
+            <span class="home-stats-value">{{ (stats.total_time_last_30d.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}</span>
         </div>
     </div>
 
@@ -244,7 +244,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('server_profile.total_voice') }}</span>
-            <span class="home-stats-value">{{ stats.total_time_hours }} {{ t('top.hours_unit') }}</span>
+            <span class="home-stats-value">{{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}</span>
         </div>
     </div>
 
@@ -254,7 +254,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('server_profile.total_messages') }}</span>
-            <span class="home-stats-value">{{ stats.total_message | thousands_fr }}</span>
+            <span class="home-stats-value">{{ stats.total_message | num }}</span>
         </div>
     </div>
 </div>
@@ -437,7 +437,7 @@
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('server_profile.chart_hours_desc') }}</div>
             </div>
             <span style="background: rgba(57, 146, 190, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('server_profile.total_label') }} {{ stats.total_time_hours }} {{ t('top.hours_unit') }}
+                {{ t('server_profile.total_label') }} {{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}
             </span>
         </div>
         <div style="position: relative; height: 350px; width: 100%;">
@@ -453,7 +453,7 @@
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('server_profile.chart_msgs_desc') }}</div>
             </div>
             <span style="background: rgba(88, 101, 242, 0.2); color: #a5b4fc; border: 1px solid rgba(88, 101, 242, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('server_profile.total_label') }} {{ stats.total_message | thousands_fr }} {{ t('top.msgs_unit') }}
+                {{ t('server_profile.total_label') }} {{ stats.total_message | num }} {{ t('top.msgs_unit') }}
             </span>
         </div>
         <div style="position: relative; height: 350px; width: 100%;">
@@ -880,7 +880,7 @@ function switchServerGranularity(mode) {
         serverMonthlyHoursChartInstance.data.datasets[0].data = data.hours;
         serverMonthlyHoursChartInstance.data.datasets[0].label = isDay ? (isEn ? 'Daily hours' : 'Heures du jour') : (isEn ? 'Monthly hours' : 'Heures du mois');
         serverMonthlyHoursChartInstance.data.datasets[1].data = Array(data.hours.length).fill(avg);
-        serverMonthlyHoursChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')';
+        serverMonthlyHoursChartInstance.data.datasets[1].label = (isEn ? 'Average (' : 'Moyenne (') + HG.fmt(avg, 1) + ' ' + hoursUnit + ')';
         serverMonthlyHoursChartInstance.update();
 
         const hTitle = document.getElementById('serverHoursBarTitle');
@@ -1160,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         order: 2
                     },
                     {
-                        label: (isEn ? 'Average (' : 'Moyenne (') + avg.toFixed(1) + ' ' + hoursUnit + ')',
+                        label: (isEn ? 'Average (' : 'Moyenne (') + HG.fmt(avg, 1) + ' ' + hoursUnit + ')',
                         data: Array(sMonthlyHoursBarData.hours.length).fill(Number(avg.toFixed(1))),
                         type: 'line',
                         borderColor: '#fbbf24',
@@ -1302,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: function(ctx) {
                                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                 const val = ctx.parsed;
-                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                const pct = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
                                 return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${pct}%)`;
                             }
                         }
@@ -1434,7 +1434,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: function(ctx) {
                                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                 const val = ctx.parsed;
-                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                const pct = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
                                 return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${pct}%)`;
                             }
                         }
@@ -1477,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: function(ctx) {
                                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                 const val = ctx.parsed;
-                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                const pct = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
                                 return ` ${val.toLocaleString(langLocale)} ${msgsUnit} (${pct}%)`;
                             }
                         }
