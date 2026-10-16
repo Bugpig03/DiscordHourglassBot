@@ -127,12 +127,32 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 		return
 	}
 
+	// A panic in a command handler must never take the whole bot (and voice tracking) down
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("❌ Panic in /%s command handler: %v", i.ApplicationCommandData().Name, r)
+		}
+	}()
+
+	data := i.ApplicationCommandData()
+
+	// Server-scoped commands cannot run in DMs (no guild, no member)
+	if i.GuildID == "" && (data.Name == "stats" || data.Name == "server") {
+		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "This command can only be used inside a server. Try `/allstats` or `/alltop` here.",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		})
+		return
+	}
+
 	// Immediate deferral to guarantee response within Discord's 3-second deadline
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
 
-	data := i.ApplicationCommandData()
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -155,7 +175,11 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 }
 
 func (h *BotHandler) handleStats(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate, isGlobal bool) {
-	targetUser := i.Member.User
+	// i.Member is only set in guilds; in DMs the invoker is in i.User
+	targetUser := i.User
+	if i.Member != nil {
+		targetUser = i.Member.User
+	}
 	data := i.ApplicationCommandData()
 	for _, opt := range data.Options {
 		if opt.Name == "user" || opt.Name == "utilisateur" {
@@ -495,7 +519,7 @@ func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session
 	}
 
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
-	isGlobal := forceGlobal || scope == "global"
+	isGlobal := forceGlobal || scope == "global" || i.GuildID == ""
 
 	var query string
 	var args []interface{}

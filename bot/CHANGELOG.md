@@ -1,5 +1,20 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.0.5 - Fiabilité du temps vocal & commandes en DM - 16/10/2026
+
+- **Réouverture des sessions limitée aux vraies sessions orphelines (`SyncVoiceSession`)** :
+  - Seules les sessions clôturées par la réconciliation (marquées `left_at = last_heartbeat`) dans le même salon sont rouvertes. Une déconnexion normale suivie d'un retour dans les 2 h ne compte plus l'absence comme du temps vocal.
+  - La durée retirée lors de la réouverture est soustraite de `stats`, ce qui supprime le double comptage à la clôture suivante.
+  - Heure de clôture des sessions orphelines normalisée en UTC.
+- **Commandes slash robustes en messages privés** :
+  - `/stats` et `/server` répondent par un message éphémère hors serveur au lieu de provoquer un panic (`i.Member` nil).
+  - `/top` bascule automatiquement en classement global en DM.
+  - `recover()` sur le dispatch des commandes : un panic ne peut plus arrêter le bot.
+- **Stream & caméra en temps réel** : l'activation/arrêt du partage d'écran ou de la webcam dans le même salon met immédiatement à jour la session active.
+- **Allègement de la charge PostgreSQL** :
+  - Resynchronisation des présences (toutes les 30 s) en une seule requête groupée (`unnest`) au lieu d'une requête par membre et par serveur, et réécriture limitée aux statuts réellement modifiés.
+  - `UpsertUser` / `UpsertServer` ne réécrivent plus la ligne quand rien n'a changé (auparavant à chaque message et toutes les 30 s par serveur).
+
 ## Version 3.0.4 - Correctifs de sécurité critiques (Dependabot) - 07/10/2026
 
 - **Mise à niveau des dépendances Go et élimination des vulnérabilités Dependabot** :

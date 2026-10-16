@@ -137,6 +137,14 @@ func (h *BotHandler) OnVoiceStateUpdate(s *discordgo.Session, v *discordgo.Voice
 		}
 		return
 	}
+
+	// CAS 4 : Même salon, activation/arrêt du partage d'écran ou de la caméra
+	if newChannelID != "" && oldChannelID == newChannelID && v.BeforeUpdate != nil &&
+		(v.BeforeUpdate.SelfStream != isStreaming || v.BeforeUpdate.SelfVideo != isCameraOn) {
+		if err := h.DB.UpdateVoiceSessionFlags(ctx, userID, serverID, isStreaming, isCameraOn); err != nil {
+			log.Printf("Erreur UpdateVoiceSessionFlags: %v", err)
+		}
+	}
 }
 
 // OnPresenceUpdate met à jour le statut en ligne/absent/dnd d'un membre
@@ -191,6 +199,9 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Statuts collectés sur tous les serveurs puis écrits en une seule requête (un membre présent sur plusieurs serveurs n'est écrit qu'une fois)
+	presenceByUser := make(map[int64]string)
+
 	for _, g := range s.State.Guilds {
 		guild, err := s.State.Guild(g.ID)
 		if err != nil {
@@ -207,8 +218,9 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 				dnd++
 			}
 			if p.User != nil {
-				uID, _ := strconv.ParseInt(p.User.ID, 10, 64)
-				_ = h.DB.UpsertUserPresence(ctx, uID, string(p.Status))
+				if uID, err := strconv.ParseInt(p.User.ID, 10, 64); err == nil {
+					presenceByUser[uID] = string(p.Status)
+				}
 			}
 		}
 
@@ -231,6 +243,16 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 		serverID, _ := strconv.ParseInt(g.ID, 10, 64)
 		_ = h.DB.UpdateLiveServerStatus(ctx, serverID, online, idle, dnd, offline, voiceCount)
 		_ = h.DB.UpsertServer(ctx, serverID, guild.Name, guild.IconURL("1024"))
+	}
+
+	userIDs := make([]int64, 0, len(presenceByUser))
+	statuses := make([]string, 0, len(presenceByUser))
+	for uID, status := range presenceByUser {
+		userIDs = append(userIDs, uID)
+		statuses = append(statuses, status)
+	}
+	if err := h.DB.BulkUpsertUserPresence(ctx, userIDs, statuses); err != nil {
+		log.Printf("⚠️ Erreur BulkUpsertUserPresence: %v", err)
 	}
 }
 

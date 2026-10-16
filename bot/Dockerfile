@@ -1,5 +1,5 @@
 # ==============================================================================
-# HOURGLASS BOT v3.0.3 (Go Edition) - Production Dockerfile
+# HOURGLASS BOT (Go Edition) - Production Dockerfile
 # Multi-stage build for minimal image size and maximum performance
 # ==============================================================================
 

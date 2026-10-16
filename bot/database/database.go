@@ -59,6 +59,8 @@ func (db *DB) UpsertUser(ctx context.Context, userID int64, username, avatar str
 		ON CONFLICT (user_id) DO UPDATE
 		SET username = EXCLUDED.username,
 		    avatar = COALESCE(EXCLUDED.avatar, users.avatar)
+		WHERE users.username IS DISTINCT FROM EXCLUDED.username
+		   OR users.avatar IS DISTINCT FROM COALESCE(EXCLUDED.avatar, users.avatar)
 	`
 	_, err := db.Pool.Exec(ctx, query, userID, username, avatar)
 	return err
@@ -74,6 +76,10 @@ func (db *DB) UpsertServer(ctx context.Context, serverID int64, servername, avat
 		    avatar = COALESCE(EXCLUDED.avatar, servers.avatar),
 		    is_bot_present = TRUE,
 		    left_at = NULL
+		WHERE servers.servername IS DISTINCT FROM EXCLUDED.servername
+		   OR servers.avatar IS DISTINCT FROM COALESCE(EXCLUDED.avatar, servers.avatar)
+		   OR servers.is_bot_present IS DISTINCT FROM TRUE
+		   OR servers.left_at IS NOT NULL
 	`
 	_, err := db.Pool.Exec(ctx, query, serverID, servername, avatar)
 	return err
@@ -239,31 +245,77 @@ func (db *DB) SyncVoiceSession(ctx context.Context, userID, serverID, channelID 
 		return db.SwitchVoiceChannel(ctx, userID, serverID, channelID, isStreaming, isCameraOn)
 	}
 
-	// 2. Session coupée récemment (dans les 2 dernières heures, ex: lors du redémarrage/mise à jour du bot) ?
-	var recentID int64
-	var recentChannelID *int64
-	errRecent := db.Pool.QueryRow(ctx, `
-		SELECT session_id, channel_id
-		FROM voice_sessions
-		WHERE user_id = $1 AND server_id = $2 AND left_at >= NOW() - INTERVAL '2 hours'
-		ORDER BY left_at DESC
-		LIMIT 1
-	`, userID, serverID).Scan(&recentID, &recentChannelID)
-
-	if errRecent == nil {
-		// Réouverture transparente de la session sans coupure !
-		_, errReopen := db.Pool.Exec(ctx, `
-			UPDATE voice_sessions
-			SET left_at = NULL, duration_seconds = 0, last_heartbeat = NOW(), is_streaming = $2, is_camera_on = $3, channel_id = $4
-			WHERE session_id = $1
-		`, recentID, isStreaming, isCameraOn, channelID)
-		if errReopen == nil {
-			return nil
-		}
+	// 2. Session clôturée à tort par la réconciliation (crash, serveur momentanément indisponible) ?
+	// Seules les sessions orphelines (left_at = last_heartbeat, cf. CloseOrphanSession) dans le même salon
+	// sont rouvertes : une déconnexion normale suivie d'un retour ne doit jamais compter l'absence comme du vocal.
+	reopened, err := db.reopenOrphanSession(ctx, userID, serverID, channelID, isStreaming, isCameraOn)
+	if err != nil {
+		log.Printf("⚠️ Réouverture de session orpheline impossible (user %d): %v", userID, err)
+	}
+	if reopened {
+		return nil
 	}
 
 	// 3. Sinon, ouvrir une nouvelle session vocale
 	return db.StartVoiceSession(ctx, userID, serverID, channelID, isStreaming, isCameraOn)
+}
+
+// reopenOrphanSession rouvre la dernière session orpheline récente et retire de stats la durée qui y avait été ajoutée
+func (db *DB) reopenOrphanSession(ctx context.Context, userID, serverID, channelID int64, isStreaming, isCameraOn bool) (bool, error) {
+	tx, err := db.Pool.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(ctx)
+
+	var previousDuration int
+	err = tx.QueryRow(ctx, `
+		WITH target AS (
+			SELECT session_id, duration_seconds
+			FROM voice_sessions
+			WHERE user_id = $1 AND server_id = $2 AND channel_id = $3
+			  AND left_at IS NOT NULL
+			  AND left_at = last_heartbeat
+			  AND left_at >= NOW() - INTERVAL '2 hours'
+			  AND NOT is_legacy
+			ORDER BY left_at DESC
+			LIMIT 1
+			FOR UPDATE
+		)
+		UPDATE voice_sessions v
+		SET left_at = NULL, duration_seconds = 0, last_heartbeat = NOW(), is_streaming = $4, is_camera_on = $5
+		FROM target
+		WHERE v.session_id = target.session_id
+		RETURNING target.duration_seconds
+	`, userID, serverID, channelID, isStreaming, isCameraOn).Scan(&previousDuration)
+	if err == pgx.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	// La durée sera recomptée en entier à la prochaine clôture : on l'annule dans stats pour éviter un double comptage
+	if previousDuration > 0 {
+		if _, err := tx.Exec(ctx, `
+			UPDATE stats SET seconds = GREATEST(0, seconds - $3)
+			WHERE user_id = $1 AND server_id = $2
+		`, userID, serverID, previousDuration); err != nil {
+			return false, err
+		}
+	}
+
+	return true, tx.Commit(ctx)
+}
+
+// UpdateVoiceSessionFlags met à jour l'état stream/caméra de la session vocale active
+func (db *DB) UpdateVoiceSessionFlags(ctx context.Context, userID, serverID int64, isStreaming, isCameraOn bool) error {
+	_, err := db.Pool.Exec(ctx, `
+		UPDATE voice_sessions
+		SET is_streaming = $3, is_camera_on = $4
+		WHERE user_id = $1 AND server_id = $2 AND left_at IS NULL
+	`, userID, serverID, isStreaming, isCameraOn)
+	return err
 }
 
 // UpsertUserPresence enregistre le statut de présence Discord d'un utilisateur
@@ -276,6 +328,24 @@ func (db *DB) UpsertUserPresence(ctx context.Context, userID int64, status strin
 		    last_updated = NOW()
 	`
 	_, err := db.Pool.Exec(ctx, query, userID, status)
+	return err
+}
+
+// BulkUpsertUserPresence enregistre les statuts de nombreux utilisateurs en une seule requête.
+// Seules les lignes dont le statut a réellement changé sont réécrites (pas de WAL ni de tuples morts inutiles).
+func (db *DB) BulkUpsertUserPresence(ctx context.Context, userIDs []int64, statuses []string) error {
+	if len(userIDs) == 0 {
+		return nil
+	}
+	query := `
+		INSERT INTO user_presence (user_id, status, last_updated)
+		SELECT u, s, NOW() FROM unnest($1::BIGINT[], $2::VARCHAR[]) AS t(u, s)
+		ON CONFLICT (user_id) DO UPDATE
+		SET status = EXCLUDED.status,
+		    last_updated = NOW()
+		WHERE user_presence.status IS DISTINCT FROM EXCLUDED.status
+	`
+	_, err := db.Pool.Exec(ctx, query, userIDs, statuses)
 	return err
 }
 
@@ -355,18 +425,21 @@ func (db *DB) GetActiveVoiceSessions(ctx context.Context) ([]ActiveSession, erro
 	return sessions, rows.Err()
 }
 
-// CloseOrphanSession clôture une session orpheline dont l'utilisateur a quitté pendant un crash
+// CloseOrphanSession clôture une session orpheline dont l'utilisateur a quitté pendant un crash.
+// left_at = last_heartbeat sert de marqueur pour que SyncVoiceSession puisse la rouvrir si la clôture était erronée.
 func (db *DB) CloseOrphanSession(ctx context.Context, sessionID int64, closeTime time.Time) error {
 	query := `
 		UPDATE voice_sessions
 		SET left_at = $2,
+		    last_heartbeat = $2,
 		    duration_seconds = GREATEST(0, EXTRACT(EPOCH FROM ($2 - joined_at))::INT)
 		WHERE session_id = $1 AND left_at IS NULL
 		RETURNING user_id, server_id, duration_seconds
 	`
 	var userID, serverID int64
 	var duration int
-	err := db.Pool.QueryRow(ctx, query, sessionID, closeTime).Scan(&userID, &serverID, &duration)
+	// Colonnes TIMESTAMP sans fuseau stockées en UTC : on normalise pour ne pas décaler l'heure de clôture
+	err := db.Pool.QueryRow(ctx, query, sessionID, closeTime.UTC()).Scan(&userID, &serverID, &duration)
 	if err == nil && duration > 0 {
 		_ = db.AddSecondsToStats(ctx, userID, serverID, duration)
 	}
