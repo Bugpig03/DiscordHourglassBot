@@ -1,5 +1,17 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.9.0 - Galerie d'Images : Bannières & Fonds d'Écran de Profil - 17/10/2026
+### Nouveautés
+- **Galerie de 12 bannières** au choix pour l'en-tête du profil : aurore boréale, nébuleuse, synthwave, crépuscule en montagne, océan de nuit, low poly, topographie, ville en pixel art, sakura, braises, circuit et dunes. Nouveau choix « Galerie » à côté de Discord, Dégradé et Aucune.
+- **Fond d'écran du profil** : 8 images (nébuleuse, aurore, topographie, circuit, ville pixel, dunes, océan, low poly) affichées derrière toute la page, assombries vers le bas pour garder le contenu lisible. Visible par tous les visiteurs du profil.
+- Sélection par miniatures dans l'onglet *Apparence* de « Personnaliser mon profil » ; l'aperçu montre la bannière et le fond d'écran en direct.
+
+### Technique
+- Images originales générées par `scripts/make_profile_gallery.py` (Pillow + numpy, aucune image tierce donc aucun droit à gérer), en WebP : environ 760 Ko pour toute la galerie, avec des miniatures de 2 à 7 Ko pour le sélecteur. Servies par le site lui-même (compatible avec la CSP) et en cache 7 jours.
+- Pas d'envoi d'image par les membres : seules les clés de la galerie sont acceptées (rien à modérer ni à stocker).
+- Deux colonnes ajoutées à `user_profile_settings` (`banner_image`, `background_image`) : `database/migrations/2026-10-17_web_v3.9.0_profile_images.sql`. Le site les ajoute lui-même au démarrage si elles manquent.
+- Type MIME `image/webp` déclaré explicitement (certains systèmes servaient les WebP en `application/octet-stream`).
+
 ## Version 3.8.0 - Vitrine du Profil & Retour de l'Accueil d'Origine - 17/10/2026
 ### Nouveautés
 - **Bloc « Vitrine » sur le profil**, juste sous l'en-tête : il regroupe tout ce que le membre choisit lui-même (badges mis en avant, serveur favori, records). Un cadre à sa couleur la distingue du reste de la page. Le propriétaire a un lien « Modifier ma vitrine ».

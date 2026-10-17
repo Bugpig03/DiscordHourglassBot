@@ -1,5 +1,5 @@
-"""Profile customization stored in user_profile_settings: accent color, banner, favorite server,
-featured badges, pinned records and block visibility (per block or private mode).
+"""Profile customization stored in user_profile_settings: accent color, banner and page background
+(Discord, gradient or gallery image), favorite server, featured badges, pinned records and block visibility.
 
 Reads never fail a page: if the table is missing (migration not applied yet) or the query errors,
 the profile falls back to the default look.
@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from peewee import DatabaseError
 
 from app.database import db, UserProfileSettings
+from app.profile_gallery import BACKGROUNDS, BANNERS, background_url, banner_url as gallery_banner_url
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +33,8 @@ PALETTE_HEX = {key: hex_ for key, hex_, _, _ in PALETTE}
 DEFAULT_ACCENT = "sky"
 DISCORD_ACCENT = "discord"  # the accent color of the member's Discord profile
 
-BANNER_MODES = ("auto", "gradient", "none")  # auto = Discord banner when known, else gradient
+# auto = Discord banner when known, else gradient; image = picture from the gallery (banner_image)
+BANNER_MODES = ("auto", "gradient", "image", "none")
 
 # Sections of the "Activité" tab, in display order
 ACTIVITY_BLOCKS = ["streaks", "heatmap", "hourly", "companions"]
@@ -55,19 +57,30 @@ DEFAULTS = {
     "discord_banner": None,
     "discord_accent": None,
     "favorite_server_id": None,
+    "banner_image": None,
+    "background_image": None,
     "featured_badges": [],
     "pinned_records": [],
     "layout": {},
 }
 
 
+# Columns added after the table was first created (v3.9.0): added on startup when missing
+LATER_COLUMNS = {
+    "banner_image": "VARCHAR(32)",
+    "background_image": "VARCHAR(32)",
+}
+
+
 def ensure_table() -> None:
-    """Create the settings table when the migration was not run (CREATE TABLE IF NOT EXISTS, harmless)."""
+    """Create the settings table and its newer columns when the migrations were not run (IF NOT EXISTS, harmless)."""
     try:
         with db.connection_context():
             db.create_tables([UserProfileSettings], safe=True)
+            for column, sql_type in LATER_COLUMNS.items():
+                db.execute_sql(f"ALTER TABLE user_profile_settings ADD COLUMN IF NOT EXISTS {column} {sql_type}")
     except DatabaseError as e:
-        log.warning("user_profile_settings table unavailable, profile customization disabled: %s", e)
+        log.warning("user_profile_settings table unavailable or outdated, run the web migrations: %s", e)
 
 
 def get_profile_settings(user_id: int | str) -> dict:
@@ -86,6 +99,8 @@ def get_profile_settings(user_id: int | str) -> dict:
             "discord_banner": row.discord_banner,
             "discord_accent": row.discord_accent,
             "favorite_server_id": row.favorite_server_id,
+            "banner_image": row.banner_image if row.banner_image in BANNERS else None,
+            "background_image": row.background_image if row.background_image in BACKGROUNDS else None,
             "featured_badges": _json_list(row.featured_badges),
             "pinned_records": _json_list(row.pinned_records),
             "layout": _json_dict(row.layout),
@@ -181,7 +196,7 @@ def discord_accent_hex(settings: dict) -> str | None:
 
 
 def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
-    """Colors and banner the profile page renders with."""
+    """Colors, banner and page background the profile page renders with."""
     key = settings.get("accent_color") or DEFAULT_ACCENT
     hex_ = discord_accent_hex(settings) if key == DISCORD_ACCENT else PALETTE_HEX.get(key)
     if not hex_:
@@ -195,6 +210,10 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
         ext = "gif" if banner.startswith("a_") else "png"
         discord_banner_url = f"https://cdn.discordapp.com/banners/{int(user_id)}/{banner}.{ext}?size=1024"
     banner_url = discord_banner_url if mode == "auto" else None
+    if mode == "image":
+        banner_url = gallery_banner_url(settings.get("banner_image"))
+        if not banner_url:
+            mode = "gradient"
 
     return {
         "accent_key": key,
@@ -205,6 +224,9 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
         "banner_url": banner_url,
         "discord_banner_url": discord_banner_url,
         "show_banner": mode != "none",
+        "banner_image": settings.get("banner_image"),
+        "background_image": settings.get("background_image"),
+        "background_url": background_url(settings.get("background_image")),
     }
 
 

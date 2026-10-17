@@ -1,4 +1,4 @@
-"""Profile customization page (owner only): color, banner, favorite server, badge showcase, records and layout."""
+"""Profile customization page (owner only): color, banner and background, favorite server, showcase, records and layout."""
 
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
@@ -13,6 +13,7 @@ from app.profile_records import (
     RECORD_CATALOG,
     featured_badges,
 )
+from app.profile_gallery import BACKGROUNDS, BANNERS, background_url, banner_url, gallery
 from app.routes.user_profile import load_profile_extras, load_user_charts_data, load_user_profile_stats
 from app.profile_settings import (
     BANNER_MODES,
@@ -67,6 +68,8 @@ def customize_profile():
         palette=[{"key": k, "hex": h, "label": fr if lang == "fr" else en} for k, h, fr, en in PALETTE],
         discord_accent=discord_accent_hex(settings),
         has_discord_banner=bool(settings.get("discord_banner")),
+        banner_gallery=gallery(BANNERS, banner_url, lang),
+        background_gallery=gallery(BACKGROUNDS, background_url, lang),
         servers=servers,
         favorite_server=favorite_server,
         xp=xp,
@@ -93,6 +96,16 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
     if banner_mode not in BANNER_MODES:
         banner_mode = settings["banner_mode"]
 
+    # Gallery pictures: only known keys; choosing the gallery without a picture falls back to the gradient
+    banner_image = request.form.get("banner_image") or None
+    if banner_image not in BANNERS:
+        banner_image = None
+    if banner_mode == "image" and not banner_image:
+        banner_mode = "gradient"
+    background_image = request.form.get("background_image") or None
+    if background_image not in BACKGROUNDS:
+        background_image = None
+
     favorite = request.form.get("favorite_server_id", "")
     allowed_servers = {str(s["server_id"]) for s in servers}
     favorite_server_id = int(favorite) if favorite in allowed_servers else None
@@ -114,5 +127,7 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
         "pinned_records": pinned,
         "accent_color": accent,
         "banner_mode": banner_mode,
+        "banner_image": banner_image,
+        "background_image": background_image,
         "favorite_server_id": favorite_server_id,
     }

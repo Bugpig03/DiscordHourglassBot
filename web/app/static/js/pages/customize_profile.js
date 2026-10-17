@@ -47,12 +47,35 @@
         preview.classList.toggle('accent-custom', input.value !== 'sky');
     }
 
+    const bannerGallery = document.getElementById('bannerGallery');
     function applyBanner() {
         const input = form.querySelector('input[name="banner_mode"]:checked');
         const mode = input ? input.value : 'auto';
+        const picture = form.querySelector('input[name="banner_image"]:checked');
+        if (bannerGallery) bannerGallery.classList.toggle('open', mode === 'image');
+        // Opening the gallery without a picture picks the first one, so the preview shows something
+        if (mode === 'image' && !picture && bannerGallery) {
+            const first = bannerGallery.querySelector('input');
+            if (first) { first.checked = true; return applyBanner(); }
+        }
         banner.hidden = mode === 'none';
         hero.classList.toggle('has-banner', mode !== 'none');
-        bannerImg.hidden = !(mode === 'auto' && discordBanner);
+        let src = '';
+        if (mode === 'auto') src = discordBanner;
+        else if (mode === 'image' && picture) src = picture.dataset.full;
+        bannerImg.hidden = !src;
+        if (src && bannerImg.getAttribute('src') !== src) {
+            delete bannerImg.dataset.fallbackDone;
+            bannerImg.src = src;
+        }
+    }
+
+    function applyBackground() {
+        const input = form.querySelector('input[name="background_image"]:checked');
+        const url = input ? input.dataset.full : '';
+        preview.classList.toggle('has-backdrop', !!url);
+        if (url) preview.style.setProperty('--backdrop', `url("${url}")`);
+        else preview.style.removeProperty('--backdrop');
     }
 
     function applyFavorite() {
@@ -109,6 +132,8 @@
         const name = e.target.name;
         if (name === 'accent_color') applyColor();
         else if (name === 'banner_mode') applyBanner();
+        else if (name === 'banner_image') { form.querySelector('input[name="banner_mode"][value="image"]').checked = true; applyBanner(); }
+        else if (name === 'background_image') applyBackground();
         else if (name === 'favorite_server_id') applyFavorite();
         else if (name === 'featured_badges') { applyLimit(badgePicker); applyShowcase(); }
         else if (name === 'pinned_records') applyLimit(recordPicker);

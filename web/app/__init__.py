@@ -1,5 +1,6 @@
 """Flask application factory and blueprint registration."""
 
+import mimetypes
 import os
 import re
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
@@ -40,6 +41,10 @@ def optimize_response_images(body: str) -> str:
     """Downsize Discord CDN avatar URLs and add native lazy-loading to <img> tags."""
     body = DISCORD_AVATAR_SIZE_RE.sub(r"\1?size=256", body)
     return IMG_WITHOUT_LOADING_RE.sub('<img loading="lazy"', body)
+
+
+# Gallery pictures are WebP: not every OS mime table knows it (served as octet-stream otherwise)
+mimetypes.add_type("image/webp", ".webp")
 
 
 def create_app():

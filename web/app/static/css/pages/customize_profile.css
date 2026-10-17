@@ -572,3 +572,85 @@
 .cz-preview .profile-vitrine-server[hidden] {
     display: none;
 }
+
+/* Image galleries (banner and page background) */
+.cz-gallery {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+}
+.cz-js .cz-gallery-banners:not(.open) {
+    display: none;
+}
+.cz-gallery-banners {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.cz-gallery-backgrounds {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    margin-top: 0;
+}
+.cz-gallery-item {
+    position: relative;
+    display: block;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: #0f1722;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.cz-gallery-item input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.cz-gallery-item img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.cz-gallery-banners .cz-gallery-item img {
+    aspect-ratio: 4 / 1;
+    object-fit: cover;
+}
+.cz-gallery-backgrounds .cz-gallery-item img {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+.cz-gallery-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+.cz-gallery-item:has(input:checked) {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+}
+.cz-gallery-item:has(input:focus-visible) {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+.cz-gallery-none {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 9;
+    border: 2px dashed rgba(148, 163, 184, 0.4);
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.cz-gallery-none:has(input:checked) {
+    border-style: solid;
+}
+
+/* Preview frame: shows the page background behind the header preview */
+.cz-preview-frame {
+    border-radius: 18px;
+    transition: padding 0.2s ease;
+}
+.cz-preview-frame.has-backdrop {
+    padding: 14px;
+    background:
+        linear-gradient(180deg, rgba(11, 17, 32, 0.35), rgba(11, 17, 32, 0.7)),
+        var(--backdrop) center / cover no-repeat;
+}

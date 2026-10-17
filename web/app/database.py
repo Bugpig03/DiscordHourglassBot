@@ -189,6 +189,8 @@ class UserProfileSettings(BaseModel):
     discord_banner = CharField(max_length=64, null=True)
     discord_accent = IntegerField(null=True)
     favorite_server_id = BigIntegerField(null=True)
+    banner_image = CharField(max_length=32, null=True)       # gallery key when banner_mode == "image"
+    background_image = CharField(max_length=32, null=True)   # gallery key of the page background
     featured_badges = TextField(default="[]")
     pinned_records = TextField(default="[]")
     layout = TextField(default="{}")

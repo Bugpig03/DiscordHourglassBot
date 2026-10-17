@@ -98,10 +98,12 @@ ALTER TABLE servers ADD COLUMN IF NOT EXISTS left_at TIMESTAMP WITHOUT TIME ZONE
 CREATE TABLE IF NOT EXISTS user_profile_settings (
     user_id BIGINT PRIMARY KEY,
     accent_color VARCHAR(16) NOT NULL DEFAULT 'sky',
-    banner_mode VARCHAR(16) NOT NULL DEFAULT 'auto',
+    banner_mode VARCHAR(16) NOT NULL DEFAULT 'auto',   -- auto | gradient | image | none
     discord_banner VARCHAR(64),
     discord_accent INTEGER,
     favorite_server_id BIGINT,
+    banner_image VARCHAR(32),
+    background_image VARCHAR(32),
     featured_badges TEXT NOT NULL DEFAULT '[]',
     pinned_records TEXT NOT NULL DEFAULT '[]',
     layout TEXT NOT NULL DEFAULT '{}',

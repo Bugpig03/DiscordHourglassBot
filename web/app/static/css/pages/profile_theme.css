@@ -773,3 +773,14 @@
         max-width: none;
     }
 }
+
+/* Page background picked from the gallery (behind the whole page, darker towards the content) */
+.profile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(5, 9, 13, 0) 0%, rgba(5, 9, 13, 0.25) 50%, rgba(5, 9, 13, 0.55) 100%),
+        var(--backdrop) center / cover no-repeat;
+}
