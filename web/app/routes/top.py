@@ -50,6 +50,7 @@ def top_servers():
     return render_template("top_servers.html", servers=servers, total_pages=total_pages)
 
 
+@top_bp.route("/top", methods=["GET"])
 @top_bp.route("/top/users", methods=["GET"])
 def legacy_top_users():
     """Former leaderboard URL: permanent redirect keeping every filter."""

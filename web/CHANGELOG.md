@@ -10,6 +10,7 @@
 - **`/servers`** remplace `/top/servers` et l'ancien annuaire : même principe (tri vocal / messages / A–Z, recherche, période) ; les serveurs que le bot a quittés restent listés avec un badge « Non suivi ».
 - En tri alphabétique, les numéros de rang sont masqués (ils n'ont pas de sens dans cet ordre).
 - **Redirections permanentes (301)** de `/users`, `/top/users` et `/top/servers` vers les nouvelles pages, filtres conservés (`/users` conserve l'ordre alphabétique) : liens partagés et référencement préservés.
+- **Correctif lien du bot** : `hourglassbot.net/top`, envoyé par la commande Discord `/top` (« View full leaderboard on website »), menait à une page 404 ; il redirige désormais vers `/members`, y compris pour les messages déjà postés.
 
 ### Mon espace (accueil, membre connecté)
 - Pour un membre connecté connu du bot, le bandeau d'accueil devient un résumé personnel : niveau, titre, rang et progression d'XP, activité des dernières 24 h et 7 jours, série en cours, XP total, raccourcis « Mon profil » / « Me comparer » et **ses serveurs suivis par Hourglass** (d'après la connexion Discord) avec son temps sur chacun.
