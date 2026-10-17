@@ -1,5 +1,5 @@
 """Profile customization stored in user_profile_settings: accent color, banner, favorite server,
-featured badges and pinned records.
+featured badges, pinned records and block layout (order, visibility, private mode).
 
 Reads never fail a page: if the table is missing (migration not applied yet) or the query errors,
 the profile falls back to the default look.
@@ -34,6 +34,21 @@ DISCORD_ACCENT = "discord"  # the accent color of the member's Discord profile
 
 BANNER_MODES = ("auto", "gradient", "none")  # auto = Discord banner when known, else gradient
 
+# Sections of the "Activité" tab, in their default order (the member can reorder them)
+ORDERABLE_BLOCKS = ["streaks", "heatmap", "hourly", "companions"]
+# Blocks the member can hide from visitors (key: label fr, label en)
+HIDEABLE_BLOCKS = {
+    "showcase": ("Vitrine de badges", "Badge showcase"),
+    "records": ("Records épinglés", "Pinned records"),
+    "streaks": ("Séries et assiduité", "Streaks and consistency"),
+    "heatmap": ("Calendrier d’activité", "Activity calendar"),
+    "hourly": ("Rythme horaire", "Hourly rhythm"),
+    "companions": ("Compagnons vocaux", "Voice companions"),
+    "tab_charts": ("Onglet Graphiques", "Charts tab"),
+    "tab_servers": ("Onglet Serveurs fréquentés", "Servers tab"),
+    "tab_badges": ("Onglet Badges", "Badges tab"),
+}
+
 DEFAULTS = {
     "accent_color": DEFAULT_ACCENT,
     "banner_mode": "auto",
@@ -42,6 +57,7 @@ DEFAULTS = {
     "favorite_server_id": None,
     "featured_badges": [],
     "pinned_records": [],
+    "layout": {},
 }
 
 
@@ -72,6 +88,7 @@ def get_profile_settings(user_id: int | str) -> dict:
             "favorite_server_id": row.favorite_server_id,
             "featured_badges": _json_list(row.featured_badges),
             "pinned_records": _json_list(row.pinned_records),
+            "layout": _json_dict(row.layout),
         })
     return settings
 
@@ -84,10 +101,18 @@ def _json_list(raw: str | None) -> list[str]:
     return [str(v) for v in value if isinstance(v, str)] if isinstance(value, list) else []
 
 
+def _json_dict(raw: str | None) -> dict:
+    try:
+        value = json.loads(raw or "{}")
+    except (TypeError, ValueError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
 def save_profile_settings(user_id: int, values: dict) -> bool:
     """Insert or update the member's choices (values are validated by the caller)."""
     fields = {
-        getattr(UserProfileSettings, key): json.dumps(value) if isinstance(value, list) else value
+        getattr(UserProfileSettings, key): json.dumps(value) if isinstance(value, (list, dict)) else value
         for key, value in values.items()
     }
     fields[UserProfileSettings.updated_at] = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -180,4 +205,25 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
         "banner_url": banner_url,
         "discord_banner_url": discord_banner_url,
         "show_banner": mode != "none",
+    }
+
+
+def resolve_layout(settings: dict, is_owner: bool) -> dict:
+    """Order and visibility of the profile blocks for this viewer.
+
+    The owner always sees every block (hidden ones are tagged "hidden from visitors"); visitors do not
+    receive hidden blocks at all, not even their data. Private mode hides every block below the totals.
+    """
+    layout = settings.get("layout") or {}
+    order = [k for k in layout.get("order", []) if k in ORDERABLE_BLOCKS]
+    order += [k for k in ORDERABLE_BLOCKS if k not in order]
+    private = bool(layout.get("private"))
+    hidden = set(HIDEABLE_BLOCKS) if private else {k for k in layout.get("hidden", []) if k in HIDEABLE_BLOCKS}
+    return {
+        "order": order,
+        "hidden": {k: k in hidden for k in HIDEABLE_BLOCKS},
+        "visible": {k: is_owner or k not in hidden for k in HIDEABLE_BLOCKS},
+        "private": private,
+        "private_view": private and not is_owner,
+        "is_owner": is_owner,
     }

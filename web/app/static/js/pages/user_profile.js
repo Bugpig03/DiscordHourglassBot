@@ -624,7 +624,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check URL Hash
     const validTabs = ['tab-activity', 'tab-charts', 'tab-servers', 'tab-badges'];
     const currentHash = window.location.hash ? window.location.hash.replace('#', '') : '';
-    if (validTabs.includes(currentHash)) {
+    // A tab hidden by the member is not rendered: ignore a stale #hash pointing to it
+    if (validTabs.includes(currentHash) && document.getElementById(currentHash)) {
         switchUserProfileTab(currentHash);
     }
 });

@@ -1,4 +1,4 @@
-"""Profile customization page (owner only): accent color, banner, favorite server, badge showcase and records."""
+"""Profile customization page (owner only): color, banner, favorite server, badge showcase, records and layout."""
 
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
@@ -17,10 +17,13 @@ from app.routes.user_profile import load_profile_extras, load_user_charts_data, 
 from app.profile_settings import (
     BANNER_MODES,
     DISCORD_ACCENT,
+    HIDEABLE_BLOCKS,
+    ORDERABLE_BLOCKS,
     PALETTE,
     PALETTE_HEX,
     discord_accent_hex,
     get_profile_settings,
+    resolve_layout,
     resolve_profile_theme,
     save_profile_settings,
 )
@@ -73,6 +76,8 @@ def customize_profile():
         showcase=featured_badges(badges, settings["featured_badges"]),
         records=records,
         pinned_keys=settings["pinned_records"] or [k for k in DEFAULT_PINNED_RECORDS if k in records],
+        layout=resolve_layout(settings, is_owner=True),
+        block_labels={k: (fr if lang == "fr" else en) for k, (fr, en) in HIDEABLE_BLOCKS.items()},
         max_badges=MAX_FEATURED_BADGES,
         max_records=MAX_PINNED_RECORDS,
         saved=request.args.get("saved"),
@@ -98,7 +103,17 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
     featured = list(dict.fromkeys(i for i in request.form.getlist("featured_badges") if i in unlocked))[:MAX_FEATURED_BADGES]
     pinned = list(dict.fromkeys(k for k in request.form.getlist("pinned_records") if k in RECORD_CATALOG))[:MAX_PINNED_RECORDS]
 
+    order = list(dict.fromkeys(k for k in request.form.getlist("layout_order") if k in ORDERABLE_BLOCKS))
+    order += [k for k in ORDERABLE_BLOCKS if k not in order]
+    visible = set(request.form.getlist("layout_visible"))
+    layout = {
+        "order": order,
+        "hidden": [k for k in HIDEABLE_BLOCKS if k not in visible],
+        "private": request.form.get("layout_private") == "1",
+    }
+
     return {
+        "layout": layout,
         "featured_badges": featured,
         "pinned_records": pinned,
         "accent_color": accent,

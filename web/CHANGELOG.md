@@ -1,5 +1,18 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.5.0 - Mise en Page du Profil & Mode Privé - 17/10/2026
+### Nouveautés
+- **Ordre de l'onglet Activité** : le membre réordonne les sections séries et assiduité, calendrier d'activité, rythme horaire et compagnons vocaux (boutons monter / descendre, utilisables au clavier). Le journal des sessions reste en dernier.
+- **Visibilité par bloc** : vitrine de badges, records épinglés, chacune des quatre sections de l'onglet Activité et les onglets Graphiques, Serveurs fréquentés et Badges peuvent être masqués aux visiteurs. Le propriétaire voit toujours tous ses blocs, marqués « Masqué aux visiteurs ».
+- **Profil privé** : les visiteurs ne voient plus que l'en-tête, le niveau et les totaux, avec un message indiquant que le membre garde ses statistiques détaillées privées. Le membre reste visible dans les classements, les comparaisons Versus et les fiches serveur (précisé sur la page de personnalisation).
+
+### Sécurité & confidentialité
+- Un bloc masqué n'est pas envoyé au visiteur, données comprises : les séries JSON des graphiques et du rythme horaire ne sont plus incluses dans la page quand l'onglet ou la section est masqué.
+- Un lien vers un onglet masqué (`#tab-charts`…) ouvre simplement l'onglet Activité au lieu d'afficher une page vide.
+
+### Interface
+- Sur téléphone, les 3 badges de la vitrine s'affichent côte à côte en tuiles compactes.
+
 ## Version 3.4.0 - Vitrine de Badges & Records Épinglés - 17/10/2026
 ### Nouveautés
 - **Vitrine de badges** en bas de l'en-tête du profil : le membre choisit jusqu'à 3 badges débloqués à mettre en avant (couleur selon la rareté, description au survol). Sans choix, ses 3 badges les plus rares s'affichent automatiquement ; un badge perdu (par exemple un rang du podium) disparaît de la vitrine.

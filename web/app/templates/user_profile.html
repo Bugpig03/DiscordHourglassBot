@@ -13,6 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for User -->
+{% if layout.visible.tab_charts %}
 <script type="application/json" id="userHoursProgressionData">{{ charts.chart_data_json|safe_json }}</script>
 <script type="application/json" id="userHoursDailyProgressionData">{{ charts.daily_chart_data_json|safe_json }}</script>
 <script type="application/json" id="userMessagesProgressionData">{{ charts.messages_chart_data_json|safe_json }}</script>
@@ -23,10 +24,13 @@
 <script type="application/json" id="userDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe_json }}</script>
 <script type="application/json" id="userServersPieData">{{ charts.user_servers_pie_json|safe_json }}</script>
 <script type="application/json" id="userFavoriteChannelsData">{{ charts.favorite_channels_pie_json|safe_json }}</script>
-{% if charts.has_hourly_data %}<script type="application/json" id="userHourlyActivityData">{{ charts.hourly_activity_json|safe_json }}</script>{% endif %}
+{% endif %}
+{% if charts.has_hourly_data and layout.visible.hourly %}<script type="application/json" id="userHourlyActivityData">{{ charts.hourly_activity_json|safe_json }}</script>{% endif %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user_profile.css', v=asset_version('css/pages/user_profile.css')) }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/profile_theme.css', v=asset_version('css/pages/profile_theme.css')) }}">
+
+{% macro hidden_tag(key) %}{% if layout.hidden[key] %}<span class="layout-hidden-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>{{ 'Masqué aux visiteurs' if current_lang == 'fr' else 'Hidden from visitors' }}</span>{% endif %}{% endmacro %}
 
 <div class="profile-themed {% if theme.is_custom %}accent-custom{% endif %}" style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};">
 
@@ -107,8 +111,9 @@
         </div>
     </div>
 
-    {% if showcase %}
+    {% if showcase and layout.visible.showcase %}
     <!-- Featured badges chosen by the member (rarest unlocked ones by default) -->
+    {{ hidden_tag('showcase') }}
     <div class="profile-showcase" aria-label="{{ 'Vitrine de badges' if current_lang == 'fr' else 'Badge showcase' }}">
         {% for badge in showcase %}
         <div class="profile-showcase-item rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
@@ -197,10 +202,10 @@
     </div>
 </div>
 
-{% if records %}
+{% if records and layout.visible.records %}
 <!-- Personal records pinned by the member -->
 <section class="profile-records" aria-labelledby="profileRecordsTitle">
-    <h2 id="profileRecordsTitle" class="profile-records-title">{{ 'Records' }}</h2>
+    <h2 id="profileRecordsTitle" class="profile-records-title">{{ 'Records' }} {{ hidden_tag('records') }}</h2>
     <div class="profile-records-grid">
         {% for record in records %}
         <div class="profile-record">
@@ -214,6 +219,18 @@
 </section>
 {% endif %}
 
+{% if layout.private_view %}
+<div class="gray-box small-border-radius profile-private-notice">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <div>
+        <div class="profile-private-title">{{ 'Profil privé' if current_lang == 'fr' else 'Private profile' }}</div>
+        <div class="small-text gray">{{ (stats.username ~ ' a choisi de garder ses statistiques détaillées privées.') if current_lang == 'fr' else (stats.username ~ ' chose to keep their detailed statistics private.') }}</div>
+    </div>
+</div>
+{% else %}
+{% if layout.private %}
+<div class="profile-private-owner"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> {{ 'Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.' if current_lang == 'fr' else 'Your profile is private: visitors only see the header, level and totals.' }} <a href="{{ url_for('customize.customize_profile') }}">{{ 'Modifier' if current_lang == 'fr' else 'Change' }}</a></div>
+{% endif %}
 <!-- =================================================================== -->
 <!-- TAB NAVIGATION BAR                                                  -->
 <!-- =================================================================== -->
@@ -223,18 +240,24 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
             <span>{{ t('user_profile.tab_activity') }}</span>
         </button>
+        {% if layout.visible.tab_charts %}
         <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchUserProfileTab" data-arg="tab-charts">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             <span>{{ t('user_profile.tab_graphs') }}</span>
         </button>
+        {% endif %}
+        {% if layout.visible.tab_servers %}
         <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchUserProfileTab" data-arg="tab-servers">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
             <span>{{ t('user_profile.tab_servers') }}</span>
         </button>
+        {% endif %}
+        {% if layout.visible.tab_badges %}
         <button class="graphs-tab-btn" data-tab="tab-badges" data-call="switchUserProfileTab" data-arg="tab-badges">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
             <span>{{ t('user_profile.tab_badges') }}</span>
         </button>
+        {% endif %}
     </div>
 </div>
 
@@ -243,6 +266,7 @@
 <!-- =================================================================== -->
 <div id="tab-activity" class="graphs-tab-pane active">
 
+    {% set block_streaks %}
     <!-- KPI Streaks & Assiduité (Style Moderne Identique à la Page Principale) -->
     <div class="dashboard-kpi-grid" style="margin-bottom: 25px;">
         <!-- 1. Série actuelle -->
@@ -325,7 +349,8 @@
             </div>
         </div>
     </div>
-
+    {% endset %}
+    {% set block_heatmap %}
     <!-- GitHub-Style Heatmap Box -->
     <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
@@ -414,7 +439,8 @@
             </div>
         </div>
     </div>
-
+    {% endset %}
+    {% set block_hourly %}
     <!-- Affluence & Rythme Horaire Personnel (24h) -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -446,7 +472,8 @@
         {% include "partials/chart_empty_state.html" %}
         {% endif %}
     </div>
-
+    {% endset %}
+    {% set block_companions %}
     <!-- Section : Compagnons Vocaux Fréquents -->
     <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
         <div style="margin-bottom: 18px;">
@@ -486,6 +513,13 @@
         </div>
         {% endif %}
     </div>
+    {% endset %}
+    {% set activity_blocks = {'streaks': block_streaks, 'heatmap': block_heatmap, 'hourly': block_hourly, 'companions': block_companions} %}
+    {% for key in layout.order %}{% if layout.visible[key] %}
+    {% if layout.hidden[key] %}<div class="layout-block-hidden">{{ hidden_tag(key) }}{% endif %}
+    {{ activity_blocks[key] }}
+    {% if layout.hidden[key] %}</div>{% endif %}
+    {% endif %}{% endfor %}
 
     <!-- Section : Journal des Sessions Vocales Récentes -->
     <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
@@ -602,7 +636,9 @@
 <!-- =================================================================== -->
 <!-- ONGLET 2 : Graphiques & Statistiques de l'utilisateur               -->
 <!-- =================================================================== -->
+{% if layout.visible.tab_charts %}
 <div id="tab-charts" class="graphs-tab-pane">
+    {% if layout.hidden.tab_charts %}<div class="layout-pane-tag">{{ hidden_tag('tab_charts') }}</div>{% endif %}
     <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
         <div style="display: flex; align-items: center; gap: 14px;">
             <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
@@ -758,11 +794,14 @@
         {% endif %}
     </div>
 </div>
+{% endif %}
 
 <!-- =================================================================== -->
 <!-- ONGLET 4 : Serveurs fréquentés (Classés par temps en vocal)         -->
 <!-- =================================================================== -->
+{% if layout.visible.tab_servers %}
 <div id="tab-servers" class="graphs-tab-pane">
+    {% if layout.hidden.tab_servers %}<div class="layout-pane-tag">{{ hidden_tag('tab_servers') }}</div>{% endif %}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
         <div class="big-bold-text nomargin" style="font-size: 1.25rem;">
             {{ t('user_profile.servers_heading') }} ({{ stats.user_servers_stats|length }})
@@ -813,11 +852,14 @@
         </div>
     {% endif %}
 </div>
+{% endif %}
 
 <!-- =================================================================== -->
 <!-- ONGLET 5 : Succès & Badges Débloqués                                -->
 <!-- =================================================================== -->
+{% if layout.visible.tab_badges %}
 <div id="tab-badges" class="graphs-tab-pane">
+    {% if layout.hidden.tab_badges %}<div class="layout-pane-tag">{{ hidden_tag('tab_badges') }}</div>{% endif %}
     <div class="badges-summary-banner gray-box small-border-radius" style="padding: 20px 24px; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
             <div>
@@ -875,7 +917,9 @@
         {% endfor %}
     </div>
 </div>
+{% endif %}
 
+{% endif %}{# /private_view #}
 </div>{# /.profile-themed #}
 
 <!-- =================================================================== -->

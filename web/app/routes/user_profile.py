@@ -39,7 +39,7 @@ from app.functions import (
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges
 from app.cache import cache
 from app.auth import can_view_user_sessions, can_view_user_presence
-from app.profile_settings import get_profile_settings, resolve_profile_theme
+from app.profile_settings import get_profile_settings, resolve_profile_theme, resolve_layout
 from app.profile_records import query_record_sources, build_records, pinned_records, featured_badges
 
 user_profile_bp = Blueprint("user_profile", __name__)
@@ -184,6 +184,7 @@ def profile(username: str):
         theme=resolve_profile_theme(user_id, settings),
         favorite_server=favorite_server,
         is_owner=charts["can_view_sessions"],
+        layout=resolve_layout(settings, is_owner=charts["can_view_sessions"]),
     )
 
 

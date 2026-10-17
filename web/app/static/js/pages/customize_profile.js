@@ -76,6 +76,37 @@
         else if (e.target.name === 'pinned_records') applyLimit(document.getElementById('recordPicker'));
     });
 
+    // Activity tab order: move rows up/down (the hidden inputs are submitted in DOM order)
+    const order = document.getElementById('layoutOrder');
+    function refreshMoveButtons() {
+        if (!order) return;
+        const items = [...order.children];
+        items.forEach((li, i) => {
+            li.querySelector('[data-move="-1"]').disabled = i === 0;
+            li.querySelector('[data-move="1"]').disabled = i === items.length - 1;
+        });
+    }
+    if (order) {
+        order.addEventListener('click', function (e) {
+            const btn = e.target.closest('.layout-move');
+            if (!btn) return;
+            const li = btn.closest('li');
+            if (btn.dataset.move === '-1' && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
+            else if (btn.dataset.move === '1' && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
+            refreshMoveButtons();
+            const target = li.querySelector(`[data-move="${btn.dataset.move}"]`);
+            (target.disabled ? li.querySelector('.layout-move:not(:disabled)') : target)?.focus();
+        });
+        refreshMoveButtons();
+    }
+
+    // Private mode overrides the per-block visibility
+    const privateBox = document.getElementById('layoutPrivate');
+    const visibility = document.getElementById('layoutVisibility');
+    if (privateBox && visibility) {
+        privateBox.addEventListener('change', () => visibility.classList.toggle('is-disabled', privateBox.checked));
+    }
+
     applyLimit(badgePicker);
     applyLimit(document.getElementById('recordPicker'));
     applyShowcase();

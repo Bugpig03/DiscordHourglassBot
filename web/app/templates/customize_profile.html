@@ -145,6 +145,48 @@
             {% endif %}
         </fieldset>
 
+        <!-- 6. Layout and privacy -->
+        <fieldset class="gray-box small-border-radius customize-section">
+            <legend class="customize-section-title">{{ 'Mise en page et confidentialité' if fr else 'Layout and privacy' }}</legend>
+            <p class="customize-help">{{ 'Tu vois toujours tous tes blocs ; ceux que tu masques portent la mention « Masqué aux visiteurs » et ne sont pas envoyés aux autres.' if fr else 'You always see all your blocks; hidden ones are tagged "Hidden from visitors" and are not sent to others.' }}</p>
+
+            <div class="layout-subtitle">{{ 'Ordre de l’onglet Activité' if fr else 'Order of the Activity tab' }}</div>
+            <ol class="layout-order" id="layoutOrder">
+                {% for key in layout.order %}
+                <li class="layout-order-item">
+                    <input type="hidden" name="layout_order" value="{{ key }}">
+                    <span class="layout-order-name">{{ block_labels[key] }}</span>
+                    <span class="layout-order-buttons">
+                        <button type="button" class="layout-move" data-move="-1" aria-label="{{ 'Monter' if fr else 'Move up' }}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                        </button>
+                        <button type="button" class="layout-move" data-move="1" aria-label="{{ 'Descendre' if fr else 'Move down' }}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                    </span>
+                </li>
+                {% endfor %}
+            </ol>
+
+            <div class="layout-subtitle">{{ 'Visible par les visiteurs' if fr else 'Visible to visitors' }}</div>
+            <div class="layout-visibility {% if layout.private %}is-disabled{% endif %}" id="layoutVisibility">
+                {% for key, label in block_labels.items() %}
+                <label class="layout-toggle">
+                    <input type="checkbox" name="layout_visible" value="{{ key }}" {% if key not in (settings.layout.hidden or []) %}checked{% endif %}>
+                    <span>{{ label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <label class="choice layout-private">
+                <input type="checkbox" name="layout_private" value="1" id="layoutPrivate" {% if layout.private %}checked{% endif %}>
+                <span class="choice-body">
+                    <span class="choice-title">{{ 'Profil privé' if fr else 'Private profile' }}</span>
+                    <span class="choice-desc">{{ 'Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, les comparaisons Versus et les fiches serveur.' if fr else 'Visitors only see your header, level and totals. You stay visible in leaderboards, Versus comparisons and server pages.' }}</span>
+                </span>
+            </label>
+        </fieldset>
+
         <div class="customize-actions">
             <button type="submit" class="btn-customize-save">{{ 'Enregistrer' if fr else 'Save' }}</button>
         </div>
