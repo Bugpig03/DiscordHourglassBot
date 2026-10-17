@@ -14,11 +14,11 @@
                     <img src="{{ user.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
                          class="small-pp"
                          style="display: block; width: 48px; height: 48px; margin: 0; {% if user.is_in_voice %}border: 2.5px solid #23a55a !important; box-shadow: 0 0 10px rgba(35, 165, 90, 0.6) !important;{% endif %}"
-                         alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar or url_for('static', filename='images/base_avatar_big.png') }}';">
+                         alt="avatar">
                     {% if user.presence and user.presence.status != 'offline' %}
-                    <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: {{ user.presence.color }}; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" title="{{ user.presence.label_fr if current_lang == 'fr' else user.presence.label_en }}"></span>
+                    <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: {{ user.presence.color }}; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" data-tip="{{ user.presence.label_fr if current_lang == 'fr' else user.presence.label_en }}" aria-label="{{ user.presence.label_fr if current_lang == 'fr' else user.presence.label_en }}"></span>
                     {% elif user.is_in_voice %}
-                    <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: #64748b; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" title="{{ 'Invisible / Hors ligne' if current_lang == 'fr' else 'Invisible / Offline' }}"></span>
+                    <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: #64748b; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" data-tip="{{ 'Invisible / Hors ligne' if current_lang == 'fr' else 'Invisible / Offline' }}" aria-label="{{ 'Invisible / Hors ligne' if current_lang == 'fr' else 'Invisible / Offline' }}"></span>
                     {% endif %}
                 </div>
 
@@ -32,7 +32,7 @@
 
             <!-- User Metrics Badges -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <span class="hours-fixed" style="font-size: 0.85rem; padding: 4px 12px;" title="{{ user.formatted_time }}">
+                <span class="hours-fixed" style="font-size: 0.85rem; padding: 4px 12px;" data-tip="{{ user.formatted_time }}">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ user.time_spent | thousands_fr }} {{ t('top.hours_unit') }}
                 </span>
                 <span class="messages-fixed" style="font-size: 0.85rem; padding: 4px 12px;">

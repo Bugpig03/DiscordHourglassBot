@@ -8,9 +8,9 @@
 {% block content %}
 
 <!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
-<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for User -->
 <script type="application/json" id="userHoursProgressionData">{{ charts.chart_data_json|safe }}</script>
@@ -232,26 +232,6 @@
     transform: none;
     filter: none;
 }
-.heatmap-tooltip {
-    position: fixed;
-    z-index: 1000;
-    pointer-events: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: rgba(15, 23, 42, 0.96);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #e2e8f0;
-    font-size: 0.78rem;
-    font-weight: 600;
-    white-space: nowrap;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    opacity: 0;
-    transform: translate(-50%, -100%);
-    transition: opacity 0.12s ease;
-}
-.heatmap-tooltip.visible {
-    opacity: 1;
-}
 .heatmap-level-0 { background: rgba(255, 255, 255, 0.05); }
 .heatmap-level-1 { background: #0e4429; }
 .heatmap-level-2 { background: #006d32; }
@@ -310,10 +290,10 @@
             <div style="position: relative; display: inline-block;">
                 <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" 
                      class="big-pp {% if can_view_presence and stats.active_voice %}pp-in-voice{% else %}border-user{% endif %}" 
-                     alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                     alt="avatar">
                 {% if can_view_presence and stats.presence %}
                 <span class="status-indicator-badge status-{{ stats.presence.status }}" 
-                      title="{{ stats.presence.label_fr if current_lang == 'fr' else stats.presence.label_en }}"></span>
+                      data-tip="{{ stats.presence.label_fr if current_lang == 'fr' else stats.presence.label_en }}" aria-label="{{ stats.presence.label_fr if current_lang == 'fr' else stats.presence.label_en }}"></span>
                 {% endif %}
             </div>
 
@@ -436,19 +416,19 @@
 <!-- =================================================================== -->
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs">
-        <button class="graphs-tab-btn active" data-tab="tab-activity" onclick="switchUserProfileTab('tab-activity')">
+        <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchUserProfileTab" data-arg="tab-activity">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
             <span>{{ t('user_profile.tab_activity') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-charts" onclick="switchUserProfileTab('tab-charts')">
+        <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchUserProfileTab" data-arg="tab-charts">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             <span>{{ t('user_profile.tab_graphs') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-servers" onclick="switchUserProfileTab('tab-servers')">
+        <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchUserProfileTab" data-arg="tab-servers">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
             <span>{{ t('user_profile.tab_servers') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-badges" onclick="switchUserProfileTab('tab-badges')">
+        <button class="graphs-tab-btn" data-tab="tab-badges" data-call="switchUserProfileTab" data-arg="tab-badges">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
             <span>{{ t('user_profile.tab_badges') }}</span>
         </button>
@@ -558,10 +538,10 @@
 
             <!-- Toggle Mensuel vs Annuel -->
             <div class="granularity-toggle-group">
-                <button type="button" class="granularity-btn active" id="btnHeatmapAnnual" onclick="toggleHeatmapView('annual')">
+                <button type="button" class="granularity-btn active" id="btnHeatmapAnnual" data-call="toggleHeatmapView" data-arg="annual">
                     {{ 'Annuel (12 mois)' if current_lang == 'fr' else 'Annual (12 mos)' }}
                 </button>
-                <button type="button" class="granularity-btn" id="btnHeatmapMonthly" onclick="toggleHeatmapView('monthly')">
+                <button type="button" class="granularity-btn" id="btnHeatmapMonthly" data-call="toggleHeatmapView" data-arg="monthly">
                     {{ 'Mensuel (30 jours)' if current_lang == 'fr' else 'Monthly (30 days)' }}
                 </button>
             </div>
@@ -600,7 +580,6 @@
                     </div>
                 </div>
             </div>
-            <div id="heatmapTooltip" class="heatmap-tooltip" role="tooltip"></div>
 
             <!-- Légende -->
             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 0.78rem; color: #8b9bb0;">
@@ -681,7 +660,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
             {% for buddy in voice_companions %}
             <a href="{{ url_for('user_profile.profile', username=buddy.user_id) }}" class="companion-card">
-                <img src="{{ buddy.avatar_url }}" alt="avatar" class="small-pp" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                <img src="{{ buddy.avatar_url }}" alt="avatar" class="small-pp">
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         {{ buddy.username }}
@@ -738,7 +717,7 @@
                     </thead>
                     <tbody>
                         {% for session in charts.recent_sessions %}
-                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                        <tr class="hover-row" style="border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.15s ease;">
                             <td style="padding: 12px 14px;">
                                 <a href="{{ url_for('server_profile.server', server_id=session.server_id) }}" style="display: inline-flex; align-items: center; gap: 8px; color: #ffffff; text-decoration: none; font-weight: 600;">
                                     <span>{{ session.servername }}</span>
@@ -831,11 +810,11 @@
 
         <!-- Granularity Selector Toggle -->
         <div class="granularity-toggle-group">
-            <button type="button" class="granularity-btn {% if charts.default_granularity == 'month' %}active{% endif %}" data-granularity="month" onclick="switchUserGranularity('month')">
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'month' %}active{% endif %}" data-granularity="month" data-call="switchUserGranularity" data-arg="month">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                 <span>{{ t('charts.mode_monthly') }}</span>
             </button>
-            <button type="button" class="granularity-btn {% if charts.default_granularity == 'day' %}active{% endif %}" data-granularity="day" onclick="switchUserGranularity('day')">
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'day' %}active{% endif %}" data-granularity="day" data-call="switchUserGranularity" data-arg="day">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span>{{ t('charts.mode_daily') }}</span>
             </button>
@@ -998,7 +977,7 @@
                         <!-- Server info & icon -->
                         <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
                             <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                                 class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                                 class="small-pp border-server" alt="avatar">
                             <div style="min-width: 0;">
                                 <div class="medium-bold-text nomargin text-overflow" style="font-size: 1.1rem;">{{ server.server_name }}</div>
                                 <div class="small-text gray nomargin" style="font-size: 0.85rem; margin-top: 3px;">
@@ -1723,25 +1702,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Instant styled tooltip for the activity calendar (native titles are slow and unstyled)
-document.addEventListener('DOMContentLoaded', function() {
-    const grid = document.querySelector('.heatmap-grid-annual');
-    const tooltip = document.getElementById('heatmapTooltip');
-    if (!grid || !tooltip) return;
-
-    grid.addEventListener('mouseover', function(e) {
-        const cell = e.target.closest('[data-tip]');
-        if (!cell) return;
-        const rect = cell.getBoundingClientRect();
-        tooltip.textContent = cell.dataset.tip;
-        tooltip.style.left = (rect.left + rect.width / 2) + 'px';
-        tooltip.style.top = (rect.top - 8) + 'px';
-        tooltip.classList.add('visible');
-    });
-    grid.addEventListener('mouseleave', function() {
-        tooltip.classList.remove('visible');
-    });
-});
 
 function toggleHeatmapView(mode) {
     const annualCont = document.getElementById('heatmapAnnualContainer');

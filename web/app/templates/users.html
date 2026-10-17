@@ -54,7 +54,7 @@
             <a class="link" href="{{ url_for('user_profile.profile', username=user.user_id or user['username']) }}" style="width: 100%;">
                 <div style="display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0;">
                     <img src="{{ user.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                         class="small-pp" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                         class="small-pp" alt="avatar">
                     <span class="medium-bold-text text-overflow nomargin" style="flex: 1; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
                         <span class="text-overflow">{{ user.username }}</span>
                         <span class="user-level-tag {% if user.level >= 40 %}tier-master{% elif user.level >= 20 %}tier-veteran{% elif user.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">{{ t('common.level_tag', level=user.level) }}</span>

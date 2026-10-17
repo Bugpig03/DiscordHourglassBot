@@ -5518,3 +5518,57 @@ a.pager-btn:hover {
 form[data-live-form]:not(.has-value) .page-search-clear {
   display: none;
 }
+
+/* --------------------------------------------------------------------------
+   Shared tooltip (data-tip, see static/js/ui.js) and hover effects that used
+   to be inline onmouseover/onmouseout handlers
+   -------------------------------------------------------------------------- */
+.hg-tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.hg-tooltip.visible {
+  opacity: 1;
+}
+
+.punch-cell {
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.punch-cell:hover {
+  transform: scale(1.2);
+}
+
+.hover-row {
+  transition: background 0.15s ease;
+}
+
+.hover-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-hover="discord-login"] {
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+[data-hover="discord-login"]:hover {
+  background: #4752c4 !important;
+  transform: translateY(-1px);
+}

@@ -124,7 +124,7 @@
                     #{{ user_rank }}
                 </span>
                 <img src="{{ user.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
-                     class="small-pp" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                     class="small-pp" alt="avatar">
                 <span class="username-fixed">
                     <span class="text-overflow">{{ user.username }}</span>
                     <span class="user-level-tag {% if user.level >= 40 %}tier-master{% elif user.level >= 20 %}tier-veteran{% elif user.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">{{ t('common.level_tag', level=user.level) }}</span>
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentList.push(s);
                 html += `
                     <div class="search-result-item" data-index="${idx}" style="cursor: pointer;">
-                        <img src="${s.avatar}" class="search-item-avatar border-server" alt="${s.name}" onerror="this.src='/static/icons/server.png'">
+                        <img src="${s.avatar}" class="search-item-avatar border-server" alt="${s.name}" data-fallback="/static/icons/server.png">
                         <div class="search-item-info">
                             <span class="search-item-name">${s.name}</span>
                             <span class="search-item-sub">ID: ${s.id}</span>

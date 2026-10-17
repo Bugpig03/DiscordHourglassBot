@@ -75,7 +75,7 @@
                     #{{ server_rank }}
                 </span>
                 <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
-                     class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                     class="small-pp border-server" alt="avatar">
                 <span class="username-fixed">{{ server.servername }}</span>
                 <span class="hours-fixed">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ (server.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}

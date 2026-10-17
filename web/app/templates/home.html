@@ -4,8 +4,8 @@
 
 {% block content %}
 <!-- Load Chart.js for dashboard activity chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
-<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 
 <!-- Embedded Chart Data -->
 <script type="application/json" id="homeDailyChartData">{{ stats.daily_chart_json|safe }}</script>
@@ -44,7 +44,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
             </div>
         </div>
-        <div class="dashboard-kpi-val" title="{{ stats.nb_time }}">
+        <div class="dashboard-kpi-val" data-tip="{{ stats.nb_time }}">
             {{ stats.nb_voice_hours_str }}
         </div>
         <div class="dashboard-kpi-footer">
@@ -153,8 +153,7 @@
             <a href="{{ url_for('user_profile.profile', username=u.username) }}" class="podium-item">
                 <div class="podium-rank rank-{{ loop.index }}">{{ loop.index }}</div>
                 <img src="{{ u.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                     alt="{{ u.username }}" class="podium-avatar"
-                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/base_avatar_big.png') }}';">
+                     alt="{{ u.username }}" class="podium-avatar">
                 <div class="podium-info">
                     <span class="podium-name">{{ u.username }}</span>
                     <span class="podium-sub">{{ u.messages | thousands_fr }} msgs</span>
@@ -185,8 +184,7 @@
             <a href="{{ url_for('server_profile.server', server_id=s.server_id) }}" class="podium-item">
                 <div class="podium-rank rank-{{ loop.index }}">{{ loop.index }}</div>
                 <img src="{{ s.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                     alt="{{ s.servername }}" class="podium-avatar border-server"
-                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/base_avatar_big.png') }}';">
+                     alt="{{ s.servername }}" class="podium-avatar border-server">
                 <div class="podium-info">
                     <span class="podium-name">{{ s.servername }}</span>
                     <span class="podium-sub">{{ s.messages | thousands_fr }} msgs</span>

@@ -4,9 +4,9 @@
 
 {% block content %}
 <!-- Chart.js & Adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
-<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 <script type="application/json" id="versusChartData">{{ chart_json|safe }}</script>
 
 <div class="versus-container">
@@ -79,7 +79,7 @@
                 </div>
 
                 <!-- Swap Button -->
-                <button type="button" class="versus-swap-btn" onclick="swapVersusInputs()" title="{{ t('versus.swap_btn') }}">
+                <button type="button" class="versus-swap-btn" data-call="swapVersusInputs" title="{{ t('versus.swap_btn') }}">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
                 </button>
 
@@ -138,7 +138,7 @@
                 </div>
 
                 <!-- Swap Button -->
-                <button type="button" class="versus-swap-btn" onclick="swapVersusInputs()" title="{{ t('versus.swap_btn') }}">
+                <button type="button" class="versus-swap-btn" data-call="swapVersusInputs" title="{{ t('versus.swap_btn') }}">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
                 </button>
 
@@ -195,7 +195,7 @@
                             <a href="{{ url_for('versus.versus', tab='users', u1=u1_val, u2=u2_val, srv=srv.id) }}" 
                                class="server-pill {% if srv_val == srv.id %}active{% endif %}" title="{{ srv.name }}">
                                 {% if srv.avatar %}
-                                    <img src="{{ srv.avatar }}" class="pill-avatar" alt="icon" onerror="this.style.display='none'">
+                                    <img src="{{ srv.avatar }}" class="pill-avatar" alt="icon" data-fallback="hide">
                                 {% else %}
                                     <span class="pill-fallback-icon">🏰</span>
                                 {% endif %}
@@ -238,7 +238,7 @@
                 {% endif %}
 
                 <div class="fighter-avatar-wrapper">
-                    <img src="{{ entity1.avatar or fallback_avatar }}" alt="Avatar 1" class="fighter-avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                    <img src="{{ entity1.avatar or fallback_avatar }}" alt="Avatar 1" class="fighter-avatar">
                     <div class="fighter-player-tag tag-1">1</div>
                 </div>
 
@@ -312,7 +312,7 @@
                 {% endif %}
 
                 <div class="fighter-avatar-wrapper">
-                    <img src="{{ entity2.avatar or fallback_avatar }}" alt="Avatar 2" class="fighter-avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                    <img src="{{ entity2.avatar or fallback_avatar }}" alt="Avatar 2" class="fighter-avatar">
                     <div class="fighter-player-tag tag-2">2</div>
                 </div>
 
@@ -590,7 +590,7 @@ function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, gro
 
                     html += `
                         <div class="search-result-item" data-index="${i}" style="cursor: pointer;">
-                            <img src="${avatar}" class="search-item-avatar" alt="${name}" onerror="this.src='${type === 'users' ? '/static/images/base_avatar_big.png' : '/static/icons/server.png'}'">
+                            <img src="${avatar}" class="search-item-avatar" alt="${name}" data-fallback="${type === 'users' ? '/static/images/base_avatar_big.png' : '/static/icons/server.png'}">
                             <div class="search-item-info">
                                 <span class="search-item-name" style="display: inline-flex; align-items: center; gap: 6px;">
                                     <span>${name}</span>

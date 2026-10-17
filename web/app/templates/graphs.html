@@ -6,9 +6,9 @@
 <h1 class="sr-only">{{ self.title() | replace(' - Hourglass', '') }}</h1>
 
 <!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
-<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <style>
 /* Circular loading spinner overlay */
@@ -293,19 +293,19 @@
 <!-- =================================================================== -->
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs">
-        <button class="graphs-tab-btn active" data-tab="tab-activity" onclick="switchGraphTab('tab-activity')">
+        <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchGraphTab" data-arg="tab-activity">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
             <span>{{ t('graphs.tab_activity') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-history" onclick="switchGraphTab('tab-history')">
+        <button class="graphs-tab-btn" data-tab="tab-history" data-call="switchGraphTab" data-arg="tab-history">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             <span>{{ t('graphs.tab_history') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-servers" onclick="switchGraphTab('tab-servers')">
+        <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchGraphTab" data-arg="tab-servers">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
             <span>{{ t('graphs.tab_servers') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-community" onclick="switchGraphTab('tab-community')">
+        <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <span>{{ t('graphs.tab_community') }}</span>
         </button>
@@ -324,11 +324,11 @@
             </h2>
         </div>
         <div class="granularity-toggle-group">
-            <button type="button" class="granularity-btn active" data-granularity="month" onclick="switchGlobalGranularity('month')">
+            <button type="button" class="granularity-btn active" data-granularity="month" data-call="switchGlobalGranularity" data-arg="month">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                 <span>{{ t('charts.mode_monthly') }}</span>
             </button>
-            <button type="button" class="granularity-btn" data-granularity="day" onclick="switchGlobalGranularity('day')">
+            <button type="button" class="granularity-btn" data-granularity="day" data-call="switchGlobalGranularity" data-arg="day">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span>{{ t('charts.mode_daily') }}</span>
             </button>
@@ -563,15 +563,15 @@
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <div class="chart-btn-group">
-                    <button type="button" id="btnTopVocal" class="chart-toggle-btn active-teal" onclick="switchTopUsersMode('vocal')">
+                    <button type="button" id="btnTopVocal" class="chart-toggle-btn active-teal" data-call="switchTopUsersMode" data-arg="vocal">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
                         <span>{{ t('graphs.btn_vocal') }}</span>
                     </button>
-                    <button type="button" id="btnTopMessages" class="chart-toggle-btn" onclick="switchTopUsersMode('messages')">
+                    <button type="button" id="btnTopMessages" class="chart-toggle-btn" data-call="switchTopUsersMode" data-arg="messages">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>{{ t('graphs.btn_messages') }}</span>
                     </button>
-                    <button type="button" id="btnTopDual" class="chart-toggle-btn" onclick="switchTopUsersMode('dual')">
+                    <button type="button" id="btnTopDual" class="chart-toggle-btn" data-call="switchTopUsersMode" data-arg="dual">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                         <span>{{ t('graphs.btn_dual') }}</span>
                     </button>
@@ -835,10 +835,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 const title = isEn
-                    ? `${dayLabel} at ${c.hour}:00 : ${c.voice_hours}h voice • ${c.messages} messages`
-                    : `${dayLabel} à ${c.hour}h00 : ${c.voice_hours}h vocal • ${c.messages} messages`;
+                    ? `${dayLabel} at ${c.hour}:00: ${HG.fmt(c.voice_hours, 1)} h voice · ${HG.fmt(c.messages)} messages`
+                    : `${dayLabel} à ${c.hour}h00 : ${HG.fmt(c.voice_hours, 1)} h vocal · ${HG.fmt(c.messages)} messages`;
 
-                html += `<div style="height: 24px; border-radius: 4px; transition: transform 0.15s ease; cursor: pointer; background: ${bg}; ${shadow}" title="${title}" onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';"></div>`;
+                html += `<div class="punch-cell" style="background: ${bg}; ${shadow}" data-tip="${title}" aria-label="${title}"></div>`;
             });
 
             html += '</div>';

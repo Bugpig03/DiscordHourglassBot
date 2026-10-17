@@ -1,5 +1,18 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.11.1 - Infobulles Instantanées, Zéro Gestionnaire Inline & Scripts Différés - 17/10/2026
+### UX
+- **Infobulles instantanées partout** (`data-tip`) : punchcards (fiche serveur et `/graphs`), pastilles de statut, temps exact des membres, statut du bot et totaux de l'accueil. Affichage immédiat au survol, au focus clavier et au toucher sur mobile (les infobulles natives `title` étaient lentes et inaccessibles au doigt). Valeurs formatées selon la langue.
+
+### Technique & Performance
+- **Plus aucun gestionnaire d'événement dans le HTML** (56 `onclick` / `onmouseover` / `onmouseout` / `onerror` supprimés) :
+  - Clics : attribut `data-call` + écouteur délégué unique (`static/js/ui.js`).
+  - Survols : effets en CSS `:hover` (cases du punchcard, lignes du journal des sessions, bouton de connexion Discord).
+  - Images cassées : un seul gestionnaire global dans `<head>` bascule sur l'avatar par défaut ou sur `data-fallback` (icône serveur, masquage).
+  - Ouvre la voie à une politique de sécurité de contenu (CSP) stricte.
+- **Scripts différés (`defer`)** : Chart.js, son adaptateur de dates et les helpers ne bloquent plus l'affichage de la page.
+- L'infobulle spécifique du calendrier d'activité est remplacée par le système global.
+
 ## Version 2.11.0 - Filtres & Recherches en Direct sans Rechargement - 17/10/2026
 ### UX
 - **Classements (`/top/users`, `/top/servers`) mis à jour sur place** : changer la période, le tri, le serveur ou la page ne recharge plus toute la page ; seuls les résultats sont remplacés (indicateur de chargement discret). L'URL suit les filtres (liens partageables) et le bouton Retour du navigateur restaure l'état précédent.

@@ -8,9 +8,9 @@
 {% block content %}
 
 <!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
-<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for Server -->
 <script type="application/json" id="serverHoursProgressionData">{{ charts.chart_data_json|safe }}</script>
@@ -179,7 +179,7 @@
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
             <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
-                 class="big-pp border-server" alt="icon" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                 class="big-pp border-server" alt="icon">
             <div style="flex: 1; min-width: 220px;">
                 <h1 class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.servername }}</h1>
                 <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
@@ -189,7 +189,7 @@
                         {{ t('servers.bot_active') }}
                     </span>
                     {% else %}
-                    <span style="background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 20px; padding: 4px 12px; font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;" title="{{ t('servers.bot_inactive_tooltip') }}">
+                    <span style="background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 20px; padding: 4px 12px; font-weight: 600; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;" data-tip="{{ t('servers.bot_inactive_tooltip') }}">
                         <span style="width: 7px; height: 7px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
                         {{ t('servers.bot_inactive') }}
                     </span>
@@ -264,15 +264,15 @@
 <!-- =================================================================== -->
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs">
-        <button class="graphs-tab-btn active" data-tab="tab-activity" onclick="switchServerProfileTab('tab-activity')">
+        <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchServerProfileTab" data-arg="tab-activity">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
             <span>{{ t('server_profile.tab_activity') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-charts" onclick="switchServerProfileTab('tab-charts')">
+        <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchServerProfileTab" data-arg="tab-charts">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             <span>{{ t('server_profile.tab_graphs') }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-members" onclick="switchServerProfileTab('tab-members')">
+        <button class="graphs-tab-btn" data-tab="tab-members" data-call="switchServerProfileTab" data-arg="tab-members">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <span>{{ t('server_profile.tab_members') }}</span>
         </button>
@@ -388,11 +388,11 @@
 
         <!-- Granularity Selector Toggle -->
         <div class="granularity-toggle-group">
-            <button type="button" class="granularity-btn {% if charts.default_granularity == 'month' %}active{% endif %}" data-granularity="month" onclick="switchServerGranularity('month')">
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'month' %}active{% endif %}" data-granularity="month" data-call="switchServerGranularity" data-arg="month">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                 <span>{{ t('charts.mode_monthly') }}</span>
             </button>
-            <button type="button" class="granularity-btn {% if charts.default_granularity == 'day' %}active{% endif %}" data-granularity="day" onclick="switchServerGranularity('day')">
+            <button type="button" class="granularity-btn {% if charts.default_granularity == 'day' %}active{% endif %}" data-granularity="day" data-call="switchServerGranularity" data-arg="day">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span>{{ t('charts.mode_daily') }}</span>
             </button>
@@ -590,7 +590,7 @@
                         {{ row.day_name }}
                     </div>
                     {% for c in row.hours %}
-                    <div style="height: 24px; border-radius: 4px; transition: transform 0.15s ease; cursor: pointer;
+                    <div class="punch-cell" style="
                         {% if c.intensity == 0 %}
                             background: rgba(255, 255, 255, 0.03);
                         {% elif c.intensity <= 0.25 %}
@@ -602,9 +602,8 @@
                         {% else %}
                             background: #f43f5e; box-shadow: 0 0 8px rgba(244, 63, 94, 0.5);
                         {% endif %}"
-                        title="{{ row.day_name }} à {{ c.hour }}h00 : {{ c.voice_hours }}h vocal • {{ c.messages }} messages"
-                        onmouseover="this.style.transform='scale(1.2)';"
-                        onmouseout="this.style.transform='scale(1)';">
+                        {% set tip = row.day_name ~ (' à ' ~ c.hour ~ 'h00 : ' if current_lang == 'fr' else ' at ' ~ c.hour ~ ':00: ') ~ (c.voice_hours | num(1)) ~ ' h ' ~ ('vocal' if current_lang == 'fr' else 'voice') ~ ' · ' ~ (c.messages | num) ~ ' messages' %}
+                        data-tip="{{ tip }}" aria-label="{{ tip }}">
                     </div>
                     {% endfor %}
                 </div>
@@ -709,7 +708,7 @@
                     </thead>
                     <tbody>
                         {% for session in charts.recent_sessions %}
-                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                        <tr class="hover-row" style="border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.15s ease;">
                             <td style="padding: 12px 14px;">
                                 <a href="{{ url_for('user_profile.profile', username=session.user_id) }}" style="display: inline-flex; align-items: center; gap: 10px; color: #ffffff; text-decoration: none; font-weight: 600;">
                                     <img src="{{ session.avatar or url_for('static', filename='images/base_avatar_big.png') }}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" alt="avatar">

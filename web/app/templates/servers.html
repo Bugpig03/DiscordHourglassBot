@@ -54,7 +54,7 @@
             <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" style="width: 100%;">
                 <div style="display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0;">
                     <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
-                         class="small-pp border-server" alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar }}';">
+                         class="small-pp border-server" alt="avatar">
                     <div class="medium-bold-text text-overflow nomargin" style="font-size: 1rem; min-width: 0; flex: 1;">
                         {{ server.servername }}
                     </div>
