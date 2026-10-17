@@ -13,17 +13,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for User -->
-<script type="application/json" id="userHoursProgressionData">{{ charts.chart_data_json|safe }}</script>
-<script type="application/json" id="userHoursDailyProgressionData">{{ charts.daily_chart_data_json|safe }}</script>
-<script type="application/json" id="userMessagesProgressionData">{{ charts.messages_chart_data_json|safe }}</script>
-<script type="application/json" id="userMessagesDailyProgressionData">{{ charts.daily_messages_chart_data_json|safe }}</script>
-<script type="application/json" id="userMonthlyHoursData">{{ charts.monthly_chart_data_json|safe }}</script>
-<script type="application/json" id="userDailyHoursData">{{ charts.daily_hours_chart_data_json|safe }}</script>
-<script type="application/json" id="userMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe }}</script>
-<script type="application/json" id="userDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe }}</script>
-<script type="application/json" id="userServersPieData">{{ charts.user_servers_pie_json|safe }}</script>
-<script type="application/json" id="userFavoriteChannelsData">{{ charts.favorite_channels_pie_json|safe }}</script>
-{% if charts.has_hourly_data %}<script type="application/json" id="userHourlyActivityData">{{ charts.hourly_activity_json|safe }}</script>{% endif %}
+<script type="application/json" id="userHoursProgressionData">{{ charts.chart_data_json|safe_json }}</script>
+<script type="application/json" id="userHoursDailyProgressionData">{{ charts.daily_chart_data_json|safe_json }}</script>
+<script type="application/json" id="userMessagesProgressionData">{{ charts.messages_chart_data_json|safe_json }}</script>
+<script type="application/json" id="userMessagesDailyProgressionData">{{ charts.daily_messages_chart_data_json|safe_json }}</script>
+<script type="application/json" id="userMonthlyHoursData">{{ charts.monthly_chart_data_json|safe_json }}</script>
+<script type="application/json" id="userDailyHoursData">{{ charts.daily_hours_chart_data_json|safe_json }}</script>
+<script type="application/json" id="userMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe_json }}</script>
+<script type="application/json" id="userDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe_json }}</script>
+<script type="application/json" id="userServersPieData">{{ charts.user_servers_pie_json|safe_json }}</script>
+<script type="application/json" id="userFavoriteChannelsData">{{ charts.favorite_channels_pie_json|safe_json }}</script>
+{% if charts.has_hourly_data %}<script type="application/json" id="userHourlyActivityData">{{ charts.hourly_activity_json|safe_json }}</script>{% endif %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user_profile.css', v=asset_version('css/pages/user_profile.css')) }}">
 

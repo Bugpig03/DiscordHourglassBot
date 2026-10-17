@@ -82,6 +82,9 @@ class Config:
     SESSION_COOKIE_NAME = "hourglass_session"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    # HTTPS-only session cookie (browsers also accept it on http://localhost); set SESSION_COOKIE_SECURE=false
+    # in .env only for a local setup served over plain HTTP on another host name.
+    SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true").lower() not in ("0", "false", "no")
 
     # Static assets: styles.css is cache-busted with ?v=<app version>, icons/images almost never change
     SEND_FILE_MAX_AGE_DEFAULT = timedelta(days=7)

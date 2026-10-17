@@ -108,8 +108,8 @@ function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, gro
 
                 if (currentResults.length === 0) {
                     const emptyLabel = isEn
-                        ? `No ${type} found for "${q}"`
-                        : `Aucun ${type === 'users' ? 'utilisateur' : 'serveur'} trouvé pour « ${q} »`;
+                        ? `No ${type} found for "${HG.esc(q)}"`
+                        : `Aucun ${type === 'users' ? 'utilisateur' : 'serveur'} trouvé pour « ${HG.esc(q)} »`;
                     resultsContainer.innerHTML = `
                         <div class="search-empty-state" style="padding: 22px 14px;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
@@ -129,18 +129,18 @@ function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, gro
                     const name = type === 'users' ? item.username : item.servername;
                     const sub = type === 'users'
                         ? (isEn ? 'User Profile' : 'Profil Utilisateur')
-                        : `ID: ${item.server_id}`;
+                        : `ID: ${HG.esc(item.server_id)}`;
                     const badge = isEn ? 'Select' : 'Choisir';
                     const lvl = (type === 'users' && item.level)
-                        ? `<span class="user-level-tag">${isEn ? 'Lv.' : 'Nv.'} ${item.level}</span>`
+                        ? `<span class="user-level-tag">${isEn ? 'Lv.' : 'Nv.'} ${HG.esc(item.level)}</span>`
                         : '';
 
                     html += `
                         <div class="search-result-item" data-index="${i}" style="cursor: pointer;">
-                            <img src="${avatar}" class="search-item-avatar" alt="${name}" data-fallback="${type === 'users' ? '/static/images/base_avatar_big.png' : '/static/icons/server.png'}">
+                            <img src="${HG.esc(avatar)}" class="search-item-avatar" alt="${HG.esc(name)}" data-fallback="${type === 'users' ? '/static/images/base_avatar_big.png' : '/static/icons/server.png'}">
                             <div class="search-item-info">
                                 <span class="search-item-name" style="display: inline-flex; align-items: center; gap: 6px;">
-                                    <span>${name}</span>
+                                    <span>${HG.esc(name)}</span>
                                     ${lvl}
                                 </span>
                                 <span class="search-item-sub">${sub}</span>

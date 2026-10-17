@@ -13,18 +13,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for Server -->
-<script type="application/json" id="serverHoursProgressionData">{{ charts.chart_data_json|safe }}</script>
-<script type="application/json" id="serverHoursDailyProgressionData">{{ charts.daily_chart_data_json|safe }}</script>
-<script type="application/json" id="serverMessagesProgressionData">{{ charts.messages_chart_data_json|safe }}</script>
-<script type="application/json" id="serverMessagesDailyProgressionData">{{ charts.daily_messages_chart_data_json|safe }}</script>
-<script type="application/json" id="serverMonthlyHoursData">{{ charts.monthly_chart_data_json|safe }}</script>
-<script type="application/json" id="serverDailyHoursData">{{ charts.daily_hours_chart_data_json|safe }}</script>
-<script type="application/json" id="serverMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe }}</script>
-<script type="application/json" id="serverDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe }}</script>
-<script type="application/json" id="serverTopMembersPieData">{{ charts.top_members_pie_json|safe }}</script>
-<script type="application/json" id="serverVoiceChannelsData">{{ charts.voice_channels_pie_json|safe }}</script>
-<script type="application/json" id="serverTextChannelsData">{{ charts.text_channels_pie_json|safe }}</script>
-{% if charts.has_hourly_data %}<script type="application/json" id="serverHourlyActivityData">{{ charts.hourly_activity_json|safe }}</script>{% endif %}
+<script type="application/json" id="serverHoursProgressionData">{{ charts.chart_data_json|safe_json }}</script>
+<script type="application/json" id="serverHoursDailyProgressionData">{{ charts.daily_chart_data_json|safe_json }}</script>
+<script type="application/json" id="serverMessagesProgressionData">{{ charts.messages_chart_data_json|safe_json }}</script>
+<script type="application/json" id="serverMessagesDailyProgressionData">{{ charts.daily_messages_chart_data_json|safe_json }}</script>
+<script type="application/json" id="serverMonthlyHoursData">{{ charts.monthly_chart_data_json|safe_json }}</script>
+<script type="application/json" id="serverDailyHoursData">{{ charts.daily_hours_chart_data_json|safe_json }}</script>
+<script type="application/json" id="serverMonthlyMessagesData">{{ charts.monthly_messages_chart_data_json|safe_json }}</script>
+<script type="application/json" id="serverDailyMessagesData">{{ charts.daily_messages_chart_diff_data_json|safe_json }}</script>
+<script type="application/json" id="serverTopMembersPieData">{{ charts.top_members_pie_json|safe_json }}</script>
+<script type="application/json" id="serverVoiceChannelsData">{{ charts.voice_channels_pie_json|safe_json }}</script>
+<script type="application/json" id="serverTextChannelsData">{{ charts.text_channels_pie_json|safe_json }}</script>
+{% if charts.has_hourly_data %}<script type="application/json" id="serverHourlyActivityData">{{ charts.hourly_activity_json|safe_json }}</script>{% endif %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/server_profile.css', v=asset_version('css/pages/server_profile.css')) }}">
 

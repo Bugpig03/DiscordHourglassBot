@@ -221,7 +221,7 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                         container.innerHTML = `
                             <div class="search-empty-state">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
-                                <span>${isEn ? `No results found for "${q}"` : `Aucun résultat trouvé pour « ${q} »`}</span>
+                                <span>${isEn ? `No results found for "${HG.esc(q)}"` : `Aucun résultat trouvé pour « ${HG.esc(q)} »`}</span>
                             </div>
                         `;
                         return;
@@ -232,12 +232,12 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                         html += `<div class="search-group-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${isEn ? 'Users' : 'Utilisateurs'} (${users.length})</div>`;
                         users.forEach(u => {
                             html += `
-                                <a href="${u.url}" class="search-result-item">
-                                    <img src="${u.avatar}" class="search-item-avatar" alt="${u.username}">
+                                <a href="${HG.esc(u.url)}" class="search-result-item">
+                                    <img src="${HG.esc(u.avatar)}" class="search-item-avatar" alt="${HG.esc(u.username)}">
                                     <div class="search-item-info">
                                         <span class="search-item-name" style="display: inline-flex; align-items: center; gap: 6px;">
-                                            <span>${u.username}</span>
-                                            ${u.level ? `<span class="user-level-tag">${isEn ? 'Lv.' : 'Nv.'} ${u.level}</span>` : ''}
+                                            <span>${HG.esc(u.username)}</span>
+                                            ${u.level ? `<span class="user-level-tag">${isEn ? 'Lv.' : 'Nv.'} ${HG.esc(u.level)}</span>` : ''}
                                         </span>
                                         <span class="search-item-sub">${isEn ? 'User Profile' : 'Profil Utilisateur'}</span>
                                     </div>
@@ -251,11 +251,11 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                         html += `<div class="search-group-title" style="margin-top: 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${isEn ? 'Servers' : 'Serveurs'} (${servers.length})</div>`;
                         servers.forEach(s => {
                             html += `
-                                <a href="${s.url}" class="search-result-item">
-                                    <img src="${s.avatar}" class="search-item-avatar border-server" alt="${s.servername}" data-fallback="/static/icons/server.png">
+                                <a href="${HG.esc(s.url)}" class="search-result-item">
+                                    <img src="${HG.esc(s.avatar)}" class="search-item-avatar border-server" alt="${HG.esc(s.servername)}" data-fallback="/static/icons/server.png">
                                     <div class="search-item-info">
-                                        <span class="search-item-name">${s.servername}</span>
-                                        <span class="search-item-sub">ID: ${s.server_id}</span>
+                                        <span class="search-item-name">${HG.esc(s.servername)}</span>
+                                        <span class="search-item-sub">ID: ${HG.esc(s.server_id)}</span>
                                     </div>
                                     <span class="search-item-badge">Voir</span>
                                 </a>

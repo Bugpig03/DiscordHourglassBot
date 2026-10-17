@@ -5,6 +5,18 @@
    Image fallbacks (data-fallback) are handled earlier, by the inline script in <head> of base.html.
 */
 (function () {
+    const HG = (window.HG = window.HG || {});
+
+    // Escape text before inserting it into an HTML string (server names and usernames are free text)
+    HG.esc = function (value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
+
     document.addEventListener('click', (e) => {
         const el = e.target.closest('[data-call]');
         if (!el) return;

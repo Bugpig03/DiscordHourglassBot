@@ -3,6 +3,7 @@
 import os
 import re
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from markupsafe import Markup
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import Config
 from app.database import init_app
@@ -147,6 +148,18 @@ def create_app():
     def login_shortcut():
         """Shortcut redirect to the unified auth.login page."""
         return redirect(url_for("auth.login", **request.args))
+
+    @app.template_filter("safe_json")
+    def safe_json(value):
+        """Embed a pre-serialized JSON string in a <script type="application/json"> block.
+
+        json.dumps leaves "<", ">" and "&" as-is, so a server, channel or member name containing
+        "</script>" could close the block and inject markup; escaping them keeps the JSON identical once parsed.
+        """
+        text = str(value or "")
+        for char, escaped in (("<", r"\u003c"), (">", r"\u003e"), ("&", r"\u0026"), ("\u2028", "\\u2028"), ("\u2029", "\\u2029")):
+            text = text.replace(char, escaped)
+        return Markup(text)
 
     @app.template_filter("num")
     def format_number(value, decimals: int = 0):

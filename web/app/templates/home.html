@@ -8,7 +8,7 @@
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 
 <!-- Embedded Chart Data -->
-<script type="application/json" id="homeDailyChartData">{{ stats.daily_chart_json|safe }}</script>
+<script type="application/json" id="homeDailyChartData">{{ stats.daily_chart_json|safe_json }}</script>
 
 <!-- 1. Hero Section ("Mon espace" for a logged-in member known by the bot) -->
 {% if my_space and my_space.known %}

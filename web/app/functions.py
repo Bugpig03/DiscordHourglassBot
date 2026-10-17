@@ -1,7 +1,7 @@
 """Utility functions and statistics query helpers for the Hourglass web application."""
 
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, available_timezones
 from flask import has_request_context, request
 from peewee import fn, SQL, JOIN
 from app.database import (
@@ -48,6 +48,16 @@ def ConvertSecondsToTime(seconds: int) -> str:
     secs = seconds % 60
     formatted_hours = f"{hours:,}".replace(",", " ")
     return f"{formatted_hours} h {minutes} min {secs} s"
+
+
+# IANA zone names accepted in SQL "AT TIME ZONE '...'" clauses: a strict whitelist, so a crafted
+# user_tz cookie can never reach a query (the value is interpolated in several GROUP BY expressions).
+_SQL_TIMEZONES = frozenset(available_timezones())
+
+
+def sql_timezone(tz_name: str | None) -> str:
+    """Return tz_name if it is a known IANA time zone, otherwise the default "Europe/Paris"."""
+    return tz_name if tz_name in _SQL_TIMEZONES else "Europe/Paris"
 
 
 def get_user_timezone() -> str:
@@ -611,9 +621,7 @@ def get_daily_hours_progression(server_id: int | None = None, user_id: int | Non
     """Calculate daily cumulative voice hours progression over the last X days directly from VoiceSessions."""
     import re
     user_tz = get_user_timezone()
-    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
-    if not clean_tz:
-        clean_tz = "Europe/Paris"
+    clean_tz = sql_timezone(user_tz)
 
     user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
     today = user_now.date() if user_now else datetime.now().date()
@@ -679,9 +687,7 @@ def get_daily_messages_progression(server_id: int | None = None, user_id: int | 
     """Calculate daily cumulative messages progression over the last X days directly from MessageEvents."""
     import re
     user_tz = get_user_timezone()
-    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
-    if not clean_tz:
-        clean_tz = "Europe/Paris"
+    clean_tz = sql_timezone(user_tz)
 
     user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
     today = user_now.date() if user_now else datetime.now().date()
@@ -731,9 +737,7 @@ def get_daily_hours_diff(server_id: int | None = None, user_id: int | None = Non
     """Calculate incremental hours spent each day over the last X days directly from VoiceSessions."""
     import re
     user_tz = get_user_timezone()
-    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
-    if not clean_tz:
-        clean_tz = "Europe/Paris"
+    clean_tz = sql_timezone(user_tz)
 
     user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
     today = user_now.date() if user_now else datetime.now().date()
@@ -786,9 +790,7 @@ def get_daily_messages_diff(server_id: int | None = None, user_id: int | None = 
     """Calculate incremental messages sent each day over the last X days directly from MessageEvents."""
     import re
     user_tz = get_user_timezone()
-    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
-    if not clean_tz:
-        clean_tz = "Europe/Paris"
+    clean_tz = sql_timezone(user_tz)
 
     user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
     today = user_now.date() if user_now else datetime.now().date()
@@ -1438,10 +1440,7 @@ def get_server_channels_messages_breakdown(server_id: int, limit: int = 8, lang:
 def get_hourly_activity_distribution(server_id: int | None = None, user_id: int | None = None, lang: str = "fr", tz_name: str | None = None) -> dict:
     """Analyze activity by hour of day (0-23h) in user's timezone to detect peak activity windows (excludes legacy snapshots)."""
     user_tz = tz_name or get_user_timezone()
-    try:
-        clean_tz = ZoneInfo(user_tz).key
-    except Exception:
-        clean_tz = "Europe/Paris"
+    clean_tz = sql_timezone(user_tz)
 
     from app.database import db
 
@@ -1883,9 +1882,7 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
     import re
     lang = request.cookies.get("lang", "fr") if has_request_context() else "fr"
     user_tz = get_user_timezone()
-    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
-    if not clean_tz:
-        clean_tz = "Europe/Paris"
+    clean_tz = sql_timezone(user_tz)
 
     user_now = to_user_timezone(datetime.now(ZoneInfo("UTC")))
     today = user_now.date() if user_now else datetime.now().date()
@@ -2129,9 +2126,7 @@ def get_hourly_punchcard_data(server_id: int | str | None = None) -> dict:
 
     import re
     user_tz = get_user_timezone()
-    clean_tz = re.sub(r'[^a-zA-Z0-9_\/+-]', '', user_tz) if user_tz else "Europe/Paris"
-    if not clean_tz:
-        clean_tz = "Europe/Paris"
+    clean_tz = sql_timezone(user_tz)
 
     # Matrice vide 7 jours x 24 heures
     # 0 = Lundi, 6 = Dimanche

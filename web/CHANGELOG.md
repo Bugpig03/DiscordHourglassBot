@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.0.1 - Correctifs de Sécurité (XSS, Redirection Ouverte, Cookie) - 17/10/2026
+### Sécurité
+- **XSS stockée dans la recherche (gravité élevée)** : la recherche globale (Ctrl+K), les suggestions du filtre serveur et de la page Versus inséraient noms de serveurs et pseudos sans échappement dans la page ; un nom de serveur contenant du HTML pouvait exécuter du code chez toute personne le voyant en résultat. Toutes les valeurs externes passent désormais par `HG.esc()`.
+- **XSS via les données de graphiques** : les blocs JSON des profils, fiches serveur, accueil et Versus (`json.dumps(...)|safe`) ne neutralisaient pas `</script>` ; un nom de serveur, de salon ou un pseudo pouvait refermer le bloc et injecter du code. Nouveau filtre `safe_json` (échappement de `<`, `>`, `&`, U+2028/2029 en séquences `\u`, JSON identique une fois lu).
+- **Redirection ouverte après connexion (gravité moyenne)** : le paramètre `next` acceptait `/\site-externe`, interprété comme `//site-externe` par les navigateurs. Seuls les chemins internes sont désormais acceptés (barres obliques inverses, caractères de contrôle, schémas et domaines rejetés).
+- **Cookie de session `Secure`** : envoyé uniquement en HTTPS (désactivable en local via `SESSION_COOKIE_SECURE=false`).
+- **Fuseau horaire dans le SQL** : la valeur du cookie `user_tz` n'atteint plus les requêtes que si elle figure dans la liste officielle des fuseaux IANA (liste blanche stricte via `sql_timezone()`), au lieu d'un simple nettoyage de caractères.
+
 ## Version 3.0.0 - Réorganisation du Site : Navigation à Plat, Pages Membres & Serveurs, Mon Espace - 17/10/2026
 ### Navigation
 - **Barre du haut sans menus déroulants** : `Membres · Serveurs · Analyses · Versus`, recherche (Ctrl+K) et compte. Le logo mène à l'accueil ; « Support » devient « Aide & commandes » dans le pied de page.

@@ -119,10 +119,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentList.push(s);
                 html += `
                     <div class="search-result-item" data-index="${idx}" style="cursor: pointer;">
-                        <img src="${s.avatar}" class="search-item-avatar border-server" alt="${s.name}" data-fallback="/static/icons/server.png">
+                        <img src="${HG.esc(s.avatar)}" class="search-item-avatar border-server" alt="${HG.esc(s.name)}" data-fallback="/static/icons/server.png">
                         <div class="search-item-info">
-                            <span class="search-item-name">${s.name}</span>
-                            <span class="search-item-sub">ID: ${s.id}</span>
+                            <span class="search-item-name">${HG.esc(s.name)}</span>
+                            <span class="search-item-sub">ID: ${HG.esc(s.id)}</span>
                         </div>
                         <span class="search-item-badge">${isEn ? 'Select' : 'Choisir'}</span>
                     </div>
@@ -132,8 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (currentList.length === 0) {
             const emptyLabel = isEn
-                ? `No server found for "${q}"`
-                : `Aucun serveur trouvé pour « ${q} »`;
+                ? `No server found for "${HG.esc(q)}"`
+                : `Aucun serveur trouvé pour « ${HG.esc(q)} »`;
             html = `
                 <div class="search-empty-state" style="padding: 22px 14px;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>

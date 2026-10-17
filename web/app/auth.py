@@ -145,8 +145,19 @@ def can_view_server_private_data(server_id: int | str) -> bool:
 
 
 def _safe_redirect_target(target: str | None) -> str:
-    """Ensure redirect URL is local to prevent open-redirect vulnerabilities."""
-    if not target or target.startswith("//") or "://" in target:
+    """Return target only if it is a path on this site, otherwise "/" (prevents open redirects).
+
+    Browsers treat a backslash like a slash ("/<backslash>evil.com" opens //evil.com) and ignore tabs/newlines
+    inside URLs, so those are rejected along with anything carrying a scheme or a host.
+    """
+    if not target or not isinstance(target, str):
+        return "/"
+    if not target.startswith("/") or target.startswith("//") or "\\" in target:
+        return "/"
+    if any(ord(ch) < 32 or ord(ch) == 127 for ch in target):
+        return "/"
+    parsed = urllib.parse.urlsplit(target)
+    if parsed.scheme or parsed.netloc:
         return "/"
     return target
 
