@@ -256,7 +256,7 @@ body {
 
 .nav-dropdown-toggle .chevron-icon {
   margin-left: 3px;
-  color: #64748b;
+  color: #8b9bb0;
   transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
 }
 
@@ -354,7 +354,7 @@ body {
 
 .nav-dropdown-desc {
   font-size: 0.72rem;
-  color: #64748b;
+  color: #8b9bb0;
   line-height: 1.2;
 }
 
@@ -408,7 +408,7 @@ body {
   padding: 1px 5px;
   font-size: 0.68rem;
   font-family: inherit;
-  color: #64748b;
+  color: #8b9bb0;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -1446,7 +1446,7 @@ div.gray-box.link:hover {
 }
 
 .search-input::placeholder {
-  color: #64748b;
+  color: #8b9bb0;
 }
 
 .search-input:focus {
@@ -1843,7 +1843,7 @@ div.gray-box.link:hover {
 /* --------------------------------------------------------------------------
    14. Text Utility Classes
    -------------------------------------------------------------------------- */
-.micro-text { font-size: 0.75rem; color: #64748b; }
+.micro-text { font-size: 0.75rem; color: #8b9bb0; }
 .small-text { font-size: 0.9rem; color: #cbd5e1; margin: 8px 0; }
 .small-bold-text { font-size: 0.95rem; font-weight: 700; color: #ffffff; margin: 8px 0; }
 .medium-text { font-size: 1.05rem; color: #94a3b8; margin: 8px 0; line-height: 1.6; }
@@ -1988,7 +1988,7 @@ footer {
   display: inline-block;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
+  color: #8b9bb0;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 4px 12px;
@@ -2234,7 +2234,7 @@ footer {
 }
 
 .global-search-input::placeholder {
-  color: #64748b;
+  color: #8b9bb0;
   font-weight: 500;
 }
 
@@ -2270,7 +2270,7 @@ footer {
   justify-content: center;
   gap: 10px;
   padding: 40px 20px;
-  color: #64748b;
+  color: #8b9bb0;
   font-size: 0.95rem;
   font-weight: 500;
 }
@@ -2349,7 +2349,7 @@ footer {
   background: rgba(10, 16, 24, 0.6);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.78rem;
-  color: #64748b;
+  color: #8b9bb0;
 }
 
 .search-hint-item {
@@ -2585,7 +2585,7 @@ footer {
 }
 
 .badge-card.locked .badge-card-icon {
-  color: #64748b;
+  color: #8b9bb0;
   opacity: 0.6;
 }
 
@@ -2689,7 +2689,7 @@ footer {
 
 .badge-progress-label {
   font-size: 0.72rem;
-  color: #64748b;
+  color: #8b9bb0;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -3077,7 +3077,7 @@ footer {
 }
 
 .page-search-input::placeholder {
-  color: #64748b;
+  color: #8b9bb0;
   font-weight: 500;
   transition: color 0.2s ease;
 }
@@ -3119,7 +3119,7 @@ footer {
   padding: 3px 8px;
   font-size: 0.76rem;
   font-weight: 700;
-  color: #64748b;
+  color: #8b9bb0;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
@@ -3189,7 +3189,7 @@ footer {
   background: rgba(10, 16, 24, 0.75);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.76rem;
-  color: #64748b;
+  color: #8b9bb0;
 }
 
 .page-search-dropdown-footer .search-hint-item {
@@ -3500,7 +3500,7 @@ footer {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #64748b;
+  color: #8b9bb0;
   font-size: 0.84rem;
   font-style: italic;
 }
@@ -3731,7 +3731,7 @@ footer {
 
 .rank-total {
   font-size: 0.72rem;
-  color: #64748b;
+  color: #8b9bb0;
 }
 
 .fighter-level-badge {
@@ -3795,7 +3795,7 @@ footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
+  color: #8b9bb0;
   margin-top: 4px;
 }
 
@@ -3848,7 +3848,7 @@ footer {
 .score-digit {
   font-size: 2.4rem;
   font-weight: 900;
-  color: #64748b;
+  color: #8b9bb0;
 }
 
 .digit-1.win {
@@ -5155,7 +5155,7 @@ footer {
 
 .podium-sub {
   font-size: 0.76rem;
-  color: #64748b;
+  color: #8b9bb0;
 }
 
 .podium-score {
@@ -5181,7 +5181,7 @@ footer {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   font-size: 0.78rem;
-  color: #64748b;
+  color: #8b9bb0;
   margin-top: 12px;
 }
 
@@ -5372,4 +5372,30 @@ footer {
   .home-stats-container.stats-5 > * {
     grid-column: auto;
   }
+}
+
+/* --------------------------------------------------------------------------
+   Keyboard navigation: visible focus ring (mouse clicks keep their usual look)
+   -------------------------------------------------------------------------- */
+/* Text fields and selects keep their existing focus styling */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Visually hidden but read by screen readers and search engines */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

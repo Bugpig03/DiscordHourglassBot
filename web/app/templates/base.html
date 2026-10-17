@@ -12,9 +12,12 @@
     <meta property="og:title" content="{{ self.title() | striptags | trim }}">
     <meta property="og:description" content="{{ page_description | trim }}">
     <meta property="og:url" content="{{ request.base_url }}">
-    <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/hourglass_logo_white.png', _external=True) }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{% endblock %}">
     <meta name="theme-color" content="#5865f2">
-    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg', v=asset_version('icons/favicon.svg')) }}" type="image/svg+xml">
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon-32.png', v=asset_version('icons/favicon-32.png')) }}" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png', v=asset_version('icons/apple-touch-icon.png')) }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
     <link
     rel="stylesheet"
     href="{{ url_for('static', filename='styles.css', v=asset_version('styles.css')) }}"
@@ -369,7 +372,8 @@
                 currentSelectedIndex = -1;
                 renderInitialSearchHint();
                 document.body.style.overflow = 'hidden';
-                setTimeout(() => input.focus(), 50);
+                // Focus synchronously: the modal is already displayed, and a delay drops the first keystrokes
+                input.focus();
             }
         }
 

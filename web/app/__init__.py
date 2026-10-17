@@ -2,7 +2,7 @@
 
 import os
 import re
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import Config
 from app.database import init_app
@@ -99,6 +99,13 @@ def create_app():
             "t": lambda key, **kwargs: get_text(key, lang=lang, **kwargs)
         }
 
+    @app.route("/favicon.ico")
+    def favicon():
+        """Serve the multi-size icon at the root URL requested by Google and legacy clients."""
+        return send_from_directory(
+            os.path.join(app.static_folder, "icons"), "favicon.ico", mimetype="image/vnd.microsoft.icon", max_age=7 * 24 * 3600
+        )
+
     @app.route("/set_language/<lang>")
     def set_language(lang):
         """Set user language cookie (fr or en) and redirect back to previous page."""
@@ -129,26 +136,17 @@ def create_app():
 
     @app.template_filter("thousands_fr")
     def thousands_fr(value):
-        """Format an integer, float, or numeric string with spaces as thousand separators (e.g. 1 234 567 or 12 345.6)."""
+        """Legacy alias of `num` that keeps the number of decimals of its input (e.g. 12345.6 -> '12 345,6' / '12,345.6')."""
         if value is None or value == "":
             return ""
+        val_str = str(value).strip()
+        sep = "." if "." in val_str else ("," if "," in val_str else None)
+        decimals = len(val_str.split(sep, 1)[1]) if sep else 0
         try:
-            val_str = str(value).strip()
-            if "." in val_str:
-                parts = val_str.split(".", 1)
-                int_part = int(parts[0] or 0)
-                formatted_int = f"{int_part:,}".replace(",", " ")
-                return f"{formatted_int}.{parts[1]}"
-            elif "," in val_str:
-                parts = val_str.split(",", 1)
-                int_part = int(parts[0] or 0)
-                formatted_int = f"{int_part:,}".replace(",", " ")
-                return f"{formatted_int},{parts[1]}"
-            else:
-                val = int(float(val_str))
-                return f"{val:,}".replace(",", " ")
-        except (ValueError, TypeError):
+            float(val_str.replace(",", "."))
+        except ValueError:
             return str(value)
+        return format_number(val_str.replace(",", "."), decimals)
 
     @app.template_filter("date_localized")
     def filter_date_localized(dt):

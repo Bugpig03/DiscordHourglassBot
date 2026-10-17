@@ -212,7 +212,7 @@
     margin-top: 20px;
     font-size: 0.68rem;
     line-height: 13px;
-    color: #64748b;
+    color: #8b9bb0;
 }
 .heatmap-month-labels {
     display: grid;
@@ -220,7 +220,7 @@
     height: 16px;
     margin-bottom: 4px;
     font-size: 0.7rem;
-    color: #64748b;
+    color: #8b9bb0;
 }
 .heatmap-month-labels span {
     white-space: nowrap;
@@ -318,7 +318,7 @@
             </div>
 
             <div style="flex: 1; min-width: 220px;">
-                <div class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.username }}</div>
+                <h1 class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.username }}</h1>
                 <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
                     <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
                         {% if stats.rank and stats.rank is number %}
@@ -333,7 +333,7 @@
                     <span style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-radius: 20px; padding: 4px 12px; font-size: 0.88rem;">
                         {{ t('user_profile.member_since') }} {{ stats.join_date }}
                     </span>
-                    <span style="background: rgba(255, 255, 255, 0.04); color: #64748b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; font-family: monospace;">
+                    <span style="background: rgba(255, 255, 255, 0.04); color: #8b9bb0; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; font-family: monospace;">
                         ID : {{ stats.user_id }}
                     </span>
 
@@ -392,7 +392,7 @@
             <span class="home-stats-label">{{ t('user_profile.global_rank_label') }}</span>
             <span class="home-stats-value">
                 {% if stats.rank and stats.rank is number %}
-                    #{{ stats.rank }} <span style="font-size: 0.85rem; color: #64748b;">/ {{ stats.total_user }}</span>
+                    #{{ stats.rank }} <span style="font-size: 0.85rem; color: #8b9bb0;">/ {{ stats.total_user }}</span>
                 {% else %}
                     {{ t('user_profile.unranked') }}
                 {% endif %}
@@ -529,7 +529,7 @@
             </div>
             <div class="dashboard-kpi-val" style="color: #38bdf8;">
                 {% if heatmap_annual.best_day %}
-                    {{ heatmap_annual.best_day.hours }}h
+                    {{ heatmap_annual.best_day.hours | num(1) }} h
                 {% else %}
                     -
                 {% endif %}
@@ -603,7 +603,7 @@
             <div id="heatmapTooltip" class="heatmap-tooltip" role="tooltip"></div>
 
             <!-- Légende -->
-            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 0.78rem; color: #64748b;">
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 0.78rem; color: #8b9bb0;">
                 <span>{{ 'Moins' if current_lang == 'fr' else 'Less' }}</span>
                 <span class="heatmap-cell heatmap-level-0" style="width: 11px; height: 11px; cursor: default;"></span>
                 <span class="heatmap-cell heatmap-level-1" style="width: 11px; height: 11px; cursor: default;"></span>
@@ -624,7 +624,7 @@
                         <span class="heatmap-cell heatmap-level-{{ day.level }}" style="width: 10px; height: 10px; cursor: default;"></span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #38bdf8; font-weight: 600;">
-                        <span>{{ day.voice_hours }}h vocal</span>
+                        <span>{{ day.voice_hours | num(1) }} h {{ 'vocal' if current_lang == 'fr' else 'voice' }}</span>
                         <span style="color: #a78bfa;">{{ day.messages }} msgs</span>
                     </div>
                 </div>
@@ -688,7 +688,7 @@
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; align-items: center;">
                         <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 2px 8px; font-size: 0.78rem; font-weight: 700;">
-                            {{ buddy.shared_hours }}h ensemble
+                            {{ buddy.shared_hours | num(1) }} h ensemble
                         </span>
                         <span style="font-size: 0.78rem; color: #94a3b8;">
                             {{ buddy.session_count }} {{ 'sessions' if current_lang == 'fr' else 'sessions' }}
@@ -699,7 +699,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <div style="padding: 30px; text-align: center; color: #64748b;">
+        <div style="padding: 30px; text-align: center; color: #8b9bb0;">
             {{ 'Aucun compagnon vocal identifié pour le moment. Rejoignez des salons vocaux avec d\'autres membres !' if current_lang == 'fr' else 'No voice companions recorded yet. Join voice channels with other members!' }}
         </div>
         {% endif %}
@@ -728,7 +728,7 @@
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                     <thead>
-                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #64748b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #8b9bb0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
                             <th style="padding: 10px 14px;">{{ t('channels.th_server') }}</th>
                             <th style="padding: 10px 14px;">{{ t('channels.th_channel') }}</th>
                             <th style="padding: 10px 14px;">{{ t('channels.th_date') }}</th>
@@ -750,7 +750,7 @@
                             <td style="padding: 12px 14px; color: #94a3b8; font-size: 0.85rem;">
                                 <span style="font-weight: 600; color: #e2e8f0;">{{ session.joined_at_str }}</span>
                                 {% if session.is_legacy %}
-                                <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">{{ t('channels.legacy_date_note') }}</div>
+                                <div style="font-size: 0.72rem; color: #8b9bb0; margin-top: 2px;">{{ t('channels.legacy_date_note') }}</div>
                                 {% endif %}
                             </td>
                             <td style="padding: 12px 14px; color: #38bdf8; font-weight: 700;">
@@ -778,7 +778,7 @@
                 </table>
             </div>
             {% else %}
-            <div style="padding: 30px; text-align: center; color: #64748b;">
+            <div style="padding: 30px; text-align: center; color: #8b9bb0;">
                 {{ t('channels.no_sessions') }}
             </div>
             {% endif %}
@@ -890,7 +890,7 @@
                 <div class="small-text gray" id="userHoursBarDesc" style="margin-top: 4px;">{{ t('user_profile.monthly_hours_desc') }}</div>
             </div>
             <span id="userHoursBarBadge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.avg_label') }} {{ charts.avg_hours }} {{ t('graphs.unit_hours_per_month') }}
+                {{ t('user_profile.avg_label') }} {{ charts.avg_hours | num(1) }} {{ t('graphs.unit_hours_per_month') }}
             </span>
         </div>
         <div style="position: relative; height: 350px; width: 100%;">
@@ -967,8 +967,8 @@
                     <span style="font-weight: 600; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ch.name }}</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                    <span style="color: #38bdf8; font-weight: 700;">{{ ch.hours }} h</span>
-                    <span style="color: #64748b; font-size: 0.78rem;">({{ ch.percent }}%)</span>
+                    <span style="color: #38bdf8; font-weight: 700;">{{ ch.hours | num(1) }} h</span>
+                    <span style="color: #8b9bb0; font-size: 0.78rem;">({{ ch.percent }}%)</span>
                 </div>
             </div>
             {% endfor %}
@@ -1013,7 +1013,7 @@
                                 {{ t('user_profile.server_rank', rank=server.rank, total=server.nb_user) }}
                             </span>
                             <span class="hours-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ server.time_spent }} {{ t('top.hours_unit') }}
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ server.time_spent | num(1) }} {{ t('top.hours_unit') }}
                             </span>
                             <span class="messages-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ server.messages_count | thousands_fr }} {{ t('top.msgs_unit') }}

@@ -1,5 +1,21 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.9.1 - Favicon Visible, Accessibilité & Formatage des Nombres - 17/10/2026
+### Identité visuelle
+- **Favicon sur pastille ronde `#5865F2`** : le logo pixel-art d'origine (21×21, inchangé pixel pour pixel) est désormais posé sur un disque bleu Discord. Il ne disparaît plus sur les onglets clairs, les résultats Google et les favoris.
+- **Jeu d'icônes complet** : `favicon.svg` (vectoriel, net à toute densité), `favicon-32.png` (pixels d'origine en 1:1), `favicon.ico` multi-tailles 16/32/48 servi à la racine `/favicon.ico` (exigé par Google), `apple-touch-icon.png` (180 px) et icônes 192/512 px avec `site.webmanifest`. Agrandissements en multiples entiers sans lissage pour garder les pixels nets.
+- **Aperçus de liens** : l'image Open Graph par défaut passe à l'icône 512 px (au lieu du logo blanc de 21 px).
+- Script de régénération : `web/scripts/make_favicons.py`.
+
+### Accessibilité & SEO
+- **Navigation au clavier visible** : contour bleu ciel (`:focus-visible`) sur les liens et boutons lors de la navigation à la touche Tab ; aucun changement au clic souris.
+- **Contraste du texte secondaire** : le gris `#64748b` (≈ 3,5:1, sous le seuil WCAG AA) passe à `#8b9bb0` (≈ 5,8:1) pour les sous-titres, légendes et dates.
+- **Titres `<h1>`** sur les profils, fiches serveur, annuaires, support et page 404 (même rendu visuel), et titre `<h1>` masqué visuellement sur `/graphs` et les classements pour les moteurs de recherche et lecteurs d'écran.
+
+### Corrections
+- **Nombres formatés selon la langue partout** : le filtre historique `thousands_fr` suit désormais la langue (`1 826,8 h` / `1,826.8 h`), ce qui corrige les classements, l'accueil et les listes ; heures des salons, compagnons vocaux, serveurs fréquentés et moyennes également formatées.
+- **Recherche globale (`Ctrl+K`)** : le champ prend le focus immédiatement à l'ouverture, les premières lettres d'une frappe rapide ne sont plus perdues.
+
 ## Version 2.9.0 - Refonte de la Lisibilité des Graphiques & Calendrier d'Activité - 17/10/2026
 ### Graphiques
 - **Séries denses allégées** : sur les courbes de 30 jours, les séries de plus de 30 mois et les graphiques sur 24 h, l'axe horizontal n'affiche plus qu'environ 8 libellés à l'horizontale (au lieu de toutes les dates inclinées à 45°), et les points n'apparaissent qu'au survol. Appliqué automatiquement à toutes les pages via un plugin Chart.js partagé (`hgDenseSeries`).

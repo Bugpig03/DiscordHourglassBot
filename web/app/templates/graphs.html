@@ -3,6 +3,7 @@
 {% block title %}{{ t('graphs.title') }}{% endblock %}
 
 {% block content %}
+<h1 class="sr-only">{{ self.title() | replace(' - Hourglass', '') }}</h1>
 
 <!-- Load Chart.js and date-fns time adapter -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
@@ -471,7 +472,7 @@
                     {{ 'Matrice d’affluence croisant les 7 jours de la semaine et les 24 heures pour l’ensemble des serveurs.' if current_lang == 'fr' else 'Activity density matrix across all 7 days of the week and 24 hours across all servers.' }}
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #64748b;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #8b9bb0;">
                 <span>{{ 'Calme' if current_lang == 'fr' else 'Low' }}</span>
                 <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(255,255,255,0.04); display: inline-block;"></span>
                 <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(56, 189, 248, 0.3); display: inline-block;"></span>
@@ -807,7 +808,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dayNamesEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         let html = '<div style="min-width: 680px;">';
-        html += '<div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 6px; text-align: center; font-size: 0.72rem; color: #64748b; font-weight: 600;"><div></div>';
+        html += '<div style="display: grid; grid-template-columns: 80px repeat(24, 1fr); gap: 4px; margin-bottom: 6px; text-align: center; font-size: 0.72rem; color: #8b9bb0; font-weight: 600;"><div></div>';
         for (let h = 0; h < 24; h++) {
             const hStr = h < 10 ? '0' + h : '' + h;
             html += `<div>${hStr}h</div>`;
