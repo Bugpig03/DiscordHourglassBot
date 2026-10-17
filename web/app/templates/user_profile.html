@@ -34,124 +34,105 @@
 
 <div class="profile-themed {% if theme.is_custom %}accent-custom{% endif %}" style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};">
 
-<br>
-<!-- Profile Header Card (banner, accent color and favorite server come from the member's customization) -->
-<div class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}">
+<!-- Profile header: identity, level and personal touches (banner, color, favorite server, showcase) -->
+{% set fr = current_lang == 'fr' %}
+<section class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}" aria-labelledby="profileName">
     {% if theme.show_banner %}
     <div class="profile-banner">
         {% if theme.banner_url %}<img src="{{ theme.banner_url }}" alt="" loading="eager" data-fallback="hide">{% endif %}
     </div>
     {% endif %}
     <div class="profile-hero-body">
-    <div class="profile-hero-row">
-        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;" class="profile-hero-identity">
-            <!-- Avatar avec cadre rouge si vocal et pastille de statut -->
+        <div class="profile-hero-main">
+            <!-- Avatar: green ring while in voice, presence dot -->
             <div class="profile-avatar-wrap">
-                <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" 
-                     class="big-pp {% if can_view_presence and stats.active_voice %}pp-in-voice{% else %}border-user{% endif %}" 
+                <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
+                     class="big-pp {% if can_view_presence and stats.active_voice %}pp-in-voice{% else %}border-user{% endif %}"
                      alt="avatar">
                 {% if can_view_presence and stats.presence %}
-                <span class="status-indicator-badge status-{{ stats.presence.status }}" 
-                      data-tip="{{ stats.presence.label_fr if current_lang == 'fr' else stats.presence.label_en }}" aria-label="{{ stats.presence.label_fr if current_lang == 'fr' else stats.presence.label_en }}"></span>
+                <span class="status-indicator-badge status-{{ stats.presence.status }}"
+                      data-tip="{{ stats.presence.label_fr if fr else stats.presence.label_en }}" aria-label="{{ stats.presence.label_fr if fr else stats.presence.label_en }}"></span>
                 {% endif %}
             </div>
 
-            <div style="flex: 1; min-width: 220px;">
-                <h1 class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.username }}</h1>
-                <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
-                    <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
-                        {% if stats.rank and stats.rank is number %}
-                            {{ t('user_profile.global_rank', rank=stats.rank, total=stats.total_user) }}
-                        {% else %}
-                            {{ t('user_profile.unranked') }}
-                        {% endif %}
-                    </span>
-                    <span style="background: rgba(88, 101, 242, 0.2); color: #818cf8; border: 1px solid rgba(88, 101, 242, 0.4); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
-                        {{ t('profile.level_badge', level=gamification.xp_info.level) }} • {{ gamification.xp_info.title_fr if current_lang == 'fr' else gamification.xp_info.title_en }}
-                    </span>
-                    <span style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-radius: 20px; padding: 4px 12px; font-size: 0.88rem;">
-                        {{ t('user_profile.member_since') }} {{ stats.join_date }}
-                    </span>
-                    <span style="background: rgba(255, 255, 255, 0.04); color: #8b9bb0; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; font-family: monospace;">
-                        ID : {{ stats.user_id }}
-                    </span>
-
-                    <!-- Live Active Voice Indicator -->
-                    {% if can_view_presence and stats.active_voice %}
-                    <span style="background: rgba(35, 165, 90, 0.15); color: #4ade80; border: 1px solid #23a55a; border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #23a55a; display: inline-block;"></span>
-                        <span>🎙️ En vocal : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }})</span>
-                    </span>
-                    {% endif %}
+            <div class="profile-hero-info">
+                <h1 id="profileName" class="profile-hero-name">{{ stats.username }}</h1>
+                <div class="profile-hero-meta">
+                    <span class="profile-hero-title">{{ gamification.xp_info.title_fr if fr else gamification.xp_info.title_en }}</span>
+                    <span class="profile-hero-sep" aria-hidden="true">•</span>
+                    <span>{{ t('user_profile.member_since') }} {{ stats.join_date }}</span>
+                    <span class="profile-hero-sep" aria-hidden="true">•</span>
+                    <span class="profile-hero-id" data-tip="{{ 'Identifiant Discord' if fr else 'Discord ID' }}">ID {{ stats.user_id }}</span>
                 </div>
+                {% if can_view_presence and stats.active_voice %}
+                <span class="profile-live-voice">
+                    <span class="profile-live-dot"></span>
+                    {{ 'En vocal' if fr else 'In voice' }} : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }})
+                </span>
+                {% endif %}
+            </div>
 
-                {% if favorite_server %}
-                <a class="profile-fav-server" href="{{ url_for('server_profile.server', server_id=favorite_server.server_id) }}">
-                    <img src="{{ favorite_server.avatar or url_for('static', filename='icons/server.png') }}" data-fallback="{{ url_for('static', filename='icons/server.png') }}" alt="">
-                    <span class="profile-fav-server-label">{{ 'Serveur favori' if current_lang == 'fr' else 'Favorite server' }}</span>
-                    <span class="profile-fav-server-name">{{ favorite_server.server_name }}</span>
-                    <span class="profile-fav-server-meta">#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h</span>
+            <div class="profile-hero-actions">
+                {% if is_owner %}
+                <a href="{{ url_for('customize.customize_profile') }}" class="btn-customize-profile">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    <span>{{ 'Personnaliser' if fr else 'Customize' }}</span>
                 </a>
                 {% endif %}
+                <a href="{{ url_for('versus.versus', u1=stats.user_id) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                    <span>{{ t('profile.versus_btn') }}</span>
+                </a>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            {% if is_owner %}
-            <a href="{{ url_for('customize.customize_profile') }}" class="btn-customize-profile">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                <span>{{ 'Personnaliser' if current_lang == 'fr' else 'Customize' }}</span>
-            </a>
-            {% endif %}
-            <a href="{{ url_for('versus.versus', u1=stats.user_id) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
-                <span>{{ t('profile.versus_btn') }}</span>
-            </a>
-        </div>
-    </div>
-
-    {% if showcase and layout.visible.showcase %}
-    <!-- Featured badges chosen by the member (rarest unlocked ones by default) -->
-    {{ hidden_tag('showcase') }}
-    <div class="profile-showcase" aria-label="{{ 'Vitrine de badges' if current_lang == 'fr' else 'Badge showcase' }}">
-        {% for badge in showcase %}
-        <div class="profile-showcase-item rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
-            <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
-            <span class="profile-showcase-text">
-                <span class="profile-showcase-name">{{ badge.name }}</span>
-                <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
-            </span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    </div>
-</div>
-
-
-<!-- User Level & XP Progression Card -->
-<div class="user-level-card" style="margin-bottom: 25px;">
-    <div class="user-level-header">
-        <div class="user-level-badge-wrap">
+        <!-- Level & XP (formerly a separate card) -->
+        <div class="profile-level">
             <div class="user-level-circle">
                 <span class="user-level-num">{{ gamification.xp_info.level }}</span>
                 <span class="user-level-sub">LVL</span>
             </div>
-            <div>
-                <div class="user-level-title">{{ gamification.xp_info.title_fr if current_lang == 'fr' else gamification.xp_info.title_en }}</div>
-                <div class="user-level-xp-text">{{ gamification.xp_info.total_xp | thousands_fr }} XP {{ 'au total' if current_lang == 'fr' else 'total' }}</div>
+            <div class="profile-level-body">
+                <div class="profile-level-line">
+                    <span><strong>{{ t('profile.level_badge', level=gamification.xp_info.level) }}</strong> <span class="gray">· {{ gamification.xp_info.total_xp | thousands_fr }} XP</span></span>
+                    <span class="gray profile-level-next"><span class="profile-level-target">{{ t('profile.next_level_label', target=(gamification.xp_info.next_level_target_xp | thousands_fr)) }} · </span><span class="user-level-pct">{{ gamification.xp_info.progress_percent | num(1) }} %</span></span>
+                </div>
+                <div class="user-xp-bar-bg">
+                    <div class="user-xp-bar-fill" style="width: {{ gamification.xp_info.progress_percent }}%;"></div>
+                </div>
             </div>
         </div>
-        <div class="user-level-next-info">
-            <span class="small-text gray">{{ t('profile.next_level_label', target=(gamification.xp_info.next_level_target_xp | thousands_fr)) }}</span>
-            <span class="user-level-pct">{{ gamification.xp_info.progress_percent | num(1) }} %</span>
+
+        {% set show_showcase = showcase and layout.visible.showcase %}
+        {% if favorite_server or show_showcase %}
+        <div class="profile-hero-footer">
+            {% if favorite_server %}
+            <a class="profile-fav-server" href="{{ url_for('server_profile.server', server_id=favorite_server.server_id) }}">
+                <img src="{{ favorite_server.avatar or url_for('static', filename='icons/server.png') }}" data-fallback="{{ url_for('static', filename='icons/server.png') }}" alt="">
+                <span class="profile-fav-server-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</span>
+                <span class="profile-fav-server-name">{{ favorite_server.server_name }}</span>
+                <span class="profile-fav-server-meta">#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h</span>
+            </a>
+            {% endif %}
+            {% if show_showcase %}
+            <!-- Featured badges chosen by the member (rarest unlocked ones by default) -->
+            <div class="profile-showcase" aria-label="{{ 'Vitrine de badges' if fr else 'Badge showcase' }}">
+                {{ hidden_tag('showcase') }}
+                {% for badge in showcase %}
+                <div class="profile-showcase-item rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
+                    <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
+                    <span class="profile-showcase-text">
+                        <span class="profile-showcase-name">{{ badge.name }}</span>
+                        <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
+        {% endif %}
     </div>
-    <div class="user-xp-bar-bg">
-        <div class="user-xp-bar-fill" style="width: {{ gamification.xp_info.progress_percent }}%;"></div>
-    </div>
-</div>
+</section>
 
 <!-- User KPI Cards -->
 <div class="home-stats-container stats-4" style="margin-bottom: 25px;">
@@ -267,86 +248,49 @@
 <div id="tab-activity" class="graphs-tab-pane active">
 
     {% set block_streaks %}
-    <!-- KPI Streaks & Assiduité (Style Moderne Identique à la Page Principale) -->
-    <div class="dashboard-kpi-grid" style="margin-bottom: 25px;">
-        <!-- 1. Série actuelle -->
-        <div class="dashboard-kpi-card accent-orange">
-            <div class="dashboard-kpi-top">
-                <span class="dashboard-kpi-label">{{ 'SÉRIE ACTUELLE' if current_lang == 'fr' else 'CURRENT STREAK' }}</span>
-                <div class="dashboard-kpi-icon icon-orange">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-                </div>
-            </div>
-            <div class="dashboard-kpi-val" style="color: #fb923c;">
-                {{ heatmap_annual.current_streak }} <span style="font-size: 1.15rem; font-weight: 600; color: #cbd5e1;">{{ 'jour' if heatmap_annual.current_streak <= 1 else 'jours' if current_lang == 'fr' else 'days' }}</span>
-            </div>
-            <div class="dashboard-kpi-footer">
-                <div class="dashboard-kpi-pill pill-orange">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                    <span>{{ 'Série en cours' if heatmap_annual.current_streak > 0 else 'Inactif aujourd\'hui' if current_lang == 'fr' else 'Active streak' if heatmap_annual.current_streak > 0 else 'Inactive today' }}</span>
-                </div>
-            </div>
+    <!-- Streaks & consistency: one compact strip instead of four large cards -->
+    {% set fr = current_lang == 'fr' %}
+    {% set streak = heatmap_annual.current_streak %}
+    <div class="gray-box small-border-radius profile-streaks">
+        <div class="profile-streak">
+            <span class="profile-streak-icon" style="color: #fb923c; background: rgba(251, 146, 60, 0.12);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            </span>
+            <span class="profile-streak-text">
+                <span class="profile-streak-label">{{ 'Série actuelle' if fr else 'Current streak' }}</span>
+                <span class="profile-streak-value">{{ streak }} <small>{{ (('jour' if streak <= 1 else 'jours') if fr else ('day' if streak == 1 else 'days')) }}</small></span>
+                <span class="profile-streak-sub">{{ ('Série en cours' if streak > 0 else 'Inactif aujourd’hui') if fr else ('Active streak' if streak > 0 else 'Inactive today') }}</span>
+            </span>
         </div>
-
-        <!-- 2. Record de série -->
-        <div class="dashboard-kpi-card accent-amber">
-            <div class="dashboard-kpi-top">
-                <span class="dashboard-kpi-label">{{ 'RECORD DE SÉRIE' if current_lang == 'fr' else 'BEST STREAK' }}</span>
-                <div class="dashboard-kpi-icon icon-amber">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                </div>
-            </div>
-            <div class="dashboard-kpi-val" style="color: #facc15;">
-                {{ heatmap_annual.max_streak }} <span style="font-size: 1.15rem; font-weight: 600; color: #cbd5e1;">{{ 'jours' if current_lang == 'fr' else 'days' }}</span>
-            </div>
-            <div class="dashboard-kpi-footer">
-                <div class="dashboard-kpi-pill pill-amber">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <span>{{ 'Record historique' if current_lang == 'fr' else 'All-time best' }}</span>
-                </div>
-            </div>
+        <div class="profile-streak">
+            <span class="profile-streak-icon" style="color: #facc15; background: rgba(250, 204, 21, 0.12);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <span class="profile-streak-text">
+                <span class="profile-streak-label">{{ 'Record de série' if fr else 'Best streak' }}</span>
+                <span class="profile-streak-value">{{ heatmap_annual.max_streak }} <small>{{ (('jour' if heatmap_annual.max_streak <= 1 else 'jours') if fr else ('day' if heatmap_annual.max_streak == 1 else 'days')) }}</small></span>
+                <span class="profile-streak-sub">{{ 'Record historique' if fr else 'All-time best' }}</span>
+            </span>
         </div>
-
-        <!-- 3. Jours actifs (1 an) -->
-        <div class="dashboard-kpi-card accent-emerald">
-            <div class="dashboard-kpi-top">
-                <span class="dashboard-kpi-label">{{ 'JOURS ACTIFS (1 AN)' if current_lang == 'fr' else 'ACTIVE DAYS (1 YR)' }}</span>
-                <div class="dashboard-kpi-icon icon-emerald">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                </div>
-            </div>
-            <div class="dashboard-kpi-val" style="color: #4ade80;">
-                {{ heatmap_annual.total_active_days }} <span style="font-size: 1.15rem; font-weight: 500; color: #94a3b8;">/ 365</span>
-            </div>
-            <div class="dashboard-kpi-footer">
-                <div class="dashboard-kpi-pill pill-emerald">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>{{ (heatmap_annual.total_active_days / 365 * 100) | num(1) }} % {{ 'd\'assiduité' if current_lang == 'fr' else 'active rate' }}</span>
-                </div>
-            </div>
+        <div class="profile-streak">
+            <span class="profile-streak-icon" style="color: #4ade80; background: rgba(74, 222, 128, 0.12);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            </span>
+            <span class="profile-streak-text">
+                <span class="profile-streak-label">{{ 'Jours actifs (1 an)' if fr else 'Active days (1 yr)' }}</span>
+                <span class="profile-streak-value">{{ heatmap_annual.total_active_days }} <small>/ 365</small></span>
+                <span class="profile-streak-sub">{{ (heatmap_annual.total_active_days / 365 * 100) | num(1) }} % {{ 'd’assiduité' if fr else 'active rate' }}</span>
+            </span>
         </div>
-
-        <!-- 4. Journée record -->
-        <div class="dashboard-kpi-card accent-blue">
-            <div class="dashboard-kpi-top">
-                <span class="dashboard-kpi-label">{{ 'JOURNÉE RECORD' if current_lang == 'fr' else 'PEAK DAY' }}</span>
-                <div class="dashboard-kpi-icon icon-blue">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-            </div>
-            <div class="dashboard-kpi-val" style="color: #38bdf8;">
-                {% if heatmap_annual.best_day %}
-                    {{ heatmap_annual.best_day.hours | num(1) }} h
-                {% else %}
-                    -
-                {% endif %}
-            </div>
-            <div class="dashboard-kpi-footer">
-                <div class="dashboard-kpi-pill pill-blue">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span>{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.label }}{% else %}{{ 'Aucune donnée' if current_lang == 'fr' else 'No data' }}{% endif %}</span>
-                </div>
-            </div>
+        <div class="profile-streak">
+            <span class="profile-streak-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.12);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </span>
+            <span class="profile-streak-text">
+                <span class="profile-streak-label">{{ 'Journée record' if fr else 'Peak day' }}</span>
+                <span class="profile-streak-value">{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.hours | num(1) }} <small>h</small>{% else %}-{% endif %}</span>
+                <span class="profile-streak-sub">{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.label }}{% else %}{{ 'Aucune donnée' if fr else 'No data' }}{% endif %}</span>
+            </span>
         </div>
     </div>
     {% endset %}

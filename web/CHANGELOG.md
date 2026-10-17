@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.6.0 - Réorganisation de la Page de Profil - 17/10/2026
+### Interface
+- **En-tête du profil restructuré** en trois zones : identité (avatar, pseudo, titre, date d'arrivée et ID sur une seule ligne discrète, statut vocal en direct) avec les boutons « Personnaliser » et « Duel / Versus » alignés à droite ; barre de niveau et d'XP intégrée à l'en-tête ; pied d'en-tête avec le serveur favori à gauche et la vitrine de badges à droite.
+- **Fin des doublons** : le rang global et le niveau n'apparaissent plus à la fois en pastilles et en cartes, et la carte de niveau séparée disparaît (elle est dans l'en-tête).
+- **Séries et assiduité** (onglet Activité) : les 4 grandes cartes deviennent un bandeau compact, pour éviter trois rangées de cartes d'affilée.
+- Records par défaut sans doublon avec ce bandeau : plus longue session, meilleur mois en vocal, meilleur mois en messages, meilleur compagnon vocal (la meilleure journée reste dans le bandeau des séries).
+- **Mobile** : totaux en grille 2 × 2 compacte, informations d'identité empilées sans séparateurs orphelins, pastille de statut accrochée à l'avatar, pourcentage d'XP sur une seule ligne.
+
 ## Version 3.5.0 - Mise en Page du Profil & Mode Privé - 17/10/2026
 ### Nouveautés
 - **Ordre de l'onglet Activité** : le membre réordonne les sections séries et assiduité, calendrier d'activité, rythme horaire et compagnons vocaux (boutons monter / descendre, utilisables au clavier). Le journal des sessions reste en dernier.

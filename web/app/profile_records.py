@@ -11,7 +11,7 @@ from app.functions import (
 )
 
 MAX_PINNED_RECORDS = 4
-DEFAULT_PINNED_RECORDS = ["longest_session", "best_month_voice", "best_day", "top_companion"]
+DEFAULT_PINNED_RECORDS = ["longest_session", "best_month_voice", "best_month_messages", "top_companion"]
 MAX_FEATURED_BADGES = 3
 RARITY_ORDER = {"legendary": 4, "epic": 3, "rare": 2, "common": 1}
 
