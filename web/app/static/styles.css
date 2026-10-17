@@ -5504,3 +5504,17 @@ a.pager-btn:hover {
     padding: 0 8px;
   }
 }
+
+/* Live lists (filters / search / pagination updated in place) */
+[data-live-region] {
+  transition: opacity 0.15s ease;
+}
+
+[data-live-region].is-live-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+form[data-live-form]:not(.has-value) .page-search-clear {
+  display: none;
+}

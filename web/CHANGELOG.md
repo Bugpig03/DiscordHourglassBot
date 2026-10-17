@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.11.0 - Filtres & Recherches en Direct sans Rechargement - 17/10/2026
+### UX
+- **Classements (`/top/users`, `/top/servers`) mis à jour sur place** : changer la période, le tri, le serveur ou la page ne recharge plus toute la page ; seuls les résultats sont remplacés (indicateur de chargement discret). L'URL suit les filtres (liens partageables) et le bouton Retour du navigateur restaure l'état précédent.
+- **Correctif double envoi** : les listes déroulantes de filtres envoyaient le formulaire deux fois (attribut `onchange` + écouteur JS).
+- **Recherche en direct dans les annuaires (`/users`, `/servers`)** : la grille se filtre pendant la frappe (après 300 ms de pause), le champ garde le focus, la croix d'effacement apparaît dès qu'il y a du texte. La liste de suggestions, devenue redondante avec la grille filtrée, est retirée.
+- **Recherche des membres d'un serveur en direct** : la liste et le compteur de membres se mettent à jour sans recharger la fiche (les graphiques restent en place) ; « Voir plus » continue de fonctionner sur les résultats filtrés.
+
+### Technique
+- Nouveau module partagé `static/js/live-list.js` (régions `data-live-region`, formulaires `data-live-form`, champs `data-live-search`). Sans JavaScript ou en cas d'erreur réseau, les formulaires et liens fonctionnent comme avant (navigation classique).
+
 ## Version 2.10.1 - Pagination Moderne des Classements & Annuaires - 17/10/2026
 ### UX
 - **Nouvelle pagination partagée** (`/top/users`, `/top/servers`, `/users`, `/servers`) remplaçant « Précédent · Page X sur Y · Suivant » :

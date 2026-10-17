@@ -284,7 +284,7 @@
 <!-- =================================================================== -->
 <div id="tab-members" class="graphs-tab-pane">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
-        <div class="big-bold-text nomargin" style="font-size: 1.25rem;">
+        <div class="big-bold-text nomargin" style="font-size: 1.25rem;" data-live-region="members-count">
             {{ t('server_profile.active_members_heading', count=stats.users|length) }}
         </div>
         <span class="small-text gray">{{ t('server_profile.sorted_by_voice') }}</span>
@@ -323,26 +323,26 @@
     </div>
     {% endif %}
 
-    <form method="GET" action="" class="page-search-form">
+    <form method="GET" action="" class="page-search-form{% if request.args.get('q') %} has-value{% endif %}" data-live-form>
         <div class="page-search-bar">
             <svg class="page-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
             </svg>
-            <input type="text" name="q" placeholder="{{ t('server_profile.search_members_placeholder') }}"
+            <input type="text" id="serverMembersSearchInput" name="q" data-live-search placeholder="{{ t('server_profile.search_members_placeholder') }}"
                    value="{{ request.args.get('q', '') }}" class="page-search-input" autocomplete="off" spellcheck="false">
-            {% if request.args.get('q') %}
+            
                 <a href="{{ url_for('server_profile.server', server_id=stats.server_id) }}" class="page-search-clear" title="Effacer la recherche">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                 </a>
-            {% endif %}
             <button type="submit" class="page-search-enter-kbd" title="Rechercher (Entrée)">
                 <span>↵</span>
             </button>
         </div>
     </form>
 
+    <div data-live-region="members-list">
     {% if stats.users %}
         <div id="serverMembersList" style="display: flex; flex-direction: column; gap: 10px;">
             {% with users = stats.users if show_all_members else stats.users[:members_page_size] %}
@@ -371,6 +371,7 @@
             </p>
         </div>
     {% endif %}
+    </div>
 </div>
 
 <!-- =================================================================== -->
@@ -1469,11 +1470,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // "Voir plus": append the next slice of members without reloading (the link still works without JS)
 document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('loadMoreMembers');
-    const list = document.getElementById('serverMembersList');
-    if (!btn || !list) return;
-
-    btn.addEventListener('click', async function(e) {
+    document.addEventListener('click', async function(e) {
+        const btn = e.target.closest('#loadMoreMembers');
+        const list = document.getElementById('serverMembersList');
+        if (!btn || !list) return;
         e.preventDefault();
         if (btn.dataset.loading) return;
         btn.dataset.loading = '1';

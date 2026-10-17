@@ -41,12 +41,12 @@
     </div>
 </div>
 
-<form method="GET" action="{{ url_for('top.top_users') }}" id="top-filter-form" class="top-form">
+<form method="GET" action="{{ url_for('top.top_users') }}" id="top-filter-form" class="top-form" data-live-form>
     <input type="hidden" name="server_id" id="topFilterServerId" value="{{ selected_server.server_id if selected_server else 'all' }}">
 
     <div class="top-filter-group">
         <label for="top-filter-period" class="top-label">{{ t('top.period_label') }}</label>
-        <select name="period" id="top-filter-period" class="top-select" onchange="this.form.submit()">
+        <select name="period" id="top-filter-period" class="top-select">
             <option value="24h" {% if request.args.get('period') == '24h' %}selected{% endif %}>{{ t('top.period_24h') }}</option>
             <option value="7d" {% if request.args.get('period') == '7d' %}selected{% endif %}>{{ t('top.period_7d') }}</option>
             <option value="15d" {% if request.args.get('period') == '15d' %}selected{% endif %}>{{ t('top.period_15d') }}</option>
@@ -59,7 +59,7 @@
 
     <div class="top-filter-group">
         <label for="top-filter-sort" class="top-label">{{ t('top.sort_label') }}</label>
-        <select name="sort_by" id="top-filter-sort" class="top-select" onchange="this.form.submit()">
+        <select name="sort_by" id="top-filter-sort" class="top-select">
             <option value="hours" {% if request.args.get('sort_by') == 'hours' or not request.args.get('sort_by') %}selected{% endif %}>{{ t('top.sort_hours') }}</option>
             <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>{{ t('top.sort_messages') }}</option>
             <option value="xp" {% if request.args.get('sort_by') in ('xp', 'level') %}selected{% endif %}>{{ t('top.sort_xp') }}</option>
@@ -99,6 +99,7 @@
         </div>
     </div>
 </form>
+<div data-live-region>
 
 {% if selected_server %}
 <div class="active-server-banner top-active-server-banner">
@@ -107,7 +108,7 @@
         <span>{{ t('top.server_label') }} <strong>{{ selected_server.servername }}</strong></span>
     </div>
     <a href="{{ url_for('top.top_users', period=request.args.get('period'), sort_by=request.args.get('sort_by'), server_id='all') }}" 
-       class="btn-clear-server-filter" title="{{ t('top.all_servers') }}">
+       class="btn-clear-server-filter" data-live-link title="{{ t('top.all_servers') }}">
         ✕ <span>{{ t('top.all_servers') }}</span>
     </a>
 </div>
@@ -152,6 +153,7 @@
     </div>
 {% endif %}
 
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('top-filter-form');
@@ -160,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Period and Sort auto-submit
     form.querySelectorAll('select').forEach(function(select) {
         select.addEventListener('change', function() {
-            form.submit();
+            form.requestSubmit();
         });
     });
 
@@ -194,6 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Results were refreshed in place (live filters): the synced fields may have changed
+    document.addEventListener('hg:live-updated', updateClearBtn);
+
     function openDropdown() {
         renderResults(input.value.trim());
         dropdown.style.display = 'block';
@@ -226,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateClearBtn();
         closeDropdown();
-        form.submit();
+        form.requestSubmit();
     }
 
     function renderResults(q) {
@@ -334,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             input.value = '';
             updateClearBtn();
             closeDropdown();
-            form.submit();
+            form.requestSubmit();
         });
     }
 

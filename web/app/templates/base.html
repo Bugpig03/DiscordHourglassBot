@@ -18,6 +18,7 @@
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon-32.png', v=asset_version('icons/favicon-32.png')) }}" type="image/png" sizes="32x32">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png', v=asset_version('icons/apple-touch-icon.png')) }}">
     <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    <script src="{{ url_for('static', filename='js/live-list.js', v=asset_version('js/live-list.js')) }}" defer></script>
     <link
     rel="stylesheet"
     href="{{ url_for('static', filename='styles.css', v=asset_version('styles.css')) }}"
@@ -373,7 +374,9 @@
             if (modal && modal.style.display === 'flex') return;
             const pager = document.querySelector('.pager');
             const target = pager && pager.dataset[e.key === 'ArrowLeft' ? 'prev' : 'next'];
-            if (target) window.location.href = target;
+            if (!target) return;
+            if (window.HG && HG.hasLiveRegion && HG.hasLiveRegion()) HG.liveLoad(target, { scroll: true });
+            else window.location.href = target;
         });
 
         function openGlobalSearch() {
