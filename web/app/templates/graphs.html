@@ -1,411 +1,173 @@
 {% extends "base.html" %}
+{% set fr = current_lang == 'fr' %}
 
 {% block title %}{{ t('graphs.title') }}{% endblock %}
 
-{% block content %}
-<h1 class="sr-only">{{ self.title() | replace(' - Hourglass', '') }}</h1>
+{% macro loading() %}<div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>{% endmacro %}
 
-<!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
-<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
-
-<br>
-<!-- KPI Summary Cards (Always Visible) -->
-<div class="home-stats-container stats-5" style="margin-bottom: 25px;">
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/hourglass.png') }}" alt="Icon Hourglass">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('graphs.kpi_voice') }}</span>
-            <span class="home-stats-value" id="kpiTotalHours"><span class="kpi-skeleton"></span></span>
-        </div>
+{% macro kpi(id, label, accent, icon_class, icon) %}
+<div class="dashboard-kpi-card accent-{{ accent }}">
+    <div class="dashboard-kpi-top">
+        <span class="dashboard-kpi-label">{{ label }}</span>
+        <div class="dashboard-kpi-icon {{ icon_class }}">{{ icon | safe }}</div>
     </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon Messages">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('graphs.kpi_messages') }}</span>
-            <span class="home-stats-value" id="kpiTotalMessages"><span class="kpi-skeleton"></span></span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/calendar.png') }}" alt="Icon Calendar">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('graphs.kpi_avg_voice') }}</span>
-            <span class="home-stats-value" id="kpiAvgMonthlyHours"><span class="kpi-skeleton"></span></span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon Messages">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('graphs.kpi_avg_messages') }}</span>
-            <span class="home-stats-value" id="kpiAvgMonthlyMessages"><span class="kpi-skeleton"></span></span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/server.png') }}" alt="Icon Server">
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('graphs.kpi_analyzed_servers') }}</span>
-            <span class="home-stats-value" id="kpiTotalServers"><span class="kpi-skeleton"></span></span>
-        </div>
+    <div class="dashboard-kpi-val" id="kpi-{{ id }}"><span class="kpi-skeleton"></span></div>
+    <div class="dashboard-kpi-footer">
+        <span class="an-delta" id="delta-{{ id }}">&nbsp;</span>
     </div>
 </div>
+{% endmacro %}
 
-<!-- =================================================================== -->
-<!-- TAB NAVIGATION BAR                                                  -->
-<!-- =================================================================== -->
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
+
+<div class="an-head">
+    <h1 class="an-title">{{ 'Analyses' if fr else 'Analytics' }}</h1>
+    <p class="an-sub">{{ 'L’activité de toute la communauté Hourglass, tous serveurs confondus.' if fr else 'Activity of the whole Hourglass community, across all servers.' }}</p>
+</div>
+
+<!-- Last 30 days at a glance, compared with the 30 days before -->
+<div class="dashboard-kpi-grid an-kpis">
+    {{ kpi('hours', 'Vocal · 30 jours' if fr else 'Voice · 30 days', 'blue', 'icon-voice', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>') }}
+    {{ kpi('messages', 'Messages · 30 jours' if fr else 'Messages · 30 days', 'emerald', 'icon-messages', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>') }}
+    {{ kpi('members', 'Membres actifs · 30 jours' if fr else 'Active members · 30 days', 'violet', 'icon-users', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>') }}
+    {{ kpi('servers', 'Serveurs actifs · 30 jours' if fr else 'Active servers · 30 days', 'amber', 'icon-servers', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>') }}
+</div>
+
 <div class="graphs-tabs-wrapper">
-    <div class="graphs-tabs">
-        <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchGraphTab" data-arg="tab-activity">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-            <span>{{ t('graphs.tab_activity') }}</span>
-        </button>
-        <button class="graphs-tab-btn" data-tab="tab-history" data-call="switchGraphTab" data-arg="tab-history">
+    <div class="graphs-tabs" role="tablist">
+        <button class="graphs-tab-btn active" data-tab="tab-trends" data-call="switchGraphTab" data-arg="tab-trends">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            <span>{{ t('graphs.tab_history') }}</span>
+            <span>{{ 'Tendances' if fr else 'Trends' }}</span>
         </button>
-        <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchGraphTab" data-arg="tab-servers">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-            <span>{{ t('graphs.tab_servers') }}</span>
+        <button class="graphs-tab-btn" data-tab="tab-rhythm" data-call="switchGraphTab" data-arg="tab-rhythm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>{{ 'Rythme' if fr else 'Rhythm' }}</span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>{{ t('graphs.tab_community') }}</span>
+            <span>{{ 'Communauté' if fr else 'Community' }}</span>
         </button>
     </div>
 </div>
 
-<!-- =================================================================== -->
-<!-- ONGLET 2 : Progression Historique Globale                           -->
-<!-- =================================================================== -->
-<div id="tab-history" class="graphs-tab-pane">
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
-            <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-                {{ t('graphs.section_history') }}
-            </h2>
-        </div>
-        <div class="granularity-toggle-group">
-            <button type="button" class="granularity-btn active" data-granularity="month" data-call="switchGlobalGranularity" data-arg="month">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                <span>{{ t('charts.mode_monthly') }}</span>
-            </button>
-            <button type="button" class="granularity-btn" data-granularity="day" data-call="switchGlobalGranularity" data-arg="day">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span>{{ t('charts.mode_daily') }}</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Graphique 1 : Progression Cumulative des Heures -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+<!-- ============================ Tendances ============================ -->
+<div id="tab-trends" class="graphs-tab-pane active">
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_cumul_hours_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_cumul_hours_desc') }}</div>
+                <h2 class="an-card-title">{{ 'Évolution de l’activité' if fr else 'Activity over time' }}</h2>
+                <p class="an-card-desc" id="trendsSummary">&nbsp;</p>
             </div>
-            <span id="badgeTotalHours" style="background: rgba(57, 146, 190, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.total_label') }} <span class="val">--</span> {{ t('graphs.hours_unit') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 380px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="myChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique 2 : Progression Cumulative des Messages -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_cumul_msgs_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_cumul_msgs_desc') }}</div>
+            <div class="an-controls">
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Mesure' if fr else 'Metric' }}">
+                    <button type="button" class="granularity-btn active" data-trend="metric" data-value="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
+                    <button type="button" class="granularity-btn" data-trend="metric" data-value="messages">Messages</button>
+                </div>
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Période' if fr else 'Period' }}">
+                    <button type="button" class="granularity-btn active" data-trend="period" data-value="month">{{ 'Par mois' if fr else 'Monthly' }}</button>
+                    <button type="button" class="granularity-btn" data-trend="period" data-value="day">{{ '30 jours' if fr else '30 days' }}</button>
+                </div>
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Affichage' if fr else 'Display' }}">
+                    <button type="button" class="granularity-btn active" data-trend="mode" data-value="period">{{ 'Par période' if fr else 'Per period' }}</button>
+                    <button type="button" class="granularity-btn" data-trend="mode" data-value="cumul">{{ 'Cumulé' if fr else 'Cumulative' }}</button>
+                </div>
             </div>
-            <span id="badgeTotalMessages" style="background: rgba(88, 101, 242, 0.2); color: #a5b4fc; border: 1px solid rgba(88, 101, 242, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.total_label') }} <span class="val">--</span> {{ t('graphs.msgs_unit') }}
-            </span>
         </div>
-        <div style="position: relative; height: 380px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="messagesChart"></canvas>
-        </div>
-    </div>
+        <div class="an-chart an-chart-lg">{{ loading() }}<canvas id="trendsChart"></canvas></div>
+    </section>
 </div>
 
-<!-- =================================================================== -->
-<!-- ONGLET 2 : Activité Périodique & Rythme                             -->
-<!-- =================================================================== -->
-<div id="tab-activity" class="graphs-tab-pane active">
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #fbbf24; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('graphs.section_activity') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
-    </div>
-
-    <!-- Graphique 3 : Heures par mois -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+<!-- ============================== Rythme ============================== -->
+<div id="tab-rhythm" class="graphs-tab-pane">
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_monthly_hours_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_monthly_hours_desc') }}</div>
+                <h2 class="an-card-title">{{ 'Quand la communauté est active' if fr else 'When the community is active' }}</h2>
+                <p class="an-card-desc">{{ 'Moyenne par heure de la journée, puis détail par jour de la semaine.' if fr else 'Average per hour of the day, then detail per day of the week.' }}</p>
             </div>
-            <span id="badgeAvgMonthlyHours" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.avg_label') }} <span class="val">--</span> {{ t('graphs.unit_hours_per_month') }}
+            <div class="an-badges">
+                <span class="an-badge an-badge-blue" id="badgeVoicePeak">{{ 'Pic vocal' if fr else 'Voice peak' }} : --</span>
+                <span class="an-badge an-badge-indigo" id="badgeMessagesPeak">{{ 'Pic messages' if fr else 'Messages peak' }} : --</span>
+            </div>
+        </div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
+        <div class="an-punch-head">
+            <span class="an-subtitle">{{ 'Par jour et par heure' if fr else 'By day and hour' }}</span>
+            <span class="an-legend">
+                <span>{{ 'Calme' if fr else 'Low' }}</span>
+                <i style="background: rgba(255,255,255,0.04);"></i>
+                <i style="background: rgba(56, 189, 248, 0.3);"></i>
+                <i style="background: rgba(56, 189, 248, 0.6);"></i>
+                <i style="background: rgba(129, 140, 248, 0.85);"></i>
+                <i style="background: #f43f5e;"></i>
+                <span>{{ 'Intense' if fr else 'Peak' }}</span>
             </span>
         </div>
-        <div style="position: relative; height: 380px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="monthlyChart"></canvas>
-        </div>
-    </div>
+        <div class="an-punch">{{ loading() }}<div id="punchcardContent"></div></div>
+    </section>
 
-    <!-- Graphique 4 : Messages par mois -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.chart_monthly_msgs_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.chart_monthly_msgs_desc') }}</div>
+                <h2 class="an-card-title">{{ 'Présence des membres' if fr else 'Member presence' }}</h2>
+                <p class="an-card-desc">{{ 'Membres en ligne, absents, en ne pas déranger et hors ligne, heure par heure.' if fr else 'Members online, idle, do not disturb and offline, hour by hour.' }}</p>
             </div>
-            <span id="badgeAvgMonthlyMsgs" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.avg_label') }} <span class="val">--</span> {{ t('graphs.unit_msgs_per_month') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 380px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="monthlyMessagesChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique 5 : Activité quotidienne sur 30 jours -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.daily_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.daily_desc') }}</div>
-            </div>
-            <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.badge_30d') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 380px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="dailyActivityChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique 6 : Pics d'Activité & Rythme Global sur 24h -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span>{{ t('graphs.global_hourly_title') }}</span>
-                </div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.global_hourly_desc') }}</div>
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                    <span id="badgeVoicePeak">{{ 'Pic Vocal' if current_lang == 'fr' else 'Voice Peak' }} : --</span>
-                </span>
-                <span style="background: rgba(165, 180, 252, 0.15); color: #a5b4fc; border: 1px solid rgba(165, 180, 252, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span id="badgeMessagesPeak">{{ 'Pic Messages' if current_lang == 'fr' else 'Messages Peak' }} : --</span>
-                </span>
-            </div>
-        </div>
-        <div style="position: relative; height: 380px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="globalHourlyChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique Global : Punchcard Horaire 7j x 24h -->
-    <div class="gray-box small-border-radius" style="padding: 22px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    <span>{{ 'Punchcard Horaire Globale (Affluence par Jour & Heure)' if current_lang == 'fr' else 'Global Hourly Punchcard (Day & Hour Heatmap)' }}</span>
-                </div>
-                <div class="small-text gray" style="margin-top: 4px;">
-                    {{ 'Matrice d’affluence croisant les 7 jours de la semaine et les 24 heures pour l’ensemble des serveurs.' if current_lang == 'fr' else 'Activity density matrix across all 7 days of the week and 24 hours across all servers.' }}
+            <div class="an-controls">
+                <span class="an-badge an-badge-green" id="badgePresence">{{ 'Connectés' if fr else 'Online' }} : --</span>
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Période' if fr else 'Period' }}">
+                    <button type="button" class="granularity-btn" data-presence="48h">48 h</button>
+                    <button type="button" class="granularity-btn active" data-presence="7d">{{ '7 jours' if fr else '7 days' }}</button>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #8b9bb0;">
-                <span>{{ 'Calme' if current_lang == 'fr' else 'Low' }}</span>
-                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(255,255,255,0.04); display: inline-block;"></span>
-                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(56, 189, 248, 0.3); display: inline-block;"></span>
-                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(56, 189, 248, 0.6); display: inline-block;"></span>
-                <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(129, 140, 248, 0.85); display: inline-block;"></span>
-                <span style="width: 12px; height: 12px; border-radius: 3px; background: #f43f5e; box-shadow: 0 0 6px rgba(244,63,94,0.6); display: inline-block;"></span>
-                <span>{{ 'Intense' if current_lang == 'fr' else 'Peak' }}</span>
-            </div>
         </div>
-
-        <div id="punchcardContainer" style="position: relative; min-height: 220px;">
-            <div class="chart-loading-overlay">
-                <div class="chart-spinner-ring"></div>
-                <span class="chart-spinner-text">{{ t('graphs.loading') }}</span>
-            </div>
-            <div id="punchcardContent" style="overflow-x: auto; padding: 10px 0;"></div>
-        </div></div>
+        <div class="an-chart an-chart-md">{{ loading() }}<canvas id="presenceChart"></canvas>
+            <p class="an-empty" id="presenceEmpty" hidden>{{ 'Pas de données de présence sur cette période (le bot n’a pas enregistré de relevé).' if fr else 'No presence data for this period (the bot recorded no snapshot).' }}</p>
+        </div>
+    </section>
 </div>
 
-<!-- =================================================================== -->
-<!-- ONGLET 3 : Comparatif & Répartition des Serveurs                   -->
-<!-- =================================================================== -->
-<div id="tab-servers" class="graphs-tab-pane">
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #8b5cf6; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('graphs.section_servers') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
-    </div>
-
-    <!-- Grille responsive 2 colonnes pour les deux donuts -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 30px;">
-        <!-- Graphique 6 : Répartition Heures par serveur -->
-        <div class="gray-box small-border-radius" style="padding: 20px 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <div>
-                    <div class="medium-bold-text" style="color: #ffffff; font-size: 1.15rem;">{{ t('graphs.pie_hours_title') }}</div>
-                    <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.pie_hours_subtitle') }}</div>
-                </div>
-                <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); padding: 3px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: bold;">
-                    {{ t('graphs.badge_hours') }}
-                </span>
-            </div>
-            <div style="position: relative; min-height: 380px; width: 100%; display: flex; justify-content: center; align-items: center;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="serversPieChart" style="max-height: 360px; width: 100%;"></canvas>
-            </div>
-        </div>
-
-        <!-- Graphique 7 : Répartition Messages par serveur -->
-        <div class="gray-box small-border-radius" style="padding: 20px 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <div>
-                    <div class="medium-bold-text" style="color: #ffffff; font-size: 1.15rem;">{{ t('graphs.pie_msgs_title') }}</div>
-                    <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.pie_msgs_subtitle') }}</div>
-                </div>
-                <span style="background: rgba(88, 101, 242, 0.2); color: #a5b4fc; border: 1px solid rgba(88, 101, 242, 0.4); padding: 3px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: bold;">
-                    {{ t('graphs.badge_messages') }}
-                </span>
-            </div>
-            <div style="position: relative; min-height: 380px; width: 100%; display: flex; justify-content: center; align-items: center;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="serversMessagesPieChart" style="max-height: 360px; width: 100%;"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- =================================================================== -->
-<!-- ONGLET 4 : Analyses Communautaires & Membres                       -->
-<!-- =================================================================== -->
+<!-- ============================ Communauté ============================ -->
 <div id="tab-community" class="graphs-tab-pane">
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #10b981; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('graphs.section_community') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
-    </div>
-
-    <!-- Graphique 8 : Top 10 des utilisateurs les plus actifs -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.top_users_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.top_users_desc') }}</div>
+                <h2 class="an-card-title">{{ 'Nouveaux membres par mois' if fr else 'New members per month' }}</h2>
+                <p class="an-card-desc">{{ 'Membres vus pour la première fois par le bot.' if fr else 'Members seen by the bot for the first time.' }}</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <div class="chart-btn-group">
-                    <button type="button" id="btnTopVocal" class="chart-toggle-btn active-teal" data-call="switchTopUsersMode" data-arg="vocal">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                        <span>{{ t('graphs.btn_vocal') }}</span>
-                    </button>
-                    <button type="button" id="btnTopMessages" class="chart-toggle-btn" data-call="switchTopUsersMode" data-arg="messages">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        <span>{{ t('graphs.btn_messages') }}</span>
-                    </button>
-                    <button type="button" id="btnTopDual" class="chart-toggle-btn" data-call="switchTopUsersMode" data-arg="dual">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        <span>{{ t('graphs.btn_dual') }}</span>
-                    </button>
+        </div>
+        <div class="an-chart an-chart-md">{{ loading() }}<canvas id="growthChart"></canvas></div>
+    </section>
+
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card" data-ranking="servers">
+            <div class="an-card-head">
+                <h2 class="an-card-title">{{ 'Serveurs les plus actifs' if fr else 'Most active servers' }}</h2>
+                <div class="granularity-toggle-group" role="group">
+                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
+                    <button type="button" class="granularity-btn" data-rank-metric="messages">Messages</button>
                 </div>
-                <span style="background: rgba(20, 184, 166, 0.15); color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                    {{ t('graphs.badge_leaderboard') }}
-                </span>
             </div>
-        </div>
-        <div style="position: relative; height: 440px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="topUsersHorizontalChart"></canvas>
-        </div>
-    </div>
+            <ol class="an-rank" data-rank-list>{{ loading() }}</ol>
+            <a class="an-more" href="{{ url_for('top.top_servers') }}">{{ 'Voir tous les serveurs' if fr else 'See all servers' }} →</a>
+        </section>
 
-    <!-- Graphique 9 : Rapport Connectés vs Hors-ligne sur 48h -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">
-                    {{ t('graphs.presence_48h_title') }}
+        <section class="gray-box small-border-radius an-card" data-ranking="members">
+            <div class="an-card-head">
+                <h2 class="an-card-title">{{ 'Membres les plus actifs' if fr else 'Most active members' }}</h2>
+                <div class="granularity-toggle-group" role="group">
+                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
+                    <button type="button" class="granularity-btn" data-rank-metric="messages">Messages</button>
                 </div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.presence_48h_desc') }}</div>
             </div>
-            <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                <span id="badgePresence">{{ 'Taux connectés : --%' if current_lang == 'fr' else 'Online ratio: --%' }}</span>
-            </span>
-        </div>
-
-        <div style="position: relative; height: 420px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="presence48hChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique 10 : Croissance & Nouveaux membres par mois -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">{{ t('graphs.growth_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('graphs.growth_desc') }}</div>
-            </div>
-            <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('graphs.badge_newcomers') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 380px; width: 100%;">
-            <div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>
-            <canvas id="userGrowthChart"></canvas>
-        </div>
+            <ol class="an-rank" data-rank-list>{{ loading() }}</ol>
+            <a class="an-more" href="{{ url_for('top.top_users') }}">{{ 'Voir le classement complet' if fr else 'See the full leaderboard' }} →</a>
+        </section>
     </div>
 </div>
 
-<!-- =================================================================== -->
-<!-- CHART INITIALIZATIONS & TAB CONTROLLER (JavaScript)                 -->
-<!-- =================================================================== -->
-<script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang, "t_graphs_hours_unit": t("graphs.hours_unit"), "t_graphs_msgs_unit": t("graphs.msgs_unit")}|tojson }}</script>
+<script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang, "server_url": url_for('server_profile.server', server_id=0), "profile_url": url_for('user_profile.profile', username='0'), "server_icon": url_for('static', filename='icons/server.png')}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/graphs.js', v=asset_version('js/pages/graphs.js')) }}" defer></script>
 {% endblock %}

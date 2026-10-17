@@ -1,5 +1,20 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.11.0 - Page Analyses Réorganisée - 18/10/2026
+### Interface
+- **3 onglets clairs au lieu de 4** : *Tendances*, *Rythme* et *Communauté* ; environ 6 graphiques au lieu de 12, sans perte d'information.
+- **Tendances** : un seul graphique avec trois sélecteurs (Vocal / Messages, Par mois / 30 jours, Par période / Cumulé) remplace les 5 graphiques des anciens onglets Activité et Progression (heures et messages par mois, cumuls, activité quotidienne). Total et moyenne de la période affichés au-dessus ; la période en cours reste estompée.
+- **Rythme** : la courbe des 24 heures et la grille jour × heure réunies dans une même carte « Quand la communauté est active », puis la **présence des membres sur 7 jours ou 48 h** (sélecteur, 7 jours par défaut ; une date par jour sous l'axe ; la courbe « Hors ligne », qui écrasait les autres, est masquée par défaut et réapparaît d'un clic sur la légende ; le taux moyen de connectés de la période reste affiché en pastille).
+- **Communauté** : les nouveaux membres par mois, puis deux classements compacts côte à côte (serveurs et membres les plus actifs, Vocal / Messages) avec liens vers les fiches et vers les pages Serveurs et Membres. Ils remplacent les deux camemberts illisibles et le grand graphique du top 10.
+- **Cartes du haut centrées sur les 30 derniers jours** (vocal, messages, membres actifs, serveurs actifs) avec l'évolution en % par rapport aux 30 jours précédents, au lieu de totaux déjà présents sur l'accueil.
+- Mobile : cartes en 2 × 2, onglets sur toute la largeur, sélecteurs et grille jour × heure adaptés.
+
+### Corrections
+- **Fin des fausses données de présence** : quand l'historique était vide ou avait un trou de plus de 2 heures (bot hors ligne), le site inventait des valeurs à partir des chiffres actuels et les **enregistrait en base**, où elles passaient ensuite pour de vraies mesures. Les périodes sans relevé restent désormais vides, et le graphique affiche « Pas de données de présence sur cette période ». Les valeurs déjà inventées par le passé restent en base.
+
+### Technique
+- Données de la page regroupées par onglet dans `/api/graphs/data` (toujours mises en cache 5 minutes) ; séries vocal et messages alignées mois par mois côté serveur. La présence réutilise les 7 jours d'instantanés que le bot conserve déjà (un toutes les 15 minutes, regroupés par heure). Un graphique peut désormais garder ses propres graduations (`ticks.autoSkip: false`) au lieu des 8 imposées aux séries longues par `charts.js`. Le script de la page passe d'environ 1 500 à 330 lignes et l'adaptateur de dates de Chart.js n'est plus chargé.
+
 ## Version 3.10.0 - Onglet Accueil & Galerie de Fonds d'Écran Élargie - 18/10/2026
 ### Interface
 - **Retour de l'onglet « Accueil »** en première position dans la barre de navigation (le logo mène toujours aussi à l'accueil).

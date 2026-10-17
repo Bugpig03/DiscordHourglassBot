@@ -24,7 +24,8 @@
             const cfg = chart.config;
             const labels = (cfg.data && cfg.data.labels) || [];
             const x = cfg.options && cfg.options.scales && cfg.options.scales.x;
-            if (!x || labels.length <= DENSE_THRESHOLD) return;
+            // A chart that sets ticks.autoSkip: false picks its own labels (e.g. one per day on 7 days of hours)
+            if (!x || labels.length <= DENSE_THRESHOLD || (x.ticks && x.ticks.autoSkip === false)) return;
 
             x.ticks = Object.assign({}, x.ticks, { autoSkip: true, maxTicksLimit: 8, maxRotation: 0, minRotation: 0 });
             (cfg.data.datasets || []).forEach((ds) => {

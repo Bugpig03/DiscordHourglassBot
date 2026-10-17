@@ -2,10 +2,10 @@
 
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, jsonify
 from peewee import fn, JOIN
-from app.database import Stats, Servers
+from app.database import db, Stats, Servers
 from app.functions import (
     get_first_of_month_hours_sum,
     get_first_of_month_messages_sum,
@@ -50,241 +50,141 @@ def get_cached_graphs_data(lang: str, tz_name: str) -> dict:
         return data
 
 
+def _day_label(date_str: str, lang: str) -> str:
+    d = datetime.strptime(date_str, "%Y-%m-%d")
+    return f"{d.day} {get_month_abbr(d.month, lang)}"
+
+
+def _month_label(date_str: str, lang: str) -> str:
+    d = datetime.strptime(date_str, "%Y-%m-%d")
+    if d.day != 1:  # first/last point of a cumulative series (bot start date, today)
+        return f"{d.day} {get_month_abbr(d.month, lang)} {d.year}"
+    return f"{get_month_abbr(d.month, lang)} {d.year}"
+
+
+def _aligned(rows_a: list[dict], key_a: str, rows_b: list[dict], key_b: str, date_key: str, carry: bool) -> tuple[list, list, list]:
+    """Merge two series on their date: missing points are 0 (per period) or the previous value (cumulative)."""
+    a = {r[date_key]: r[key_a] for r in rows_a}
+    b = {r[date_key]: r[key_b] for r in rows_b}
+    dates = sorted(set(a) | set(b))
+    out_a, out_b, last_a, last_b = [], [], 0, 0
+    for d in dates:
+        last_a = a.get(d, last_a if carry else 0)
+        last_b = b.get(d, last_b if carry else 0)
+        out_a.append(last_a)
+        out_b.append(last_b)
+    return dates, out_a, out_b
+
+
+def _window_activity(since: datetime, until: datetime | None = None) -> dict:
+    """Voice hours, messages, active members and active servers between two UTC dates."""
+    params = [since] if until is None else [since, until]
+    v_range = "joined_at >= %s" + ("" if until is None else " AND joined_at < %s")
+    m_range = "created_at >= %s" + ("" if until is None else " AND created_at < %s")
+    seconds = db.execute_sql(f"SELECT COALESCE(SUM(duration_seconds), 0) FROM voice_sessions WHERE {v_range}", params).fetchone()[0]
+    messages = db.execute_sql(f"SELECT COALESCE(SUM(count), 0) FROM message_events WHERE {m_range}", params).fetchone()[0]
+    members, servers = db.execute_sql(
+        "SELECT COUNT(DISTINCT user_id), COUNT(DISTINCT server_id) FROM ("
+        f" SELECT user_id, server_id FROM voice_sessions WHERE {v_range}"
+        f" UNION SELECT user_id, server_id FROM message_events WHERE {m_range}"
+        ") t",
+        params + params,
+    ).fetchone()
+    return {
+        "hours": round(int(seconds or 0) / 3600, 1),
+        "messages": int(messages or 0),
+        "members": int(members or 0),
+        "servers": int(servers or 0),
+    }
+
+
+def _top_servers(field, lang: str) -> list[dict]:
+    rows = (
+        Stats.select(Stats.server_id, Servers.servername, Servers.avatar, fn.SUM(field).alias("value"))
+        .join(Servers, JOIN.LEFT_OUTER, on=(Stats.server_id == Servers.server_id))
+        .group_by(Stats.server_id, Servers.servername, Servers.avatar)
+        .order_by(fn.SUM(field).desc())
+        .limit(10)
+        .dicts()
+    )
+    default = "Server" if lang == "en" else "Serveur"
+    is_voice = field is Stats.seconds
+    return [
+        {
+            "id": str(r["server_id"]),
+            "name": r["servername"] or f"{default} {r['server_id']}",
+            "avatar": r["avatar"],
+            "value": round((r["value"] or 0) / 3600, 1) if is_voice else int(r["value"] or 0),
+        }
+        for r in rows
+    ]
+
+
 def compute_graphs_data(lang: str = "fr") -> dict:
-    """Compute and format all analytical graph data dictionaries."""
-    # 1. Total cumulative hours progression curve
-    hours_data = get_first_of_month_hours_sum()
-    chart_data = {
-        "labels": [row["month"] for row in hours_data],
-        "hours": [row["total_hours"] for row in hours_data],
-    }
+    """All analytics of the page, grouped by tab (Tendances, Rythme, Communauté)."""
+    # Summary cards: last 30 days compared with the 30 days before
+    now = datetime.utcnow()
+    current = _window_activity(now - timedelta(days=30))
+    previous = _window_activity(now - timedelta(days=60), now - timedelta(days=30))
 
-    # 1b. Cumulative voice hours progression (Daily - last 30 days)
-    daily_hours_data = get_daily_hours_progression(days=30)
-    daily_chart_data = {
-        "labels": [row["date"] for row in daily_hours_data],
-        "hours": [row["total_hours"] for row in daily_hours_data],
-    }
-
-    # 2. Total cumulative messages progression curve
-    messages_data = get_first_of_month_messages_sum()
-    messages_chart_data = {
-        "labels": [row["month"] for row in messages_data],
-        "messages": [row["total_messages"] for row in messages_data],
-    }
-
-    # 2b. Cumulative messages progression (Daily - last 30 days)
-    daily_messages_data = get_daily_messages_progression(days=30)
-    daily_messages_chart_data = {
-        "labels": [row["date"] for row in daily_messages_data],
-        "messages": [row["total_messages"] for row in daily_messages_data],
-    }
-
-    # 3. Monthly delta bar chart (Hours)
-    monthly_diff_data = get_monthly_hours_diff()
-    monthly_chart_data = {
-        "labels": [
-            f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} "
-            f"{datetime.strptime(row['month'], '%Y-%m-%d').year}"
-            for row in monthly_diff_data
-        ],
-        "hours": [row["hours_this_month"] for row in monthly_diff_data],
-        "partial": get_partial_period(monthly_diff_data, "month"),
-    }
-
-    # 4. Monthly delta bar chart (Messages)
-    monthly_messages_diff_data = get_monthly_messages_diff()
-    monthly_messages_chart_data = {
-        "labels": [
-            f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} "
-            f"{datetime.strptime(row['month'], '%Y-%m-%d').year}"
-            for row in monthly_messages_diff_data
-        ],
-        "messages": [row["messages_this_month"] for row in monthly_messages_diff_data],
-        "partial": get_partial_period(monthly_messages_diff_data, "month"),
-    }
-
-    # 5. 30-Day daily activity area chart
-    daily_activity_data = get_daily_activity_last_30_days()
-    daily_activity_chart_data = {
-        "labels": [
-            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
-            for row in daily_activity_data
-        ],
-        "hours": [row["hours"] for row in daily_activity_data],
-        "messages": [row["messages"] for row in daily_activity_data],
-        "partial": get_partial_period(daily_activity_data, "day"),
-    }
-
-    # 6. Server breakdown (Hours): Top 10 servers + Others group
-    query_hours = (
-        Stats.select(
-            Stats.server_id,
-            Servers.servername,
-            fn.SUM(Stats.seconds).alias("total_seconds"),
-        )
-        .join(Servers, JOIN.LEFT_OUTER, on=(Stats.server_id == Servers.server_id))
-        .group_by(Stats.server_id, Servers.servername)
-        .order_by(fn.SUM(Stats.seconds).desc())
-        .dicts()
+    # Tendances: one chart, voice or messages, per period or cumulative
+    daily = get_daily_activity_last_30_days()
+    d_dates, d_hours_cumul, d_msgs_cumul = _aligned(
+        get_daily_hours_progression(days=30), "total_hours",
+        get_daily_messages_progression(days=30), "total_messages", "date", carry=True,
     )
-
-    all_servers = list(query_hours)
-    top_10_servers = all_servers[:10]
-    remaining_servers = all_servers[10:]
-
-    server_hours_labels = []
-    server_hours_vals = []
-    for row in top_10_servers:
-        default_name = f"Server {row['server_id']}" if lang == "en" else f"Serveur {row['server_id']}"
-        server_name = row["servername"] if row["servername"] else default_name
-        server_hours_labels.append(server_name)
-        server_hours_vals.append(round((row["total_seconds"] or 0) / 3600, 1))
-
-    if remaining_servers:
-        other_seconds = sum((r["total_seconds"] or 0) for r in remaining_servers)
-        other_text = f"Others ({len(remaining_servers)} servers)" if lang == "en" else f"Autres ({len(remaining_servers)} serveurs)"
-        server_hours_labels.append(other_text)
-        server_hours_vals.append(round(other_seconds / 3600, 1))
-
-    chart_data_pie_server = {
-        "labels": server_hours_labels,
-        "hours": server_hours_vals,
-    }
-
-    # 7. Server breakdown (Messages): Top 10 servers + Others group
-    query_msg = (
-        Stats.select(
-            Stats.server_id,
-            Servers.servername,
-            fn.SUM(Stats.messages).alias("total_messages"),
-        )
-        .join(Servers, JOIN.LEFT_OUTER, on=(Stats.server_id == Servers.server_id))
-        .group_by(Stats.server_id, Servers.servername)
-        .order_by(fn.SUM(Stats.messages).desc())
-        .dicts()
+    m_dates, m_hours, m_msgs = _aligned(
+        get_monthly_hours_diff(), "hours_this_month",
+        get_monthly_messages_diff(), "messages_this_month", "month", carry=False,
     )
-
-    all_servers_msg = list(query_msg)
-    top_10_msg = all_servers_msg[:10]
-    remaining_msg = all_servers_msg[10:]
-
-    server_msg_labels = []
-    server_msg_vals = []
-    for row in top_10_msg:
-        default_name = f"Server {row['server_id']}" if lang == "en" else f"Serveur {row['server_id']}"
-        server_name = row["servername"] if row["servername"] else default_name
-        server_msg_labels.append(server_name)
-        server_msg_vals.append(int(row["total_messages"] or 0))
-
-    if remaining_msg:
-        other_msgs = sum(int(r["total_messages"] or 0) for r in remaining_msg)
-        other_text = f"Others ({len(remaining_msg)} servers)" if lang == "en" else f"Autres ({len(remaining_msg)} serveurs)"
-        server_msg_labels.append(other_text)
-        server_msg_vals.append(other_msgs)
-
-    server_messages_pie = {
-        "labels": server_msg_labels,
-        "messages": server_msg_vals,
-    }
-
-    # 8. Top 10 active users horizontal leaderboard (Vocal & Messages)
-    top_users_hours = get_top_10_users_by_hours()
-    top_users_msgs = get_top_10_users_by_messages()
-    top_users_chart = {
-        "vocal": {
-            "labels": [row["username"] for row in top_users_hours],
-            "hours": [row["hours"] for row in top_users_hours],
-            "messages": [row["messages"] for row in top_users_hours],
+    c_dates, c_hours, c_msgs = _aligned(
+        get_first_of_month_hours_sum(), "total_hours",
+        get_first_of_month_messages_sum(), "total_messages", "month", carry=True,
+    )
+    trends = {
+        "day": {
+            "labels": [_day_label(r["date"], lang) for r in daily],
+            "hours": [r["hours"] for r in daily],
+            "messages": [r["messages"] for r in daily],
+            "partial": get_partial_period(daily, "day"),
         },
-        "messages": {
-            "labels": [row["username"] for row in top_users_msgs],
-            "hours": [row["hours"] for row in top_users_msgs],
-            "messages": [row["messages"] for row in top_users_msgs],
+        "day_cumul": {"labels": [_day_label(d, lang) for d in d_dates], "hours": d_hours_cumul, "messages": d_msgs_cumul},
+        "month": {
+            "labels": [_month_label(d, lang) for d in m_dates],
+            "hours": m_hours,
+            "messages": m_msgs,
+            "partial": get_partial_period([{"month": d} for d in m_dates], "month"),
         },
+        "month_cumul": {"labels": [_month_label(d, lang) for d in c_dates], "hours": c_hours, "messages": c_msgs},
     }
 
-    # 9. Global Hourly Activity & Peak Hours across all servers (24h)
-    global_hourly_data = get_hourly_activity_distribution(server_id=None, user_id=None, lang=lang)
-
-    # 10. Presence Ratio & Status Distribution over 48h (Online vs Offline)
-    presence_48h_data = get_presence_history_48h(lang=lang)
-
-    # 11. Community growth: new users cohort by month
-    user_growth_data = get_monthly_new_users_growth()
-    user_growth_chart = {
-        "labels": [
-            f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} "
-            f"{datetime.strptime(row['month'], '%Y-%m-%d').year}"
-            for row in user_growth_data
-        ],
-        "new_users": [row["new_users"] for row in user_growth_data],
-    }
-
-    # Summary metrics for header KPI cards
-    total_cumulative_hours = hours_data[-1]["total_hours"] if hours_data else 0
-    total_cumulative_messages = messages_data[-1]["total_messages"] if messages_data else 0
-    full_months = monthly_diff_data[:-1] if len(monthly_diff_data) > 1 else monthly_diff_data
-    avg_monthly_hours = (
-        round(sum(r["hours_this_month"] for r in full_months) / max(1, len(full_months)), 1)
-        if full_months
-        else 0
-    )
-
-    full_msg_months = (
-        monthly_messages_diff_data[:-1]
-        if len(monthly_messages_diff_data) > 1
-        else monthly_messages_diff_data
-    )
-    avg_monthly_messages = (
-        int(sum(r["messages_this_month"] for r in full_msg_months) / max(1, len(full_msg_months)))
-        if full_msg_months
-        else 0
-    )
-
-    summary_stats = {
-        "total_hours": total_cumulative_hours,
-        "total_messages": total_cumulative_messages,
-        "avg_monthly_hours": avg_monthly_hours,
-        "avg_monthly_messages": avg_monthly_messages,
-        "total_servers": len(all_servers),
-    }
+    growth = get_monthly_new_users_growth()
+    top_hours = get_top_10_users_by_hours()
+    top_msgs = get_top_10_users_by_messages()
 
     return {
-        "chart_data": chart_data,
-        "daily_chart_data": daily_chart_data,
-        "messages_chart_data": messages_chart_data,
-        "daily_messages_chart_data": daily_messages_chart_data,
-        "monthly_chart_data": monthly_chart_data,
-        "monthly_messages_chart_data": monthly_messages_chart_data,
-        "daily_activity_chart_data": daily_activity_chart_data,
-        "chart_data_pie_server": chart_data_pie_server,
-        "server_messages_pie": server_messages_pie,
-        "top_users_chart": top_users_chart,
-        "global_hourly_chart": global_hourly_data,
-        "presence_48h_chart": presence_48h_data,
-        "user_growth_chart": user_growth_chart,
-        "punchcard_data": get_hourly_punchcard_data(),
-        "summary_stats": summary_stats,
+        "summary": {"current": current, "previous": previous},
+        "trends": trends,
+        "hourly": get_hourly_activity_distribution(server_id=None, user_id=None, lang=lang),
+        "punchcard": get_hourly_punchcard_data(),
+        # Presence over 48 h and 7 days (the bot keeps 7 days of 15-minute snapshots)
+        "presence": {"48h": get_presence_history_48h(lang=lang), "7d": get_presence_history_48h(lang=lang, hours=24 * 7)},
+        "growth": {
+            "labels": [_month_label(r["month"], lang) for r in growth],
+            "new_users": [r["new_users"] for r in growth],
+        },
+        "top_servers": {"hours": _top_servers(Stats.seconds, lang), "messages": _top_servers(Stats.messages, lang)},
+        "top_members": {
+            "hours": [{"id": str(r["user_id"]), "name": r["username"], "value": r["hours"]} for r in top_hours],
+            "messages": [{"id": str(r["user_id"]), "name": r["username"], "value": r["messages"]} for r in top_msgs],
+        },
     }
 
 
 @graphs_bp.route("/graphs", methods=["GET"])
 def graphs():
-    """Render analytical charts shell immediately (<30ms) with client-side loading spinners."""
-    return render_template(
-        "graphs.html",
-        summary_stats={
-            "total_hours": 0,
-            "total_messages": 0,
-            "avg_monthly_hours": 0,
-            "avg_monthly_messages": 0,
-            "total_servers": 0,
-        },
-        global_hourly_data={"peak_voice_hour": "--", "peak_messages_hour": "--"},
-        presence_48h_data={"avg_ratio": 0},
-        punchcard_data={"days": []},
-    )
+    """Render the analytics shell immediately; the charts load from /api/graphs/data."""
+    return render_template("graphs.html")
 
 
 @graphs_bp.route("/api/graphs/data", methods=["GET"])
