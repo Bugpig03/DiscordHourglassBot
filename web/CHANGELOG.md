@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.10.0 - Onglet Accueil & Galerie de Fonds d'Écran Élargie - 18/10/2026
+### Interface
+- **Retour de l'onglet « Accueil »** en première position dans la barre de navigation (le logo mène toujours aussi à l'accueil).
+
+### Nouveautés
+- **18 fonds d'écran de profil au lieu de 8** : 6 nouveaux dessinés pour le format plein écran (voie lactée, hexagones lumineux, forêt de nuit, bokeh, vagues de lignes, grille de points) et 4 thèmes de bannière déclinés en fond (synthwave, crépuscule, sakura, braises).
+- **Fonds plein écran légèrement floutés** (flou de 6 px appliqué en CSS, débordant un peu de l'écran pour éviter un liseré sombre sur les bords) : l'image reste reconnaissable sans concurrencer le contenu. Même rendu dans l'aperçu de « Personnaliser mon profil ».
+
+### Technique
+- `scripts/make_profile_gallery.py` accepte une liste de thèmes à régénérer (`python scripts/make_profile_gallery.py app/static/images/profile forest,flow`) ; les bannières existantes sont inchangées. La galerie de fonds pèse environ 600 Ko au total, miniatures comprises.
+
 ## Version 3.9.0 - Galerie d'Images : Bannières & Fonds d'Écran de Profil - 17/10/2026
 ### Nouveautés
 - **Galerie de 12 bannières** au choix pour l'en-tête du profil : aurore boréale, nébuleuse, synthwave, crépuscule en montagne, océan de nuit, low poly, topographie, ville en pixel art, sakura, braises, circuit et dunes. Nouveau choix « Galerie » à côté de Discord, Dégradé et Aucune.

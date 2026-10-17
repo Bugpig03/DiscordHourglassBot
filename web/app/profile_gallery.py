@@ -30,6 +30,16 @@ BACKGROUNDS = {
     "dunes": ("Dunes", "Dunes"),
     "ocean": ("Océan de nuit", "Night ocean"),
     "lowpoly": ("Low poly", "Low poly"),
+    "starfield": ("Voie lactée", "Milky Way"),
+    "hexgrid": ("Hexagones", "Hexagons"),
+    "forest": ("Forêt de nuit", "Night forest"),
+    "bokeh": ("Bokeh", "Bokeh"),
+    "flow": ("Vagues de lignes", "Line waves"),
+    "dotgrid": ("Grille de points", "Dot grid"),
+    "synthwave": ("Synthwave", "Synthwave"),
+    "mountains": ("Crépuscule", "Dusk mountains"),
+    "sakura": ("Sakura", "Sakura"),
+    "ember": ("Braises", "Embers"),
 }
 
 

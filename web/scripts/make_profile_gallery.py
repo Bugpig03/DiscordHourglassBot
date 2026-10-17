@@ -4,7 +4,7 @@ Each theme is drawn with numpy/Pillow (no third-party images, nothing to license
 backgrounds 1920x1080 (darker and softer so text stays readable), each with a small thumbnail for the picker.
 
 Usage (from web/, requires Pillow and numpy):
-    python scripts/make_profile_gallery.py app/static/images/profile
+    python scripts/make_profile_gallery.py app/static/images/profile [theme1,theme2]
 """
 
 import math
@@ -408,6 +408,132 @@ def dunes(w, h, rng):
     return vignette(img, 0.3)
 
 
+# --- Background-only themes (calm, wide compositions made for the 16:9 page background) ---
+
+def starfield(w, h, rng):
+    img = gradient(h, w, [(0, "#02030a"), (1, "#070b1c")])
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    # diagonal milky way band
+    d = (yy / h - 0.85 + xx / w * 0.7)
+    band = np.exp(-(d / 0.16) ** 2) * (0.35 + 0.65 * noise(h, w, rng, octaves=6, base=4))
+    img = screen(img, "#6366f1", band * 0.45)
+    img = screen(img, "#f0abfc", np.clip(band - 0.55, 0, 1) * 0.6)
+    img = stars(img, rng, int(w * h / 700))
+    img = stars(img, rng, int(w * h / 9000) + int(band.sum() / 400), glow=True)
+    return vignette(img, 0.35)
+
+
+def hexgrid(w, h, rng):
+    img = gradient(h, w, [(0, "#050816"), (1, "#0b1226")], axis=1)
+    size = 34
+    lines = Image.new("L", (w, h), 0)
+    fills = Image.new("L", (w, h), 0)
+    dl, df = ImageDraw.Draw(lines), ImageDraw.Draw(fills)
+    hx = size * math.sqrt(3)
+    for row in range(int(h / (size * 1.5)) + 2):
+        for col in range(int(w / hx) + 2):
+            cx = col * hx + (hx / 2 if row % 2 else 0)
+            cy = row * size * 1.5
+            pts = [(cx + size * math.cos(math.radians(60 * k + 30)), cy + size * math.sin(math.radians(60 * k + 30))) for k in range(6)]
+            dl.polygon(pts, outline=200, width=2)
+            if rng.random() > 0.93:
+                df.polygon(pts, fill=int(90 + rng.random() * 120))
+    l = np.asarray(lines).astype(np.float32) / 255.0
+    f = np.asarray(fills.filter(ImageFilter.GaussianBlur(2))).astype(np.float32) / 255.0
+    glow = np.asarray(fills.filter(ImageFilter.GaussianBlur(18))).astype(np.float32) / 255.0
+    tint = gradient(h, w, [(0, "#22d3ee"), (1, "#a855f7")], axis=1)
+    a = np.clip(l * 0.7 + f * 0.7 + glow * 0.8, 0, 1)[..., None]
+    img = img * (1 - a) + tint * a
+    return vignette(img, 0.45)
+
+
+def forest(w, h, rng):
+    img = gradient(h, w, [(0, "#06122b"), (0.5, "#1d4a6b"), (0.75, "#3b6f96"), (1, "#0b1a2a")])
+    img = stars(img, rng, int(w * h / 2500), max_y=0.55)
+    moon = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(moon).ellipse((w * 0.7, h * 0.12, w * 0.7 + h * 0.13, h * 0.25), fill=255)
+    img = screen(img, "#e0f2fe", np.asarray(moon.filter(ImageFilter.GaussianBlur(40))).astype(np.float32) / 255.0 * 0.45)
+    img = blend(img, "#f1f5f9", np.asarray(moon).astype(np.float32) / 255.0)
+    yy = np.arange(h, dtype=np.float32)[:, None] / h
+    for i, (col, base, tree_h) in enumerate([("#24506e", 0.66, 0.16), ("#143650", 0.74, 0.2), ("#081c2b", 0.84, 0.26)]):
+        layer = Image.new("L", (w, h), 0)
+        d = ImageDraw.Draw(layer)
+        x = -20.0
+        while x < w + 20:
+            th = h * tree_h * (0.6 + rng.random() * 0.6)
+            tw = th * 0.32
+            ground = h * base + rng.random() * h * 0.03
+            for k in range(4):  # stacked tiers of a pine
+                top = ground - th + k * th * 0.18
+                d.polygon([(x, top), (x - tw * (0.45 + k * 0.18), top + th * 0.38), (x + tw * (0.45 + k * 0.18), top + th * 0.38)], fill=255)
+            d.rectangle((x - tw * 0.06, ground - th * 0.1, x + tw * 0.06, h), fill=255)
+            x += tw * (0.55 + rng.random() * 0.7)
+        d.rectangle((0, h * base + h * 0.02, w, h), fill=255)
+        m = np.asarray(layer).astype(np.float32) / 255.0
+        img = blend(img, col, m)
+        img = screen(img, "#7dd3fc", np.exp(-((yy - base - 0.02) / 0.05) ** 2) * np.ones((1, w)) * 0.18)  # mist
+    return vignette(img, 0.35)
+
+
+def bokeh(w, h, rng):
+    img = gradient(h, w, [(0, "#020617"), (1, "#0c1a3a")], axis=1)
+    layer = Image.new("RGB", (w, h), (0, 0, 0))
+    for blur, count, rmax in ((14, 40, 0.16), (6, 60, 0.08), (2, 50, 0.035)):
+        sub = Image.new("RGB", (w, h), (0, 0, 0))
+        d = ImageDraw.Draw(sub)
+        for _ in range(count):
+            r = rng.random() * h * rmax + 6
+            x, y = rng.random() * w, rng.random() * h
+            col = [(56, 189, 248), (129, 140, 248), (45, 212, 191), (192, 132, 252)][rng.integers(0, 4)]
+            k = 0.15 + rng.random() * 0.45
+            d.ellipse((x - r, y - r, x + r, y + r), fill=tuple(int(c * k) for c in col))
+        sub = sub.filter(ImageFilter.GaussianBlur(blur))
+        layer = Image.fromarray(np.maximum(np.asarray(layer), np.asarray(sub)))
+    img = 255 - (255 - img) * (255 - np.asarray(layer).astype(np.float32)) / 255
+    return vignette(img, 0.4)
+
+
+def flow(w, h, rng):
+    img = gradient(h, w, [(0, "#05030f"), (1, "#0d0a24")])
+    lines = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(lines)
+    xs = np.linspace(-20, w + 20, 240)
+    p1, p2 = rng.random() * 6, rng.random() * 6
+    for i in range(46):
+        t = i / 45
+        ys = h * (0.25 + t * 0.55) + np.sin(xs / w * 5 + p1 + t * 2.2) * h * 0.12 + np.sin(xs / w * 11 + p2 - t * 3) * h * 0.035
+        d.line(list(zip(xs, ys)), fill=int(110 + 145 * (1 - abs(t - 0.5) * 2)), width=3)
+    l = np.asarray(lines).astype(np.float32) / 255.0
+    glow = np.asarray(lines.filter(ImageFilter.GaussianBlur(10))).astype(np.float32) / 255.0
+    tint = gradient(h, w, [(0, "#ec4899"), (0.5, "#8b5cf6"), (1, "#06b6d4")], axis=1)
+    a = np.clip(l * 1.0 + glow * 1.6, 0, 1)[..., None]
+    return vignette(img * (1 - a) + tint * a, 0.3)
+
+
+def dotgrid(w, h, rng):
+    img = gradient(h, w, [(0, "#060a14"), (1, "#0a1020")])
+    dots = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(dots)
+    step = 28
+    for y in range(step // 2, h, step):
+        for x in range(step // 2, w, step):
+            d.ellipse((x - 2.4, y - 2.4, x + 2.4, y + 2.4), fill=255)
+    dt = np.asarray(dots).astype(np.float32) / 255.0
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    glow = np.zeros((h, w), dtype=np.float32)
+    tint = np.zeros((h, w, 3), dtype=np.float32)
+    for cx, cy, col in ((0.2, 0.25, "#38bdf8"), (0.8, 0.7, "#a855f7"), (0.55, 0.15, "#2dd4bf")):
+        g = np.exp(-(((xx / w - cx) * w / h) ** 2 + (yy / h - cy) ** 2) / 0.16)
+        glow += g
+        tint += g[..., None] * hex_rgb(col)
+    tint = tint / np.maximum(glow[..., None], 1e-3)
+    img = screen(img, "#334155", dt * 0.8)
+    a = np.clip(dt * glow * 2.2, 0, 1)[..., None]
+    img = img * (1 - a) + tint * a
+    img = img + tint * np.clip(glow, 0, 1)[..., None] * 0.18
+    return vignette(img, 0.3)
+
+
 THEMES = {
     "aurora": aurora,
     "nebula": nebula,
@@ -421,20 +547,36 @@ THEMES = {
     "ember": ember,
     "circuit": circuit,
     "dunes": dunes,
+    # background only
+    "starfield": starfield,
+    "hexgrid": hexgrid,
+    "forest": forest,
+    "bokeh": bokeh,
+    "flow": flow,
+    "dotgrid": dotgrid,
 }
-# Page backgrounds: the calmer themes, darkened and softened behind the content
-BACKGROUND_THEMES = ["nebula", "aurora", "topo", "circuit", "pixel", "dunes", "ocean", "lowpoly"]
+BANNER_THEMES = ["aurora", "nebula", "synthwave", "mountains", "ocean", "lowpoly", "topo", "pixel", "sakura", "ember", "circuit", "dunes"]
+# Page backgrounds, darkened and softened behind the content
+BACKGROUND_THEMES = [
+    "nebula", "aurora", "topo", "circuit", "pixel", "dunes", "ocean", "lowpoly",
+    "starfield", "hexgrid", "forest", "bokeh", "flow", "dotgrid", "synthwave", "mountains", "sakura", "ember",
+]
 
 
 def main():
     (OUT / "banners").mkdir(parents=True, exist_ok=True)
     (OUT / "backgrounds").mkdir(parents=True, exist_ok=True)
-    for i, (name, fn) in enumerate(THEMES.items()):
-        img = to_image(fn(*BANNER, np.random.default_rng(100 + i)))
+    only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 else None  # optional: regenerate some themes only
+    for i, name in enumerate(BANNER_THEMES):
+        if only and name not in only:
+            continue
+        img = to_image(THEMES[name](*BANNER, np.random.default_rng(100 + i)))
         img.save(OUT / "banners" / f"{name}.webp", "WEBP", quality=84, method=6)
         img.resize((400, 100), Image.LANCZOS).save(OUT / "banners" / f"{name}_thumb.webp", "WEBP", quality=80)
         print("banner", name)
     for i, name in enumerate(BACKGROUND_THEMES):
+        if only and name not in only:
+            continue
         arr = THEMES[name](*BACKGROUND, np.random.default_rng(500 + i))
         img = to_image(arr * 0.55).filter(ImageFilter.GaussianBlur(1.2))
         img.save(OUT / "backgrounds" / f"{name}.webp", "WEBP", quality=80, method=6)

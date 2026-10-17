@@ -777,10 +777,13 @@
 /* Page background picked from the gallery (behind the whole page, darker towards the content) */
 .profile-backdrop {
     position: fixed;
-    inset: 0;
+    /* Slightly larger than the screen so the blurred edges never show a dark fringe */
+    inset: -24px;
     z-index: -1;
     pointer-events: none;
     background:
         linear-gradient(180deg, rgba(5, 9, 13, 0) 0%, rgba(5, 9, 13, 0.25) 50%, rgba(5, 9, 13, 0.55) 100%),
         var(--backdrop) center / cover no-repeat;
+    /* Soft focus: the picture stays recognisable but never competes with the content */
+    filter: blur(6px);
 }

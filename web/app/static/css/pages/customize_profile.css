@@ -645,12 +645,23 @@
 
 /* Preview frame: shows the page background behind the header preview */
 .cz-preview-frame {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border-radius: 18px;
     transition: padding 0.2s ease;
 }
 .cz-preview-frame.has-backdrop {
     padding: 14px;
+}
+/* Blurred picture on its own layer, like the profile page background */
+.cz-preview-frame.has-backdrop::before {
+    content: "";
+    position: absolute;
+    inset: -16px;
+    z-index: -1;
     background:
         linear-gradient(180deg, rgba(11, 17, 32, 0.35), rgba(11, 17, 32, 0.7)),
         var(--backdrop) center / cover no-repeat;
+    filter: blur(4px);
 }
