@@ -35,9 +35,12 @@
                 <a href="{{ url_for('user_profile.profile', username=(current_user.username or current_user.id)) }}" class="btn-versus-action" style="flex: 1; text-align: center; background: #5865F2; color: #ffffff; border: none; padding: 7px 12px; font-size: 0.85rem; font-weight: 700; border-radius: 8px;">
                     {{ t('auth.my_profile') }}
                 </a>
-                <a href="{{ url_for('auth.logout') }}" class="btn-versus-action" style="background: rgba(239, 68, 68, 0.12); color: #f87171; border-color: rgba(239, 68, 68, 0.3); padding: 7px 14px; font-size: 0.85rem; font-weight: 600; border-radius: 8px;">
+                <form method="post" action="{{ url_for('auth.logout') }}" style="display: contents;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-versus-action" style="background: rgba(239, 68, 68, 0.12); color: #f87171; border-color: rgba(239, 68, 68, 0.3); padding: 7px 14px; font-size: 0.85rem; font-weight: 600; border-radius: 8px;">
                     {{ t('auth.logout') }}
-                </a>
+                </button>
+                </form>
             </div>
         </div>
         {% else %}

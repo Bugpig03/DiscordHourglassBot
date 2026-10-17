@@ -31,7 +31,7 @@
 }
 </style>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
 document.addEventListener("DOMContentLoaded", function() {
     function finishAuth(success, redirectUrl) {
         if (window.opener && !window.opener.closed) {

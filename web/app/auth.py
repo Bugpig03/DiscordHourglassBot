@@ -16,6 +16,7 @@ from flask import (
 )
 from app.config import Config
 from app.database import Users, Stats
+from app.security import valid_csrf
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -398,16 +399,25 @@ def token_login():
     return {"success": True, "redirect": destination, "is_popup": is_popup}
 
 
-@auth_bp.route("/logout")
+@auth_bp.route("/logout", methods=["GET", "POST"])
 def logout():
-    """Clear authenticated Discord session and redirect back."""
-    session.pop("user", None)
-    session.pop("guild_ids", None)
-    session.pop("oauth_state", None)
-    session.pop("oauth_next_url", None)
-    session.pop("oauth_is_popup", None)
-    next_url = _safe_redirect_target(request.referrer or "/")
-    return redirect(next_url)
+    """Log out (POST with CSRF token only) and return to the page the visitor came from.
+
+    A plain GET no longer logs out, so a third-party page cannot disconnect visitors with an <img> or a link.
+    """
+    if request.method == "POST" and valid_csrf(request.form.get("csrf_token")):
+        for key in ("user", "guild_ids", "oauth_state", "oauth_next_url", "oauth_is_popup", "csrf_token"):
+            session.pop(key, None)
+    return redirect(_local_referrer_path())
+
+
+def _local_referrer_path() -> str:
+    """Path of the Referer when it belongs to this site, otherwise "/"."""
+    referrer = urllib.parse.urlsplit(request.referrer or "")
+    if referrer.netloc and referrer.netloc != request.host:
+        return "/"
+    path = referrer.path + (f"?{referrer.query}" if referrer.query else "")
+    return _safe_redirect_target(path or "/")
 
 
 @auth_bp.route("/dev-login")

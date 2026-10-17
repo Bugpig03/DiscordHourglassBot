@@ -76,7 +76,7 @@
 {% endif %}
 
 </div>
-<script>
+<script nonce="{{ csp_nonce() }}">
 document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('top-filter-form');
     if (form) {

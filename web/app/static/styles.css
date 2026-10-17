@@ -5782,3 +5782,23 @@ form[data-live-form]:not(.has-value) .page-search-clear {
 .top-form .top-label {
   white-space: nowrap;
 }
+
+/* Logout is a POST form (CSRF-protected) styled exactly like the other dropdown links */
+.nav-logout-form {
+  margin: 0;
+}
+
+button.nav-dropdown-item {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.btn-versus-action {
+  font: inherit;
+  cursor: pointer;
+}

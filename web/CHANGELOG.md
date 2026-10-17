@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.1.0 - Politique de Sécurité du Contenu, En-têtes HTTP & Limite de Débit - 17/10/2026
+### Sécurité
+- **Content-Security-Policy stricte** sur toutes les pages : scripts autorisés uniquement depuis le site, `cdn.jsdelivr.net` (Chart.js) et les trois scripts en ligne restants via un **nonce unique par requête** ; images limitées au site et au CDN Discord ; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`, `upgrade-insecure-requests` en HTTPS. Un code injecté (script ou attribut `onerror`) est bloqué par le navigateur même si une faille XSS apparaissait. Mode test possible via `CSP_REPORT_ONLY=true`.
+- **En-têtes de sécurité** : `X-Frame-Options: DENY` (anti-clickjacking), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (caméra, micro, géolocalisation, paiement désactivés).
+- **Limite de débit par adresse IP** (fenêtre glissante d'une minute) : cartes SVG `/api/card/*` 30/min, recherche `/api/search` 90/min, reste de l'API 120/min, authentification 30/min, fiches serveur et chargement des membres 120/min. Réponse `429` avec `Retry-After`. L'IP du visiteur est lue dans `X-Real-IP` / `X-Forwarded-For` posés par le reverse proxy (limitation désactivée avec un avertissement si le proxy ne les transmet pas).
+- **Déconnexion protégée (POST + jeton CSRF)** : un simple lien ou une image `/auth/logout` sur un site tiers ne déconnecte plus les visiteurs. Retour à la page d'origine uniquement si elle appartient au site.
+
 ## Version 3.0.1 - Correctifs de Sécurité (XSS, Redirection Ouverte, Cookie) - 17/10/2026
 ### Sécurité
 - **XSS stockée dans la recherche (gravité élevée)** : la recherche globale (Ctrl+K), les suggestions du filtre serveur et de la page Versus inséraient noms de serveurs et pseudos sans échappement dans la page ; un nom de serveur contenant du HTML pouvait exécuter du code chez toute personne le voyant en résultat. Toutes les valeurs externes passent désormais par `HG.esc()`.

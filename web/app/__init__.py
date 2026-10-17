@@ -7,6 +7,7 @@ from markupsafe import Markup
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import Config
 from app.database import init_app
+from app.security import init_security
 from app.translations import get_text
 from app.routes.home import home_bp
 from app.routes.top import top_bp
@@ -51,6 +52,9 @@ def create_app():
 
     # Initialize database connection hooks with Flask request lifecycle
     init_app(app)
+
+    # CSP with nonces, security headers, rate limiting, CSRF helpers
+    init_security(app)
 
     @app.before_request
     def ensure_persistent_session():

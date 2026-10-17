@@ -24,7 +24,7 @@
     rel="stylesheet"
     href="{{ url_for('static', filename='styles.css', v=asset_version('styles.css')) }}"
     >
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // Broken images (expired Discord avatar, deleted server icon): swap to data-fallback or the default avatar,
         // or hide the image when data-fallback="hide". Replaces the per-image inline onerror handlers.
         document.addEventListener('error', function(e) {
@@ -164,12 +164,16 @@
                                         <span class="nav-dropdown-title">{{ t('auth.my_profile') }}</span>
                                     </div>
                                 </a>
-                                <a href="{{ url_for('auth.logout') }}" class="nav-dropdown-item" style="color: #f87171;">
+                                {# POST + CSRF token: a third-party page can no longer log visitors out with a simple link #}
+                                <form method="post" action="{{ url_for('auth.logout') }}" class="nav-logout-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="nav-dropdown-item" style="color: #f87171;">
                                     <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
                                     <div class="nav-dropdown-text">
                                         <span class="nav-dropdown-title" style="color: #f87171;">{{ t('auth.logout') }}</span>
                                     </div>
-                                </a>
+                                </button>
+                                </form>
                             </div>
                         </div>
                         {% else %}
