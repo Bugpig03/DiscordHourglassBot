@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.3.0 - Personnalisation du Profil : Couleur, Bannière & Serveur Favori - 17/10/2026
+### Nouveautés
+- **Page « Personnaliser mon profil »** (`/me/profile`), accessible depuis le menu du compte, « Mon espace » et un bouton « Personnaliser » visible uniquement par le propriétaire sur son profil. Aperçu en direct avant d'enregistrer ; formulaire protégé par jeton CSRF et limité à 60 requêtes/min.
+- **Couleur du profil** : 10 teintes adaptées au thème sombre, ou la couleur du profil Discord du membre (éclaircie automatiquement si elle est trop sombre pour rester lisible). Elle colore la bannière, le contour de l'avatar, la carte de niveau et la barre d'XP, les onglets, le calendrier d'activité et les courbes de temps vocal du profil.
+- **Bannière en haut du profil** : bannière Discord du membre (récupérée à la connexion), dégradé de sa couleur, ou aucune bannière (en-tête compact d'avant). Une bannière Discord expirée laisse simplement place au dégradé.
+- **Serveur favori** mis en avant sous le pseudo, avec le rang et le temps vocal du membre sur ce serveur (seuls les serveurs où il a de l'activité peuvent être choisis).
+
+### Technique
+- Nouvelle table `user_profile_settings`, utilisée uniquement par le site : `database/migrations/2026-10-17_web_v3.3.0_profile_settings.sql` (également ajoutée à `schema_v3.sql`). Le site la crée lui-même au démarrage si elle manque, et affiche le profil par défaut si elle est inaccessible.
+- Les réglages sont lus à chaque visite (une requête par clé primaire) : un changement est visible immédiatement, malgré le cache de 2 minutes des graphiques.
+
 ## Version 3.2.0 - Performances : Pool de Connexions, Caches, Index & Gunicorn Multi-threads - 17/10/2026
 ### Performance
 - **Pool de connexions PostgreSQL** (`PooledPostgresqlDatabase`, 8 connexions max par worker, recyclées après 5 min d'inactivité) : plus d'ouverture/fermeture de connexion à chaque requête, et la session est créée directement en UTC (une requête `SET TIME ZONE` en moins par page). L'API de recherche passe d'environ 35 ms à 4 ms en local.

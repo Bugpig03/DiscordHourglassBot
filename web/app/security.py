@@ -25,7 +25,8 @@ RATE_LIMITS = [
     ("/api/search", 90),
     ("/api/", 120),
     ("/auth/", 30),
-    ("/server/", 120),  # includes /server/<id>/members ("Voir plus" and live member search)
+    ("/server/", 120),
+    ("/me/", 60),  # includes /server/<id>/members ("Voir plus" and live member search)
 ]
 RATE_WINDOW_SECONDS = 60
 

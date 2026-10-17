@@ -93,3 +93,17 @@ CREATE INDEX IF NOT EXISTS idx_presence_history_time ON presence_history(recorde
 ALTER TABLE servers ADD COLUMN IF NOT EXISTS is_bot_present BOOLEAN DEFAULT TRUE;
 ALTER TABLE servers ADD COLUMN IF NOT EXISTS first_tracked_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE servers ADD COLUMN IF NOT EXISTS left_at TIMESTAMP WITHOUT TIME ZONE;
+
+-- 8. Personnalisation des profils (site web uniquement, v3.3.0)
+CREATE TABLE IF NOT EXISTS user_profile_settings (
+    user_id BIGINT PRIMARY KEY,
+    accent_color VARCHAR(16) NOT NULL DEFAULT 'sky',
+    banner_mode VARCHAR(16) NOT NULL DEFAULT 'auto',
+    discord_banner VARCHAR(64),
+    discord_accent INTEGER,
+    favorite_server_id BIGINT,
+    featured_badges TEXT NOT NULL DEFAULT '[]',
+    pinned_records TEXT NOT NULL DEFAULT '[]',
+    layout TEXT NOT NULL DEFAULT '{}',
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

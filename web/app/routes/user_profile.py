@@ -39,6 +39,7 @@ from app.functions import (
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges
 from app.cache import cache
 from app.auth import can_view_user_sessions, can_view_user_presence
+from app.profile_settings import get_profile_settings, resolve_profile_theme
 
 user_profile_bp = Blueprint("user_profile", __name__)
 
@@ -163,6 +164,13 @@ def profile(username: str):
     heatmap_monthly = cache.get_or_set(("heatmap", user_id, 30, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=30))
     voice_companions = cache.get_or_set(("companions", user_id), PROFILE_CACHE_SECONDS, lambda: get_user_voice_companions(user_id, limit=6))
 
+    # Customization chosen by the member (read live: a saved change shows up immediately)
+    settings = get_profile_settings(user_id)
+    favorite_server = next(
+        (s for s in stats["user_servers_stats"] if settings["favorite_server_id"] and s["server_id"] == settings["favorite_server_id"]),
+        None,
+    )
+
     return render_template(
         "user_profile.html",
         stats=stats,
@@ -173,7 +181,10 @@ def profile(username: str):
         voice_companions=voice_companions,
         can_view_presence=can_view_presence,
         has_homonyms=(homonyms_count > 0),
-        homonyms_count=homonyms_count
+        homonyms_count=homonyms_count,
+        theme=resolve_profile_theme(user_id, settings),
+        favorite_server=favorite_server,
+        is_owner=charts["can_view_sessions"],
     )
 
 

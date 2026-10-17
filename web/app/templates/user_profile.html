@@ -26,14 +26,23 @@
 {% if charts.has_hourly_data %}<script type="application/json" id="userHourlyActivityData">{{ charts.hourly_activity_json|safe_json }}</script>{% endif %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user_profile.css', v=asset_version('css/pages/user_profile.css')) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/profile_theme.css', v=asset_version('css/pages/profile_theme.css')) }}">
+
+<div class="profile-themed {% if theme.is_custom %}accent-custom{% endif %}" style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};">
 
 <br>
-<!-- Profile Header Card -->
-<div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+<!-- Profile Header Card (banner, accent color and favorite server come from the member's customization) -->
+<div class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}">
+    {% if theme.show_banner %}
+    <div class="profile-banner">
+        {% if theme.banner_url %}<img src="{{ theme.banner_url }}" alt="" loading="eager" data-fallback="hide">{% endif %}
+    </div>
+    {% endif %}
+    <div class="profile-hero-body">
+    <div class="profile-hero-row">
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;" class="profile-hero-identity">
             <!-- Avatar avec cadre rouge si vocal et pastille de statut -->
-            <div style="position: relative; display: inline-block;">
+            <div class="profile-avatar-wrap">
                 <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" 
                      class="big-pp {% if can_view_presence and stats.active_voice %}pp-in-voice{% else %}border-user{% endif %}" 
                      alt="avatar">
@@ -71,16 +80,32 @@
                     </span>
                     {% endif %}
                 </div>
+
+                {% if favorite_server %}
+                <a class="profile-fav-server" href="{{ url_for('server_profile.server', server_id=favorite_server.server_id) }}">
+                    <img src="{{ favorite_server.avatar or url_for('static', filename='icons/server.png') }}" data-fallback="{{ url_for('static', filename='icons/server.png') }}" alt="">
+                    <span class="profile-fav-server-label">{{ 'Serveur favori' if current_lang == 'fr' else 'Favorite server' }}</span>
+                    <span class="profile-fav-server-name">{{ favorite_server.server_name }}</span>
+                    <span class="profile-fav-server-meta">#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h</span>
+                </a>
+                {% endif %}
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            {% if is_owner %}
+            <a href="{{ url_for('customize.customize_profile') }}" class="btn-customize-profile">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                <span>{{ 'Personnaliser' if current_lang == 'fr' else 'Customize' }}</span>
+            </a>
+            {% endif %}
             <a href="{{ url_for('versus.versus', u1=stats.user_id) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
                 <span>{{ t('profile.versus_btn') }}</span>
             </a>
         </div>
+    </div>
     </div>
 </div>
 
@@ -819,10 +844,12 @@
     </div>
 </div>
 
+</div>{# /.profile-themed #}
+
 <!-- =================================================================== -->
 <!-- CHART INITIALIZATIONS & TAB CONTROLLER (JavaScript)                 -->
 <!-- =================================================================== -->
-<script type="application/json" id="hgPageConfig">{{ {"charts_default_granularity": charts.default_granularity, "current_lang": current_lang, "t_top_hours_unit": t("top.hours_unit"), "t_top_msgs_unit": t("top.msgs_unit"), "charts_avg_daily_hours": charts.avg_daily_hours, "charts_avg_hours": charts.avg_hours, "t_charts_unit_hours_per_day": t("charts.unit_hours_per_day"), "t_graphs_unit_hours_per_month": t("graphs.unit_hours_per_month"), "t_charts_daily_hours_title": t("charts.daily_hours_title"), "t_user_profile_monthly_hours_title": t("user_profile.monthly_hours_title"), "t_charts_daily_hours_desc": t("charts.daily_hours_desc"), "t_user_profile_monthly_hours_desc": t("user_profile.monthly_hours_desc"), "charts_avg_daily_msgs": charts.avg_daily_msgs, "charts_avg_msgs": charts.avg_msgs, "t_charts_unit_msgs_per_day": t("charts.unit_msgs_per_day"), "t_graphs_unit_msgs_per_month": t("graphs.unit_msgs_per_month"), "t_charts_daily_msgs_title": t("charts.daily_msgs_title"), "t_user_profile_monthly_msgs_title": t("user_profile.monthly_msgs_title"), "t_charts_daily_msgs_desc": t("charts.daily_msgs_desc"), "t_user_profile_monthly_msgs_desc": t("user_profile.monthly_msgs_desc")}|tojson }}</script>
+<script type="application/json" id="hgPageConfig">{{ {"charts_default_granularity": charts.default_granularity, "current_lang": current_lang, "accent_hex": theme.accent_hex, "accent_rgb": theme.accent_rgb, "t_top_hours_unit": t("top.hours_unit"), "t_top_msgs_unit": t("top.msgs_unit"), "charts_avg_daily_hours": charts.avg_daily_hours, "charts_avg_hours": charts.avg_hours, "t_charts_unit_hours_per_day": t("charts.unit_hours_per_day"), "t_graphs_unit_hours_per_month": t("graphs.unit_hours_per_month"), "t_charts_daily_hours_title": t("charts.daily_hours_title"), "t_user_profile_monthly_hours_title": t("user_profile.monthly_hours_title"), "t_charts_daily_hours_desc": t("charts.daily_hours_desc"), "t_user_profile_monthly_hours_desc": t("user_profile.monthly_hours_desc"), "charts_avg_daily_msgs": charts.avg_daily_msgs, "charts_avg_msgs": charts.avg_msgs, "t_charts_unit_msgs_per_day": t("charts.unit_msgs_per_day"), "t_graphs_unit_msgs_per_month": t("graphs.unit_msgs_per_month"), "t_charts_daily_msgs_title": t("charts.daily_msgs_title"), "t_user_profile_monthly_msgs_title": t("user_profile.monthly_msgs_title"), "t_charts_daily_msgs_desc": t("charts.daily_msgs_desc"), "t_user_profile_monthly_msgs_desc": t("user_profile.monthly_msgs_desc")}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/user_profile.js', v=asset_version('js/pages/user_profile.js')) }}" defer></script>
 
 {% endblock %}

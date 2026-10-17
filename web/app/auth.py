@@ -17,6 +17,7 @@ from flask import (
 from app.config import Config
 from app.database import Users, Stats
 from app.security import valid_csrf
+from app.profile_settings import remember_discord_identity
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -244,6 +245,9 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
             "avatar": avatar_url,
         }
         session["guild_ids"] = guild_ids
+
+        # Discord banner and profile color, offered as profile customization options
+        remember_discord_identity(user_id, user_json.get("banner"), user_json.get("accent_color"))
         return True
     except Exception as e:
         current_app.logger.error(f"Error authenticating with Discord token: {e}")

@@ -17,6 +17,8 @@ from app.routes.server_profile import server_profile_bp
 from app.routes.graphs import graphs_bp
 from app.routes.api import api_bp
 from app.routes.versus import versus_bp
+from app.routes.customize import customize_bp
+from app.profile_settings import ensure_table as ensure_profile_settings_table
 from app.auth import (
     auth_bp,
     get_current_user,
@@ -55,6 +57,9 @@ def create_app():
 
     # CSP with nonces, security headers, rate limiting, CSRF helpers
     init_security(app)
+
+    # Profile customization table (created if the migration was not applied; never blocks startup)
+    ensure_profile_settings_table()
 
     @app.before_request
     def ensure_persistent_session():
@@ -234,6 +239,7 @@ def create_app():
     app.register_blueprint(graphs_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(versus_bp)
+    app.register_blueprint(customize_bp)
     app.register_blueprint(auth_bp)
 
     return app

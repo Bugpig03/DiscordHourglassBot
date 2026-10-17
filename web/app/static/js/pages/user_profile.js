@@ -1,5 +1,8 @@
 /* Page script extracted from templates/user_profile.html; values rendered by Jinja come from #hgPageConfig. */
 const PAGE_CFG = JSON.parse(document.getElementById('hgPageConfig').textContent);
+// Voice series follow the member's profile color (sky blue by default)
+const ACCENT = PAGE_CFG.accent_hex || '#38bdf8';
+const ACCENT_RGB = PAGE_CFG.accent_rgb || '56, 189, 248';
 
 const userChartInstances = [];
 let userHoursChartInstance = null;
@@ -159,8 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (uHoursMonthlyData) {
         const ctx = document.getElementById('userHoursChart').getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 320);
-        gradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
-        gradient.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
+        gradient.addColorStop(0, `rgba(${ACCENT_RGB}, 0.35)`);
+        gradient.addColorStop(1, `rgba(${ACCENT_RGB}, 0.00)`);
 
         userHoursChartInstance = new Chart(ctx, {
             type: 'line',
@@ -169,14 +172,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: isEn ? 'Cumulative hours' : 'Heures cumulées',
                     data: uHoursMonthlyData.hours,
-                    borderColor: '#38bdf8',
+                    borderColor: ACCENT,
                     backgroundColor: gradient,
                     borderWidth: 3,
                     tension: 0.3,
                     fill: true,
                     pointRadius: 3,
                     pointHoverRadius: 6,
-                    pointBackgroundColor: '#38bdf8',
+                    pointBackgroundColor: ACCENT,
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2
                 }]
@@ -328,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {
                         label: isEn ? 'Monthly hours' : 'Heures du mois',
                         data: uMonthlyHoursBarData.hours,
-                        ...HG.partialBar('#38bdf8'),
+                        ...HG.partialBar(ACCENT),
                         borderRadius: 6,
                         order: 2
                     },
@@ -492,8 +495,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const hourlyData = JSON.parse(uHourlyEl.textContent);
         const ctxH = document.getElementById('userHourlyChart').getContext('2d');
         const gradV = ctxH.createLinearGradient(0, 0, 0, 300);
-        gradV.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
-        gradV.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
+        gradV.addColorStop(0, `rgba(${ACCENT_RGB}, 0.35)`);
+        gradV.addColorStop(1, `rgba(${ACCENT_RGB}, 0.00)`);
 
         const cH = new Chart(ctxH, {
             type: 'line',
@@ -503,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {
                         label: isEn ? 'Avg Voice (h/day)' : 'Moyenne vocale (h/jour)',
                         data: hourlyData.voice_hours,
-                        borderColor: '#38bdf8',
+                        borderColor: ACCENT,
                         backgroundColor: gradV,
                         borderWidth: 2.5,
                         tension: 0.35,
@@ -511,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         yAxisID: 'y',
                         pointRadius: 3,
                         pointHoverRadius: 6,
-                        pointBackgroundColor: '#38bdf8'
+                        pointBackgroundColor: ACCENT
                     },
                     {
                         label: isEn ? 'Avg Messages (msgs/day)' : 'Moyenne messages (msgs/jour)',
@@ -559,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         position: 'left',
                         beginAtZero: true,
                         grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                        ticks: { color: '#38bdf8', callback: v => v + ' ' + (isEn ? 'h/day' : 'h/jour') }
+                        ticks: { color: ACCENT, callback: v => v + ' ' + (isEn ? 'h/day' : 'h/jour') }
                     },
                     y1: {
                         type: 'linear',

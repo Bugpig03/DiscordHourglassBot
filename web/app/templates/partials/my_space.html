@@ -18,6 +18,7 @@
         <div class="my-space-actions">
             <a class="btn-hero-secondary" href="{{ url_for('user_profile.profile', username=my_space.user_id) }}">{{ 'Mon profil' if fr else 'My profile' }}</a>
             <a class="btn-hero-secondary" href="{{ url_for('versus.versus', u1=my_space.user_id) }}">{{ 'Me comparer' if fr else 'Compare me' }}</a>
+            <a class="btn-hero-secondary" href="{{ url_for('customize.customize_profile') }}">{{ 'Personnaliser' if fr else 'Customize' }}</a>
         </div>
     </div>
 

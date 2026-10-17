@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% set fr = current_lang == 'fr' %}
+
+{% block title %}{{ 'Personnaliser mon profil' if fr else 'Customize my profile' }} - Hourglass{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user_profile.css', v=asset_version('css/pages/user_profile.css')) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/profile_theme.css', v=asset_version('css/pages/profile_theme.css')) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/customize_profile.css', v=asset_version('css/pages/customize_profile.css')) }}">
+
+<div class="customize-head">
+    <div>
+        <h1 class="customize-title">{{ 'Personnaliser mon profil' if fr else 'Customize my profile' }}</h1>
+        <p class="customize-sub">{{ 'Choisis comment ta page apparaît aux autres membres. L’aperçu se met à jour en direct.' if fr else 'Choose how your page looks to other members. The preview updates live.' }}</p>
+    </div>
+    {% if member %}
+    <a class="btn-hero-secondary" href="{{ url_for('user_profile.profile', username=current_user.id) }}">{{ 'Voir mon profil' if fr else 'View my profile' }}</a>
+    {% endif %}
+</div>
+
+{% if saved == '1' %}
+<div class="customize-notice success" role="status">{{ 'Profil enregistré. Les changements sont déjà visibles sur ta page.' if fr else 'Profile saved. Changes are already visible on your page.' }}</div>
+{% elif saved == '0' %}
+<div class="customize-notice error" role="alert">{{ 'L’enregistrement a échoué, réessaie dans quelques instants.' if fr else 'Saving failed, please try again in a moment.' }}</div>
+{% endif %}
+
+{% if not member %}
+<div class="gray-box small-border-radius customize-empty">
+    {{ 'Hourglass ne t’a pas encore vu sur un serveur : ton profil apparaîtra dès que tu auras passé du temps en vocal ou envoyé des messages là où le bot est présent.' if fr else 'Hourglass has not seen you on a server yet: your profile will appear once you spend time in voice or send messages where the bot is present.' }}
+</div>
+{% else %}
+<div class="customize-layout">
+    <form method="post" class="customize-form" id="customizeForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- 1. Accent color -->
+        <fieldset class="gray-box small-border-radius customize-section">
+            <legend class="customize-section-title">{{ 'Couleur du profil' if fr else 'Profile color' }}</legend>
+            <p class="customize-help">{{ 'Utilisée pour la bannière, le contour de l’avatar, la barre d’XP, les onglets, le calendrier d’activité et les courbes de temps vocal.' if fr else 'Used for the banner, avatar ring, XP bar, tabs, activity calendar and voice time charts.' }}</p>
+            <div class="swatch-grid">
+                {% for color in palette %}
+                <label class="swatch" data-tip="{{ color.label }}">
+                    <input type="radio" name="accent_color" value="{{ color.key }}" data-hex="{{ color.hex }}" {% if theme.accent_key == color.key %}checked{% endif %}>
+                    <span class="swatch-dot" style="background: {{ color.hex }};"></span>
+                    <span class="sr-only">{{ color.label }}</span>
+                </label>
+                {% endfor %}
+                {% if discord_accent %}
+                <label class="swatch swatch-discord" data-tip="{{ 'Couleur de mon profil Discord' if fr else 'My Discord profile color' }}">
+                    <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
+                    <span class="swatch-dot" style="background: {{ discord_accent }};"></span>
+                    <span class="swatch-caption">Discord</span>
+                </label>
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <!-- 2. Banner -->
+        <fieldset class="gray-box small-border-radius customize-section">
+            <legend class="customize-section-title">{{ 'Bannière' if fr else 'Banner' }}</legend>
+            <div class="choice-list">
+                <label class="choice">
+                    <input type="radio" name="banner_mode" value="auto" {% if theme.banner_mode == 'auto' %}checked{% endif %}>
+                    <span class="choice-body">
+                        <span class="choice-title">{{ 'Ma bannière Discord' if fr else 'My Discord banner' }}</span>
+                        <span class="choice-desc">
+                            {% if has_discord_banner %}{{ 'Récupérée lors de ta connexion.' if fr else 'Fetched when you logged in.' }}
+                            {% else %}{{ 'Aucune bannière trouvée sur ton compte Discord : le dégradé est utilisé. Si tu en ajoutes une, reconnecte-toi pour la récupérer.' if fr else 'No banner found on your Discord account: the gradient is used instead. If you add one, log in again to fetch it.' }}{% endif %}
+                        </span>
+                    </span>
+                </label>
+                <label class="choice">
+                    <input type="radio" name="banner_mode" value="gradient" {% if theme.banner_mode == 'gradient' %}checked{% endif %}>
+                    <span class="choice-body">
+                        <span class="choice-title">{{ 'Dégradé de ma couleur' if fr else 'Gradient of my color' }}</span>
+                        <span class="choice-desc">{{ 'Un fond sobre généré à partir de la couleur choisie.' if fr else 'A subtle background generated from your color.' }}</span>
+                    </span>
+                </label>
+                <label class="choice">
+                    <input type="radio" name="banner_mode" value="none" {% if theme.banner_mode == 'none' %}checked{% endif %}>
+                    <span class="choice-body">
+                        <span class="choice-title">{{ 'Aucune bannière' if fr else 'No banner' }}</span>
+                        <span class="choice-desc">{{ 'En-tête compact, comme avant.' if fr else 'Compact header, as before.' }}</span>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <!-- 3. Favorite server -->
+        <fieldset class="gray-box small-border-radius customize-section">
+            <legend class="customize-section-title">{{ 'Serveur favori' if fr else 'Favorite server' }}</legend>
+            <p class="customize-help">{{ 'Mis en avant sous ton pseudo, avec ton rang et ton temps vocal sur ce serveur.' if fr else 'Shown under your name, with your rank and voice time on that server.' }}</p>
+            <select name="favorite_server_id" id="favoriteServer" class="customize-select">
+                <option value="" data-name="">{{ 'Aucun' if fr else 'None' }}</option>
+                {% for srv in servers %}
+                <option value="{{ srv.server_id }}" data-name="{{ srv.server_name }}" data-avatar="{{ srv.avatar or url_for('static', filename='icons/server.png') }}" data-meta="#{{ srv.rank }} · {{ srv.time_spent | num(1) }} h" {% if settings.favorite_server_id == srv.server_id %}selected{% endif %}>{{ srv.server_name }} ({{ srv.time_spent | num(1) }} h)</option>
+                {% endfor %}
+            </select>
+        </fieldset>
+
+        <div class="customize-actions">
+            <button type="submit" class="btn-customize-save">{{ 'Enregistrer' if fr else 'Save' }}</button>
+        </div>
+    </form>
+
+    <!-- Live preview -->
+    <aside class="customize-preview" aria-label="{{ 'Aperçu' if fr else 'Preview' }}">
+        <div class="customize-preview-label">{{ 'Aperçu' if fr else 'Preview' }}</div>
+        <div id="profilePreview" class="profile-themed {% if theme.is_custom %}accent-custom{% endif %}" style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};"
+             data-discord-banner="{{ theme.discord_banner_url or '' }}">
+            <div class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}" style="margin: 0;">
+                <div class="profile-banner" {% if not theme.show_banner %}hidden{% endif %}>
+                    <img src="{{ theme.discord_banner_url or '' }}" alt="" loading="eager" data-fallback="hide" {% if not theme.banner_url %}hidden{% endif %}>
+                </div>
+                <div class="profile-hero-body">
+                    <div class="profile-hero-identity" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div class="profile-avatar-wrap">
+                            <img src="{{ current_user.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="">
+                        </div>
+                        <div style="min-width: 0;">
+                            <div class="customize-preview-name">{{ member.username or current_user.username }}</div>
+                            <span class="customize-preview-level">{{ t('profile.level_badge', level=xp.level) }} • {{ xp.title_fr if fr else xp.title_en }}</span>
+                        </div>
+                    </div>
+                    <a class="profile-fav-server" id="previewFavorite" {% if not favorite_server %}hidden{% endif %}>
+                        <img src="{{ (favorite_server.avatar if favorite_server else '') or url_for('static', filename='icons/server.png') }}" alt="">
+                        <span class="profile-fav-server-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</span>
+                        <span class="profile-fav-server-name">{{ favorite_server.server_name if favorite_server else '' }}</span>
+                        <span class="profile-fav-server-meta">{% if favorite_server %}#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h{% endif %}</span>
+                    </a>
+                    <div class="user-xp-bar-bg" style="margin-top: 18px;">
+                        <div class="user-xp-bar-fill" style="width: {{ xp.progress_percent }}%;"></div>
+                    </div>
+                    <div class="customize-preview-heatmap" aria-hidden="true">
+                        {% for level in [0, 1, 2, 0, 3, 4, 2, 1, 0, 2, 3, 3, 4, 1, 0, 2, 4, 3, 1, 2, 0] %}<span class="heatmap-cell heatmap-level-{{ level }}"></span>{% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+<script src="{{ url_for('static', filename='js/pages/customize_profile.js', v=asset_version('js/pages/customize_profile.js')) }}" defer></script>
+{% endif %}
+{% endblock %}

@@ -1,6 +1,6 @@
 """Database configuration and ORM model definitions using Peewee."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from playhouse.pool import PooledPostgresqlDatabase
 from peewee import (
     Model,
@@ -10,7 +10,8 @@ from peewee import (
     DateTimeField,
     AutoField,
     CompositeKey,
-    BooleanField
+    BooleanField,
+    TextField
 )
 from app.config import Config
 
@@ -177,6 +178,24 @@ class UserPresence(BaseModel):
 
     class Meta:
         table_name = "user_presence"
+
+
+class UserProfileSettings(BaseModel):
+    """Profile customization chosen by a member on the website (owned by the web app, unused by the bot)."""
+
+    user_id = BigIntegerField(primary_key=True)
+    accent_color = CharField(max_length=16, default="sky")
+    banner_mode = CharField(max_length=16, default="auto")
+    discord_banner = CharField(max_length=64, null=True)
+    discord_accent = IntegerField(null=True)
+    favorite_server_id = BigIntegerField(null=True)
+    featured_badges = TextField(default="[]")
+    pinned_records = TextField(default="[]")
+    layout = TextField(default="{}")
+    updated_at = DateTimeField(default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+
+    class Meta:
+        table_name = "user_profile_settings"
 
 
 
