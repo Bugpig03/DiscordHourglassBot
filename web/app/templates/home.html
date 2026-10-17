@@ -10,10 +10,7 @@
 <!-- Embedded Chart Data -->
 <script type="application/json" id="homeDailyChartData">{{ stats.daily_chart_json|safe_json }}</script>
 
-<!-- 1. Hero Section ("Mon espace" for a logged-in member known by the bot) -->
-{% if my_space and my_space.known %}
-{% include "partials/my_space.html" %}
-{% else %}
+<!-- 1. Hero Section -->
 <div class="dashboard-hero">
     <div class="dashboard-hero-content">
         <div class="dashboard-hero-badge">
@@ -36,7 +33,6 @@
         </div>
     </div>
 </div>
-{% endif %}
 
 <!-- 2. Global KPIs (Symmetrical 4-Card Grid) -->
 <div class="dashboard-kpi-grid">

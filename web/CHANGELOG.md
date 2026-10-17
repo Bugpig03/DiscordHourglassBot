@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.8.0 - Vitrine du Profil & Retour de l'Accueil d'Origine - 17/10/2026
+### Nouveautés
+- **Bloc « Vitrine » sur le profil**, juste sous l'en-tête : il regroupe tout ce que le membre choisit lui-même (badges mis en avant, serveur favori, records). Un cadre à sa couleur la distingue du reste de la page. Le propriétaire a un lien « Modifier ma vitrine ».
+- Le serveur favori y gagne une vraie carte (icône, rang sur le serveur et nombre de membres, temps vocal).
+- Page de personnalisation : l'onglet « Mise en avant » devient **« Vitrine »**, et l'aperçu montre la vitrine, mise à jour en direct.
+
+### Retraits
+- **« Mon espace » est retiré de l'accueil** : tout le monde retrouve la bannière d'accueil d'origine (présentation, invitation du bot, classements), connecté ou non.
+- La vitrine de badges et le serveur favori quittent le pied de l'en-tête, et les records ne sont plus sous les totaux : tout est dans la vitrine.
+
 ## Version 3.7.0 - Page de Personnalisation Simplifiée - 17/10/2026
 ### Interface
 - **« Personnaliser mon profil » refaite en trois onglets** : *Apparence* (couleur, bannière), *Mise en avant* (serveur favori, vitrine de badges, records) et *Confidentialité* (profil privé, blocs visibles). Une ligne par réglage avec un titre et une phrase d'explication courte, au lieu de six grands blocs empilés. L'onglet ouvert est conservé après l'enregistrement.

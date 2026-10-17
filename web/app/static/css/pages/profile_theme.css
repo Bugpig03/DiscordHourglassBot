@@ -152,25 +152,6 @@
     color: #94a3b8;
 }
 
-/* Footer of the header: favorite server on the left, badge showcase on the right */
-.profile-hero-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-top: 18px;
-    padding-top: 18px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-.profile-hero-footer .profile-fav-server {
-    margin-top: 0;
-}
-.profile-hero-footer .profile-showcase {
-    padding-top: 0;
-    margin-left: auto;
-    align-items: center;
-}
 
 /* Customization page preview (simplified header) */
 .profile-hero.has-banner .profile-hero-identity {
@@ -547,10 +528,6 @@
         justify-content: flex-start;
         padding-top: 0 !important;
     }
-    .profile-hero-footer .profile-showcase {
-        margin-left: 0;
-        width: 100%;
-    }
 }
 @media (max-width: 600px) {
     .profile-hero-main {
@@ -665,5 +642,134 @@
     }
     .profile-themed .home-stats-container.stats-4 .home-stats-icon {
         display: none;
+    }
+}
+
+/* Vitrine: the member's own picks, visually set apart by an accent frame */
+.profile-vitrine {
+    position: relative;
+    margin-bottom: 25px;
+    padding: 20px 22px 22px;
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(var(--accent-rgb), 0.16), transparent 45%),
+        linear-gradient(180deg, rgba(var(--accent-rgb), 0.06), rgba(21, 32, 46, 0.9) 60%),
+        #15202e;
+    border: 1px solid rgba(var(--accent-rgb), 0.45);
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.06), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.profile-vitrine-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    margin-bottom: 16px;
+}
+.profile-vitrine-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+.profile-vitrine-title svg {
+    color: var(--accent);
+    transform: rotate(35deg);
+}
+.profile-vitrine-edit {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+.profile-vitrine-edit:hover {
+    text-decoration: underline;
+}
+.profile-vitrine-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+    margin-bottom: 18px;
+}
+.profile-vitrine-top:last-child {
+    margin-bottom: 0;
+}
+.profile-vitrine-part {
+    min-width: 0;
+}
+.profile-vitrine-top > .profile-vitrine-part:first-child {
+    flex: 1 1 380px;
+}
+.profile-vitrine-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #94a3b8;
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.profile-vitrine .profile-showcase {
+    padding-top: 0;
+}
+.profile-vitrine-server {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px 8px 8px;
+    border-radius: 14px;
+    background: rgba(var(--accent-rgb), 0.08);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    color: #ffffff;
+    text-decoration: none;
+    max-width: 320px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.profile-vitrine-server:hover {
+    background: rgba(var(--accent-rgb), 0.16);
+    border-color: rgba(var(--accent-rgb), 0.6);
+    color: #ffffff;
+}
+.profile-vitrine-server img {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.profile-vitrine-server-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.profile-vitrine-server-name {
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.profile-vitrine-server-meta {
+    color: #94a3b8;
+    font-size: 0.82rem;
+}
+.profile-vitrine .profile-record {
+    background: rgba(15, 23, 34, 0.55);
+    box-shadow: none;
+}
+@media (max-width: 600px) {
+    .profile-vitrine {
+        padding: 16px;
+    }
+    .profile-vitrine-edit {
+        margin-left: 0;
+        width: 100%;
+    }
+    .profile-vitrine-server {
+        max-width: none;
     }
 }

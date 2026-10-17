@@ -6,10 +6,8 @@ from app.database import db, Users, Servers, Stats, VoiceSessions, MessageEvents
 from app.functions import (
     format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta,
     get_daily_activity_last_30_days, get_partial_period, get_top_users_podium, get_top_servers_podium,
-    get_month_abbr, get_global_rank_by_user_id_seconds, get_global_nb_user, get_user_heatmap_data
+    get_month_abbr
 )
-from app.auth import get_current_user, get_current_user_guild_ids
-from app.gamification import calculate_user_xp_and_level
 
 home_bp = Blueprint("home", __name__)
 
@@ -18,78 +16,7 @@ home_bp = Blueprint("home", __name__)
 def home():
     """Render the main dashboard with global application metrics, 30-day activity, and database statistics."""
     stats = load_dashboard_stats()
-    return render_template("home.html", stats=stats, my_space=load_personal_space())
-
-
-def load_personal_space() -> dict | None:
-    """Personal summary shown at the top of the home page to a logged-in member known by the bot ("Mon espace").
-
-    Only the visitor's own data is used (session user and the guilds returned by Discord OAuth2).
-    """
-    current = get_current_user()
-    if not current:
-        return None
-    try:
-        user_id = int(current.get("id"))
-    except (TypeError, ValueError):
-        return None
-    if not Users.select().where(Users.user_id == user_id).exists():
-        return {"known": False, "name": current.get("global_name") or current.get("username")}
-
-    totals = (
-        Stats.select(fn.COALESCE(fn.SUM(Stats.seconds), 0), fn.COALESCE(fn.SUM(Stats.messages), 0))
-        .where(Stats.user_id == user_id)
-        .tuples()
-        .first()
-    ) or (0, 0)
-    xp_info = calculate_user_xp_and_level(int(totals[0] or 0), int(totals[1] or 0))
-
-    # The visitor's Discord servers that Hourglass tracks, ranked by the visitor's own voice time there
-    guild_ids = get_current_user_guild_ids()
-    my_servers = []
-    if guild_ids:
-        rows = (
-            Servers
-            .select(Servers.server_id, Servers.servername, Servers.avatar,
-                    fn.COALESCE(fn.SUM(Stats.seconds), 0).alias("seconds"),
-                    fn.COALESCE(fn.SUM(Stats.messages), 0).alias("messages"))
-            .join(Stats, on=((Stats.server_id == Servers.server_id) & (Stats.user_id == user_id)))
-            .where(Servers.server_id.in_(list(guild_ids)))
-            .group_by(Servers.server_id, Servers.servername, Servers.avatar)
-            .order_by(fn.COALESCE(fn.SUM(Stats.seconds), 0).desc())
-            .dicts()
-        )
-        my_servers = [
-            {
-                "server_id": str(r["server_id"]),
-                "servername": r["servername"],
-                "avatar": r["avatar"],
-                "hours": round((r["seconds"] or 0) / 3600, 1),
-                "messages": r["messages"] or 0,
-            }
-            for r in rows
-        ]
-
-    last_24h = _get_activity_delta(days=1, user_id=user_id)
-    last_7d = _get_activity_delta(days=7, user_id=user_id)
-    heatmap = get_user_heatmap_data(user_id, days=60)
-
-    return {
-        "known": True,
-        "user_id": str(user_id),
-        "name": current.get("global_name") or current.get("username"),
-        "avatar": current.get("avatar"),
-        "xp": xp_info,
-        "rank": get_global_rank_by_user_id_seconds(user_id),
-        "total_users": get_global_nb_user(),
-        "hours_24h": round(last_24h["seconds"] / 3600, 1),
-        "messages_24h": last_24h["messages"],
-        "hours_7d": round(last_7d["seconds"] / 3600, 1),
-        "messages_7d": last_7d["messages"],
-        "streak": heatmap["current_streak"],
-        "servers": my_servers[:6],
-        "servers_count": len(my_servers),
-    }
+    return render_template("home.html", stats=stats)
 
 
 @home_bp.route("/supports", methods=["GET"])

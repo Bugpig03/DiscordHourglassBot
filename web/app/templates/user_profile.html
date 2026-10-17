@@ -102,22 +102,32 @@
                 </div>
             </div>
         </div>
+    </div>
+</section>
 
-        {% set show_showcase = showcase and layout.visible.showcase %}
-        {% if favorite_server or show_showcase %}
-        <div class="profile-hero-footer">
-            {% if favorite_server %}
-            <a class="profile-fav-server" href="{{ url_for('server_profile.server', server_id=favorite_server.server_id) }}">
-                <img src="{{ favorite_server.avatar or url_for('static', filename='icons/server.png') }}" data-fallback="{{ url_for('static', filename='icons/server.png') }}" alt="">
-                <span class="profile-fav-server-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</span>
-                <span class="profile-fav-server-name">{{ favorite_server.server_name }}</span>
-                <span class="profile-fav-server-meta">#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h</span>
-            </a>
-            {% endif %}
-            {% if show_showcase %}
-            <!-- Featured badges chosen by the member (rarest unlocked ones by default) -->
-            <div class="profile-showcase" aria-label="{{ 'Vitrine de badges' if fr else 'Badge showcase' }}">
-                {{ hidden_tag('showcase') }}
+{# ===================================================================
+   Vitrine: everything the member picked themselves (badges, favorite server, records), grouped in one card.
+   =================================================================== #}
+{% set show_showcase = showcase and layout.visible.showcase %}
+{% set show_records = records and layout.visible.records %}
+{% if favorite_server or show_showcase or show_records %}
+<section class="profile-vitrine" aria-labelledby="profileVitrineTitle">
+    <div class="profile-vitrine-head">
+        <h2 id="profileVitrineTitle" class="profile-vitrine-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+            {{ 'Vitrine' if fr else 'Showcase' }}
+        </h2>
+        {% if is_owner %}
+        <a class="profile-vitrine-edit" href="{{ url_for('customize.customize_profile') }}">{{ 'Modifier ma vitrine' if fr else 'Edit my showcase' }}</a>
+        {% endif %}
+    </div>
+
+    {% if favorite_server or show_showcase %}
+    <div class="profile-vitrine-top">
+        {% if show_showcase %}
+        <div class="profile-vitrine-part">
+            <div class="profile-vitrine-label">{{ 'Badges' }} {{ hidden_tag('showcase') }}</div>
+            <div class="profile-showcase" aria-label="{{ 'Badges mis en avant' if fr else 'Featured badges' }}">
                 {% for badge in showcase %}
                 <div class="profile-showcase-item rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
                     <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
@@ -128,11 +138,40 @@
                 </div>
                 {% endfor %}
             </div>
-            {% endif %}
+        </div>
+        {% endif %}
+        {% if favorite_server %}
+        <div class="profile-vitrine-part">
+            <div class="profile-vitrine-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</div>
+            <a class="profile-vitrine-server" href="{{ url_for('server_profile.server', server_id=favorite_server.server_id) }}">
+                <img src="{{ favorite_server.avatar or url_for('static', filename='icons/server.png') }}" data-fallback="{{ url_for('static', filename='icons/server.png') }}" alt="">
+                <span class="profile-vitrine-server-text">
+                    <span class="profile-vitrine-server-name">{{ favorite_server.server_name }}</span>
+                    <span class="profile-vitrine-server-meta">#{{ favorite_server.rank }} {{ 'sur' if fr else 'of' }} {{ favorite_server.nb_user }} · {{ favorite_server.time_spent | num(1) }} h</span>
+                </span>
+            </a>
         </div>
         {% endif %}
     </div>
+    {% endif %}
+
+    {% if show_records %}
+    <div class="profile-vitrine-part">
+        <div class="profile-vitrine-label">{{ 'Records' }} {{ hidden_tag('records') }}</div>
+        <div class="profile-records-grid">
+            {% for record in records %}
+            <div class="profile-record">
+                <span class="profile-record-icon">{{ record.icon | safe }}</span>
+                <span class="profile-record-label">{{ record.label }}</span>
+                <span class="profile-record-value">{% if record.value is number %}{{ record.value | num(record.decimals) }}{% else %}{{ record.value }}{% endif %}{% if record.unit %} <small>{{ record.unit }}</small>{% endif %}</span>
+                {% if record.sub %}<span class="profile-record-sub">{{ record.sub }}</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </section>
+{% endif %}
 
 <!-- User KPI Cards -->
 <div class="home-stats-container stats-4" style="margin-bottom: 25px;">
@@ -183,22 +222,6 @@
     </div>
 </div>
 
-{% if records and layout.visible.records %}
-<!-- Personal records pinned by the member -->
-<section class="profile-records" aria-labelledby="profileRecordsTitle">
-    <h2 id="profileRecordsTitle" class="profile-records-title">{{ 'Records' }} {{ hidden_tag('records') }}</h2>
-    <div class="profile-records-grid">
-        {% for record in records %}
-        <div class="profile-record">
-            <span class="profile-record-icon">{{ record.icon | safe }}</span>
-            <span class="profile-record-label">{{ record.label }}</span>
-            <span class="profile-record-value">{% if record.value is number %}{{ record.value | num(record.decimals) }}{% else %}{{ record.value }}{% endif %}{% if record.unit %} <small>{{ record.unit }}</small>{% endif %}</span>
-            {% if record.sub %}<span class="profile-record-sub">{{ record.sub }}</span>{% endif %}
-        </div>
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
 
 {% if layout.private_view %}
 <div class="gray-box small-border-radius profile-private-notice">

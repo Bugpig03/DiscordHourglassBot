@@ -45,7 +45,7 @@
 
         <div class="cz-tabs" role="tablist">
             <button type="button" class="cz-tab active" role="tab" data-panel="appearance">{{ 'Apparence' if fr else 'Appearance' }}</button>
-            <button type="button" class="cz-tab" role="tab" data-panel="highlights">{{ 'Mise en avant' if fr else 'Highlights' }}</button>
+            <button type="button" class="cz-tab" role="tab" data-panel="highlights">{{ 'Vitrine' if fr else 'Showcase' }}</button>
             <button type="button" class="cz-tab" role="tab" data-panel="privacy">{{ 'Confidentialité' if fr else 'Privacy' }}</button>
         </div>
 
@@ -90,12 +90,13 @@
             </div>
         </section>
 
-        <!-- ========================== Mise en avant ========================== -->
+        <!-- ============================= Vitrine ============================= -->
         <section class="gray-box small-border-radius cz-panel" data-panel="highlights">
+            <p class="cz-panel-intro">{{ 'Ta vitrine apparaît sous ton en-tête : c’est ta sélection personnelle.' if fr else 'Your showcase appears under your header: it is your personal selection.' }}</p>
             <div class="cz-row">
                 <div class="cz-row-head">
                     <h2 class="cz-row-title">{{ 'Serveur favori' if fr else 'Favorite server' }}</h2>
-                    <p class="cz-row-desc">{{ 'Affiché dans ton en-tête avec ton rang et ton temps vocal.' if fr else 'Shown in your header with your rank and voice time.' }}</p>
+                    <p class="cz-row-desc">{{ 'Affiché dans ta vitrine avec ton rang et ton temps vocal.' if fr else 'Shown in your showcase with your rank and voice time.' }}</p>
                 </div>
                 <select name="favorite_server_id" id="favoriteServer" class="cz-select">
                     <option value="" data-name="">{{ 'Aucun' if fr else 'None' }}</option>
@@ -107,7 +108,7 @@
 
             <div class="cz-row" id="badgePicker" data-max="{{ max_badges }}">
                 <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Vitrine de badges' if fr else 'Badge showcase' }} <span class="cz-counter" data-counter></span></h2>
+                    <h2 class="cz-row-title">{{ 'Badges' }} <span class="cz-counter" data-counter></span></h2>
                     <p class="cz-row-desc">{{ 'Choisis jusqu’à 3 badges. Sans choix, tes 3 plus rares sont affichés.' if fr else 'Pick up to 3 badges. Without a choice, your 3 rarest are shown.' }}</p>
                 </div>
                 {% if badges %}
@@ -140,7 +141,7 @@
             <div class="cz-row" id="recordPicker" data-max="{{ max_records }}">
                 <div class="cz-row-head">
                     <h2 class="cz-row-title">{{ 'Records' }} <span class="cz-counter" data-counter></span></h2>
-                    <p class="cz-row-desc">{{ 'Jusqu’à 4 records affichés sous tes totaux.' if fr else 'Up to 4 records shown under your totals.' }}</p>
+                    <p class="cz-row-desc">{{ 'Jusqu’à 4 records. Sans choix, une sélection par défaut est affichée.' if fr else 'Up to 4 records. Without a choice, a default selection is shown.' }}</p>
                 </div>
                 {% if records %}
                 <div class="cz-list">
@@ -228,16 +229,23 @@
                             <div class="user-xp-bar-bg"><div class="user-xp-bar-fill" style="width: {{ xp.progress_percent }}%;"></div></div>
                         </div>
                     </div>
-                    <div class="profile-hero-footer cz-preview-footer">
-                        <a class="profile-fav-server" id="previewFavorite" {% if not favorite_server %}hidden{% endif %}>
-                            <img src="{{ (favorite_server.avatar if favorite_server else '') or url_for('static', filename='icons/server.png') }}" alt="">
-                            <span class="profile-fav-server-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</span>
-                            <span class="profile-fav-server-name">{{ favorite_server.server_name if favorite_server else '' }}</span>
-                            <span class="profile-fav-server-meta">{% if favorite_server %}#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h{% endif %}</span>
-                        </a>
-                        <div class="profile-showcase" id="previewShowcase" data-auto="{{ showcase | map(attribute='id') | join(',') }}"></div>
+                </div>
+            </div>
+            <div class="profile-vitrine cz-preview-vitrine">
+                <div class="profile-vitrine-head">
+                    <div class="profile-vitrine-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                        {{ 'Vitrine' if fr else 'Showcase' }}
                     </div>
                 </div>
+                <div class="profile-showcase" id="previewShowcase" data-auto="{{ showcase | map(attribute='id') | join(',') }}"></div>
+                <a class="profile-vitrine-server" id="previewFavorite" {% if not favorite_server %}hidden{% endif %}>
+                    <img src="{{ (favorite_server.avatar if favorite_server else '') or url_for('static', filename='icons/server.png') }}" alt="">
+                    <span class="profile-vitrine-server-text">
+                        <span class="profile-vitrine-server-name">{{ favorite_server.server_name if favorite_server else '' }}</span>
+                        <span class="profile-vitrine-server-meta">{% if favorite_server %}#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h{% endif %}</span>
+                    </span>
+                </a>
             </div>
         </div>
     </aside>

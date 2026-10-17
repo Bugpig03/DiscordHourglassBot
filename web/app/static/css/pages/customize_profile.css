@@ -546,3 +546,29 @@
 .cz-preview .profile-showcase-rarity {
     font-size: 0.64rem;
 }
+
+.cz-panel-intro {
+    margin: 16px 0 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(56, 189, 248, 0.07);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    color: #cbd5e1;
+    font-size: 0.86rem;
+}
+.cz-preview-vitrine {
+    margin: 12px 0 0;
+    padding: 14px 16px 16px;
+}
+.cz-preview-vitrine .profile-vitrine-head {
+    margin-bottom: 12px;
+}
+.cz-preview-vitrine .profile-vitrine-title {
+    font-size: 1rem;
+}
+.cz-preview-vitrine .profile-vitrine-server {
+    margin-top: 10px;
+}
+.cz-preview .profile-vitrine-server[hidden] {
+    display: none;
+}

@@ -32,7 +32,6 @@
     const bannerImg = banner.querySelector('img');
     const favorite = document.getElementById('previewFavorite');
     const showcase = document.getElementById('previewShowcase');
-    const footer = preview.querySelector('.cz-preview-footer');
     const discordBanner = preview.dataset.discordBanner;
 
     function hexToRgb(hex) {
@@ -56,24 +55,19 @@
         bannerImg.hidden = !(mode === 'auto' && discordBanner);
     }
 
-    function refreshFooter() {
-        footer.hidden = favorite.hidden && !showcase.children.length;
-    }
-
     function applyFavorite() {
         const option = form.querySelector('#favoriteServer').selectedOptions[0];
         favorite.hidden = !option || !option.value;
         if (!favorite.hidden) {
             favorite.querySelector('img').src = option.dataset.avatar;
-            favorite.querySelector('.profile-fav-server-name').textContent = option.dataset.name;
-            favorite.querySelector('.profile-fav-server-meta').textContent = option.dataset.meta;
+            favorite.querySelector('.profile-vitrine-server-name').textContent = option.dataset.name;
+            favorite.querySelector('.profile-vitrine-server-meta').textContent = option.dataset.meta;
         }
-        refreshFooter();
     }
 
     const badgePicker = document.getElementById('badgePicker');
     function applyShowcase() {
-        if (!badgePicker) return refreshFooter();
+        if (!badgePicker) return;
         let boxes = [...badgePicker.querySelectorAll('input[name="featured_badges"]:checked')];
         if (!boxes.length) {
             // Nothing picked: the profile shows the rarest badges automatically
@@ -81,7 +75,6 @@
             boxes = auto.map(id => badgePicker.querySelector('input[value="' + CSS.escape(id) + '"]')).filter(Boolean);
         }
         showcase.replaceChildren(...boxes.map(b => b.closest('label').querySelector('template[data-showcase]').content.cloneNode(true)));
-        refreshFooter();
     }
 
     // ---- Pickers limited to N choices: the others are disabled once the limit is reached ----
