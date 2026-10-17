@@ -7,6 +7,7 @@ from peewee import JOIN, fn
 from app.database import Users, Stats, VoiceSessions, Servers, UserPresence
 from app.gamification import calculate_user_xp_and_level
 from app.functions import (
+    get_user_timezone,
     get_servername_by_server_id,
     get_server_avatar_url,
     get_server_rank,
@@ -34,6 +35,7 @@ from app.functions import (
     get_recent_voice_sessions,
     get_hourly_punchcard_data,
 )
+from app.cache import cache
 from app.auth import can_view_server_private_data
 
 server_profile_bp = Blueprint("server_profile", __name__)
@@ -43,6 +45,9 @@ HOURGLASS_BOT_ID = 1210665993328926750
 
 # Members rendered with the page; the rest is loaded on demand ("Voir plus") to keep big servers light
 MEMBERS_PAGE_SIZE = 50
+
+# Public server blocks (charts, punchcard) are recomputed at most every 2 minutes
+SERVER_CACHE_SECONDS = 120
 
 
 @server_profile_bp.route("/server/<server_id>", methods=["GET"])
@@ -61,7 +66,9 @@ def server(server_id: str):
     # The doughnut needs the unfiltered ranking: reuse the member list when no search is active
     all_members = stats["users"] if not search_query else None
     charts = load_server_charts_data(server_id, lang=lang, has_server_access=has_server_access, all_members=all_members)
-    punchcard = get_hourly_punchcard_data(server_id)
+    punchcard = cache.get_or_set(
+        ("punchcard", int(server_id), lang, get_user_timezone()), SERVER_CACHE_SECONDS, lambda: get_hourly_punchcard_data(server_id)
+    )
 
     return render_template(
         "server_profile.html",
@@ -267,6 +274,19 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
 
 
 def load_server_charts_data(server_id: str | int, lang: str = "fr", has_server_access: bool = False, all_members: list[dict] | None = None) -> dict:
+    """Server charts: public series cached 2 minutes, member-only session log added for allowed viewers."""
+    charts = dict(cache.get_or_set(
+        ("server_charts", int(server_id), lang, get_user_timezone()),
+        SERVER_CACHE_SECONDS,
+        lambda: _build_public_server_charts(server_id, lang=lang, all_members=all_members),
+    ))
+    # Recent voice sessions log (Protected: Only server members can view) - never cached
+    charts["recent_sessions"] = get_recent_voice_sessions(server_id=int(server_id), limit=12, lang=lang) if has_server_access else []
+    charts["can_view_sessions"] = has_server_access
+    return charts
+
+
+def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_members: list[dict] | None = None) -> dict:
     """Compile chart data for a specific server: cumulative curves, monthly deltas, and top members doughnut."""
     int_server_id = int(server_id)
 
@@ -400,9 +420,6 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr", has_server_a
         "messages_count": hourly_activity["messages_count"]
     })
 
-    # 9. Recent voice sessions log (Protected: Only server members can view)
-    recent_sessions = get_recent_voice_sessions(server_id=int_server_id, limit=12, lang=lang) if has_server_access else []
-
     return {
         "chart_data_json": chart_data_json,
         "messages_chart_data_json": messages_chart_data_json,
@@ -429,6 +446,4 @@ def load_server_charts_data(server_id: str | int, lang: str = "fr", has_server_a
         "peak_voice_hour": hourly_activity["peak_voice_hour"],
         "has_hourly_data": hourly_activity["has_data"],
         "peak_messages_hour": hourly_activity["peak_messages_hour"],
-        "recent_sessions": recent_sessions,
-        "can_view_sessions": has_server_access,
     }

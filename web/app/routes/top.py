@@ -4,12 +4,17 @@ from datetime import datetime, timedelta
 from flask import Blueprint, redirect, render_template, request, url_for
 from peewee import fn, SQL, JOIN
 from app.database import Users, Stats, Servers, VoiceSessions, MessageEvents
+from app.cache import cache
 from app.gamification import calculate_user_xp_and_level
 
 top_bp = Blueprint("top", __name__)
 
 USERS_PER_PAGE = 20
 SERVERS_PER_PAGE = 20
+
+# Full rankings are recomputed at most once a minute per (period, server); search, sort and
+# pagination then run in memory, so live search keystrokes and page changes cost no SQL.
+RANKING_CACHE_SECONDS = 60
 
 PERIOD_MAP = {
     "24h": 1,
@@ -63,14 +68,8 @@ def legacy_top_servers():
     return redirect(url_for("top.top_servers", **request.args.to_dict()), code=301)
 
 
-def load_users() -> tuple[list[dict], int]:
-    """Load, filter, rank, and paginate users based on query parameters."""
-    period = request.args.get("period", "all")
-    sort_by = request.args.get("sort_by", "hours")
-    server_id = request.args.get("server_id", "all")
-    page = request.args.get("page", 1, type=int)
-    search_query = request.args.get("q", "").strip()
-
+def _compute_user_ranking(period: str, server_id: str) -> list[dict]:
+    """Every member with voice time, messages and XP for a period / server (cached by load_users)."""
     search_day = PERIOD_MAP.get(period)
 
     # Every known user (members without tracked activity rank last with 0)
@@ -79,8 +78,6 @@ def load_users() -> tuple[list[dict], int]:
         .select(Users.user_id, Users.username, Users.avatar)
         .join(Stats, JOIN.LEFT_OUTER, on=(Users.user_id == Stats.user_id))
     )
-    if search_query:
-        query = query.where(Users.username.contains(search_query))
 
     if server_id != "all":
         query = query.where(Stats.server_id == int(server_id))
@@ -177,6 +174,30 @@ def load_users() -> tuple[list[dict], int]:
         r["xp"] = xp_info["total_xp"]
         r["level"] = xp_info["level"]
 
+    return results
+
+
+def load_users() -> tuple[list[dict], int]:
+    """Load, filter, rank, and paginate users based on query parameters."""
+    period = request.args.get("period", "all")
+    sort_by = request.args.get("sort_by", "hours")
+    server_id = request.args.get("server_id", "all")
+    if not str(server_id).isdigit():
+        server_id = "all"
+    if period not in PERIOD_MAP:
+        period = "all"
+    page = request.args.get("page", 1, type=int)
+    search_query = request.args.get("q", "").strip()
+
+    results = cache.get_or_set(
+        ("members", period, server_id), RANKING_CACHE_SECONDS, lambda: _compute_user_ranking(period, server_id)
+    )
+    if search_query:
+        needle = search_query.lower()
+        results = [r for r in results if needle in (r["username"] or "").lower()]
+    else:
+        results = list(results)
+
     # Sort results
     if sort_by == "name":
         results.sort(key=lambda x: (x["username"] or "").lower())
@@ -196,13 +217,8 @@ def load_users() -> tuple[list[dict], int]:
     return paginated_results, total_pages
 
 
-def load_servers() -> tuple[list[dict], int]:
-    """Load, filter, rank, and paginate servers based on query parameters."""
-    period = request.args.get("period", "all")
-    sort_by = request.args.get("sort_by", "hours")
-    page = request.args.get("page", 1, type=int)
-    search_query = request.args.get("q", "").strip()
-
+def _compute_server_ranking(period: str) -> list[dict]:
+    """Every server with voice time and messages for a period (cached by load_servers)."""
     search_day = PERIOD_MAP.get(period)
 
     # Every known server, including those the bot has left (flagged in the list)
@@ -212,8 +228,6 @@ def load_servers() -> tuple[list[dict], int]:
         .join(Stats, JOIN.LEFT_OUTER, on=(Servers.server_id == Stats.server_id))
         .group_by(Servers.server_id)
     )
-    if search_query:
-        query = query.where(Servers.servername.contains(search_query))
 
     if search_day:
         now = datetime.utcnow()
@@ -292,6 +306,25 @@ def load_servers() -> tuple[list[dict], int]:
             }
             for server in query
         ]
+
+    return results
+
+
+def load_servers() -> tuple[list[dict], int]:
+    """Load, filter, rank, and paginate servers based on query parameters."""
+    period = request.args.get("period", "all")
+    sort_by = request.args.get("sort_by", "hours")
+    if period not in PERIOD_MAP:
+        period = "all"
+    page = request.args.get("page", 1, type=int)
+    search_query = request.args.get("q", "").strip()
+
+    results = cache.get_or_set(("servers", period), RANKING_CACHE_SECONDS, lambda: _compute_server_ranking(period))
+    if search_query:
+        needle = search_query.lower()
+        results = [r for r in results if needle in (r["servername"] or "").lower()]
+    else:
+        results = list(results)
 
     # Sort results
     if sort_by == "name":

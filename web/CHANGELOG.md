@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.2.0 - Performances : Pool de Connexions, Caches, Index & Gunicorn Multi-threads - 17/10/2026
+### Performance
+- **Pool de connexions PostgreSQL** (`PooledPostgresqlDatabase`, 8 connexions max par worker, recyclées après 5 min d'inactivité) : plus d'ouverture/fermeture de connexion à chaque requête, et la session est créée directement en UTC (une requête `SET TIME ZONE` en moins par page). L'API de recherche passe d'environ 35 ms à 4 ms en local.
+- **Cache des classements (60 s)** : `/members` et `/servers` ne recalculent plus tout le classement à chaque visite, frappe de la recherche en direct ou changement de page ; recherche, tri et pagination se font en mémoire (≈ 50 ms → 5 ms, 1 à 2 requêtes SQL au lieu de 4 à 6).
+- **Cache des blocs publics des profils et fiches serveur (2 min)** : graphiques, calendrier d'activité, compagnons vocaux et punchcard (≈ 70-80 ms → 17-19 ms, 48 → 20 requêtes SQL). Les données dépendant du visiteur (journal des sessions, statuts de présence) restent recalculées à chaque visite et ne sont jamais mises en cache.
+- **Index composites** `(user_id, joined_at)`, `(server_id, joined_at)` sur `voice_sessions` et `(user_id, created_at)`, `(server_id, created_at)` sur `message_events` pour les calculs « 24 h / 7 jours / période » par membre ou serveur. Migration sans coupure : `database/migrations/2026-10-17_web_v3.2.0_indexes.sql` (`CREATE INDEX CONCURRENTLY`), également ajoutée à `schema_v3.sql`.
+- **Gunicorn multi-threads** : 4 workers × 4 threads (`gthread`) au lieu de 4 workers synchrones ; une requête lente ne bloque plus un worker entier. Recyclage des workers toutes les ~2000 requêtes.
+
+### Corrections
+- `/members?server_id=<texte>` et `?period=<inconnu>` provoquaient une erreur 500 ; les valeurs invalides retombent désormais sur « tous les serveurs » / « toujours ».
+
 ## Version 3.1.0 - Politique de Sécurité du Contenu, En-têtes HTTP & Limite de Débit - 17/10/2026
 ### Sécurité
 - **Content-Security-Policy stricte** sur toutes les pages : scripts autorisés uniquement depuis le site, `cdn.jsdelivr.net` (Chart.js) et les trois scripts en ligne restants via un **nonce unique par requête** ; images limitées au site et au CDN Discord ; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`, `upgrade-insecure-requests` en HTTPS. Un code injecté (script ou attribut `onerror`) est bloqué par le navigateur même si une faille XSS apparaissait. Mode test possible via `CSP_REPORT_ONLY=true`.

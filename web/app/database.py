@@ -1,9 +1,9 @@
 """Database configuration and ORM model definitions using Peewee."""
 
 from datetime import datetime
+from playhouse.pool import PooledPostgresqlDatabase
 from peewee import (
     Model,
-    PostgresqlDatabase,
     BigIntegerField,
     CharField,
     IntegerField,
@@ -14,13 +14,19 @@ from peewee import (
 )
 from app.config import Config
 
-# Initialize PostgreSQL database connection instance
-db = PostgresqlDatabase(
+# Connection pool: each request borrows an open connection instead of opening a new one
+# (per Gunicorn worker: up to 8 connections shared by its threads, recycled after 5 idle minutes).
+# Sessions are created in UTC directly, so no "SET TIME ZONE" query is needed per request.
+db = PooledPostgresqlDatabase(
     Config.DB_NAME,
     user=Config.DB_USER,
     password=Config.DB_PASSWORD,
     host=Config.DB_HOST,
-    port=Config.DB_PORT
+    port=Config.DB_PORT,
+    max_connections=8,
+    stale_timeout=300,
+    timeout=10,
+    options="-c timezone=UTC",
 )
 
 
@@ -179,15 +185,11 @@ def init_app(app):
 
     @app.before_request
     def _db_connect():
-        if db.is_closed():
-            db.connect()
-            try:
-                db.execute_sql("SET TIME ZONE 'UTC'")
-            except Exception:
-                pass
+        db.connect(reuse_if_open=True)
 
     @app.teardown_request
     def _db_close(exc):
+        # Returns the connection to the pool (it stays open for the next request)
         if not db.is_closed():
             db.close()
 

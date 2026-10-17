@@ -6,6 +6,7 @@ from flask import Blueprint, render_template, redirect, url_for, request
 from peewee import fn, JOIN
 from app.database import Users, Stats
 from app.functions import (
+    get_user_timezone,
     get_user_id_by_username,
     get_user_avatar_url,
     get_global_rank_by_user_id_seconds,
@@ -36,9 +37,13 @@ from app.functions import (
     get_user_voice_companions,
 )
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges
+from app.cache import cache
 from app.auth import can_view_user_sessions, can_view_user_presence
 
 user_profile_bp = Blueprint("user_profile", __name__)
+
+# Public profile blocks (charts, calendar, companions) are recomputed at most every 2 minutes
+PROFILE_CACHE_SECONDS = 120
 
 
 @user_profile_bp.route("/profile/<username>", methods=["GET"])
@@ -152,9 +157,11 @@ def profile(username: str):
     }
 
     # Données Heatmap GitHub-style et Compagnons vocaux
-    heatmap_annual = get_user_heatmap_data(user_id, days=365)
-    heatmap_monthly = get_user_heatmap_data(user_id, days=30)
-    voice_companions = get_user_voice_companions(user_id, limit=6)
+    # Public blocks, identical for every visitor with the same language and time zone: cached 2 minutes
+    tz = get_user_timezone()
+    heatmap_annual = cache.get_or_set(("heatmap", user_id, 365, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=365))
+    heatmap_monthly = cache.get_or_set(("heatmap", user_id, 30, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=30))
+    voice_companions = cache.get_or_set(("companions", user_id), PROFILE_CACHE_SECONDS, lambda: get_user_voice_companions(user_id, limit=6))
 
     return render_template(
         "user_profile.html",
@@ -210,6 +217,20 @@ def load_user_profile_stats(user_id: int, username: str, can_view_presence: bool
 
 
 def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: str = "fr") -> dict:
+    """Profile charts: public series cached 2 minutes, private session log added for the allowed viewer only."""
+    charts = dict(cache.get_or_set(
+        ("user_charts", user_id, lang, get_user_timezone()),
+        PROFILE_CACHE_SECONDS,
+        lambda: _build_public_user_charts(user_id, user_servers_stats, lang),
+    ))
+    # Recent voice sessions log (Protected: Only owner can view) - never cached
+    can_view_sessions = can_view_user_sessions(user_id)
+    charts["recent_sessions"] = get_recent_voice_sessions(user_id=user_id, limit=10, lang=lang) if can_view_sessions else []
+    charts["can_view_sessions"] = can_view_sessions
+    return charts
+
+
+def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang: str = "fr") -> dict:
     """Compile chart data for a specific user: cumulative curves, monthly activity, and server distribution."""
     # 1. Cumulative personal voice hours progression (Monthly)
     hours_data = get_first_of_month_hours_sum(user_id=user_id)
@@ -332,10 +353,6 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
         "messages_count": hourly_activity["messages_count"]
     })
 
-    # 8. User's recent voice sessions log (Protected: Only owner can view)
-    can_view_sessions = can_view_user_sessions(user_id)
-    recent_sessions = get_recent_voice_sessions(user_id=user_id, limit=10, lang=lang) if can_view_sessions else []
-
     return {
         "chart_data_json": chart_data_json,
         "messages_chart_data_json": messages_chart_data_json,
@@ -359,6 +376,4 @@ def load_user_charts_data(user_id: int, user_servers_stats: list[dict], lang: st
         "peak_voice_hour": hourly_activity["peak_voice_hour"],
         "has_hourly_data": hourly_activity["has_data"],
         "peak_messages_hour": hourly_activity["peak_messages_hour"],
-        "recent_sessions": recent_sessions,
-        "can_view_sessions": can_view_sessions,
     }

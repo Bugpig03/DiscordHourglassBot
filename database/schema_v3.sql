@@ -38,6 +38,9 @@ CREATE INDEX IF NOT EXISTS idx_voice_sessions_user_server ON voice_sessions(user
 CREATE INDEX IF NOT EXISTS idx_voice_sessions_server_channel ON voice_sessions(server_id, channel_id);
 CREATE INDEX IF NOT EXISTS idx_voice_sessions_joined_at ON voice_sessions(joined_at);
 CREATE INDEX IF NOT EXISTS idx_voice_sessions_active ON voice_sessions(left_at) WHERE left_at IS NULL;
+-- Per-member / per-server period queries (web v3.2.0)
+CREATE INDEX IF NOT EXISTS idx_voice_sessions_user_joined ON voice_sessions(user_id, joined_at);
+CREATE INDEX IF NOT EXISTS idx_voice_sessions_server_joined ON voice_sessions(server_id, joined_at);
 
 -- 3. Table des événements de messages horodatés par salon
 CREATE TABLE IF NOT EXISTS message_events (
@@ -53,6 +56,8 @@ CREATE TABLE IF NOT EXISTS message_events (
 CREATE INDEX IF NOT EXISTS idx_message_events_user_server ON message_events(user_id, server_id);
 CREATE INDEX IF NOT EXISTS idx_message_events_created_at ON message_events(created_at);
 CREATE INDEX IF NOT EXISTS idx_message_events_server_channel ON message_events(server_id, channel_id);
+CREATE INDEX IF NOT EXISTS idx_message_events_user_created ON message_events(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_message_events_server_created ON message_events(server_id, created_at);
 
 -- 4. Table du statut en direct des serveurs (Présence & vocal)
 CREATE TABLE IF NOT EXISTS live_server_status (
