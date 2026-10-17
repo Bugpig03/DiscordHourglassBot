@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.7.0 - Page de Personnalisation Simplifiée - 17/10/2026
+### Interface
+- **« Personnaliser mon profil » refaite en trois onglets** : *Apparence* (couleur, bannière), *Mise en avant* (serveur favori, vitrine de badges, records) et *Confidentialité* (profil privé, blocs visibles). Une ligne par réglage avec un titre et une phrase d'explication courte, au lieu de six grands blocs empilés. L'onglet ouvert est conservé après l'enregistrement.
+- **Contrôles plus compacts** : bannière en sélecteur à 3 choix, badges en pastilles colorées selon la rareté (liste défilante), records en liste à cocher avec leur valeur, visibilité en interrupteurs regroupés (en-tête et résumé, onglet Activité, autres onglets).
+- **Barre d'enregistrement fixe** avec l'indication « Modifications non enregistrées », et confirmation du navigateur si on quitte la page sans enregistrer.
+- L'aperçu reprend désormais exactement l'en-tête du profil (niveau, serveur favori, vitrine).
+
+### Retraits
+- Le choix de l'ordre des sections de l'onglet Activité est supprimé : l'ordre est fixe (séries, calendrier, rythme horaire, compagnons). Un ordre déjà enregistré est ignoré.
+- Le lien « Personnaliser mon profil » est retiré du menu du compte (en haut à droite). La page reste accessible depuis le bouton « Personnaliser » de son profil et depuis « Mon espace ».
+
 ## Version 3.6.0 - Réorganisation de la Page de Profil - 17/10/2026
 ### Interface
 - **En-tête du profil restructuré** en trois zones : identité (avatar, pseudo, titre, date d'arrivée et ID sur une seule ligne discrète, statut vocal en direct) avec les boutons « Personnaliser » et « Duel / Versus » alignés à droite ; barre de niveau et d'XP intégrée à l'en-tête ; pied d'en-tête avec le serveur favori à gauche et la vitrine de badges à droite.

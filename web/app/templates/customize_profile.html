@@ -3,15 +3,25 @@
 
 {% block title %}{{ 'Personnaliser mon profil' if fr else 'Customize my profile' }} - Hourglass{% endblock %}
 
+{% macro switch(name, value, checked, label, desc=None) %}
+<label class="cz-switch-row">
+    <span class="cz-switch-text">
+        <span class="cz-switch-label">{{ label }}</span>
+        {% if desc %}<span class="cz-switch-desc">{{ desc }}</span>{% endif %}
+    </span>
+    <input type="checkbox" class="cz-switch" name="{{ name }}" value="{{ value }}" {% if checked %}checked{% endif %}>
+</label>
+{% endmacro %}
+
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user_profile.css', v=asset_version('css/pages/user_profile.css')) }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/profile_theme.css', v=asset_version('css/pages/profile_theme.css')) }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/customize_profile.css', v=asset_version('css/pages/customize_profile.css')) }}">
 
-<div class="customize-head">
+<div class="cz-head">
     <div>
-        <h1 class="customize-title">{{ 'Personnaliser mon profil' if fr else 'Customize my profile' }}</h1>
-        <p class="customize-sub">{{ 'Choisis comment ta page apparaît aux autres membres. L’aperçu se met à jour en direct.' if fr else 'Choose how your page looks to other members. The preview updates live.' }}</p>
+        <h1 class="cz-title">{{ 'Personnaliser mon profil' if fr else 'Customize my profile' }}</h1>
+        <p class="cz-sub">{{ 'Les changements apparaissent dans l’aperçu, puis sur ta page une fois enregistrés.' if fr else 'Changes show in the preview, then on your page once saved.' }}</p>
     </div>
     {% if member %}
     <a class="btn-hero-secondary" href="{{ url_for('user_profile.profile', username=current_user.id) }}">{{ 'Voir mon profil' if fr else 'View my profile' }}</a>
@@ -19,182 +29,176 @@
 </div>
 
 {% if saved == '1' %}
-<div class="customize-notice success" role="status">{{ 'Profil enregistré. Les changements sont déjà visibles sur ta page.' if fr else 'Profile saved. Changes are already visible on your page.' }}</div>
+<div class="cz-notice success" role="status">{{ 'Profil enregistré.' if fr else 'Profile saved.' }}</div>
 {% elif saved == '0' %}
-<div class="customize-notice error" role="alert">{{ 'L’enregistrement a échoué, réessaie dans quelques instants.' if fr else 'Saving failed, please try again in a moment.' }}</div>
+<div class="cz-notice error" role="alert">{{ 'L’enregistrement a échoué, réessaie dans quelques instants.' if fr else 'Saving failed, please try again in a moment.' }}</div>
 {% endif %}
 
 {% if not member %}
-<div class="gray-box small-border-radius customize-empty">
+<div class="gray-box small-border-radius cz-empty">
     {{ 'Hourglass ne t’a pas encore vu sur un serveur : ton profil apparaîtra dès que tu auras passé du temps en vocal ou envoyé des messages là où le bot est présent.' if fr else 'Hourglass has not seen you on a server yet: your profile will appear once you spend time in voice or send messages where the bot is present.' }}
 </div>
 {% else %}
-<div class="customize-layout">
-    <form method="post" class="customize-form" id="customizeForm">
+<div class="cz-layout">
+    <form method="post" class="cz-form" id="customizeForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-        <!-- 1. Accent color -->
-        <fieldset class="gray-box small-border-radius customize-section">
-            <legend class="customize-section-title">{{ 'Couleur du profil' if fr else 'Profile color' }}</legend>
-            <p class="customize-help">{{ 'Utilisée pour la bannière, le contour de l’avatar, la barre d’XP, les onglets, le calendrier d’activité et les courbes de temps vocal.' if fr else 'Used for the banner, avatar ring, XP bar, tabs, activity calendar and voice time charts.' }}</p>
-            <div class="swatch-grid">
-                {% for color in palette %}
-                <label class="swatch" data-tip="{{ color.label }}">
-                    <input type="radio" name="accent_color" value="{{ color.key }}" data-hex="{{ color.hex }}" {% if theme.accent_key == color.key %}checked{% endif %}>
-                    <span class="swatch-dot" style="background: {{ color.hex }};"></span>
-                    <span class="sr-only">{{ color.label }}</span>
-                </label>
-                {% endfor %}
-                {% if discord_accent %}
-                <label class="swatch swatch-discord" data-tip="{{ 'Couleur de mon profil Discord' if fr else 'My Discord profile color' }}">
-                    <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
-                    <span class="swatch-dot" style="background: {{ discord_accent }};"></span>
-                    <span class="swatch-caption">Discord</span>
-                </label>
+        <div class="cz-tabs" role="tablist">
+            <button type="button" class="cz-tab active" role="tab" data-panel="appearance">{{ 'Apparence' if fr else 'Appearance' }}</button>
+            <button type="button" class="cz-tab" role="tab" data-panel="highlights">{{ 'Mise en avant' if fr else 'Highlights' }}</button>
+            <button type="button" class="cz-tab" role="tab" data-panel="privacy">{{ 'Confidentialité' if fr else 'Privacy' }}</button>
+        </div>
+
+        <!-- ============================ Apparence ============================ -->
+        <section class="gray-box small-border-radius cz-panel" data-panel="appearance">
+            <div class="cz-row">
+                <div class="cz-row-head">
+                    <h2 class="cz-row-title">{{ 'Couleur' if fr else 'Color' }}</h2>
+                    <p class="cz-row-desc">{{ 'Bannière, avatar, niveau, onglets, calendrier et courbes vocales.' if fr else 'Banner, avatar, level, tabs, calendar and voice charts.' }}</p>
+                </div>
+                <div class="swatch-grid">
+                    {% for color in palette %}
+                    <label class="swatch" data-tip="{{ color.label }}">
+                        <input type="radio" name="accent_color" value="{{ color.key }}" data-hex="{{ color.hex }}" {% if theme.accent_key == color.key %}checked{% endif %}>
+                        <span class="swatch-dot" style="background: {{ color.hex }};"></span>
+                        <span class="sr-only">{{ color.label }}</span>
+                    </label>
+                    {% endfor %}
+                    {% if discord_accent %}
+                    <label class="swatch" data-tip="{{ 'Couleur de mon profil Discord' if fr else 'My Discord profile color' }}">
+                        <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
+                        <span class="swatch-dot swatch-discord" style="background: {{ discord_accent }};"></span>
+                        <span class="sr-only">Discord</span>
+                    </label>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="cz-row">
+                <div class="cz-row-head">
+                    <h2 class="cz-row-title">{{ 'Bannière' if fr else 'Banner' }}</h2>
+                    <p class="cz-row-desc">
+                        {% if has_discord_banner %}{{ 'Ta bannière Discord a été récupérée à ta connexion.' if fr else 'Your Discord banner was fetched when you logged in.' }}
+                        {% else %}{{ 'Pas de bannière sur ton compte Discord : le dégradé est utilisé à la place.' if fr else 'No banner on your Discord account: the gradient is used instead.' }}{% endif %}
+                    </p>
+                </div>
+                <div class="cz-segmented">
+                    <label><input type="radio" name="banner_mode" value="auto" {% if theme.banner_mode == 'auto' %}checked{% endif %}><span>Discord</span></label>
+                    <label><input type="radio" name="banner_mode" value="gradient" {% if theme.banner_mode == 'gradient' %}checked{% endif %}><span>{{ 'Dégradé' if fr else 'Gradient' }}</span></label>
+                    <label><input type="radio" name="banner_mode" value="none" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{ 'Aucune' if fr else 'None' }}</span></label>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================== Mise en avant ========================== -->
+        <section class="gray-box small-border-radius cz-panel" data-panel="highlights">
+            <div class="cz-row">
+                <div class="cz-row-head">
+                    <h2 class="cz-row-title">{{ 'Serveur favori' if fr else 'Favorite server' }}</h2>
+                    <p class="cz-row-desc">{{ 'Affiché dans ton en-tête avec ton rang et ton temps vocal.' if fr else 'Shown in your header with your rank and voice time.' }}</p>
+                </div>
+                <select name="favorite_server_id" id="favoriteServer" class="cz-select">
+                    <option value="" data-name="">{{ 'Aucun' if fr else 'None' }}</option>
+                    {% for srv in servers %}
+                    <option value="{{ srv.server_id }}" data-name="{{ srv.server_name }}" data-avatar="{{ srv.avatar or url_for('static', filename='icons/server.png') }}" data-meta="#{{ srv.rank }} · {{ srv.time_spent | num(1) }} h" {% if settings.favorite_server_id == srv.server_id %}selected{% endif %}>{{ srv.server_name }} ({{ srv.time_spent | num(1) }} h)</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="cz-row" id="badgePicker" data-max="{{ max_badges }}">
+                <div class="cz-row-head">
+                    <h2 class="cz-row-title">{{ 'Vitrine de badges' if fr else 'Badge showcase' }} <span class="cz-counter" data-counter></span></h2>
+                    <p class="cz-row-desc">{{ 'Choisis jusqu’à 3 badges. Sans choix, tes 3 plus rares sont affichés.' if fr else 'Pick up to 3 badges. Without a choice, your 3 rarest are shown.' }}</p>
+                </div>
+                {% if badges %}
+                <div class="cz-chips">
+                    {% for badge in badges %}
+                    <label class="cz-chip rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
+                        <input type="checkbox" name="featured_badges" value="{{ badge.id }}" {% if badge.id in settings.featured_badges %}checked{% endif %}>
+                        <span class="cz-chip-body">
+                            <span class="cz-chip-icon">{{ badge.icon | safe }}</span>
+                            <span class="cz-chip-name">{{ badge.name }}</span>
+                        </span>
+                        {# Markup copied into the preview showcase #}
+                        <template data-showcase>
+                            <div class="profile-showcase-item rarity-{{ badge.rarity }}">
+                                <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
+                                <span class="profile-showcase-text">
+                                    <span class="profile-showcase-name">{{ badge.name }}</span>
+                                    <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
+                                </span>
+                            </div>
+                        </template>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="cz-row-desc">{{ 'Tu n’as pas encore débloqué de badge.' if fr else 'You have not unlocked any badge yet.' }}</p>
                 {% endif %}
             </div>
-        </fieldset>
 
-        <!-- 2. Banner -->
-        <fieldset class="gray-box small-border-radius customize-section">
-            <legend class="customize-section-title">{{ 'Bannière' if fr else 'Banner' }}</legend>
-            <div class="choice-list">
-                <label class="choice">
-                    <input type="radio" name="banner_mode" value="auto" {% if theme.banner_mode == 'auto' %}checked{% endif %}>
-                    <span class="choice-body">
-                        <span class="choice-title">{{ 'Ma bannière Discord' if fr else 'My Discord banner' }}</span>
-                        <span class="choice-desc">
-                            {% if has_discord_banner %}{{ 'Récupérée lors de ta connexion.' if fr else 'Fetched when you logged in.' }}
-                            {% else %}{{ 'Aucune bannière trouvée sur ton compte Discord : le dégradé est utilisé. Si tu en ajoutes une, reconnecte-toi pour la récupérer.' if fr else 'No banner found on your Discord account: the gradient is used instead. If you add one, log in again to fetch it.' }}{% endif %}
-                        </span>
+            <div class="cz-row" id="recordPicker" data-max="{{ max_records }}">
+                <div class="cz-row-head">
+                    <h2 class="cz-row-title">{{ 'Records' }} <span class="cz-counter" data-counter></span></h2>
+                    <p class="cz-row-desc">{{ 'Jusqu’à 4 records affichés sous tes totaux.' if fr else 'Up to 4 records shown under your totals.' }}</p>
+                </div>
+                {% if records %}
+                <div class="cz-list">
+                    {% for key, record in records.items() %}
+                    <label class="cz-list-item">
+                        <input type="checkbox" name="pinned_records" value="{{ key }}" {% if key in pinned_keys %}checked{% endif %}>
+                        <span class="cz-list-icon">{{ record.icon | safe }}</span>
+                        <span class="cz-list-label">{{ record.label }}</span>
+                        <span class="cz-list-value">{% if record.value is number %}{{ record.value | num(record.decimals) }}{% else %}{{ record.value }}{% endif %}{% if record.unit %} {{ record.unit }}{% endif %}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="cz-row-desc">{{ 'Pas encore assez d’activité pour établir des records.' if fr else 'Not enough activity yet to set records.' }}</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- ========================= Confidentialité ========================= -->
+        <section class="gray-box small-border-radius cz-panel" data-panel="privacy">
+            <div class="cz-row">
+                <label class="cz-switch-row cz-switch-main">
+                    <span class="cz-switch-text">
+                        <span class="cz-switch-label">{{ 'Profil privé' if fr else 'Private profile' }}</span>
+                        <span class="cz-switch-desc">{{ 'Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.' if fr else 'Visitors only see your header, level and totals. You stay visible in leaderboards, Versus and server pages.' }}</span>
                     </span>
-                </label>
-                <label class="choice">
-                    <input type="radio" name="banner_mode" value="gradient" {% if theme.banner_mode == 'gradient' %}checked{% endif %}>
-                    <span class="choice-body">
-                        <span class="choice-title">{{ 'Dégradé de ma couleur' if fr else 'Gradient of my color' }}</span>
-                        <span class="choice-desc">{{ 'Un fond sobre généré à partir de la couleur choisie.' if fr else 'A subtle background generated from your color.' }}</span>
-                    </span>
-                </label>
-                <label class="choice">
-                    <input type="radio" name="banner_mode" value="none" {% if theme.banner_mode == 'none' %}checked{% endif %}>
-                    <span class="choice-body">
-                        <span class="choice-title">{{ 'Aucune bannière' if fr else 'No banner' }}</span>
-                        <span class="choice-desc">{{ 'En-tête compact, comme avant.' if fr else 'Compact header, as before.' }}</span>
-                    </span>
+                    <input type="checkbox" class="cz-switch" name="layout_private" value="1" id="layoutPrivate" {% if layout.private %}checked{% endif %}>
                 </label>
             </div>
-        </fieldset>
 
-        <!-- 3. Favorite server -->
-        <fieldset class="gray-box small-border-radius customize-section">
-            <legend class="customize-section-title">{{ 'Serveur favori' if fr else 'Favorite server' }}</legend>
-            <p class="customize-help">{{ 'Mis en avant sous ton pseudo, avec ton rang et ton temps vocal sur ce serveur.' if fr else 'Shown under your name, with your rank and voice time on that server.' }}</p>
-            <select name="favorite_server_id" id="favoriteServer" class="customize-select">
-                <option value="" data-name="">{{ 'Aucun' if fr else 'None' }}</option>
-                {% for srv in servers %}
-                <option value="{{ srv.server_id }}" data-name="{{ srv.server_name }}" data-avatar="{{ srv.avatar or url_for('static', filename='icons/server.png') }}" data-meta="#{{ srv.rank }} · {{ srv.time_spent | num(1) }} h" {% if settings.favorite_server_id == srv.server_id %}selected{% endif %}>{{ srv.server_name }} ({{ srv.time_spent | num(1) }} h)</option>
-                {% endfor %}
-            </select>
-        </fieldset>
-
-        <!-- 4. Badge showcase -->
-        <fieldset class="gray-box small-border-radius customize-section" id="badgePicker" data-max="{{ max_badges }}">
-            <legend class="customize-section-title">{{ 'Vitrine de badges' if fr else 'Badge showcase' }} <span class="customize-counter" data-counter></span></legend>
-            <p class="customize-help">{{ 'Jusqu’à 3 badges débloqués affichés en haut de ton profil. Si tu n’en coches aucun, tes 3 badges les plus rares sont choisis automatiquement.' if fr else 'Up to 3 unlocked badges shown at the top of your profile. If you pick none, your 3 rarest badges are chosen automatically.' }}</p>
-            {% if badges %}
-            <div class="pick-grid">
-                {% for badge in badges %}
-                <label class="pick-card rarity-{{ badge.rarity }}">
-                    <input type="checkbox" name="featured_badges" value="{{ badge.id }}" {% if badge.id in settings.featured_badges %}checked{% endif %}>
-                    <span class="profile-showcase-item rarity-{{ badge.rarity }}" data-showcase-item>
-                        <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
-                        <span class="profile-showcase-text">
-                            <span class="profile-showcase-name">{{ badge.name }}</span>
-                            <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
-                        </span>
-                    </span>
-                </label>
+            <div class="cz-row {% if layout.private %}is-disabled{% endif %}" id="layoutVisibility">
+                <div class="cz-row-head">
+                    <h2 class="cz-row-title">{{ 'Blocs visibles par les visiteurs' if fr else 'Blocks visible to visitors' }}</h2>
+                    <p class="cz-row-desc">{{ 'Tu vois toujours tous tes blocs ; les blocs masqués portent la mention « Masqué aux visiteurs ».' if fr else 'You always see all your blocks; hidden ones are tagged "Hidden from visitors".' }}</p>
+                </div>
+                {% set hidden = settings.layout.hidden or [] %}
+                {% for group_label, keys in [
+                    ('En-tête et résumé' if fr else 'Header and summary', ['showcase', 'records']),
+                    ('Onglet Activité' if fr else 'Activity tab', ['streaks', 'heatmap', 'hourly', 'companions']),
+                    ('Autres onglets' if fr else 'Other tabs', ['tab_charts', 'tab_servers', 'tab_badges']),
+                ] %}
+                <div class="cz-group">
+                    <div class="cz-group-title">{{ group_label }}</div>
+                    {% for key in keys %}{{ switch('layout_visible', key, key not in hidden, block_labels[key]) }}{% endfor %}
+                </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <p class="customize-help">{{ 'Tu n’as pas encore débloqué de badge.' if fr else 'You have not unlocked any badge yet.' }}</p>
-            {% endif %}
-        </fieldset>
+        </section>
 
-        <!-- 5. Pinned records -->
-        <fieldset class="gray-box small-border-radius customize-section" id="recordPicker" data-max="{{ max_records }}">
-            <legend class="customize-section-title">{{ 'Records épinglés' if fr else 'Pinned records' }} <span class="customize-counter" data-counter></span></legend>
-            <p class="customize-help">{{ 'Jusqu’à 4 records affichés au-dessus des onglets de ton profil.' if fr else 'Up to 4 records shown above the tabs of your profile.' }}</p>
-            {% if records %}
-            <div class="pick-grid pick-grid-records">
-                {% for key, record in records.items() %}
-                <label class="pick-card">
-                    <input type="checkbox" name="pinned_records" value="{{ key }}" {% if key in pinned_keys %}checked{% endif %}>
-                    <span class="profile-record">
-                        <span class="profile-record-icon">{{ record.icon | safe }}</span>
-                        <span class="profile-record-label">{{ record.label }}</span>
-                        <span class="profile-record-value">{% if record.value is number %}{{ record.value | num(record.decimals) }}{% else %}{{ record.value }}{% endif %}{% if record.unit %} <small>{{ record.unit }}</small>{% endif %}</span>
-                        {% if record.sub %}<span class="profile-record-sub">{{ record.sub }}</span>{% endif %}
-                    </span>
-                </label>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="customize-help">{{ 'Pas encore assez d’activité pour établir des records.' if fr else 'Not enough activity yet to set records.' }}</p>
-            {% endif %}
-        </fieldset>
-
-        <!-- 6. Layout and privacy -->
-        <fieldset class="gray-box small-border-radius customize-section">
-            <legend class="customize-section-title">{{ 'Mise en page et confidentialité' if fr else 'Layout and privacy' }}</legend>
-            <p class="customize-help">{{ 'Tu vois toujours tous tes blocs ; ceux que tu masques portent la mention « Masqué aux visiteurs » et ne sont pas envoyés aux autres.' if fr else 'You always see all your blocks; hidden ones are tagged "Hidden from visitors" and are not sent to others.' }}</p>
-
-            <div class="layout-subtitle">{{ 'Ordre de l’onglet Activité' if fr else 'Order of the Activity tab' }}</div>
-            <ol class="layout-order" id="layoutOrder">
-                {% for key in layout.order %}
-                <li class="layout-order-item">
-                    <input type="hidden" name="layout_order" value="{{ key }}">
-                    <span class="layout-order-name">{{ block_labels[key] }}</span>
-                    <span class="layout-order-buttons">
-                        <button type="button" class="layout-move" data-move="-1" aria-label="{{ 'Monter' if fr else 'Move up' }}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                        </button>
-                        <button type="button" class="layout-move" data-move="1" aria-label="{{ 'Descendre' if fr else 'Move down' }}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                        </button>
-                    </span>
-                </li>
-                {% endfor %}
-            </ol>
-
-            <div class="layout-subtitle">{{ 'Visible par les visiteurs' if fr else 'Visible to visitors' }}</div>
-            <div class="layout-visibility {% if layout.private %}is-disabled{% endif %}" id="layoutVisibility">
-                {% for key, label in block_labels.items() %}
-                <label class="layout-toggle">
-                    <input type="checkbox" name="layout_visible" value="{{ key }}" {% if key not in (settings.layout.hidden or []) %}checked{% endif %}>
-                    <span>{{ label }}</span>
-                </label>
-                {% endfor %}
-            </div>
-
-            <label class="choice layout-private">
-                <input type="checkbox" name="layout_private" value="1" id="layoutPrivate" {% if layout.private %}checked{% endif %}>
-                <span class="choice-body">
-                    <span class="choice-title">{{ 'Profil privé' if fr else 'Private profile' }}</span>
-                    <span class="choice-desc">{{ 'Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, les comparaisons Versus et les fiches serveur.' if fr else 'Visitors only see your header, level and totals. You stay visible in leaderboards, Versus comparisons and server pages.' }}</span>
-                </span>
-            </label>
-        </fieldset>
-
-        <div class="customize-actions">
+        <div class="cz-savebar">
+            <span class="cz-dirty" id="dirtyHint" hidden>{{ 'Modifications non enregistrées' if fr else 'Unsaved changes' }}</span>
             <button type="submit" class="btn-customize-save">{{ 'Enregistrer' if fr else 'Save' }}</button>
         </div>
     </form>
 
-    <!-- Live preview -->
-    <aside class="customize-preview" aria-label="{{ 'Aperçu' if fr else 'Preview' }}">
-        <div class="customize-preview-label">{{ 'Aperçu' if fr else 'Preview' }}</div>
+    <!-- Live preview (same header as the profile page) -->
+    <aside class="cz-preview" aria-label="{{ 'Aperçu' if fr else 'Preview' }}">
+        <div class="cz-preview-label">{{ 'Aperçu' if fr else 'Preview' }}</div>
         <div id="profilePreview" class="profile-themed {% if theme.is_custom %}accent-custom{% endif %}" style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};"
              data-discord-banner="{{ theme.discord_banner_url or '' }}">
             <div class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}" style="margin: 0;">
@@ -202,27 +206,36 @@
                     <img src="{{ theme.discord_banner_url or '' }}" alt="" loading="eager" data-fallback="hide" {% if not theme.banner_url %}hidden{% endif %}>
                 </div>
                 <div class="profile-hero-body">
-                    <div class="profile-hero-identity" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                    <div class="profile-hero-main cz-preview-main">
                         <div class="profile-avatar-wrap">
                             <img src="{{ current_user.avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp" alt="">
                         </div>
-                        <div style="min-width: 0;">
-                            <div class="customize-preview-name">{{ member.username or current_user.username }}</div>
-                            <span class="customize-preview-level">{{ t('profile.level_badge', level=xp.level) }} • {{ xp.title_fr if fr else xp.title_en }}</span>
+                        <div class="profile-hero-info">
+                            <div class="profile-hero-name cz-preview-name">{{ member.username or current_user.username }}</div>
+                            <div class="profile-hero-meta"><span class="profile-hero-title">{{ xp.title_fr if fr else xp.title_en }}</span></div>
                         </div>
                     </div>
-                    <a class="profile-fav-server" id="previewFavorite" {% if not favorite_server %}hidden{% endif %}>
-                        <img src="{{ (favorite_server.avatar if favorite_server else '') or url_for('static', filename='icons/server.png') }}" alt="">
-                        <span class="profile-fav-server-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</span>
-                        <span class="profile-fav-server-name">{{ favorite_server.server_name if favorite_server else '' }}</span>
-                        <span class="profile-fav-server-meta">{% if favorite_server %}#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h{% endif %}</span>
-                    </a>
-                    <div class="profile-showcase" id="previewShowcase" data-auto="{{ showcase | map(attribute='id') | join(',') }}"></div>
-                    <div class="user-xp-bar-bg" style="margin-top: 18px;">
-                        <div class="user-xp-bar-fill" style="width: {{ xp.progress_percent }}%;"></div>
+                    <div class="profile-level">
+                        <div class="user-level-circle">
+                            <span class="user-level-num">{{ xp.level }}</span>
+                            <span class="user-level-sub">LVL</span>
+                        </div>
+                        <div class="profile-level-body">
+                            <div class="profile-level-line">
+                                <strong>{{ t('profile.level_badge', level=xp.level) }}</strong>
+                                <span class="user-level-pct">{{ xp.progress_percent | num(1) }} %</span>
+                            </div>
+                            <div class="user-xp-bar-bg"><div class="user-xp-bar-fill" style="width: {{ xp.progress_percent }}%;"></div></div>
+                        </div>
                     </div>
-                    <div class="customize-preview-heatmap" aria-hidden="true">
-                        {% for level in [0, 1, 2, 0, 3, 4, 2, 1, 0, 2, 3, 3, 4, 1, 0, 2, 4, 3, 1, 2, 0] %}<span class="heatmap-cell heatmap-level-{{ level }}"></span>{% endfor %}
+                    <div class="profile-hero-footer cz-preview-footer">
+                        <a class="profile-fav-server" id="previewFavorite" {% if not favorite_server %}hidden{% endif %}>
+                            <img src="{{ (favorite_server.avatar if favorite_server else '') or url_for('static', filename='icons/server.png') }}" alt="">
+                            <span class="profile-fav-server-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</span>
+                            <span class="profile-fav-server-name">{{ favorite_server.server_name if favorite_server else '' }}</span>
+                            <span class="profile-fav-server-meta">{% if favorite_server %}#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h{% endif %}</span>
+                        </a>
+                        <div class="profile-showcase" id="previewShowcase" data-auto="{{ showcase | map(attribute='id') | join(',') }}"></div>
                     </div>
                 </div>
             </div>

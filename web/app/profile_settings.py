@@ -1,5 +1,5 @@
 """Profile customization stored in user_profile_settings: accent color, banner, favorite server,
-featured badges, pinned records and block layout (order, visibility, private mode).
+featured badges, pinned records and block visibility (per block or private mode).
 
 Reads never fail a page: if the table is missing (migration not applied yet) or the query errors,
 the profile falls back to the default look.
@@ -34,8 +34,8 @@ DISCORD_ACCENT = "discord"  # the accent color of the member's Discord profile
 
 BANNER_MODES = ("auto", "gradient", "none")  # auto = Discord banner when known, else gradient
 
-# Sections of the "Activité" tab, in their default order (the member can reorder them)
-ORDERABLE_BLOCKS = ["streaks", "heatmap", "hourly", "companions"]
+# Sections of the "Activité" tab, in display order
+ACTIVITY_BLOCKS = ["streaks", "heatmap", "hourly", "companions"]
 # Blocks the member can hide from visitors (key: label fr, label en)
 HIDEABLE_BLOCKS = {
     "showcase": ("Vitrine de badges", "Badge showcase"),
@@ -44,9 +44,9 @@ HIDEABLE_BLOCKS = {
     "heatmap": ("Calendrier d’activité", "Activity calendar"),
     "hourly": ("Rythme horaire", "Hourly rhythm"),
     "companions": ("Compagnons vocaux", "Voice companions"),
-    "tab_charts": ("Onglet Graphiques", "Charts tab"),
-    "tab_servers": ("Onglet Serveurs fréquentés", "Servers tab"),
-    "tab_badges": ("Onglet Badges", "Badges tab"),
+    "tab_charts": ("Graphiques", "Charts"),
+    "tab_servers": ("Serveurs fréquentés", "Servers"),
+    "tab_badges": ("Badges", "Badges"),
 }
 
 DEFAULTS = {
@@ -209,18 +209,16 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
 
 
 def resolve_layout(settings: dict, is_owner: bool) -> dict:
-    """Order and visibility of the profile blocks for this viewer.
+    """Visibility of the profile blocks for this viewer.
 
     The owner always sees every block (hidden ones are tagged "hidden from visitors"); visitors do not
     receive hidden blocks at all, not even their data. Private mode hides every block below the totals.
     """
     layout = settings.get("layout") or {}
-    order = [k for k in layout.get("order", []) if k in ORDERABLE_BLOCKS]
-    order += [k for k in ORDERABLE_BLOCKS if k not in order]
     private = bool(layout.get("private"))
     hidden = set(HIDEABLE_BLOCKS) if private else {k for k in layout.get("hidden", []) if k in HIDEABLE_BLOCKS}
     return {
-        "order": order,
+        "order": ACTIVITY_BLOCKS,
         "hidden": {k: k in hidden for k in HIDEABLE_BLOCKS},
         "visible": {k: is_owner or k not in hidden for k in HIDEABLE_BLOCKS},
         "private": private,

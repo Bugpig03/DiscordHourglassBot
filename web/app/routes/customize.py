@@ -18,7 +18,6 @@ from app.profile_settings import (
     BANNER_MODES,
     DISCORD_ACCENT,
     HIDEABLE_BLOCKS,
-    ORDERABLE_BLOCKS,
     PALETTE,
     PALETTE_HEX,
     discord_accent_hex,
@@ -103,11 +102,8 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
     featured = list(dict.fromkeys(i for i in request.form.getlist("featured_badges") if i in unlocked))[:MAX_FEATURED_BADGES]
     pinned = list(dict.fromkeys(k for k in request.form.getlist("pinned_records") if k in RECORD_CATALOG))[:MAX_PINNED_RECORDS]
 
-    order = list(dict.fromkeys(k for k in request.form.getlist("layout_order") if k in ORDERABLE_BLOCKS))
-    order += [k for k in ORDERABLE_BLOCKS if k not in order]
     visible = set(request.form.getlist("layout_visible"))
     layout = {
-        "order": order,
         "hidden": [k for k in HIDEABLE_BLOCKS if k not in visible],
         "private": request.form.get("layout_private") == "1",
     }
