@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.10.1 - Pagination Moderne des Classements & Annuaires - 17/10/2026
+### UX
+- **Nouvelle pagination partagée** (`/top/users`, `/top/servers`, `/users`, `/servers`) remplaçant « Précédent · Page X sur Y · Suivant » :
+  - Numéros de page cliquables avec première et dernière page toujours visibles et ellipses (`1 … 4 5 6 … 37`).
+  - Flèches précédent / suivant fixes (grisées aux extrémités).
+  - Champ « Aller à » pour sauter directement à une page (listes de plus de 7 pages).
+  - Raccourcis clavier ← / → pour changer de page (inactifs pendant la saisie et dans la recherche globale).
+  - Tous les filtres actifs (période, tri, serveur, recherche) sont conservés dans les liens.
+  - Version compacte sur mobile (pages éloignées masquées), `aria-current` et libellés accessibles.
+- Les numéros de page invalides ou hors limites sont ramenés à la page la plus proche.
+
 ## Version 2.10.0 - Liste des Membres Paginée & Calendrier d'Activité Fiable - 17/10/2026
 ### Performance
 - **Fiche serveur : membres chargés par tranches de 50** : seuls les 50 premiers membres du classement sont rendus avec la page (≈ 580 Ko → ≈ 230 Ko de HTML sur un serveur de 135 membres) ; un bouton « Voir plus (N restants) » ajoute les suivants sans recharger via `GET /server/<id>/members?offset=…` (recherche `q` conservée). Sans JavaScript, le bouton reste un lien vers la liste complète (`?all=1`).

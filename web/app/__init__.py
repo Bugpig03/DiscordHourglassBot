@@ -71,6 +71,32 @@ def create_app():
                 response.set_data(optimized)
         return response
 
+    def page_url(page: int) -> str:
+        """URL of the current page with another ?page=, keeping every active filter (period, sort, search...)."""
+        args = request.args.to_dict(flat=True)
+        args.pop("page", None)
+        if page > 1:
+            args["page"] = page
+        return url_for(request.endpoint, **(request.view_args or {}), **args)
+
+    def pagination_items(current: int, total: int) -> list[int | None]:
+        """Page numbers to display: first, last and a window around the current page; None marks a gap (…)."""
+        if total <= 7:
+            return list(range(1, total + 1))
+        left, right = max(2, current - 1), min(total - 1, current + 1)
+        if current <= 3:
+            left, right = 2, 4
+        elif current >= total - 2:
+            left, right = total - 3, total - 1
+        items = [1]
+        if left > 2:
+            items.append(None)
+        items.extend(range(left, right + 1))
+        if right < total - 1:
+            items.append(None)
+        items.append(total)
+        return items
+
     def asset_version(filename: str) -> int:
         """Cache-busting token for a static file: changes whenever the file changes on disk."""
         try:
@@ -90,6 +116,8 @@ def create_app():
             "user_tz": get_user_timezone(),
             "app_version": Config.APP_VERSION,
             "asset_version": asset_version,
+            "page_url": page_url,
+            "pagination_items": pagination_items,
             "app_version_date": Config.APP_VERSION_DATE,
             "current_user": get_current_user(),
             "is_authenticated": is_authenticated(),

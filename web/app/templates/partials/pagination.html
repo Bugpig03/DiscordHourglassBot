@@ -1,0 +1,55 @@
+{# Shared pager for paginated lists. Usage: {% from "partials/pagination.html" import pagination %}{{ pagination(current_page, total_pages) }} #}
+{% macro pagination(current_page, total_pages) %}
+{% if total_pages > 1 %}
+{% set current_page = [[current_page, 1]|max, total_pages]|min %}
+{% set is_fr = current_lang == 'fr' %}
+<nav class="pager" aria-label="{{ 'Pagination' if is_fr else 'Pagination' }}"
+     {% if current_page > 1 %}data-prev="{{ page_url(current_page - 1) }}"{% endif %}
+     {% if current_page < total_pages %}data-next="{{ page_url(current_page + 1) }}"{% endif %}>
+    <div class="pager-pages">
+        {% if current_page > 1 %}
+        <a class="pager-btn pager-arrow" href="{{ page_url(current_page - 1) }}" rel="prev" aria-label="{{ 'Page précédente' if is_fr else 'Previous page' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        {% else %}
+        <span class="pager-btn pager-arrow is-disabled" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </span>
+        {% endif %}
+
+        {% for item in pagination_items(current_page, total_pages) %}
+            {% if item is none %}
+            <span class="pager-gap" aria-hidden="true">…</span>
+            {% elif item == current_page %}
+            <span class="pager-btn is-current" aria-current="page">{{ item }}</span>
+            {% else %}
+            <a class="pager-btn{% if (item - current_page)|abs > 1 and item != 1 and item != total_pages %} pager-far{% endif %}" href="{{ page_url(item) }}"
+               aria-label="{{ 'Page ' ~ item }}">{{ item }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if current_page < total_pages %}
+        <a class="pager-btn pager-arrow" href="{{ page_url(current_page + 1) }}" rel="next" aria-label="{{ 'Page suivante' if is_fr else 'Next page' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        {% else %}
+        <span class="pager-btn pager-arrow is-disabled" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+        {% endif %}
+    </div>
+
+    {% if total_pages > 7 %}
+    {# Jump to page: a plain GET form that keeps the active filters as hidden fields #}
+    <form class="pager-jump" method="get" action="{{ url_for(request.endpoint, **(request.view_args or {})) }}">
+        {% for key, value in request.args.items() if key != 'page' %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+        <label for="pagerJump">{{ 'Aller à' if is_fr else 'Go to' }}</label>
+        <input id="pagerJump" type="number" name="page" min="1" max="{{ total_pages }}" inputmode="numeric" placeholder="{{ current_page }}">
+        <span class="pager-total">/ {{ total_pages }}</span>
+    </form>
+    {% endif %}
+</nav>
+{% endif %}
+{% endmacro %}

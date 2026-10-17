@@ -363,6 +363,19 @@
         let searchDebounceTimer = null;
         let currentSelectedIndex = -1;
 
+        // Pager: ← / → change page when the keyboard is not busy with a field or the search modal
+        document.addEventListener('keydown', function(e) {
+            if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            const tag = (document.activeElement && document.activeElement.tagName) || '';
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement.isContentEditable) return;
+            const modal = document.getElementById('globalSearchModal');
+            if (modal && modal.style.display === 'flex') return;
+            const pager = document.querySelector('.pager');
+            const target = pager && pager.dataset[e.key === 'ArrowLeft' ? 'prev' : 'next'];
+            if (target) window.location.href = target;
+        });
+
         function openGlobalSearch() {
             const modal = document.getElementById('globalSearchModal');
             const input = document.getElementById('globalSearchInput');

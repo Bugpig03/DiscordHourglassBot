@@ -3,6 +3,7 @@
 {% block title %}{{ t('top.servers_title') }}{% endblock %}
 
 {% block content %}
+{% from "partials/pagination.html" import pagination with context %}
 <h1 class="sr-only">{{ self.title() | replace(' - Hourglass', '') }}</h1>
 <div class="hub-nav-bar">
     <a href="{{ url_for('top.top_servers') }}" class="hub-nav-pill active">
@@ -87,26 +88,7 @@
     {% endfor %}
 
     <!-- Pagination -->
-    <div class="page-box">
-        {% set current_page = request.args.get('page', 1)|int %}
-        {% if current_page > 1 %}
-            <a class="page-link" href="{{ url_for('top.top_servers', 
-                page=current_page - 1, 
-                period=request.args.get('period'), 
-                sort_by=request.args.get('sort_by')
-            )}}">{{ t('top.page_prev') }}</a>
-        {% endif %}
-
-        <span class="page-link-selected">{{ t('top.page_format', current=current_page, total=total_pages) }}</span>
-
-        {% if current_page < total_pages %}
-            <a class="page-link" href="{{ url_for('top.top_servers', 
-                page=current_page + 1, 
-                period=request.args.get('period'), 
-                sort_by=request.args.get('sort_by')
-            )}}">{{ t('top.page_next') }}</a>
-        {% endif %}
-    </div>
+    {{ pagination(request.args.get('page', 1)|int(1), total_pages) }}
 {% else %}
     <div class="gray-box small-border-radius center" style="padding: 40px 20px;">
         <p class="medium-text gray">{{ t('top.no_servers') }}</p>

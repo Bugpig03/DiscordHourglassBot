@@ -3,6 +3,7 @@
 {% block title %}{{ t('users.title') }}{% endblock %}
 
 {% block content %}
+{% from "partials/pagination.html" import pagination with context %}
 <h1 class="big-bold-text">{{ t('users.heading') }}</h1>
 
 <div class="hub-nav-bar">
@@ -81,20 +82,7 @@
     </div>
 
     <!-- Pagination -->
-    <div class="page-box">
-        {% set current_page = request.args.get('page', 1)|int %}
-        {% set current_search = request.args.get('q', '') %}
-
-        {% if current_page > 1 %}
-            <a class="page-link" href="{{ url_for('users.users', page=current_page - 1, q=current_search) }}">{{ t('top.page_prev') }}</a>
-        {% endif %}
-
-        <span class="page-link-selected">{{ t('top.page_format', current=current_page, total=total_pages) }}</span>
-
-        {% if current_page < total_pages %}
-            <a class="page-link" href="{{ url_for('users.users', page=current_page + 1, q=current_search) }}">{{ t('top.page_next') }}</a>
-        {% endif %}
-    </div>
+    {{ pagination(request.args.get('page', 1)|int(1), total_pages) }}
 {% else %}
     <div class="gray-box small-border-radius center" style="padding: 40px 20px;">
         <p class="medium-text gray">
