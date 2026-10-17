@@ -374,7 +374,7 @@
         </div>
         <div class="user-level-next-info">
             <span class="small-text gray">{{ t('profile.next_level_label', target=(gamification.xp_info.next_level_target_xp | thousands_fr)) }}</span>
-            <span class="user-level-pct">{{ gamification.xp_info.progress_percent }}%</span>
+            <span class="user-level-pct">{{ gamification.xp_info.progress_percent | num(1) }} %</span>
         </div>
     </div>
     <div class="user-xp-bar-bg">
@@ -514,7 +514,7 @@
             <div class="dashboard-kpi-footer">
                 <div class="dashboard-kpi-pill pill-emerald">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>{{ ((heatmap_annual.total_active_days / 365 * 100) | round(1)) }}% {{ 'd\'assiduité' if current_lang == 'fr' else 'active rate' }}</span>
+                    <span>{{ (heatmap_annual.total_active_days / 365 * 100) | num(1) }} % {{ 'd\'assiduité' if current_lang == 'fr' else 'active rate' }}</span>
                 </div>
             </div>
         </div>
@@ -537,7 +537,7 @@
             <div class="dashboard-kpi-footer">
                 <div class="dashboard-kpi-pill pill-blue">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span>{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.date }}{% else %}{{ 'Aucune donnée' if current_lang == 'fr' else 'No data' }}{% endif %}</span>
+                    <span>{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.label }}{% else %}{{ 'Aucune donnée' if current_lang == 'fr' else 'No data' }}{% endif %}</span>
                 </div>
             </div>
         </div>

@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.10.0 - Liste des Membres Paginée & Calendrier d'Activité Fiable - 17/10/2026
+### Performance
+- **Fiche serveur : membres chargés par tranches de 50** : seuls les 50 premiers membres du classement sont rendus avec la page (≈ 580 Ko → ≈ 230 Ko de HTML sur un serveur de 135 membres) ; un bouton « Voir plus (N restants) » ajoute les suivants sans recharger via `GET /server/<id>/members?offset=…` (recherche `q` conservée). Sans JavaScript, le bouton reste un lien vers la liste complète (`?all=1`).
+- Les statuts de présence des membres restent réservés aux membres du serveur, y compris dans les tranches chargées à la demande.
+
+### Corrections
+- **« Journée record » et calendrier d'activité réalistes** : les relevés d'archive couvrant plusieurs jours (relevés mensuels de l'ancienne routine) étaient imputés en bloc à leur premier jour, produisant des journées de plus de 300 h. Ils n'ont pas de détail par jour et sont désormais exclus du calendrier, de la journée record et des séries (ils restent comptés dans les totaux, les graphiques mensuels et l'XP).
+- **Sessions à cheval sur minuit** : le temps vocal en direct est découpé entre les deux jours selon le temps réellement passé, et chaque journée est plafonnée à 24 h.
+- **Formats localisés** : date de la journée record (« 3 sept 2026 » au lieu de « 2026-09-03 ») et pourcentages (progression d'XP, assiduité) suivent la langue du site.
+
 ## Version 2.9.1 - Favicon Visible, Accessibilité & Formatage des Nombres - 17/10/2026
 ### Identité visuelle
 - **Favicon sur pastille ronde `#5865F2`** : le logo pixel-art d'origine (21×21, inchangé pixel pour pixel) est désormais posé sur un disque bleu Discord. Il ne disparaît plus sur les onglets clairs, les résultats Google et les favoris.

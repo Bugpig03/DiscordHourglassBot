@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, abort, make_response, render_template, request, redirect, url_for
 from peewee import JOIN, fn
 from app.database import Users, Stats, VoiceSessions, Servers, UserPresence
 from app.gamification import calculate_user_xp_and_level
@@ -41,6 +41,9 @@ server_profile_bp = Blueprint("server_profile", __name__)
 # User ID of the Hourglass bot used to track server join dates
 HOURGLASS_BOT_ID = 1210665993328926750
 
+# Members rendered with the page; the rest is loaded on demand ("Voir plus") to keep big servers light
+MEMBERS_PAGE_SIZE = 50
+
 
 @server_profile_bp.route("/server/<server_id>", methods=["GET"])
 def server(server_id: str):
@@ -67,7 +70,29 @@ def server(server_id: str):
         punchcard=punchcard,
         can_view_sessions=has_server_access,
         can_view_presence=True,
+        members_page_size=MEMBERS_PAGE_SIZE,
+        show_all_members=request.args.get("all") == "1",
     )
+
+
+@server_profile_bp.route("/server/<server_id>/members", methods=["GET"])
+def server_members_page(server_id: str):
+    """Return the next slice of the ranked member list as HTML rows (used by the "Voir plus" button)."""
+    if not str(server_id).isdigit() or get_servername_by_server_id(server_id) is None:
+        abort(404)
+
+    offset = max(0, request.args.get("offset", 0, type=int))
+    search_query = request.args.get("q", "").strip()
+    lang = request.cookies.get("lang", "fr")
+    members = load_users_from_server(
+        server_id, search_query, lang=lang, has_server_access=can_view_server_private_data(server_id)
+    )
+    page = members[offset:offset + MEMBERS_PAGE_SIZE]
+
+    response = make_response(render_template("partials/server_member_rows.html", users=page))
+    response.headers["X-Remaining"] = str(max(0, len(members) - offset - len(page)))
+    response.headers["Cache-Control"] = "private, no-store"
+    return response
 
 
 def load_server_profile_stats(server_id: str | int, search_query: str = "", lang: str = "fr", has_server_access: bool = True) -> dict:

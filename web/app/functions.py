@@ -1893,16 +1893,39 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
 
     from app.database import db
 
-    # 1. Heures vocales par jour depuis voice_sessions (localisé)
+    # 1. Heures vocales par jour (localisé). Plafond de 24 h par jour.
+    # - Sessions en direct : découpées à minuit selon le temps réellement passé de chaque côté.
+    # - Sessions d'archive (is_legacy) : seuls les relevés quotidiens (3 h -> 3 h) ont une résolution journalière
+    #   et sont imputés à leur jour. Les relevés couvrant plusieurs jours (mensuels, interruptions de la routine)
+    #   n'ont pas de détail par jour : ils restent dans les totaux et graphiques mensuels mais pas dans le
+    #   calendrier, la journée record ni les séries (ils produisaient des « journées » de plus de 300 h).
     voice_sql = f"""
-        SELECT DATE(joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') AS day,
-               COALESCE(SUM(
+        WITH sessions AS (
+            SELECT (joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') AS s_start,
+                   (COALESCE(left_at, NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}') AS s_end,
                    CASE WHEN left_at IS NOT NULL THEN duration_seconds
-                        ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
-               ), 0) AS total_seconds
-        FROM voice_sessions
-        WHERE user_id = %s AND joined_at >= %s
-        GROUP BY DATE(joined_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')
+                        ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END AS secs,
+                   is_legacy
+            FROM voice_sessions
+            WHERE user_id = %s AND COALESCE(left_at, NOW() AT TIME ZONE 'UTC') >= %s
+        ),
+        daily_parts AS (
+            SELECT gs::date AS day,
+                   CASE WHEN s.s_end <= s.s_start THEN s.secs
+                        ELSE s.secs * GREATEST(0, EXTRACT(EPOCH FROM (LEAST(s.s_end, gs + INTERVAL '1 day') - GREATEST(s.s_start, gs))))
+                             / EXTRACT(EPOCH FROM (s.s_end - s.s_start))
+                   END AS part
+            FROM sessions s
+            CROSS JOIN LATERAL generate_series(date_trunc('day', s.s_start), date_trunc('day', s.s_end), INTERVAL '1 day') AS gs
+            WHERE NOT s.is_legacy
+            UNION ALL
+            SELECT s.s_start::date AS day, s.secs AS part
+            FROM sessions s
+            WHERE s.is_legacy AND s.s_end - s.s_start <= INTERVAL '36 hours'
+        )
+        SELECT day, LEAST(86400, ROUND(SUM(part)))::INT AS total_seconds
+        FROM daily_parts
+        GROUP BY day
     """
     voice_cursor = db.execute_sql(voice_sql, (user_id, start_date))
     voice_by_day = {row[0].strftime("%Y-%m-%d"): int(row[1]) for row in voice_cursor.fetchall()}
@@ -1957,7 +1980,12 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
 
         if v_sec > max_day_seconds:
             max_day_seconds = v_sec
-            best_day = {"date": date_str, "hours": v_hrs, "messages": m_cnt}
+            best_day = {
+                "date": date_str,
+                "label": f"{curr.day} {get_month_abbr(curr.month, lang) if lang == 'en' else get_month_abbr(curr.month, lang).lower()} {curr.year}",
+                "hours": v_hrs,
+                "messages": m_cnt,
+            }
 
         day_list.append({
             "date": date_str,

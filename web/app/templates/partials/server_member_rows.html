@@ -1,0 +1,46 @@
+{# One row per server member; rendered with the page and by GET /server/<id>/members ("Voir plus") #}
+{% for user in users %}
+<div class="gray-box small-border-radius dynamic link" style="padding: 14px 18px; margin: 0;">
+    <a class="link" href="{{ url_for('user_profile.profile', username=user.user_id or user.username) }}" style="width: 100%;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            
+            <!-- Rank & User Info -->
+            <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
+                <span class="rank-badge {% if user.rank == 1 %}rank-1{% elif user.rank == 2 %}rank-2{% elif user.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+                    #{{ user.rank }}
+                </span>
+
+                <div style="position: relative; width: 48px; height: 48px; min-width: 48px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;">
+                    <img src="{{ user.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                         class="small-pp"
+                         style="display: block; width: 48px; height: 48px; margin: 0; {% if user.is_in_voice %}border: 2.5px solid #23a55a !important; box-shadow: 0 0 10px rgba(35, 165, 90, 0.6) !important;{% endif %}"
+                         alt="avatar" onerror="this.onerror=null; this.src='{{ fallback_avatar or url_for('static', filename='images/base_avatar_big.png') }}';">
+                    {% if user.presence and user.presence.status != 'offline' %}
+                    <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: {{ user.presence.color }}; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" title="{{ user.presence.label_fr if current_lang == 'fr' else user.presence.label_en }}"></span>
+                    {% elif user.is_in_voice %}
+                    <span style="position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; border-radius: 50%; background: #64748b; border: 2.5px solid #141f2e; box-sizing: border-box; z-index: 2;" title="{{ 'Invisible / Hors ligne' if current_lang == 'fr' else 'Invisible / Offline' }}"></span>
+                    {% endif %}
+                </div>
+
+                <div style="min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span class="medium-bold-text text-overflow nomargin" style="font-size: 1.05rem;">
+                        {{ user.username }}
+                    </span>
+                    <span class="user-level-tag {% if user.level >= 40 %}tier-master{% elif user.level >= 20 %}tier-veteran{% elif user.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">{{ t('common.level_tag', level=user.level) }}</span>
+                </div>
+            </div>
+
+            <!-- User Metrics Badges -->
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span class="hours-fixed" style="font-size: 0.85rem; padding: 4px 12px;" title="{{ user.formatted_time }}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ user.time_spent | thousands_fr }} {{ t('top.hours_unit') }}
+                </span>
+                <span class="messages-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ user.messages_count | thousands_fr }} {{ t('top.msgs_unit') }}
+                </span>
+            </div>
+
+        </div>
+    </a>
+</div>
+{% endfor %}
