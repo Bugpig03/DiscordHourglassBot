@@ -5572,3 +5572,213 @@ form[data-live-form]:not(.has-value) .page-search-clear {
   background: #4752c4 !important;
   transform: translateY(-1px);
 }
+
+/* --------------------------------------------------------------------------
+   Members / Servers pages (v3): heading + one filter row with live search
+   -------------------------------------------------------------------------- */
+.members-page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0 16px;
+}
+
+.top-search-group {
+  flex: 1 1 220px;
+}
+
+.top-search-bar {
+  min-height: 40px;
+}
+
+.server-untracked-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   "Mon espace" (home page, logged-in member): same surfaces as the hero
+   -------------------------------------------------------------------------- */
+.dashboard-hero.my-space {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+  padding: 26px 28px;
+}
+
+.my-space-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.my-space-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 2px solid rgba(56, 189, 248, 0.45);
+  object-fit: cover;
+}
+
+.my-space-identity {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.my-space-title {
+  margin: 0 0 8px;
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-space-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.my-space-rank {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.my-space-xp {
+  margin-top: 12px;
+  height: 6px;
+  max-width: 420px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.my-space-xp-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+}
+
+.my-space-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.my-space-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.my-space-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.my-space-kpi-label {
+  color: #8b9bb0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.my-space-kpi-value {
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-space-kpi-sub {
+  color: #8b9bb0;
+  font-size: 0.82rem;
+}
+
+.my-space-servers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-space-server-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.my-space-server {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.my-space-server:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.my-space-server img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.my-space-server-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-space-server-hours {
+  color: #38bdf8;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .my-space-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.top-form .top-label {
+  white-space: nowrap;
+}

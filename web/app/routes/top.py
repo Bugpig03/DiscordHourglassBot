@@ -1,8 +1,8 @@
-"""Top leaderboard routes for users and servers."""
+"""Members and servers pages (v3): one ranked, searchable list each, replacing the former directories."""
 
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request
-from peewee import fn, SQL
+from flask import Blueprint, redirect, render_template, request, url_for
+from peewee import fn, SQL, JOIN
 from app.database import Users, Stats, Servers, VoiceSessions, MessageEvents
 from app.gamification import calculate_user_xp_and_level
 
@@ -21,9 +21,9 @@ PERIOD_MAP = {
 }
 
 
-@top_bp.route("/top/users", methods=["GET"])
+@top_bp.route("/members", methods=["GET"])
 def top_users():
-    """Render the user leaderboard with filtering by period, server, and sorting criterion."""
+    """Members page: ranking by voice/messages/XP or A–Z, with search, period and server filters."""
     users, total_pages = load_users()
     servers = list(Servers.select().order_by(Servers.servername))
     selected_server = None
@@ -43,11 +43,23 @@ def top_users():
     )
 
 
-@top_bp.route("/top/servers", methods=["GET"])
+@top_bp.route("/servers", methods=["GET"])
 def top_servers():
-    """Render the server leaderboard with filtering by period and sorting criterion."""
+    """Servers page: ranking by voice/messages or A–Z, with search and period filters."""
     servers, total_pages = load_servers()
     return render_template("top_servers.html", servers=servers, total_pages=total_pages)
+
+
+@top_bp.route("/top/users", methods=["GET"])
+def legacy_top_users():
+    """Former leaderboard URL: permanent redirect keeping every filter."""
+    return redirect(url_for("top.top_users", **request.args.to_dict()), code=301)
+
+
+@top_bp.route("/top/servers", methods=["GET"])
+def legacy_top_servers():
+    """Former leaderboard URL: permanent redirect keeping every filter."""
+    return redirect(url_for("top.top_servers", **request.args.to_dict()), code=301)
 
 
 def load_users() -> tuple[list[dict], int]:
@@ -56,15 +68,18 @@ def load_users() -> tuple[list[dict], int]:
     sort_by = request.args.get("sort_by", "hours")
     server_id = request.args.get("server_id", "all")
     page = request.args.get("page", 1, type=int)
+    search_query = request.args.get("q", "").strip()
 
     search_day = PERIOD_MAP.get(period)
 
-    # Base query for all users tracked in stats
+    # Every known user (members without tracked activity rank last with 0)
     query = (
         Users
         .select(Users.user_id, Users.username, Users.avatar)
-        .join(Stats, on=(Users.user_id == Stats.user_id))
+        .join(Stats, JOIN.LEFT_OUTER, on=(Users.user_id == Stats.user_id))
     )
+    if search_query:
+        query = query.where(Users.username.contains(search_query))
 
     if server_id != "all":
         query = query.where(Stats.server_id == int(server_id))
@@ -162,7 +177,9 @@ def load_users() -> tuple[list[dict], int]:
         r["level"] = xp_info["level"]
 
     # Sort results
-    if sort_by in ("xp", "level"):
+    if sort_by == "name":
+        results.sort(key=lambda x: (x["username"] or "").lower())
+    elif sort_by in ("xp", "level"):
         results.sort(key=lambda x: (x["xp"], x["seconds"], x["messages"]), reverse=True)
     elif sort_by == "messages":
         results.sort(key=lambda x: (x["messages"], x["seconds"]), reverse=True)
@@ -183,16 +200,19 @@ def load_servers() -> tuple[list[dict], int]:
     period = request.args.get("period", "all")
     sort_by = request.args.get("sort_by", "hours")
     page = request.args.get("page", 1, type=int)
+    search_query = request.args.get("q", "").strip()
 
     search_day = PERIOD_MAP.get(period)
 
-    # Base query for all active servers
+    # Every known server, including those the bot has left (flagged in the list)
     query = (
         Servers
-        .select(Servers.server_id, Servers.servername, Servers.avatar)
-        .join(Stats, on=(Servers.server_id == Stats.server_id))
+        .select(Servers.server_id, Servers.servername, Servers.avatar, Servers.is_bot_present)
+        .join(Stats, JOIN.LEFT_OUTER, on=(Servers.server_id == Stats.server_id))
         .group_by(Servers.server_id)
     )
+    if search_query:
+        query = query.where(Servers.servername.contains(search_query))
 
     if search_day:
         now = datetime.utcnow()
@@ -244,6 +264,7 @@ def load_servers() -> tuple[list[dict], int]:
                 "server_id": server.server_id,
                 "servername": server.servername,
                 "avatar_url": server.avatar,
+                "is_bot_present": server.is_bot_present,
                 "seconds": s_sec,
                 "messages": s_msg
             })
@@ -264,6 +285,7 @@ def load_servers() -> tuple[list[dict], int]:
                 "server_id": server.server_id,
                 "servername": server.servername,
                 "avatar_url": server.avatar,
+                "is_bot_present": server.is_bot_present,
                 "seconds": curr_map.get(server.server_id, (0, 0))[0],
                 "messages": curr_map.get(server.server_id, (0, 0))[1]
             }
@@ -271,7 +293,9 @@ def load_servers() -> tuple[list[dict], int]:
         ]
 
     # Sort results
-    if sort_by == "messages":
+    if sort_by == "name":
+        results.sort(key=lambda x: (x["servername"] or "").lower())
+    elif sort_by == "messages":
         results.sort(key=lambda x: x["messages"], reverse=True)
     else:
         results.sort(key=lambda x: x["seconds"], reverse=True)

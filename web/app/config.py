@@ -36,7 +36,7 @@ def load_app_version() -> tuple[str, str]:
                             return match.group(1), match.group(2)
             except Exception:
                 pass
-    return "2.8.8", "16/10/2026"
+    return "3.0.0", "17/10/2026"
 
 
 def load_secret_key() -> str:

@@ -1,5 +1,24 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.0.0 - Réorganisation du Site : Navigation à Plat, Pages Membres & Serveurs, Mon Espace - 17/10/2026
+### Navigation
+- **Barre du haut sans menus déroulants** : `Membres · Serveurs · Analyses · Versus`, recherche (Ctrl+K) et compte. Le logo mène à l'accueil ; « Support » devient « Aide & commandes » dans le pied de page.
+- **Fin des niveaux de navigation empilés** : les pastilles de section et les onglets Utilisateurs/Serveurs en haut des listes sont supprimés (jusqu'à 4 niveaux avant les résultats auparavant).
+
+### Pages Membres & Serveurs (fusion annuaire + classement)
+- **`/members`** remplace `/top/users` et `/users` : une seule liste, classée par heures en vocal par défaut, avec tri par messages, XP ou **nom (A–Z)**, **recherche par pseudo en direct**, filtres de période et de serveur. Les membres sans activité suivie apparaissent en fin de classement.
+- **`/servers`** remplace `/top/servers` et l'ancien annuaire : même principe (tri vocal / messages / A–Z, recherche, période) ; les serveurs que le bot a quittés restent listés avec un badge « Non suivi ».
+- En tri alphabétique, les numéros de rang sont masqués (ils n'ont pas de sens dans cet ordre).
+- **Redirections permanentes (301)** de `/users`, `/top/users` et `/top/servers` vers les nouvelles pages, filtres conservés (`/users` conserve l'ordre alphabétique) : liens partagés et référencement préservés.
+
+### Mon espace (accueil, membre connecté)
+- Pour un membre connecté connu du bot, le bandeau d'accueil devient un résumé personnel : niveau, titre, rang et progression d'XP, activité des dernières 24 h et 7 jours, série en cours, XP total, raccourcis « Mon profil » / « Me comparer » et **ses serveurs suivis par Hourglass** (d'après la connexion Discord) avec son temps sur chacun.
+- Visiteurs anonymes et comptes inconnus du bot : accueil inchangé.
+
+### Technique
+- Routes : `top.top_users` → `/members`, `top.top_servers` → `/servers` ; module `routes/servers.py` et templates `users.html` / `servers.html` supprimés, `routes/users.py` réduit à la redirection.
+- Nouveau partiel `partials/my_space.html`.
+
 ## Version 2.12.0 - Scripts & Styles Extraits des Templates (Mise en Cache Navigateur) - 17/10/2026
 ### Performance & Maintenance
 - **≈ 175 Ko de JavaScript sortis des templates** vers des fichiers statiques mis en cache par le navigateur (7 jours, invalidés automatiquement à chaque modification) : `js/base.js` (navigation, recherche globale, connexion Discord : chargé sur toutes les pages), `js/pages/graphs.js` (71 Ko), `user_profile.js`, `server_profile.js`, `versus.js`, `top_users.js`, `home.js`. Les pages HTML s'allègent d'autant à chaque visite.

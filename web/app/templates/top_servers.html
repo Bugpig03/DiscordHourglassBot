@@ -1,47 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}{{ t('top.servers_title') }}{% endblock %}
+{% block title %}{{ t('servers_page.title') }}{% endblock %}
 
 {% block content %}
 {% from "partials/pagination.html" import pagination with context %}
-<h1 class="sr-only">{{ self.title() | replace(' - Hourglass', '') }}</h1>
-<div class="hub-nav-bar">
-    <a href="{{ url_for('top.top_servers') }}" class="hub-nav-pill active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-        <span>{{ t('nav.top') }}</span>
-    </a>
-    <a href="{{ url_for('servers.servers') }}" class="hub-nav-pill">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
-        <span>{{ t('hub.all_servers') }}</span>
-    </a>
-    <a href="{{ url_for('users.users') }}" class="hub-nav-pill">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>{{ t('hub.all_users') }}</span>
-    </a>
-    <a href="{{ url_for('versus.versus') }}" class="hub-nav-pill">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <span>{{ t('hub.versus_tool') }}</span>
-    </a>
-</div>
-
-<div class="top-tabs-wrapper">
-    <div class="top-tabs">
-        <a href="{{ url_for('top.top_users') }}" class="top-tab-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <span>{{ t('top.tab_users') }}</span>
-        </a>
-        <a href="{{ url_for('top.top_servers') }}" class="top-tab-btn active">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>
-            </svg>
-            <span>{{ t('top.tab_servers') }}</span>
-        </a>
-    </div>
+<div class="members-page-header">
+    <h1 class="big-bold-text nomargin">{{ t('servers_page.heading') }}</h1>
 </div>
 
 <form method="GET" action="{{ url_for('top.top_servers') }}" id="top-filter-form" class="top-form" data-live-form>
+    <div class="top-filter-group top-search-group">
+        <label for="topSearchInput" class="top-label">{{ t('top.search_label') }}</label>
+        <div class="page-search-bar top-search-bar">
+            <svg class="page-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            <input type="text" id="topSearchInput" name="q" data-live-search value="{{ request.args.get('q', '') }}" placeholder="{{ t('servers_page.search_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
+        </div>
+    </div>
+
     <div>
         <label for="top-filter-period" class="top-label">{{ t('top.period_label') }}</label>
         <select name="period" id="top-filter-period" class="top-select">
@@ -60,6 +35,7 @@
         <select name="sort_by" id="top-filter-sort" class="top-select">
             <option value="hours" {% if request.args.get('sort_by') == 'hours' or not request.args.get('sort_by') %}selected{% endif %}>{{ t('top.sort_hours') }}</option>
             <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>{{ t('top.sort_messages') }}</option>
+            <option value="name" {% if request.args.get('sort_by') == 'name' %}selected{% endif %}>{{ t('top.sort_name') }}</option>
         </select>
     </div>
 </form>
@@ -71,12 +47,15 @@
     <div class="gray-box link" style="padding: 12px 16px;">
         <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
             <div class="stats-box">
+                {% if request.args.get('sort_by') != 'name' %}
                 <span class="rank-badge {% if server_rank == 1 %}rank-1{% elif server_rank == 2 %}rank-2{% elif server_rank == 3 %}rank-3{% else %}rank-other{% endif %}">
                     #{{ server_rank }}
                 </span>
+                {% endif %}
                 <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
                      class="small-pp border-server" alt="avatar">
                 <span class="username-fixed">{{ server.servername }}</span>
+                {% if server.is_bot_present == False %}<span class="server-untracked-badge" data-tip="{{ t('servers.bot_inactive_tooltip') }}">{{ t('servers.bot_inactive') }}</span>{% endif %}
                 <span class="hours-fixed">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ (server.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}
                 </span>
