@@ -249,3 +249,62 @@
         order: -1;
     }
 }
+
+/* Badge and record pickers: the card itself is the checkbox */
+.customize-counter {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 6px;
+}
+.pick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+}
+.pick-grid-records {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+.pick-card {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    border-radius: 16px;
+}
+.pick-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.pick-card > span {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    opacity: 0.55;
+    transition: opacity 0.15s ease, transform 0.15s ease, outline-color 0.15s ease;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+.pick-card:hover > span {
+    opacity: 0.85;
+}
+.pick-card input:checked + span {
+    opacity: 1;
+    outline-color: #ffffff;
+}
+.pick-card input:focus-visible + span {
+    outline-color: #38bdf8;
+}
+.pick-card input:disabled + span {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+.pick-card .profile-record {
+    box-shadow: none;
+}
+.customize-preview .profile-showcase {
+    padding: 14px 0 0;
+}
+.customize-preview .profile-showcase:empty {
+    display: none;
+}

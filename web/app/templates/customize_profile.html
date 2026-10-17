@@ -98,6 +98,53 @@
             </select>
         </fieldset>
 
+        <!-- 4. Badge showcase -->
+        <fieldset class="gray-box small-border-radius customize-section" id="badgePicker" data-max="{{ max_badges }}">
+            <legend class="customize-section-title">{{ 'Vitrine de badges' if fr else 'Badge showcase' }} <span class="customize-counter" data-counter></span></legend>
+            <p class="customize-help">{{ 'Jusqu’à 3 badges débloqués affichés en haut de ton profil. Si tu n’en coches aucun, tes 3 badges les plus rares sont choisis automatiquement.' if fr else 'Up to 3 unlocked badges shown at the top of your profile. If you pick none, your 3 rarest badges are chosen automatically.' }}</p>
+            {% if badges %}
+            <div class="pick-grid">
+                {% for badge in badges %}
+                <label class="pick-card rarity-{{ badge.rarity }}">
+                    <input type="checkbox" name="featured_badges" value="{{ badge.id }}" {% if badge.id in settings.featured_badges %}checked{% endif %}>
+                    <span class="profile-showcase-item rarity-{{ badge.rarity }}" data-showcase-item>
+                        <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
+                        <span class="profile-showcase-text">
+                            <span class="profile-showcase-name">{{ badge.name }}</span>
+                            <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
+                        </span>
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="customize-help">{{ 'Tu n’as pas encore débloqué de badge.' if fr else 'You have not unlocked any badge yet.' }}</p>
+            {% endif %}
+        </fieldset>
+
+        <!-- 5. Pinned records -->
+        <fieldset class="gray-box small-border-radius customize-section" id="recordPicker" data-max="{{ max_records }}">
+            <legend class="customize-section-title">{{ 'Records épinglés' if fr else 'Pinned records' }} <span class="customize-counter" data-counter></span></legend>
+            <p class="customize-help">{{ 'Jusqu’à 4 records affichés au-dessus des onglets de ton profil.' if fr else 'Up to 4 records shown above the tabs of your profile.' }}</p>
+            {% if records %}
+            <div class="pick-grid pick-grid-records">
+                {% for key, record in records.items() %}
+                <label class="pick-card">
+                    <input type="checkbox" name="pinned_records" value="{{ key }}" {% if key in pinned_keys %}checked{% endif %}>
+                    <span class="profile-record">
+                        <span class="profile-record-icon">{{ record.icon | safe }}</span>
+                        <span class="profile-record-label">{{ record.label }}</span>
+                        <span class="profile-record-value">{% if record.value is number %}{{ record.value | num(record.decimals) }}{% else %}{{ record.value }}{% endif %}{% if record.unit %} <small>{{ record.unit }}</small>{% endif %}</span>
+                        {% if record.sub %}<span class="profile-record-sub">{{ record.sub }}</span>{% endif %}
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="customize-help">{{ 'Pas encore assez d’activité pour établir des records.' if fr else 'Not enough activity yet to set records.' }}</p>
+            {% endif %}
+        </fieldset>
+
         <div class="customize-actions">
             <button type="submit" class="btn-customize-save">{{ 'Enregistrer' if fr else 'Save' }}</button>
         </div>
@@ -128,6 +175,7 @@
                         <span class="profile-fav-server-name">{{ favorite_server.server_name if favorite_server else '' }}</span>
                         <span class="profile-fav-server-meta">{% if favorite_server %}#{{ favorite_server.rank }} · {{ favorite_server.time_spent | num(1) }} h{% endif %}</span>
                     </a>
+                    <div class="profile-showcase" id="previewShowcase" data-auto="{{ showcase | map(attribute='id') | join(',') }}"></div>
                     <div class="user-xp-bar-bg" style="margin-top: 18px;">
                         <div class="user-xp-bar-fill" style="width: {{ xp.progress_percent }}%;"></div>
                     </div>

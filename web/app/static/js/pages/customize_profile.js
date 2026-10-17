@@ -43,9 +43,40 @@
         favorite.querySelector('.profile-fav-server-meta').textContent = option.dataset.meta;
     }
 
+    // Pickers limited to N checked cards: the others are disabled once the limit is reached
+    function applyLimit(picker) {
+        if (!picker) return;
+        const max = parseInt(picker.dataset.max, 10);
+        const boxes = [...picker.querySelectorAll('input[type="checkbox"]')];
+        const count = boxes.filter(b => b.checked).length;
+        boxes.forEach(b => { b.disabled = !b.checked && count >= max; });
+        const counter = picker.querySelector('[data-counter]');
+        if (counter) counter.textContent = count + ' / ' + max;
+    }
+
+    const badgePicker = document.getElementById('badgePicker');
+    const showcase = document.getElementById('previewShowcase');
+
+    function applyShowcase() {
+        if (!badgePicker || !showcase) return;
+        let boxes = [...badgePicker.querySelectorAll('input[name="featured_badges"]:checked')];
+        if (!boxes.length) {
+            // Nothing picked: the profile shows the rarest badges automatically
+            const auto = (showcase.dataset.auto || '').split(',').filter(Boolean);
+            boxes = auto.map(id => badgePicker.querySelector('input[value="' + CSS.escape(id) + '"]')).filter(Boolean);
+        }
+        showcase.replaceChildren(...boxes.map(b => b.nextElementSibling.cloneNode(true)));
+    }
+
     form.addEventListener('change', function (e) {
         if (e.target.name === 'accent_color') applyColor();
         else if (e.target.name === 'banner_mode') applyBanner();
         else if (e.target.name === 'favorite_server_id') applyFavorite();
+        else if (e.target.name === 'featured_badges') { applyLimit(badgePicker); applyShowcase(); }
+        else if (e.target.name === 'pinned_records') applyLimit(document.getElementById('recordPicker'));
     });
+
+    applyLimit(badgePicker);
+    applyLimit(document.getElementById('recordPicker'));
+    applyShowcase();
 })();

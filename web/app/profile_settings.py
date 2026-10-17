@@ -1,9 +1,11 @@
-"""Profile customization stored in user_profile_settings: accent color, banner and favorite server.
+"""Profile customization stored in user_profile_settings: accent color, banner, favorite server,
+featured badges and pinned records.
 
 Reads never fail a page: if the table is missing (migration not applied yet) or the query errors,
 the profile falls back to the default look.
 """
 
+import json
 import logging
 from datetime import datetime, timezone
 
@@ -38,6 +40,8 @@ DEFAULTS = {
     "discord_banner": None,
     "discord_accent": None,
     "favorite_server_id": None,
+    "featured_badges": [],
+    "pinned_records": [],
 }
 
 
@@ -66,13 +70,26 @@ def get_profile_settings(user_id: int | str) -> dict:
             "discord_banner": row.discord_banner,
             "discord_accent": row.discord_accent,
             "favorite_server_id": row.favorite_server_id,
+            "featured_badges": _json_list(row.featured_badges),
+            "pinned_records": _json_list(row.pinned_records),
         })
     return settings
 
 
+def _json_list(raw: str | None) -> list[str]:
+    try:
+        value = json.loads(raw or "[]")
+    except (TypeError, ValueError):
+        return []
+    return [str(v) for v in value if isinstance(v, str)] if isinstance(value, list) else []
+
+
 def save_profile_settings(user_id: int, values: dict) -> bool:
     """Insert or update the member's choices (values are validated by the caller)."""
-    fields = {getattr(UserProfileSettings, key): value for key, value in values.items()}
+    fields = {
+        getattr(UserProfileSettings, key): json.dumps(value) if isinstance(value, list) else value
+        for key, value in values.items()
+    }
     fields[UserProfileSettings.updated_at] = datetime.now(timezone.utc).replace(tzinfo=None)
     try:
         (UserProfileSettings

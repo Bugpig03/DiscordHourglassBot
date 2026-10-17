@@ -1,11 +1,19 @@
-"""Profile customization page (owner only): accent color, banner and favorite server."""
+"""Profile customization page (owner only): accent color, banner, favorite server, badge showcase and records."""
 
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from app.auth import get_current_user
 from app.database import Users
-from app.functions import get_user_servers_stats, get_total_seconds_by_user_id, get_total_message_by_user_id
-from app.gamification import calculate_user_xp_and_level
+from app.gamification import calculate_user_xp_and_level, calculate_user_badges
+from app.profile_records import (
+    DEFAULT_PINNED_RECORDS,
+    MAX_FEATURED_BADGES,
+    MAX_PINNED_RECORDS,
+    RARITY_ORDER,
+    RECORD_CATALOG,
+    featured_badges,
+)
+from app.routes.user_profile import load_profile_extras, load_user_charts_data, load_user_profile_stats
 from app.profile_settings import (
     BANNER_MODES,
     DISCORD_ACCENT,
@@ -29,21 +37,25 @@ def customize_profile():
     user_id = int(user["id"])
     member = Users.get_or_none(Users.user_id == user_id)
     settings = get_profile_settings(user_id)
-    servers = get_user_servers_stats(user_id) if member else []
+    lang = request.cookies.get("lang", "fr")
+    stats = load_user_profile_stats(user_id, member.username or user["username"], can_view_presence=False) if member else None
+    servers = stats["user_servers_stats"] if stats else []
+    badges = calculate_user_badges(stats, lang=lang) if stats else []
 
     if request.method == "POST":
         if not valid_csrf(request.form.get("csrf_token")):
             abort(400)
         if not member:
             return redirect(url_for("customize.customize_profile"))
-        values = _validated_form(settings, servers)
+        values = _validated_form(settings, servers, badges)
         saved = save_profile_settings(user_id, values)
         return redirect(url_for("customize.customize_profile", saved=1 if saved else 0))
 
-    lang = request.cookies.get("lang", "fr")
-    xp = calculate_user_xp_and_level(
-        get_total_seconds_by_user_id(user_id) or 0, get_total_message_by_user_id(user_id) or 0
-    ) if member else None
+    xp = calculate_user_xp_and_level(stats["total_seconds"], stats["total_message"]) if stats else None
+    records = {}
+    if stats:
+        charts = load_user_charts_data(user_id, servers, lang=lang)
+        records = load_profile_extras(user_id, stats, charts, lang)["records"]
     favorite_server = next((s for s in servers if s["server_id"] == settings["favorite_server_id"]), None)
     return render_template(
         "customize_profile.html",
@@ -56,11 +68,18 @@ def customize_profile():
         servers=servers,
         favorite_server=favorite_server,
         xp=xp,
+        # Rarest first: the badges worth showing off are at the top of the picker
+        badges=sorted((b for b in badges if b["unlocked"]), key=lambda b: RARITY_ORDER.get(b["rarity"], 0), reverse=True),
+        showcase=featured_badges(badges, settings["featured_badges"]),
+        records=records,
+        pinned_keys=settings["pinned_records"] or [k for k in DEFAULT_PINNED_RECORDS if k in records],
+        max_badges=MAX_FEATURED_BADGES,
+        max_records=MAX_PINNED_RECORDS,
         saved=request.args.get("saved"),
     )
 
 
-def _validated_form(settings: dict, servers: list[dict]) -> dict:
+def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> dict:
     """Keep only values the form is allowed to send; anything unexpected falls back to the current choice."""
     accent = request.form.get("accent_color", "")
     if accent not in PALETTE_HEX and not (accent == DISCORD_ACCENT and discord_accent_hex(settings)):
@@ -74,7 +93,14 @@ def _validated_form(settings: dict, servers: list[dict]) -> dict:
     allowed_servers = {str(s["server_id"]) for s in servers}
     favorite_server_id = int(favorite) if favorite in allowed_servers else None
 
+    # Order of the form is kept; unknown or locked ids are dropped. An empty list means "automatic".
+    unlocked = {b["id"] for b in badges if b["unlocked"]}
+    featured = list(dict.fromkeys(i for i in request.form.getlist("featured_badges") if i in unlocked))[:MAX_FEATURED_BADGES]
+    pinned = list(dict.fromkeys(k for k in request.form.getlist("pinned_records") if k in RECORD_CATALOG))[:MAX_PINNED_RECORDS]
+
     return {
+        "featured_badges": featured,
+        "pinned_records": pinned,
         "accent_color": accent,
         "banner_mode": banner_mode,
         "favorite_server_id": favorite_server_id,

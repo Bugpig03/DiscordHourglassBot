@@ -106,6 +106,21 @@
             </a>
         </div>
     </div>
+
+    {% if showcase %}
+    <!-- Featured badges chosen by the member (rarest unlocked ones by default) -->
+    <div class="profile-showcase" aria-label="{{ 'Vitrine de badges' if current_lang == 'fr' else 'Badge showcase' }}">
+        {% for badge in showcase %}
+        <div class="profile-showcase-item rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
+            <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
+            <span class="profile-showcase-text">
+                <span class="profile-showcase-name">{{ badge.name }}</span>
+                <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     </div>
 </div>
 
@@ -181,6 +196,23 @@
         </div>
     </div>
 </div>
+
+{% if records %}
+<!-- Personal records pinned by the member -->
+<section class="profile-records" aria-labelledby="profileRecordsTitle">
+    <h2 id="profileRecordsTitle" class="profile-records-title">{{ 'Records' }}</h2>
+    <div class="profile-records-grid">
+        {% for record in records %}
+        <div class="profile-record">
+            <span class="profile-record-icon">{{ record.icon | safe }}</span>
+            <span class="profile-record-label">{{ record.label }}</span>
+            <span class="profile-record-value">{% if record.value is number %}{{ record.value | num(record.decimals) }}{% else %}{{ record.value }}{% endif %}{% if record.unit %} <small>{{ record.unit }}</small>{% endif %}</span>
+            {% if record.sub %}<span class="profile-record-sub">{{ record.sub }}</span>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
 <!-- =================================================================== -->
 <!-- TAB NAVIGATION BAR                                                  -->

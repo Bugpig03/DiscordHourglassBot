@@ -1,5 +1,14 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.4.0 - Vitrine de Badges & Records Épinglés - 17/10/2026
+### Nouveautés
+- **Vitrine de badges** en bas de l'en-tête du profil : le membre choisit jusqu'à 3 badges débloqués à mettre en avant (couleur selon la rareté, description au survol). Sans choix, ses 3 badges les plus rares s'affichent automatiquement ; un badge perdu (par exemple un rang du podium) disparaît de la vitrine.
+- **Records épinglés** au-dessus des onglets du profil : jusqu'à 4 records parmi plus longue session, meilleure journée, plus longue série, meilleur mois en vocal, meilleur mois en messages, serveur principal, meilleur compagnon vocal, heure de pointe et jours actifs sur un an. Par défaut : plus longue session, meilleur mois en vocal, meilleure journée et meilleur compagnon vocal. Un record sans données n'est pas affiché.
+- Sur « Personnaliser mon profil » : sélection des badges (les plus rares en premier) et des records sous forme de cartes, avec compteur et limite ; la vitrine se met à jour dans l'aperçu en direct.
+
+### Technique
+- Les records réutilisent les données déjà en cache du profil (calendrier, compagnons, rythme horaire) ; seuls la plus longue session et les meilleurs mois ajoutent des requêtes, elles aussi mises en cache 2 minutes. Les sessions d'archive (instantanés quotidiens) sont exclues de la plus longue session.
+
 ## Version 3.3.0 - Personnalisation du Profil : Couleur, Bannière & Serveur Favori - 17/10/2026
 ### Nouveautés
 - **Page « Personnaliser mon profil »** (`/me/profile`), accessible depuis le menu du compte, « Mon espace » et un bouton « Personnaliser » visible uniquement par le propriétaire sur son profil. Aperçu en direct avant d'enregistrer ; formulaire protégé par jeton CSRF et limité à 60 requêtes/min.
