@@ -184,7 +184,7 @@ def search_global():
             xp_info = calculate_user_xp_and_level(u.total_seconds, u.total_messages)
             users_data.append({
                 "username": u.username,
-                "avatar": u.avatar or "/static/images/default_avatar.png",
+                "avatar": u.avatar or "/static/images/base_avatar_big.png",
                 "level": xp_info["level"],
                 "url": f"/profile/{u.user_id}"
             })

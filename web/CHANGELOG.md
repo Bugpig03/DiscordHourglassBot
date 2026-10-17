@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 2.12.0 - Scripts & Styles Extraits des Templates (Mise en Cache Navigateur) - 17/10/2026
+### Performance & Maintenance
+- **≈ 175 Ko de JavaScript sortis des templates** vers des fichiers statiques mis en cache par le navigateur (7 jours, invalidés automatiquement à chaque modification) : `js/base.js` (navigation, recherche globale, connexion Discord : chargé sur toutes les pages), `js/pages/graphs.js` (71 Ko), `user_profile.js`, `server_profile.js`, `versus.js`, `top_users.js`, `home.js`. Les pages HTML s'allègent d'autant à chaque visite.
+- **Valeurs Jinja transmises par un bloc JSON** (`#hgBaseConfig`, `#hgPageConfig`, `#topServerDataset`) rendu avec `|tojson` au lieu d'être injectées dans le code : échappement correct des traductions contenant des apostrophes ou guillemets.
+- **Feuilles de style par page** (`css/pages/graphs.css`, `user_profile.css`, `server_profile.css`) à la place des blocs `<style>`, chargées au même endroit (ordre de priorité CSS inchangé).
+- Le script d'en-tête (fuseau horaire, remplacement des images cassées) reste en ligne volontairement pour s'exécuter avant le reste de la page.
+
+### Corrections
+- **Avatar par défaut de la recherche globale** : l'API renvoyait un fichier inexistant (`default_avatar.png`, erreur 404) pour les comptes sans avatar.
+
 ## Version 2.11.1 - Infobulles Instantanées, Zéro Gestionnaire Inline & Scripts Différés - 17/10/2026
 ### UX
 - **Infobulles instantanées partout** (`data-tip`) : punchcards (fiche serveur et `/graphs`), pastilles de statut, temps exact des membres, statut du bot et totaux de l'accueil. Affichage immédiat au survol, au focus clavier et au toucher sur mobile (les infobulles natives `title` étaient lentes et inaccessibles au doigt). Valeurs formatées selon la langue.

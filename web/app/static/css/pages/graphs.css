@@ -1,0 +1,222 @@
+/* Page styles extracted from templates/graphs.html (loaded after styles.css, same cascade order). */
+/* Circular loading spinner overlay */
+.chart-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 12px;
+    z-index: 15;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+.chart-loading-overlay.loaded {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+.chart-spinner-ring {
+    width: 44px;
+    height: 44px;
+    border: 3.5px solid rgba(56, 189, 248, 0.15);
+    border-top: 3.5px solid #38bdf8;
+    border-right: 3.5px solid #818cf8;
+    border-radius: 50%;
+    animation: chartSpin 0.85s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+}
+@keyframes chartSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.chart-spinner-text {
+    margin-top: 12px;
+    font-size: 0.88rem;
+    color: #94a3b8;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+/* KPI Skeleton Placeholder */
+.kpi-skeleton {
+    display: inline-block;
+    width: 65px;
+    height: 22px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: kpiShimmer 1.5s infinite;
+    border-radius: 6px;
+    vertical-align: middle;
+}
+@keyframes kpiShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+/* Granularity Toggle Group Styles */
+.granularity-toggle-group {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 4px;
+}
+.granularity-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    user-select: none;
+}
+.granularity-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+.granularity-btn.active {
+    background: #38bdf8;
+    color: #0b1120;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+}
+
+/* Graphs Tab Navigation Styles */
+.graphs-tabs-wrapper {
+    margin: 25px 0 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 14px;
+}
+.graphs-tabs {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+    -webkit-overflow-scrolling: touch;
+}
+.graphs-tabs::-webkit-scrollbar {
+    height: 5px;
+}
+.graphs-tabs::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+.graphs-tab-btn {
+    background: #15202e;
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    user-select: none;
+}
+.graphs-tab-btn:hover {
+    background: #1c2a3a;
+    color: #ffffff;
+    border-color: rgba(56, 189, 248, 0.35);
+    transform: translateY(-1px);
+}
+.graphs-tab-btn.active {
+    background: rgba(57, 146, 190, 0.2);
+    color: #38bdf8;
+    border-color: #38bdf8;
+    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
+}
+.graphs-tab-btn .tab-badge {
+    background: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+.graphs-tab-btn.active .tab-badge {
+    background: rgba(56, 189, 248, 0.3);
+    color: #e0f2fe;
+}
+.graphs-tab-pane {
+    display: none;
+}
+.graphs-tab-pane.active {
+    display: block;
+    animation: tabFadeIn 0.25s ease-out;
+}
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Mode and Scale Toggle Button Group */
+.chart-btn-group {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 3px;
+}
+.chart-toggle-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+.chart-toggle-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.07);
+}
+.chart-toggle-btn.active {
+    background: rgba(56, 189, 248, 0.18);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.chart-toggle-btn.active-teal {
+    background: rgba(20, 184, 166, 0.2);
+    color: #2dd4bf;
+    border: 1px solid rgba(20, 184, 166, 0.4);
+}
+.chart-toggle-btn.active-purple {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.chart-toggle-btn.active-amber {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
