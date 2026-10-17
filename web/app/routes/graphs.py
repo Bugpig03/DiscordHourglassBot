@@ -1,9 +1,11 @@
 """Data visualization and analytics graph routes."""
 
+import logging
+import os
 import threading
 import time
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, current_app, jsonify, render_template, request
 from peewee import fn, JOIN
 from app.database import db, Stats, Servers
 from app.functions import (
@@ -23,31 +25,110 @@ from app.functions import (
     get_partial_period,
     get_hourly_punchcard_data,
     get_user_timezone,
+    shared_month_totals,
 )
 
 graphs_bp = Blueprint("graphs", __name__)
 
-# Global analytics are identical for every visitor sharing a language and timezone:
-# cache them per Gunicorn worker for 5 minutes instead of running ~30 SQL queries per page view.
+log = logging.getLogger(__name__)
+
+# Global analytics are identical for every visitor sharing a language and timezone. They are cached
+# per Gunicorn worker and never make a visitor wait once computed:
+#   - younger than GRAPHS_CACHE_TTL_SECONDS: served as is;
+#   - older (up to GRAPHS_CACHE_MAX_AGE_SECONDS): served immediately while ONE background thread recomputes;
+#   - missing or too old: computed once (concurrent visitors of the same key wait for that single run).
+# Each worker also warms the default key (French, Europe/Paris) at startup.
 GRAPHS_CACHE_TTL_SECONDS = 300
+GRAPHS_CACHE_MAX_AGE_SECONDS = 6 * 3600
+DEFAULT_CACHE_KEY = ("fr", "Europe/Paris")
 _graphs_cache: dict[tuple[str, str], tuple[float, dict]] = {}
-_graphs_cache_lock = threading.Lock()
+_graphs_cache_lock = threading.Lock()   # guards _graphs_cache, _refreshing and _key_locks
+_refreshing: set[tuple[str, str]] = set()
+_key_locks: dict[tuple[str, str], threading.Lock] = {}
+
+
+def _store(key: tuple[str, str], data: dict) -> None:
+    now = time.monotonic()
+    with _graphs_cache_lock:
+        _graphs_cache[key] = (now, data)
+        for k in [k for k, (ts, _) in _graphs_cache.items() if now - ts >= GRAPHS_CACHE_MAX_AGE_SECONDS]:
+            del _graphs_cache[k]
+
+
+def _compute(lang: str) -> dict:
+    with shared_month_totals():  # the per-month totals feed both the bars and the cumulative curves
+        return compute_graphs_data(lang=lang)
+
+
+def _compute_outside_request(app, key: tuple[str, str]) -> dict:
+    """Compute in a background thread: own DB connection, and the visitor's language and timezone as cookies."""
+    lang, tz_name = key
+    with app.test_request_context("/", headers={"Cookie": f"lang={lang}; user_tz={tz_name}"}):
+        db.connect(reuse_if_open=True)
+        try:
+            return _compute(lang)
+        finally:
+            if not db.is_closed():
+                db.close()
+
+
+def _refresh_in_background(app, key: tuple[str, str], delay: float = 0) -> None:
+    def run():
+        if delay:
+            time.sleep(delay)  # warm-up: let the application finish starting first
+        started = time.monotonic()
+        try:
+            _store(key, _compute_outside_request(app, key))
+            elapsed_ms = (time.monotonic() - started) * 1000
+            # Visitors never wait for this, but a slow refresh means the database needs attention
+            (log.warning if elapsed_ms > 2000 else log.info)("Analytics cache %s refreshed in %.0f ms", key, elapsed_ms)
+        except Exception:
+            log.exception("Analytics cache refresh failed for %s", key)
+        finally:
+            with _graphs_cache_lock:
+                _refreshing.discard(key)
+
+    threading.Thread(target=run, name=f"graphs-refresh-{key[0]}", daemon=True).start()
 
 
 def get_cached_graphs_data(lang: str, tz_name: str) -> dict:
-    """Return graph data from the in-memory cache, recomputing it once expired."""
+    """Analytics data for this language/timezone, without waiting whenever a previous result exists."""
     key = (lang, tz_name)
-    now = time.monotonic()
     with _graphs_cache_lock:
-        cached = _graphs_cache.get(key)
-        if cached and now - cached[0] < GRAPHS_CACHE_TTL_SECONDS:
-            return cached[1]
-        # Computing under the lock avoids several threads recomputing the same expired entry at once
-        data = compute_graphs_data(lang=lang)
-        for k in [k for k, (ts, _) in _graphs_cache.items() if now - ts >= GRAPHS_CACHE_TTL_SECONDS]:
-            del _graphs_cache[k]
-        _graphs_cache[key] = (now, data)
+        hit = _graphs_cache.get(key)
+        age = time.monotonic() - hit[0] if hit else None
+        if hit and age < GRAPHS_CACHE_TTL_SECONDS:
+            return hit[1]
+        if hit and age < GRAPHS_CACHE_MAX_AGE_SECONDS:
+            if key not in _refreshing:
+                _refreshing.add(key)
+                _refresh_in_background(current_app._get_current_object(), key)
+            return hit[1]
+        key_lock = _key_locks.setdefault(key, threading.Lock())
+
+    # Nothing usable yet: a single computation per key, the other visitors wait for its result
+    with key_lock:
+        with _graphs_cache_lock:
+            hit = _graphs_cache.get(key)
+            if hit and time.monotonic() - hit[0] < GRAPHS_CACHE_TTL_SECONDS:
+                return hit[1]
+        data = _compute(lang)
+        _store(key, data)
         return data
+
+
+def warm_graphs_cache(app) -> None:
+    """Compute the default analytics once the worker has started, so the first visitor never waits."""
+    if os.environ.get("GRAPHS_WARMUP", "true").lower() in ("0", "false", "no"):
+        return
+    with _graphs_cache_lock:
+        if DEFAULT_CACHE_KEY in _refreshing:
+            return
+        _refreshing.add(DEFAULT_CACHE_KEY)
+    _refresh_in_background(app, DEFAULT_CACHE_KEY, delay=2)
+
+
+graphs_bp.record_once(lambda state: warm_graphs_cache(state.app))
 
 
 def _day_label(date_str: str, lang: str) -> str:

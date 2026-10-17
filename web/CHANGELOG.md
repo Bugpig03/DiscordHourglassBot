@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.11.1 - Page Analyses Instantanée - 18/10/2026
+### Performance
+- **Plus d'attente sur la page Analyses** : le cache sert toujours immédiatement le dernier résultat calculé ; quand il a plus de 5 minutes, il est recalculé en arrière-plan par un seul thread pendant que les visiteurs reçoivent la version précédente (au plus 6 h d'âge). Avant, le premier visiteur après chaque expiration attendait tout le calcul, et les autres attendaient derrière lui.
+- **Cache préchauffé au démarrage** : chaque worker Gunicorn calcule les analyses (français, Europe/Paris) 2 secondes après son lancement ; le premier visiteur après un déploiement n'attend plus. Désactivable avec `GRAPHS_WARMUP=false`.
+- **Un seul calcul à la fois par langue et fuseau** : plusieurs visiteurs arrivant sur un cache vide déclenchent un seul calcul ; un fuseau horaire peu courant ne bloque plus les autres (l'ancien verrou était global).
+- **Totaux mensuels calculés une seule fois par requête** : les barres « par mois » et les courbes cumulées faisaient deux fois le même parcours complet des sessions vocales et des messages. Désormais partagés (aussi sur les profils, où les records les recalculaient une troisième fois, et sur les fiches serveur). Premier calcul de la page Analyses en local : 128 → 87 ms.
+- Un recalcul de plus de 2 secondes est signalé dans les logs (`Analytics cache ... refreshed in ... ms`), pour repérer une base qui devient lente.
+
 ## Version 3.11.0 - Page Analyses Réorganisée - 18/10/2026
 ### Interface
 - **3 onglets clairs au lieu de 4** : *Tendances*, *Rythme* et *Communauté* ; environ 6 graphiques au lieu de 12, sans perte d'information.

@@ -1,6 +1,9 @@
 """Utility functions and statistics query helpers for the Hourglass web application."""
 
+import threading
+from contextlib import contextmanager
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo, available_timezones
 from flask import has_request_context, request
 from peewee import fn, SQL, JOIN
@@ -443,22 +446,7 @@ def get_partial_period(rows: list[dict], kind: str) -> str | None:
 
 def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Sum voice hours by month directly from VoiceSessions for cumulative trend charting."""
-    query = (
-        VoiceSessions
-        .select(
-            fn.DATE_TRUNC("month", VoiceSessions.joined_at).alias("month_start"),
-            fn.SUM(VoiceSessions.duration_seconds).alias("month_seconds")
-        )
-    )
-
-    if server_id:
-        query = query.where(VoiceSessions.server_id == server_id)
-    if user_id:
-        query = query.where(VoiceSessions.user_id == user_id)
-
-    query = query.group_by(fn.DATE_TRUNC("month", VoiceSessions.joined_at)).order_by(
-        fn.DATE_TRUNC("month", VoiceSessions.joined_at)
-    )
+    query = _voice_seconds_by_month(server_id, user_id)
 
     running_seconds = 0
     result = []
@@ -537,22 +525,7 @@ def get_first_of_month_hours_sum(server_id: int | None = None, user_id: int | No
 
 def get_first_of_month_messages_sum(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Sum total message count by month directly from MessageEvents for cumulative trend charting."""
-    query = (
-        MessageEvents
-        .select(
-            fn.DATE_TRUNC("month", MessageEvents.created_at).alias("month_start"),
-            fn.SUM(MessageEvents.count).alias("month_messages")
-        )
-    )
-
-    if server_id:
-        query = query.where(MessageEvents.server_id == server_id)
-    if user_id:
-        query = query.where(MessageEvents.user_id == user_id)
-
-    query = query.group_by(fn.DATE_TRUNC("month", MessageEvents.created_at)).order_by(
-        fn.DATE_TRUNC("month", MessageEvents.created_at)
-    )
+    query = _messages_by_month(server_id, user_id)
 
     running_messages = 0
     result = []
@@ -824,24 +797,80 @@ def get_daily_messages_diff(server_id: int | None = None, user_id: int | None = 
     return result
 
 
+# ------------------------------------------------------------------------------
+# Per-month totals shared by the "per month" and "cumulative" charts
+# ------------------------------------------------------------------------------
+# get_monthly_*_diff and get_first_of_month_*_sum run the same full-table GROUP BY. Inside a
+# shared_month_totals() block the result is computed once and reused (analytics page, profiles).
+_month_totals_memo = threading.local()
+
+
+@contextmanager
+def shared_month_totals():
+    outer = getattr(_month_totals_memo, "store", None)
+    if outer is None:
+        _month_totals_memo.store = {}
+    try:
+        yield
+    finally:
+        if outer is None:
+            _month_totals_memo.store = None
+
+
+def open_month_totals_scope() -> None:
+    """Share the per-month totals for the rest of the current request (closed in teardown)."""
+    _month_totals_memo.store = {}
+
+
+def close_month_totals_scope() -> None:
+    _month_totals_memo.store = None
+
+
+def _memo_month_totals(key: tuple, compute):
+    store = getattr(_month_totals_memo, "store", None)
+    if store is not None and key in store:
+        return store[key]
+    rows = compute()
+    if store is not None:
+        store[key] = rows
+    return rows
+
+
+def _voice_seconds_by_month(server_id: int | None = None, user_id: int | None = None) -> list:
+    """Voice seconds per calendar month; rows expose month_start, total_seconds and month_seconds."""
+    def compute():
+        month = fn.DATE_TRUNC("month", VoiceSessions.joined_at)
+        query = VoiceSessions.select(month.alias("month_start"), fn.SUM(VoiceSessions.duration_seconds).alias("seconds"))
+        if server_id:
+            query = query.where(VoiceSessions.server_id == server_id)
+        if user_id:
+            query = query.where(VoiceSessions.user_id == user_id)
+        return [
+            SimpleNamespace(month_start=r["month_start"], total_seconds=r["seconds"], month_seconds=r["seconds"])
+            for r in query.group_by(month).order_by(month).dicts()
+        ]
+    return _memo_month_totals(("voice", server_id, user_id), compute)
+
+
+def _messages_by_month(server_id: int | None = None, user_id: int | None = None) -> list:
+    """Messages per calendar month; rows expose month_start, total_messages and month_messages."""
+    def compute():
+        month = fn.DATE_TRUNC("month", MessageEvents.created_at)
+        query = MessageEvents.select(month.alias("month_start"), fn.SUM(MessageEvents.count).alias("messages"))
+        if server_id:
+            query = query.where(MessageEvents.server_id == server_id)
+        if user_id:
+            query = query.where(MessageEvents.user_id == user_id)
+        return [
+            SimpleNamespace(month_start=r["month_start"], total_messages=r["messages"], month_messages=r["messages"])
+            for r in query.group_by(month).order_by(month).dicts()
+        ]
+    return _memo_month_totals(("messages", server_id, user_id), compute)
+
+
 def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Calculate the incremental hours spent each month directly from VoiceSessions."""
-    query = (
-        VoiceSessions
-        .select(
-            fn.DATE_TRUNC("month", VoiceSessions.joined_at).alias("month_start"),
-            fn.SUM(VoiceSessions.duration_seconds).alias("total_seconds")
-        )
-    )
-
-    if server_id:
-        query = query.where(VoiceSessions.server_id == server_id)
-    if user_id:
-        query = query.where(VoiceSessions.user_id == user_id)
-
-    query = query.group_by(fn.DATE_TRUNC("month", VoiceSessions.joined_at)).order_by(
-        fn.DATE_TRUNC("month", VoiceSessions.joined_at)
-    )
+    query = _voice_seconds_by_month(server_id, user_id)
 
     result = [
         {
@@ -927,22 +956,7 @@ def get_server_join_date(server_id: int | str, lang: str = "fr") -> str:
 
 def get_monthly_messages_diff(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Calculate incremental messages sent each month directly from MessageEvents."""
-    query = (
-        MessageEvents
-        .select(
-            fn.DATE_TRUNC("month", MessageEvents.created_at).alias("month_start"),
-            fn.SUM(MessageEvents.count).alias("total_messages")
-        )
-    )
-
-    if server_id:
-        query = query.where(MessageEvents.server_id == server_id)
-    if user_id:
-        query = query.where(MessageEvents.user_id == user_id)
-
-    query = query.group_by(fn.DATE_TRUNC("month", MessageEvents.created_at)).order_by(
-        fn.DATE_TRUNC("month", MessageEvents.created_at)
-    )
+    query = _messages_by_month(server_id, user_id)
 
     result = [
         {

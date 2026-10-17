@@ -67,6 +67,17 @@ def create_app():
     ensure_profile_settings_table()
 
     @app.before_request
+    def _open_month_totals_scope():
+        """One request computes each per-month total once (charts, cumulative curves and records share it)."""
+        from app.functions import open_month_totals_scope
+        open_month_totals_scope()
+
+    @app.teardown_request
+    def _close_month_totals_scope(exc):
+        from app.functions import close_month_totals_scope
+        close_month_totals_scope()
+
+    @app.before_request
     def ensure_persistent_session():
         """Ensure authenticated user sessions stay persistent for 60 days across browser restarts."""
         from flask import session
