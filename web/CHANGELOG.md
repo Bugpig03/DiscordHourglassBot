@@ -1,5 +1,14 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.13.0 - Galerie Pop Culture : 24 Thèmes Animés & Jeux Vidéo - 18/10/2026
+### Nouveautés
+- **12 nouveaux thèmes inspirés des animés et des jeux vidéo**, disponibles à la fois en bannière et en fond d'écran : Ville néon (cyberpunk sous la pluie), Donjon pixel (RPG rétro éclairé aux torches), Arcade 8-bit (envahisseurs générés, vaisseau, lasers, effet écran cathodique), Grande vague (estampe japonaise), Ciel d'animé (coucher de soleil, cumulus, poteaux électriques), Sanctuaire (torii, lanternes, brume), Manga (lignes de vitesse et trame), HUD mecha (interface de cockpit), Forêt enchantée (champignons lumineux, lucioles), Plateformes rétro (jeu de plateformes 16 bits), Vaporwave (soleil tranché, damier, glitch) et Planète (géante gazeuse à anneaux).
+- **12 de plus** : Hyperespace (saut en vitesse lumière), Pluie de code (glyphes verts inventés), Grotte de cristal, Monde de lave (volcan, coulées, lac incandescent), Nuit enneigée, Abysses (rayons, méduses, bulles), Lune de sang (château gothique, chauves-souris), Monde de blocs (paysage en cubes façon jeu bac à sable), Ruines du désert, Lo-fi pluie (fenêtre sous la pluie, ville floue), Galaxie et Orage.
+- La galerie passe à **36 bannières** et **42 fonds d'écran** ; sur « Personnaliser mon profil », les sélecteurs défilent dans leur propre zone pour garder la page compacte.
+
+### Technique
+- Images entièrement originales générées par `scripts/make_profile_gallery.py` : aucun personnage, logo ni décor existant n'est reproduit (pas de droits à gérer). Les sprites de l'arcade sont générés aléatoirement. Galerie complète : environ 3,3 Mo, miniatures comprises.
+
 ## Version 3.12.0 - Onglet Badges Réorganisé par Familles - 18/10/2026
 ### Interface
 - **Résumé en tête de l'onglet Badges** : « 28 / 37 badges débloqués · 76 % », barre de progression et décompte par rareté (Commun, Rare, Épique, Légendaire).

@@ -665,3 +665,13 @@
         var(--backdrop) center / cover no-repeat;
     filter: blur(4px);
 }
+
+/* Large galleries scroll inside their row instead of stretching the page */
+.cz-gallery-banners,
+.cz-gallery-backgrounds {
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 3px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}

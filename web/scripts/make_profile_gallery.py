@@ -534,6 +534,920 @@ def dotgrid(w, h, rng):
     return vignette(img, 0.3)
 
 
+# --- Pop culture moods (anime / video games): original art only, no existing character, logo or scene ---
+
+def _glow_layer(w, h):
+    return Image.new("RGB", (w, h), (0, 0, 0))
+
+
+def _add_glow(img, layer: Image.Image, radius: float, strength: float = 1.0, sharp: float = 1.0):
+    """Screen a sharp + blurred copy of an RGB light layer onto the image (neon effect)."""
+    sharp_a = np.asarray(layer).astype(np.float32) / 255.0
+    soft_a = np.asarray(layer.filter(ImageFilter.GaussianBlur(radius))).astype(np.float32) / 255.0
+    light = np.clip(sharp_a * sharp + soft_a * 1.6 * strength, 0, 1)
+    return 255 - (255 - img) * (1 - light)
+
+
+def neon_city(w, h, rng):
+    """Cyberpunk night: neon signs, lit windows, rain."""
+    img = gradient(h, w, [(0, "#07010f"), (0.5, "#1f0638"), (0.78, "#6b1460"), (1, "#0d0318")])
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    img = screen(img, "#ff2e97", np.exp(-((yy - 0.78) / 0.08) ** 2) * np.ones((1, w)) * 0.35)
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    glow = _glow_layer(w, h)
+    g = ImageDraw.Draw(glow)
+    neon = [(255, 46, 151), (0, 229, 255), (255, 214, 10), (154, 92, 255)]
+    for layer, (col, hmin, hmax, win_p) in enumerate([((26, 10, 48), 0.35, 0.6, 0.12), ((17, 6, 33), 0.45, 0.78, 0.18), ((8, 3, 16), 0.55, 0.95, 0.22)]):
+        x = -10.0
+        while x < w:
+            bw = h * (0.12 + rng.random() * 0.22)
+            top = h * (1 - (hmin + rng.random() * (hmax - hmin)))
+            d.rectangle((x, top, x + bw, h), fill=col)
+            ws = max(3, h * 0.012)
+            for wy in np.arange(top + ws * 2, h - ws, ws * 2.6):
+                for wx in np.arange(x + ws, x + bw - ws, ws * 2.2):
+                    if rng.random() < win_p:
+                        c = neon[rng.integers(0, 4)] if rng.random() < 0.3 else (255, 196, 120)
+                        k = 0.35 + 0.4 * rng.random() if layer < 2 else 0.8
+                        d.rectangle((wx, wy, wx + ws, wy + ws * 0.8), fill=tuple(int(v * k) for v in c))
+            if layer == 2 and rng.random() < 0.55:  # vertical neon sign
+                sx = x + bw * (0.15 + rng.random() * 0.6)
+                sy = top + h * 0.05 + rng.random() * h * 0.15
+                c = neon[rng.integers(0, 4)]
+                g.rectangle((sx, sy, sx + h * 0.022, sy + h * (0.12 + rng.random() * 0.12)), outline=c, width=max(2, int(h * 0.005)))
+                for k in range(3):
+                    yk = sy + h * 0.025 + k * h * 0.035
+                    g.rectangle((sx + h * 0.006, yk, sx + h * 0.016, yk + h * 0.014), fill=c)
+            if layer == 1 and rng.random() < 0.35:  # rooftop sign
+                c = neon[rng.integers(0, 4)]
+                g.rectangle((x + bw * 0.2, top - h * 0.04, x + bw * 0.8, top - h * 0.01), outline=c, width=max(2, int(h * 0.004)))
+            x += bw + h * rng.random() * 0.02
+    img = np.asarray(base).astype(np.float32)
+    img = _add_glow(img, glow, radius=h * 0.02, strength=0.8)
+    # rain
+    rain = Image.new("L", (w, h), 0)
+    r = ImageDraw.Draw(rain)
+    for _ in range(int(w * h / 1800)):
+        x0, y0, ln = rng.random() * w, rng.random() * h, h * (0.02 + rng.random() * 0.04)
+        r.line((x0, y0, x0 - ln * 0.25, y0 + ln), fill=int(60 + rng.random() * 90), width=1)
+    img = screen(img, "#9fd8ff", np.asarray(rain).astype(np.float32) / 255.0 * 0.6)
+    return vignette(img, 0.35)
+
+
+def pixel_dungeon(w, h, rng):
+    """Retro RPG dungeon wall lit by torches (pixel art at 1/8 scale)."""
+    s = 8
+    pw, ph = w // s, h // s
+    img = np.zeros((ph, pw, 3), dtype=np.float32)
+    floor_y = int(ph * 0.78)
+    tone = noise(ph, pw, rng, octaves=3, base=3)
+    for y in range(floor_y):
+        row, offset = y // 4, (y // 4) % 2 * 4
+        for x in range(pw):
+            mortar = (y % 4 == 3) or ((x + offset) % 8 == 7)
+            if mortar:
+                img[y, x] = hex_rgb("#1b1d2b")
+            else:
+                k = 0.75 + 0.35 * tone[y, x] + ((x + offset) // 8 * 7 + row * 3) % 5 * 0.03
+                img[y, x] = hex_rgb("#4a5068") * k
+    for y in range(floor_y, ph):
+        for x in range(pw):
+            edge = (y - floor_y) % 5 == 0 or (x + (y - floor_y) // 5 * 3) % 11 == 0
+            img[y, x] = hex_rgb("#2a2433") if edge else hex_rgb("#3d3447") * (0.8 + 0.3 * tone[min(y, ph - 1), x])
+    img[floor_y - 1:floor_y + 1, :] = hex_rgb("#141420")
+    # torches and their light
+    light = np.full((ph, pw), 0.18, dtype=np.float32)
+    yy, xx = np.mgrid[0:ph, 0:pw].astype(np.float32)
+    n_torch = max(2, pw // 45)
+    for i in range(n_torch):
+        tx = int((i + 0.5) * pw / n_torch + (rng.random() - 0.5) * 6)
+        ty = int(ph * 0.42)
+        light += np.exp(-((xx - tx) ** 2 + ((yy - ty) * 1.2) ** 2) / (2 * (ph * 0.35) ** 2)) * 1.1
+        img[ty:ty + 5, tx:tx + 2] = hex_rgb("#5b3a1e")
+        img[ty - 1, tx - 1:tx + 3] = hex_rgb("#3b2614")
+        for fy, row in enumerate(["  y  ", " yoy ", "yoroy", " ror "]):
+            for fx, ch in enumerate(row):
+                if ch != " ":
+                    img[ty - 5 + fy, tx - 2 + fx] = hex_rgb({"y": "#ffd23f", "o": "#ff8c1a", "r": "#e8451e"}[ch])
+    warm = np.stack([light * 1.15, light * 0.85, light * 0.6], axis=-1)
+    flame = (img[..., 0] > 200)[..., None]
+    img = np.where(flame, img, img * np.clip(warm, 0, 1.4))
+    img = np.round(img / 12) * 12  # limited palette
+    out = np.asarray(to_image(img).resize((w, h), Image.NEAREST)).astype(np.float32)
+    return vignette(out, 0.45)
+
+
+def _invader(rng, size=(5, 7)):
+    """Random symmetrical 8-bit sprite (generated, not copied from any game)."""
+    half_w = (size[1] + 1) // 2
+    grid = rng.random((size[0], half_w)) > 0.45
+    grid[:, -1] |= rng.random(size[0]) > 0.3
+    return np.concatenate([grid, grid[:, -2::-1] if size[1] % 2 else grid[:, ::-1]], axis=1)
+
+
+def arcade(w, h, rng):
+    """8-bit space shooter: rows of generated invaders, player ship, lasers, CRT glow."""
+    s = 6
+    pw, ph = w // s, h // s
+    img = np.zeros((ph, pw, 3), dtype=np.float32) + hex_rgb("#03030a")
+    for _ in range(pw * ph // 60):
+        img[rng.integers(0, ph), rng.integers(0, pw)] = hex_rgb("#5d6b8a") * (0.5 + rng.random())
+    colors = ["#ff4d6d", "#ffd23f", "#3ddc97", "#4cc9f0", "#c77dff"]
+    rows = 3 if ph < 100 else 4
+    sprite_w = 9
+    for r in range(rows):
+        sprite = _invader(rng, (5, 7))
+        col = hex_rgb(colors[r % len(colors)])
+        y0 = int(ph * 0.12) + r * 8
+        step = sprite_w + 3
+        x0 = (pw % step) // 2 + int(pw * 0.08)
+        for x in range(x0, int(pw * 0.92) - sprite_w, step):
+            for sy in range(5):
+                for sx in range(7):
+                    if sprite[sy, sx]:
+                        img[y0 + sy, x + sx] = col
+    # player ship and lasers
+    sx, sy = pw // 2, ph - 8
+    ship = ["   g   ", "  ggg  ", " ggggg ", "ggggggg", "gg g gg"]
+    for yy_, row in enumerate(ship):
+        for xx_, ch in enumerate(row):
+            if ch == "g":
+                img[sy + yy_ - 2, sx + xx_ - 3] = hex_rgb("#3ddc97")
+    for lx in (sx, sx - int(pw * 0.25), sx + int(pw * 0.18)):
+        ly = int(ph * (0.45 + rng.random() * 0.2))
+        img[ly:ly + 4, lx] = hex_rgb("#f1faee")
+    img = np.asarray(to_image(img).resize((w, h), Image.NEAREST)).astype(np.float32)
+    glow = to_image(img).filter(ImageFilter.GaussianBlur(h * 0.012))
+    img = 255 - (255 - img) * (255 - np.asarray(glow).astype(np.float32) * 0.7) / 255
+    scan = (np.arange(h) % 3 == 0).astype(np.float32)[:, None, None]
+    return vignette(img * (1 - scan * 0.22), 0.5)
+
+
+def great_wave(w, h, rng):
+    """Japanese woodblock print mood: layered waves with foam curls, red sun, paper texture."""
+    paper = gradient(h, w, [(0, "#efe2c4"), (1, "#e2cfa6")])
+    paper = paper * (0.93 + 0.07 * noise(h, w, rng, octaves=6, base=20)[..., None])
+    base = to_image(paper)
+    d = ImageDraw.Draw(base)
+    r = h * 0.11
+    d.ellipse((w * 0.78 - r, h * 0.22 - r, w * 0.78 + r, h * 0.22 + r), fill=(196, 48, 43))
+    # distant mountain with snow cap
+    mx = w * 0.62
+    d.polygon([(mx - h * 0.35, h * 0.62), (mx, h * 0.36), (mx + h * 0.35, h * 0.62)], fill=(58, 82, 120))
+    d.polygon([(mx - h * 0.09, h * 0.43), (mx, h * 0.36), (mx + h * 0.09, h * 0.43), (mx + h * 0.03, h * 0.41), (mx - h * 0.02, h * 0.44)], fill=(239, 226, 196))
+    xs = np.linspace(0, w, 400)
+    layers = [((25, 49, 89), 0.5, 0.05), ((44, 82, 128), 0.6, 0.06), ((23, 43, 79), 0.72, 0.07), ((52, 98, 148), 0.85, 0.05)]
+    for col, base_y, amp in layers:
+        ph_ = rng.random() * 6.28
+        k = 2 + rng.random() * 3
+        ys = h * base_y - np.abs(np.sin(xs / w * k * math.pi + ph_)) ** 3 * h * amp * 2.2
+        d.polygon([(0, h)] + list(zip(xs, ys)) + [(w, h)], fill=col)
+        d.line(list(zip(xs, ys)), fill=(245, 240, 228), width=max(2, int(h * 0.008)))
+        # foam claws on crests
+        for i in range(1, len(xs) - 1):
+            if ys[i] < ys[i - 1] and ys[i] < ys[i + 1] and rng.random() < 0.9:
+                for c in range(5):
+                    rr = h * (0.008 + c * 0.004)
+                    cx, cy = xs[i] + c * h * 0.012, ys[i] + c * h * 0.006
+                    d.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), outline=(245, 240, 228), width=max(1, int(h * 0.004)))
+        for _ in range(int(w / 30)):
+            fx = rng.random() * w
+            fy = np.interp(fx, xs, ys) + h * (0.01 + rng.random() * 0.05)
+            fr = h * 0.004
+            d.ellipse((fx - fr, fy - fr, fx + fr, fy + fr), fill=(245, 240, 228))
+    return np.asarray(base).astype(np.float32)
+
+
+def anime_sky(w, h, rng):
+    """Anime sunset: huge clouds lit from below, utility poles and wires, birds."""
+    img = gradient(h, w, [(0, "#1b2a6b"), (0.45, "#5a5fbf"), (0.72, "#f29fb5"), (0.88, "#ffcf8a"), (1, "#ffcf8a")])
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    img = screen(img, "#fff1c7", np.exp(-((yy - 0.9) / 0.1) ** 2) * np.ones((1, w)) * 0.5)
+    # Cumulus: clusters of overlapping puffs, flat-ish bottom, lit from below by the sunset
+    body = Image.new("L", (w, h), 0)
+    lit = Image.new("L", (w, h), 0)
+    db, dl = ImageDraw.Draw(body), ImageDraw.Draw(lit)
+    size = min(w, h * 2.2)
+    for _ in range(4 if w > h * 2 else 5):
+        cx, cy = rng.random() * w, h * (0.12 + rng.random() * 0.3)
+        cw = size * (0.18 + rng.random() * 0.2)
+        for _ in range(14):
+            px = cx + (rng.random() - 0.5) * cw
+            pr = size * (0.035 + rng.random() * 0.05) * (1 - abs(px - cx) / cw)
+            py = cy - pr * (0.2 + rng.random() * 0.6)
+            db.ellipse((px - pr, py - pr, px + pr, cy + pr * 0.25), fill=255)
+            dl.ellipse((px - pr * 0.9, py - pr * 0.1, px + pr * 0.9, cy + pr * 0.3), fill=255)
+    m_body = np.asarray(body.filter(ImageFilter.GaussianBlur(h * 0.006))).astype(np.float32) / 255.0
+    m_lit = np.asarray(lit.filter(ImageFilter.GaussianBlur(h * 0.012))).astype(np.float32) / 255.0
+    img = blend(img, "#7d6cc4", m_body * 0.95)
+    img = blend(img, "#ffd2df", m_lit * m_body * 0.85)
+    img = blend(img, "#fff4e8", np.clip(m_lit * m_body - 0.55, 0, 1) * 1.6)
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    sil = (24, 20, 48)
+    # rooftops
+    x = 0.0
+    while x < w:
+        bw = h * (0.15 + rng.random() * 0.25)
+        top = h * (0.86 + rng.random() * 0.06)
+        d.rectangle((x, top, x + bw, h), fill=sil)
+        if rng.random() < 0.5:
+            d.polygon([(x, top), (x + bw / 2, top - h * 0.04), (x + bw, top)], fill=sil)
+        x += bw
+    # utility poles + wires (catenaries)
+    poles = [w * (0.12 + i * 0.36 + (rng.random() - 0.5) * 0.06) for i in range(3)]
+    pole_top = h * 0.32
+    for px in poles:
+        d.rectangle((px - h * 0.008, pole_top, px + h * 0.008, h), fill=sil)
+        for k in range(2):
+            yk = pole_top + h * (0.04 + k * 0.06)
+            d.rectangle((px - h * 0.07, yk, px + h * 0.07, yk + h * 0.012), fill=sil)
+    for k in range(4):
+        for a, b in zip([-w * 0.3] + poles, poles + [w * 1.3]):
+            y_att = pole_top + h * (0.045 + (k // 2) * 0.06)
+            off = (k % 2 * 2 - 1) * h * 0.06
+            xs = np.linspace(a + off, b + off, 60)
+            sag = h * 0.06 * (1 - ((xs - (a + b) / 2) / ((b - a) / 2 + 1e-6)) ** 2)
+            d.line(list(zip(xs, y_att + sag)), fill=sil, width=max(1, int(h * 0.003)))
+    for _ in range(7):
+        bx, by, bs = w * (0.45 + rng.random() * 0.4), h * (0.12 + rng.random() * 0.25), h * (0.008 + rng.random() * 0.01)
+        d.line([(bx - bs, by - bs * 0.6), (bx, by), (bx + bs, by - bs * 0.6)], fill=sil, width=max(1, int(h * 0.004)))
+    return np.asarray(base).astype(np.float32)
+
+
+def torii_night(w, h, rng):
+    """Shrine at night: vermilion gate, glowing lanterns, mist and moon."""
+    img = gradient(h, w, [(0, "#060b24"), (0.6, "#1d1a4a"), (1, "#2c1f3f")])
+    img = stars(img, rng, int(w * h / 3000), max_y=0.5)
+    moon = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(moon).ellipse((w * 0.74, h * 0.1, w * 0.74 + h * 0.18, h * 0.28), fill=255)
+    img = screen(img, "#fde6c8", np.asarray(moon.filter(ImageFilter.GaussianBlur(h * 0.08))).astype(np.float32) / 255.0 * 0.5)
+    img = blend(img, "#fdf0d8", np.asarray(moon).astype(np.float32) / 255.0)
+    img = fill_below(img, ridge(w, rng, h * 0.62, h * 0.08), "#151236")
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    img = screen(img, "#8b7fd1", np.exp(-((yy - 0.7) / 0.06) ** 2) * np.ones((1, w)) * 0.35)
+    img = fill_below(img, np.full(w, h * 0.86), "#0d0a1f")
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    gx, gw_, gh = w * 0.3, h * 0.62, h * 0.55
+    red, dark = (196, 44, 36), (120, 22, 20)
+    top = h * 0.86 - gh
+    d.rectangle((gx - gw_ * 0.36, top + gh * 0.12, gx - gw_ * 0.28, h * 0.86), fill=red)
+    d.rectangle((gx + gw_ * 0.28, top + gh * 0.12, gx + gw_ * 0.36, h * 0.86), fill=red)
+    d.rectangle((gx - gw_ * 0.45, top + gh * 0.24, gx + gw_ * 0.45, top + gh * 0.3), fill=red)
+    d.polygon([(gx - gw_ * 0.6, top - gh * 0.02), (gx, top + gh * 0.04), (gx + gw_ * 0.6, top - gh * 0.02),
+               (gx + gw_ * 0.55, top + gh * 0.09), (gx - gw_ * 0.55, top + gh * 0.09)], fill=dark)
+    d.rectangle((gx - gw_ * 0.5, top + gh * 0.09, gx + gw_ * 0.5, top + gh * 0.13), fill=red)
+    glow = _glow_layer(w, h)
+    g = ImageDraw.Draw(glow)
+    for i in range(6):
+        lx = w * (0.55 + i * 0.075) + (rng.random() - 0.5) * h * 0.04
+        ly = h * (0.5 + rng.random() * 0.18)
+        lr = h * 0.022
+        d.line((lx, ly - h * 0.12, lx, ly - lr), fill=(30, 20, 30), width=max(1, int(h * 0.003)))
+        g.ellipse((lx - lr, ly - lr * 1.3, lx + lr, ly + lr * 1.3), fill=(255, 140, 60))
+    out = _add_glow(np.asarray(base).astype(np.float32), glow, radius=h * 0.05, strength=0.9)
+    return vignette(out, 0.35)
+
+
+def manga_lines(w, h, rng):
+    """Manga panel energy: radial speed lines and a halftone dot gradient."""
+    img = np.zeros((h, w, 3), dtype=np.float32) + hex_rgb("#0b0b12")
+    lines = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(lines)
+    cx, cy = w * 0.32, h * 0.5
+    radius = math.hypot(w, h)
+    for _ in range(260):
+        a = rng.random() * 2 * math.pi
+        da = 0.002 + rng.random() * 0.01
+        r0 = min(w, h) * (0.12 + rng.random() * 0.22)
+        p = [(cx + math.cos(a) * r0, cy + math.sin(a) * r0),
+             (cx + math.cos(a - da) * radius, cy + math.sin(a - da) * radius),
+             (cx + math.cos(a + da) * radius, cy + math.sin(a + da) * radius)]
+        d.polygon(p, fill=int(140 + rng.random() * 115))
+    img = screen(img, "#f1f1f1", np.asarray(lines).astype(np.float32) / 255.0 * 0.75)
+    dots = Image.new("L", (w, h), 0)
+    dd = ImageDraw.Draw(dots)
+    step = max(10, int(h * 0.03))
+    for y in range(0, h + step, step):
+        for x in range((y // step) % 2 * step // 2, w + step, step):
+            t = np.clip((x / w - 0.45) * 1.8, 0, 1)
+            rr = step * 0.5 * t
+            if rr > 0.6:
+                dd.ellipse((x - rr, y - rr, x + rr, y + rr), fill=255)
+    img = blend(img, "#e63946", np.asarray(dots).astype(np.float32) / 255.0 * 0.9)
+    return vignette(img, 0.3)
+
+
+def mecha_hud(w, h, rng):
+    """Sci-fi mecha cockpit HUD: rings, ticks, grid and readouts."""
+    img = gradient(h, w, [(0, "#03121a"), (1, "#062330")], axis=1)
+    hud = _glow_layer(w, h)
+    d = ImageDraw.Draw(hud)
+    cyan, amber = (0, 220, 255), (255, 176, 59)
+    step = max(24, int(h * 0.08))
+    for x in range(0, w, step):
+        d.line((x, 0, x, h), fill=(0, 60, 80), width=1)
+    for y in range(0, h, step):
+        d.line((0, y, w, y), fill=(0, 60, 80), width=1)
+    cx, cy = w * 0.7, h * 0.5
+    for i, rr in enumerate([0.18, 0.28, 0.4, 0.46]):
+        R = h * rr * (1.6 if h < w / 2 else 1.0)
+        start = rng.random() * 360
+        for seg in range(3 + i):
+            a0 = start + seg * 360 / (3 + i)
+            d.arc((cx - R, cy - R, cx + R, cy + R), a0, a0 + 360 / (3 + i) * (0.4 + rng.random() * 0.4), fill=cyan if i % 2 == 0 else amber, width=max(2, int(h * 0.006)))
+    R = h * 0.5 * (1.6 if h < w / 2 else 1.0)
+    for k in range(72):
+        a = math.radians(k * 5)
+        r1 = R * (0.94 if k % 6 else 0.88)
+        d.line((cx + math.cos(a) * r1, cy + math.sin(a) * r1, cx + math.cos(a) * R, cy + math.sin(a) * R), fill=cyan, width=1)
+    d.line((cx - h * 0.06, cy, cx + h * 0.06, cy), fill=amber, width=2)
+    d.line((cx, cy - h * 0.06, cx, cy + h * 0.06), fill=amber, width=2)
+    # readout bars on the left
+    for i in range(6):
+        y = h * (0.2 + i * 0.1)
+        L = w * (0.06 + rng.random() * 0.16)
+        d.rectangle((w * 0.05, y, w * 0.05 + L, y + h * 0.025), fill=cyan if i % 3 else amber)
+        d.rectangle((w * 0.05 + L + h * 0.02, y, w * 0.05 + L + h * 0.05, y + h * 0.025), outline=cyan)
+    out = _add_glow(img, hud, radius=h * 0.015, strength=0.6, sharp=0.8)
+    scan = (np.arange(h) % 4 == 0).astype(np.float32)[:, None, None]
+    return vignette(out * (1 - scan * 0.18), 0.45)
+
+
+def enchanted_forest(w, h, rng):
+    """Magical forest: tree silhouettes, glowing mushrooms and fireflies."""
+    img = gradient(h, w, [(0, "#071a24"), (0.6, "#123b4a"), (1, "#1c1236")])
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    img = screen(img, "#5eead4", np.exp(-((yy - 0.55) / 0.12) ** 2) * np.ones((1, w)) * 0.25)
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    for layer, col in enumerate([(14, 46, 58), (9, 30, 40), (4, 14, 20)]):
+        x = -20.0
+        while x < w + 20:
+            tw = h * (0.025 + layer * 0.015) * (0.7 + rng.random() * 0.6)
+            crown_y = h * (0.28 + layer * 0.08 + rng.random() * 0.12)
+            d.rectangle((x, crown_y, x + tw, h), fill=col)
+            for _ in range(7):
+                cr = h * (0.07 + layer * 0.035) * (0.6 + rng.random() * 0.6)
+                ccx = x + tw / 2 + (rng.random() - 0.5) * cr * 2.2
+                ccy = crown_y - cr * (0.2 + rng.random() * 1.1)
+                d.ellipse((ccx - cr, ccy - cr, ccx + cr, ccy + cr), fill=col)
+            x += tw + h * (0.08 + rng.random() * 0.2) / (layer + 1)
+    d.rectangle((0, h * 0.88, w, h), fill=(4, 10, 16))
+    glow = _glow_layer(w, h)
+    g = ImageDraw.Draw(glow)
+    for _ in range(int(w / 70)):
+        mx, my = rng.random() * w, h * (0.86 + rng.random() * 0.06)
+        mr = h * (0.012 + rng.random() * 0.025)
+        c = [(94, 234, 212), (192, 132, 252), (125, 211, 252)][rng.integers(0, 3)]
+        d.rectangle((mx - mr * 0.18, my - mr * 0.2, mx + mr * 0.18, my + mr * 1.2), fill=(200, 210, 220))
+        g.pieslice((mx - mr, my - mr, mx + mr, my + mr), 180, 360, fill=c)
+    for _ in range(int(w * h / 9000)):
+        fx, fy, fr = rng.random() * w, h * (0.2 + rng.random() * 0.65), h * (0.002 + rng.random() * 0.004)
+        g.ellipse((fx - fr, fy - fr, fx + fr, fy + fr), fill=(255, 236, 140))
+    out = _add_glow(np.asarray(base).astype(np.float32), glow, radius=h * 0.02, strength=1.0)
+    return vignette(out, 0.35)
+
+
+def platformer(w, h, rng):
+    """16-bit platform game mood: sky, puffy clouds, hills, floating platforms and coins (original layout)."""
+    s = 6
+    pw, ph = w // s, h // s
+    sky = gradient(ph, pw, [(0, "#4aa3ff"), (1, "#a8dcff")])
+    sky = np.round(sky / 16) * 16
+    im = to_image(sky)
+    d = ImageDraw.Draw(im)
+    for _ in range(max(3, pw // 40)):
+        cx, cy = rng.random() * pw, ph * (0.1 + rng.random() * 0.3)
+        for k in range(4):
+            rr = ph * (0.05 + rng.random() * 0.04)
+            ox = cx + (k - 1.5) * rr * 1.1
+            d.ellipse((ox - rr, cy - rr * 0.8, ox + rr, cy + rr * 0.8), fill=(255, 255, 255))
+    for i in range(max(3, pw // 50)):
+        hx, hr = rng.random() * pw, ph * (0.25 + rng.random() * 0.25)
+        d.ellipse((hx - hr * 1.3, ph * 0.82 - hr, hx + hr * 1.3, ph * 0.82 + hr), fill=(76, 175, 80), outline=(46, 125, 50))
+    ground = int(ph * 0.82)
+    d.rectangle((0, ground, pw, ph), fill=(150, 90, 50))
+    d.rectangle((0, ground, pw, ground + 2), fill=(92, 196, 72))
+    for x in range(0, pw, 4):
+        for y in range(ground + 4, ph, 4):
+            if (x // 4 + y // 4) % 2:
+                d.rectangle((x, y, x + 1, y + 1), fill=(120, 70, 40))
+    for _ in range(max(3, pw // 45)):
+        px, py, plen = rng.random() * pw * 0.9, ph * (0.4 + rng.random() * 0.25), int(4 + rng.random() * 5)
+        for b in range(plen):
+            bx = px + b * 5
+            d.rectangle((bx, py, bx + 4, py + 4), fill=(196, 102, 46), outline=(110, 52, 20))
+            d.line((bx, py + 2, bx + 4, py + 2), fill=(110, 52, 20))
+        for c in range(plen // 2):
+            cx = px + c * 9 + 3
+            d.ellipse((cx, py - 7, cx + 3, py - 3), fill=(255, 214, 10), outline=(196, 140, 0))
+    out = np.asarray(im.resize((w, h), Image.NEAREST)).astype(np.float32)
+    return out
+
+
+def vaporwave(w, h, rng):
+    """Vaporwave: sliced sun, checkered floor in perspective, glitch bands."""
+    horizon = int(h * 0.6)
+    img = gradient(h, w, [(0, "#2d0b4e"), (0.4, "#8a2d8f"), (0.6, "#ff71ce"), (0.601, "#120024"), (1, "#120024")])
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    r = h * 0.3
+    sun = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(sun).ellipse((w * 0.5 - r, horizon - r * 1.2, w * 0.5 + r, horizon + r * 0.8), fill=255)
+    sun_col = to_image(gradient(h, w, [(0, "#fffb96"), (0.6, "#ff71ce"), (1, "#ff71ce")]))
+    mask = np.asarray(sun).astype(np.float32) / 255.0
+    yy = np.arange(h)[:, None]
+    for i in range(6):
+        y0 = horizon - r * 0.5 + i * r * 0.11
+        mask[(yy[:, 0] > y0) & (yy[:, 0] < y0 + 2 + i * 1.5)] = 0
+    mask[horizon:] = 0
+    arr = np.asarray(base).astype(np.float32)
+    arr = arr * (1 - mask[..., None]) + np.asarray(sun_col).astype(np.float32) * mask[..., None]
+    # checkered floor in perspective
+    floor = np.zeros((h - horizon, w), dtype=np.float32)
+    ys = np.arange(1, h - horizon + 1, dtype=np.float32)[:, None]
+    xs = (np.arange(w, dtype=np.float32)[None, :] - w / 2)
+    z = (h - horizon) / ys
+    u = np.floor(xs * z / (h * 0.08))
+    v = np.floor(z * 4)
+    floor = ((u + v) % 2).astype(np.float32)
+    tile_a, tile_b = hex_rgb("#01cdfe"), hex_rgb("#b967ff")
+    fade = np.clip(ys / (h - horizon), 0.15, 1)[..., None]
+    arr[horizon:] = (tile_a * floor[..., None] + tile_b * (1 - floor[..., None])) * fade * 0.8
+    # glitch: shifted bands with RGB split
+    for _ in range(6):
+        y0 = rng.integers(0, h - 10)
+        bh = rng.integers(2, max(3, h // 40))
+        dx = rng.integers(-int(w * 0.03), int(w * 0.03))
+        arr[y0:y0 + bh] = np.roll(arr[y0:y0 + bh], dx, axis=1)
+    arr[..., 0] = np.roll(arr[..., 0], 3, axis=1)
+    arr[..., 2] = np.roll(arr[..., 2], -3, axis=1)
+    return vignette(arr, 0.3)
+
+
+def ringed_planet(w, h, rng):
+    """Space opera: ringed gas giant, moons and stars."""
+    img = gradient(h, w, [(0, "#02030a"), (1, "#0a0820")])
+    img = screen(img, "#3b2a8a", np.clip(noise(h, w, rng, octaves=5, base=3) - 0.55, 0, 1) * 0.8)
+    img = stars(img, rng, int(w * h / 1500))
+    cx, cy, R = w * 0.62, h * 0.55, h * 0.36
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    dx, dy = (xx - cx) / R, (yy - cy) / R
+    tilt = 0.35
+
+    def ring_mask(front: bool):
+        rx, ry = dx * 1.0, (dy + dx * tilt) * 3.2
+        rr = np.sqrt(rx ** 2 + ry ** 2)
+        band = ((rr > 1.35) & (rr < 2.15)).astype(np.float32) * (0.55 + 0.45 * np.sin(rr * 30) ** 2)
+        side = (dy + dx * tilt) > 0 if front else (dy + dx * tilt) <= 0
+        return band * side
+
+    img = blend(img, "#cdb38a", ring_mask(False) * 0.6)
+    inside = dx ** 2 + dy ** 2 <= 1
+    shade = np.clip(0.25 + 0.95 * (-(dx * 0.7) - dy * 0.4 + np.sqrt(np.clip(1 - dx ** 2 - dy ** 2, 0, 1))) / 1.6, 0.08, 1.1)
+    bands = 0.5 + 0.5 * np.sin((dy + dx * tilt) * 14 + noise(h, w, rng, octaves=3, base=4) * 3)
+    planet = (hex_rgb("#d9825b") * bands[..., None] + hex_rgb("#7b4b8f") * (1 - bands[..., None])) * shade[..., None]
+    img = np.where(inside[..., None], planet, img)
+    img = blend(img, "#e8d4a8", ring_mask(True) * 0.75)
+    for mx, my, mr in ((0.18, 0.3, 0.05), (0.3, 0.75, 0.025)):
+        m = ((xx - w * mx) ** 2 + (yy - h * my) ** 2) <= (h * mr) ** 2
+        mshade = np.clip(1 - ((xx - w * mx + h * mr * 0.4) ** 2 + (yy - h * my + h * mr * 0.4) ** 2) / (h * mr * 1.6) ** 2, 0.15, 1)
+        img = np.where(m[..., None], hex_rgb("#a9b4c8") * mshade[..., None], img)
+    return vignette(img, 0.35)
+
+
+# --- Pop culture moods, second batch ---
+
+def hyperspace(w, h, rng):
+    """Jump to lightspeed: star streaks radiating from the centre."""
+    img = np.zeros((h, w, 3), dtype=np.float32) + hex_rgb("#02030b")
+    layer = _glow_layer(w, h)
+    d = ImageDraw.Draw(layer)
+    cx, cy = w * 0.5, h * 0.5
+    reach = math.hypot(w, h) * 0.6
+    for _ in range(int(w * h / 900)):
+        a = rng.random() * 2 * math.pi
+        r0 = reach * rng.random() ** 0.7
+        ln = r0 * (0.15 + rng.random() * 0.35)
+        x0, y0 = cx + math.cos(a) * r0, cy + math.sin(a) * r0
+        x1, y1 = cx + math.cos(a) * (r0 + ln), cy + math.sin(a) * (r0 + ln)
+        c = [(200, 220, 255), (140, 180, 255), (255, 255, 255), (180, 150, 255)][rng.integers(0, 4)]
+        k = 0.3 + 0.7 * (r0 / reach)
+        d.line((x0, y0, x1, y1), fill=tuple(int(v * k) for v in c), width=1 if r0 < reach * 0.5 else 2)
+    out = _add_glow(img, layer, radius=h * 0.006, strength=0.6)
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    core = np.exp(-(((xx - cx) / (h * 0.25)) ** 2 + ((yy - cy) / (h * 0.25)) ** 2))
+    out = screen(out, "#9ec5ff", core * 0.55)
+    return vignette(out, 0.45)
+
+
+def _glyph(rng):
+    """Random 3x5 glyph bitmap (made-up symbols)."""
+    g = rng.random((5, 3)) > 0.45
+    g[rng.integers(0, 5), :] = True
+    return g
+
+
+def code_rain(w, h, rng):
+    """Falling streams of glowing green glyphs."""
+    s = 3
+    pw, ph = w // s, h // s
+    img = np.zeros((ph, pw, 3), dtype=np.float32) + hex_rgb("#010805")
+    col_w, row_h = 4, 6
+    for cx in range(0, pw - 3, col_w):
+        if rng.random() < 0.35:
+            continue
+        length = int(rng.integers(6, max(8, ph // row_h)))
+        head = int(rng.integers(0, ph // row_h + length))
+        for k in range(length):
+            row = head - k
+            if row < 0 or row * row_h + 5 >= ph:
+                continue
+            fade = 1 - k / length
+            color = hex_rgb("#d8ffe6") if k == 0 else hex_rgb("#22ff88") * (0.25 + 0.75 * fade)
+            g = _glyph(rng)
+            y0 = row * row_h
+            for gy in range(5):
+                for gx in range(3):
+                    if g[gy, gx]:
+                        img[y0 + gy, cx + gx] = color
+    out = np.asarray(to_image(img).resize((w, h), Image.NEAREST)).astype(np.float32)
+    glow = to_image(out).filter(ImageFilter.GaussianBlur(h * 0.008))
+    out = 255 - (255 - out) * (255 - np.asarray(glow).astype(np.float32) * 0.8) / 255
+    return vignette(out, 0.4)
+
+
+def crystal_cave(w, h, rng):
+    """Underground cave lit by glowing crystal clusters."""
+    img = gradient(h, w, [(0, "#05030d"), (0.6, "#170b2e"), (1, "#0a0518")])
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    rock = (12, 8, 22)
+    x = 0.0
+    while x < w:  # stalactites
+        sw = h * (0.04 + rng.random() * 0.08)
+        d.polygon([(x, 0), (x + sw, 0), (x + sw / 2, h * (0.08 + rng.random() * 0.25))], fill=rock)
+        x += sw * 0.8
+    floor = ridge(w, rng, h * 0.9, h * 0.04)
+    d.polygon([(0, h)] + [(i, floor[i]) for i in range(0, w, 8)] + [(w, h)], fill=rock)
+    glow = _glow_layer(w, h)
+    g = ImageDraw.Draw(glow)
+    palette = [((90, 230, 255), (200, 250, 255)), ((230, 90, 255), (250, 200, 255)), ((120, 140, 255), (210, 220, 255))]
+    for _ in range(max(4, int(w / 160))):
+        cx = rng.random() * w
+        base_y = floor[min(int(cx), w - 1)] + h * 0.02
+        dark, light = palette[rng.integers(0, 3)]
+        for _ in range(int(rng.integers(3, 7))):
+            ang = math.radians(-90 + (rng.random() - 0.5) * 60)
+            ln = h * (0.1 + rng.random() * 0.25)
+            wd = ln * 0.16
+            tx, ty = cx + math.cos(ang) * ln, base_y + math.sin(ang) * ln
+            nx, ny = -math.sin(ang) * wd, math.cos(ang) * wd
+            pts = [(cx - nx, base_y - ny), (tx - nx * 0.6, ty - ny * 0.6), (tx + math.cos(ang) * wd * 1.4, ty + math.sin(ang) * wd * 1.4),
+                   (tx + nx * 0.6, ty + ny * 0.6), (cx + nx, base_y + ny)]
+            g.polygon(pts, fill=dark)
+            g.polygon([pts[0], pts[1], pts[2], ((pts[0][0] + pts[4][0]) / 2, (pts[0][1] + pts[4][1]) / 2)], fill=light)
+    out = _add_glow(np.asarray(base).astype(np.float32), glow, radius=h * 0.04, strength=0.7)
+    return vignette(out, 0.4)
+
+
+def lava_world(w, h, rng):
+    """Volcano world: erupting peak, glowing lava flows and embers."""
+    img = gradient(h, w, [(0, "#120404"), (0.5, "#3a0d08"), (0.75, "#6b1a0a"), (1, "#1a0503")])
+    smoke = noise(h, w, rng, octaves=5, base=3)
+    img = img * (0.7 + 0.5 * smoke[..., None])
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    vx, top = w * 0.55, h * 0.3
+    d.polygon([(vx - h * 0.9, h * 0.85), (vx - h * 0.08, top), (vx + h * 0.08, top), (vx + h * 0.9, h * 0.85)], fill=(28, 10, 8))
+    d.polygon([(0, h * 0.85)] + [(x, h * (0.8 + 0.04 * math.sin(x / w * 9))) for x in range(0, w + 20, 20)] + [(w, h)], fill=(20, 7, 6))
+    glow = _glow_layer(w, h)
+    g = ImageDraw.Draw(glow)
+    for side in (-1, 1):  # lava flows down the slopes
+        x, y = vx + side * h * 0.04, top
+        pts = [(x, y)]
+        while y < h * 0.84:
+            y += h * 0.03
+            x += side * h * (0.03 + rng.random() * 0.05)
+            pts.append((x, y))
+        g.line(pts, fill=(255, 120, 20), width=max(4, int(h * 0.022)))
+        g.line(pts, fill=(255, 220, 120), width=max(1, int(h * 0.006)))
+    g.ellipse((vx - h * 0.09, top - h * 0.05, vx + h * 0.09, top + h * 0.03), fill=(255, 170, 60))
+    out = _add_glow(np.asarray(base).astype(np.float32), glow, radius=h * 0.03, strength=0.9)
+    # Lava lake: molten orange under a dark crust broken by glowing cracks
+    lake_top = int(h * 0.86)
+    # noise drawn on the whole frame then cropped: on a thin strip it would be stretched into stripes
+    crust = noise(h, w, rng, octaves=5, base=6, stretch=(1.6, 1.0))[lake_top:]
+    molten = np.clip((0.5 - crust) * 4, 0, 1)
+    edges = np.exp(-((crust - 0.5) / 0.035) ** 2)
+    depth = np.linspace(0.6, 1.0, h - lake_top, dtype=np.float32)[:, None]
+    lava_rgb = hex_rgb("#ff7a1a")[None, None, :] * (0.6 + 0.4 * molten[..., None]) + hex_rgb("#ffd36e")[None, None, :] * (edges[..., None] * 0.6)
+    crust_rgb = hex_rgb("#1c0805")[None, None, :] * np.ones_like(molten)[..., None]
+    a = np.clip(molten + edges, 0, 1)[..., None]
+    out[lake_top:] = (crust_rgb * (1 - a) + lava_rgb * a) * depth[..., None]
+    heat = np.zeros((h, w), dtype=np.float32)
+    heat[lake_top:] = a[..., 0]
+    heat_glow = np.asarray(Image.fromarray((heat * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(h * 0.04))).astype(np.float32) / 255.0
+    out = screen(out, "#ff6a00", heat_glow * 0.8)
+    sparks = Image.new("L", (w, h), 0)
+    sd = ImageDraw.Draw(sparks)
+    for _ in range(int(w * h / 4000)):
+        sx, sy, sr = vx + (rng.random() - 0.5) * w * 0.8, rng.random() * h * 0.8, rng.random() * 1.8 + 0.5
+        sd.ellipse((sx - sr, sy - sr, sx + sr, sy + sr), fill=int(120 + rng.random() * 135))
+    out = screen(out, "#ffb347", np.asarray(sparks).astype(np.float32) / 255.0)
+    return vignette(out, 0.35)
+
+
+def snow_night(w, h, rng):
+    """Winter night: snowy peaks, pine forest, falling snow."""
+    img = gradient(h, w, [(0, "#050b1f"), (0.6, "#1b2c55"), (1, "#2a3d66")])
+    img = stars(img, rng, int(w * h / 3000), max_y=0.5)
+    peaks = ridge(w, rng, h * 0.5, h * 0.14, rough=6)
+    yy = np.arange(h, dtype=np.float32)[:, None]
+    mask = yy >= peaks[None, :]
+    snowcap = np.clip(1 - (yy - peaks[None, :]) / (h * 0.12), 0, 1) * mask
+    img = np.where(mask[..., None], hex_rgb("#3b4f7a"), img)
+    img = blend(img, "#dde7f7", snowcap * 0.85)
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    for layer, col in enumerate([(30, 44, 70), (16, 26, 44)]):
+        x = -10.0
+        while x < w + 10:
+            th = h * (0.18 + layer * 0.08) * (0.6 + rng.random() * 0.6)
+            ground = h * (0.8 + layer * 0.08)
+            tw = th * 0.35
+            for k in range(3):
+                t = ground - th + k * th * 0.25
+                d.polygon([(x, t), (x - tw * (0.5 + k * 0.2), t + th * 0.4), (x + tw * (0.5 + k * 0.2), t + th * 0.4)], fill=col)
+                d.polygon([(x, t), (x - tw * 0.18, t + th * 0.12), (x + tw * 0.18, t + th * 0.12)], fill=(220, 230, 245))
+            x += tw * (0.6 + rng.random() * 0.8)
+        d.rectangle((0, h * (0.86 + layer * 0.06), w, h), fill=(200, 212, 232) if layer == 0 else (170, 185, 210))
+    snow = Image.new("L", (w, h), 0)
+    sd = ImageDraw.Draw(snow)
+    for _ in range(int(w * h / 1500)):
+        sx, sy, sr = rng.random() * w, rng.random() * h, rng.random() * 2.2 + 0.6
+        sd.ellipse((sx - sr, sy - sr, sx + sr, sy + sr), fill=int(150 + rng.random() * 105))
+    out = screen(np.asarray(base).astype(np.float32), "#ffffff", np.asarray(snow.filter(ImageFilter.GaussianBlur(0.6))).astype(np.float32) / 255.0)
+    return vignette(out, 0.3)
+
+
+def deep_sea(w, h, rng):
+    """Abyss: light rays from the surface, jellyfish, bubbles, kelp."""
+    img = gradient(h, w, [(0, "#0b5a7a"), (0.4, "#063552"), (1, "#020b1a")])
+    rays = Image.new("L", (w, h), 0)
+    rd = ImageDraw.Draw(rays)
+    for _ in range(9):
+        x0 = rng.random() * w
+        spread = h * (0.05 + rng.random() * 0.1)
+        rd.polygon([(x0, 0), (x0 + spread, 0), (x0 + spread * 3 - h * 0.3, h), (x0 + spread * 2 - h * 0.4, h)], fill=int(40 + rng.random() * 50))
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    img = screen(img, "#a8e6ff", np.asarray(rays.filter(ImageFilter.GaussianBlur(h * 0.03))).astype(np.float32) / 255.0 * (1 - yy) * 0.8)
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    floor = ridge(w, rng, h * 0.88, h * 0.05)
+    d.polygon([(0, h)] + [(i, floor[i]) for i in range(0, w, 8)] + [(w, h)], fill=(3, 12, 22))
+    for _ in range(int(w / 60)):  # kelp
+        kx = rng.random() * w
+        ky = floor[min(int(kx), w - 1)]
+        pts = [(kx + math.sin(t / 3 + kx) * h * 0.02, ky - t * h * 0.03) for t in range(int(6 + rng.random() * 8))]
+        d.line(pts, fill=(6, 40, 40), width=max(2, int(h * 0.01)))
+    glow = _glow_layer(w, h)
+    g = ImageDraw.Draw(glow)
+    for _ in range(max(3, int(w / 300))):
+        jx, jy, jr = rng.random() * w, h * (0.25 + rng.random() * 0.45), h * (0.03 + rng.random() * 0.04)
+        c = [(255, 120, 200), (150, 120, 255), (120, 230, 255)][rng.integers(0, 3)]
+        g.pieslice((jx - jr, jy - jr, jx + jr, jy + jr), 180, 360, fill=tuple(int(v * 0.8) for v in c))
+        for t in range(5):
+            tx = jx - jr * 0.7 + t * jr * 0.35
+            g.line([(tx + math.sin(k / 2 + t) * jr * 0.15, jy + k * jr * 0.35) for k in range(6)], fill=c, width=max(1, int(h * 0.003)))
+    out = _add_glow(np.asarray(base).astype(np.float32), glow, radius=h * 0.03, strength=0.8)
+    bub = Image.new("L", (w, h), 0)
+    bd = ImageDraw.Draw(bub)
+    for _ in range(int(w * h / 6000)):
+        bx, by, br = rng.random() * w, rng.random() * h * 0.85, rng.random() * h * 0.008 + 1
+        bd.ellipse((bx - br, by - br, bx + br, by + br), outline=int(120 + rng.random() * 100))
+    out = screen(out, "#d8f6ff", np.asarray(bub).astype(np.float32) / 255.0 * 0.7)
+    return vignette(out, 0.4)
+
+
+def blood_moon(w, h, rng):
+    """Gothic night: huge red moon, castle silhouette with lit windows, bats."""
+    img = gradient(h, w, [(0, "#0a0205"), (0.55, "#2a0710"), (1, "#120306")])
+    moon = Image.new("L", (w, h), 0)
+    mr = h * 0.28
+    mx, my = w * 0.62, h * 0.4
+    ImageDraw.Draw(moon).ellipse((mx - mr, my - mr, mx + mr, my + mr), fill=255)
+    m = np.asarray(moon).astype(np.float32) / 255.0
+    img = screen(img, "#ff3b3b", np.asarray(moon.filter(ImageFilter.GaussianBlur(h * 0.1))).astype(np.float32) / 255.0 * 0.5)
+    tex = noise(h, w, rng, octaves=4, base=6)
+    img = img * (1 - m[..., None]) + (hex_rgb("#c8202a") * (0.75 + 0.35 * tex[..., None])) * m[..., None]
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    sil = (8, 2, 5)
+    d.polygon([(0, h)] + [(x, h * (0.82 + 0.05 * math.sin(x / w * 7 + 1))) for x in range(0, w + 20, 20)] + [(w, h)], fill=sil)
+    cx = w * 0.42
+    towers = [(-0.22, 0.22, 0.05), (-0.12, 0.34, 0.04), (0.0, 0.46, 0.06), (0.12, 0.3, 0.045), (0.2, 0.2, 0.04)]
+    glow = _glow_layer(w, h)
+    g = ImageDraw.Draw(glow)
+    d.rectangle((cx - h * 0.3, h * 0.68, cx + h * 0.3, h), fill=sil)
+    for ox, th, tw in towers:
+        tx, tw_px = cx + ox * h * 1.4, h * tw
+        top = h * 0.82 - h * th
+        d.rectangle((tx - tw_px, top, tx + tw_px, h), fill=sil)
+        d.polygon([(tx - tw_px * 1.3, top), (tx, top - h * 0.1), (tx + tw_px * 1.3, top)], fill=sil)
+        for k in range(int(th * 10)):
+            if rng.random() < 0.5:
+                wy = top + h * 0.03 + k * h * 0.045
+                g.rectangle((tx - tw_px * 0.2, wy, tx + tw_px * 0.2, wy + h * 0.02), fill=(255, 180, 80))
+    out = _add_glow(np.asarray(base).astype(np.float32), glow, radius=h * 0.015, strength=0.7)
+    b = to_image(out)
+    bd = ImageDraw.Draw(b)
+    for _ in range(9):  # bats
+        bx, by, bs = mx + (rng.random() - 0.5) * mr * 3, my + (rng.random() - 0.5) * mr * 1.6, h * (0.012 + rng.random() * 0.012)
+        bd.polygon([(bx - bs * 2, by - bs * 0.4), (bx - bs, by), (bx - bs * 0.4, by - bs * 0.2), (bx, by + bs * 0.3),
+                    (bx + bs * 0.4, by - bs * 0.2), (bx + bs, by), (bx + bs * 2, by - bs * 0.4), (bx, by - bs * 0.1)], fill=sil)
+    return vignette(np.asarray(b).astype(np.float32), 0.4)
+
+
+def block_world(w, h, rng):
+    """Sandbox game mood: terrain made of cubes, trees, flat clouds (generic blocks)."""
+    s = 4
+    pw, ph = w // s, h // s
+    bs = 8  # block size in low-res pixels
+    cols, rows = pw // bs + 1, ph // bs + 1
+    img = gradient(ph, pw, [(0, "#6fb7ff"), (1, "#bfe3ff")])
+    img = np.round(img / 10) * 10
+    heights = np.clip((ridge(cols, rng, rows * 0.55, rows * 0.15, rough=4)).astype(int), 2, rows - 2)
+    grass, dirt, stone = hex_rgb("#5fae3c"), hex_rgb("#8a5a33"), hex_rgb("#7d7d84")
+
+    def block(cx, cy, color):
+        y0, x0 = cy * bs, cx * bs
+        if y0 < 0 or x0 < 0 or y0 >= ph or x0 >= pw:
+            return
+        tile = np.ones((bs, bs, 1), dtype=np.float32) * color
+        tile[:, :] *= (0.92 + 0.12 * rng.random((bs, bs, 1)))
+        tile[0, :] *= 1.15
+        tile[-1, :] *= 0.75
+        tile[:, -1] *= 0.8
+        img[y0:y0 + bs, x0:x0 + bs] = tile[: ph - y0, : pw - x0]
+
+    for cx in range(cols):
+        top = rows - heights[cx]
+        for cy in range(top, rows):
+            block(cx, cy, grass if cy == top else dirt if cy < top + 3 else stone)
+        if rng.random() < 0.12 and top > 4:
+            for k in range(1, 4):
+                block(cx, top - k, hex_rgb("#6b4a2b"))
+            for lx in range(cx - 1, cx + 2):
+                for ly in range(top - 6, top - 3):
+                    if 0 <= lx < cols:
+                        block(lx, ly, hex_rgb("#3f8f2f"))
+    for _ in range(max(2, cols // 12)):
+        cy, cx, ln = int(rng.integers(1, 4)), int(rng.integers(0, cols)), int(rng.integers(3, 7))
+        for k in range(ln):
+            y0, x0 = cy * bs, (cx + k) * bs
+            if x0 < pw:
+                img[y0:y0 + bs // 2, x0:x0 + bs] = 245
+    img[bs: bs * 2, pw - bs * 4: pw - bs * 3] = hex_rgb("#fff3b0")
+    return np.asarray(to_image(img).resize((w, h), Image.NEAREST)).astype(np.float32)
+
+
+def desert_ruins(w, h, rng):
+    """Adventure game sunset: pyramids, broken columns, dunes."""
+    img = gradient(h, w, [(0, "#2b1645"), (0.4, "#b4452e"), (0.65, "#f39a3d"), (1, "#f6c27a")])
+    sun = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(sun).ellipse((w * 0.2, h * 0.38, w * 0.2 + h * 0.3, h * 0.68), fill=255)
+    img = screen(img, "#ffe7a3", np.asarray(sun.filter(ImageFilter.GaussianBlur(h * 0.06))).astype(np.float32) / 255.0 * 0.7)
+    img = blend(img, "#fff1c4", np.asarray(sun).astype(np.float32) / 255.0 * 0.9)
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    for px, ph_, col in ((0.55, 0.42, (122, 54, 40)), (0.72, 0.3, (140, 66, 46)), (0.42, 0.24, (150, 74, 52))):
+        x = w * px
+        d.polygon([(x - h * ph_ * 1.1, h * 0.78), (x, h * (0.78 - ph_)), (x + h * ph_ * 1.1, h * 0.78)], fill=col)
+        d.polygon([(x, h * (0.78 - ph_)), (x + h * ph_ * 1.1, h * 0.78), (x + h * ph_ * 0.2, h * 0.78)], fill=tuple(int(c * 0.75) for c in col))
+    xs = np.arange(0, w + 10, 10)
+    for i, col in enumerate([(176, 96, 52), (150, 78, 42)]):
+        ys = h * (0.76 + i * 0.08) + np.sin(xs / w * (5 + i * 3) + rng.random() * 6) * h * 0.03
+        d.polygon([(0, h)] + list(zip(xs, ys)) + [(w, h)], fill=col)
+    for k in range(5):  # broken columns in the foreground
+        cx = w * (0.05 + k * 0.1 + rng.random() * 0.04)
+        ch = h * (0.12 + rng.random() * 0.18)
+        cw = h * 0.035
+        d.rectangle((cx - cw, h * 0.92 - ch, cx + cw, h * 0.92), fill=(70, 34, 24))
+        d.rectangle((cx - cw * 1.4, h * 0.92 - ch - h * 0.015, cx + cw * 1.4, h * 0.92 - ch), fill=(70, 34, 24))
+    return vignette(np.asarray(base).astype(np.float32), 0.3)
+
+
+def lofi_rain(w, h, rng):
+    """Lo-fi study night: rainy window over a blurred city, warm lamp."""
+    outside = gradient(h, w, [(0, "#141a3a"), (0.6, "#3b3a6b"), (1, "#5a3d5c")])
+    bokeh = Image.new("RGB", (w, h), (0, 0, 0))
+    bd = ImageDraw.Draw(bokeh)
+    for _ in range(90):
+        r = h * (0.01 + rng.random() * 0.04)
+        x, y = rng.random() * w, h * (0.4 + rng.random() * 0.55)
+        c = [(255, 170, 90), (110, 170, 255), (255, 110, 160), (255, 220, 140)][rng.integers(0, 4)]
+        k = 0.3 + rng.random() * 0.6
+        bd.ellipse((x - r, y - r, x + r, y + r), fill=tuple(int(v * k) for v in c))
+    bokeh = bokeh.filter(ImageFilter.GaussianBlur(h * 0.012))
+    img = 255 - (255 - outside) * (255 - np.asarray(bokeh).astype(np.float32)) / 255
+    drops = Image.new("L", (w, h), 0)
+    dd = ImageDraw.Draw(drops)
+    for _ in range(int(w * h / 900)):
+        x, y, r = rng.random() * w, rng.random() * h, rng.random() * h * 0.006 + 1
+        dd.ellipse((x - r, y - r * 1.2, x + r, y + r * 1.2), fill=int(70 + rng.random() * 90))
+        if rng.random() < 0.06:
+            dd.line((x, y, x + (rng.random() - 0.5) * 4, y + h * (0.05 + rng.random() * 0.15)), fill=70, width=max(1, int(r * 0.6)))
+    img = screen(img, "#cfe0ff", np.asarray(drops).astype(np.float32) / 255.0 * 0.6)
+    base = to_image(img)
+    d = ImageDraw.Draw(base)
+    frame = (20, 14, 22)
+    fw = max(6, int(h * 0.03))
+    d.rectangle((0, 0, w, fw), fill=frame)
+    d.rectangle((0, h - fw * 2, w, h), fill=frame)
+    for x in (0, w * 0.5 - fw / 2, w - fw):
+        d.rectangle((x, 0, x + fw, h), fill=frame)
+    d.rectangle((0, h * 0.5 - fw / 2, w, h * 0.5 + fw / 2), fill=frame)
+    out = np.asarray(base).astype(np.float32)
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    lamp = np.exp(-(((xx - w * 0.92) / (h * 0.6)) ** 2 + ((yy - h * 0.95) / (h * 0.5)) ** 2))
+    out = screen(out, "#ffb36b", lamp * 0.45)
+    return vignette(out, 0.35)
+
+
+def galaxy_spiral(w, h, rng):
+    """Spiral galaxy with a bright core."""
+    img = np.zeros((h, w, 3), dtype=np.float32) + hex_rgb("#02020a")
+    img = stars(img, rng, int(w * h / 1400))
+    layer = _glow_layer(w, h)
+    d = ImageDraw.Draw(layer)
+    cx, cy = w * 0.5, h * 0.5
+    scale = min(w * 0.45, h * 0.9)
+    for arm in range(2):
+        for _ in range(9000 if w * h > 1e6 else 6000):
+            t = rng.random() ** 0.8 * 3.4
+            a = t * 2.1 + arm * math.pi + rng.normal() * 0.28
+            r = (t / 3.4) * scale * (1 + rng.normal() * 0.08)
+            x, y = cx + math.cos(a) * r, cy + math.sin(a) * r * 0.45
+            mix = t / 3.4
+            c = (int(255 - 120 * mix), int(220 - 90 * mix), int(180 + 60 * mix))
+            if rng.random() < 0.08:
+                c = (255, 120, 190)
+            sz = 1 + (rng.random() < 0.1)
+            d.ellipse((x - sz, y - sz, x + sz, y + sz), fill=c)
+    out = _add_glow(img, layer, radius=h * 0.012, strength=0.9, sharp=0.7)
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    core = np.exp(-(((xx - cx) / (scale * 0.12)) ** 2 + ((yy - cy) / (scale * 0.06)) ** 2))
+    out = screen(out, "#fff1d0", core)
+    return vignette(out, 0.4)
+
+
+def storm(w, h, rng):
+    """Thunderstorm over a dark sea: heavy clouds, lightning bolt, rain."""
+    img = gradient(h, w, [(0, "#07090f"), (0.6, "#1a2233"), (1, "#0b0f18")])
+    clouds = noise(h, w, rng, octaves=6, base=3, stretch=(0.6, 1.4))
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    img = blend(img, "#2d3850", np.clip((clouds - 0.4) * 2, 0, 1) * np.clip(1 - yy * 1.4, 0, 1))
+    bolt = _glow_layer(w, h)
+    d = ImageDraw.Draw(bolt)
+    for b in range(2 if w > h * 2 else 1):
+        x, y = w * (0.35 + b * 0.35 + (rng.random() - 0.5) * 0.1), 0.0
+        pts = [(x, y)]
+        while y < h * 0.72:
+            y += h * (0.04 + rng.random() * 0.05)
+            x += (rng.random() - 0.5) * h * 0.12
+            pts.append((x, y))
+            if rng.random() < 0.25:  # branch
+                bx, by = x, y
+                branch = [(bx, by)]
+                for _ in range(3):
+                    by += h * 0.04
+                    bx += (rng.random() - 0.3) * h * 0.08
+                    branch.append((bx, by))
+                d.line(branch, fill=(170, 190, 255), width=max(1, int(h * 0.004)))
+        d.line(pts, fill=(235, 240, 255), width=max(2, int(h * 0.007)))
+    light = np.asarray(bolt.filter(ImageFilter.GaussianBlur(h * 0.25))).astype(np.float32) / 255.0
+    img = img + light * 120
+    img = _add_glow(img, bolt, radius=h * 0.02, strength=0.9)
+    sea = h * 0.74
+    img = fill_below(img, np.full(w, sea), "#0a0f1a")
+    xs = np.arange(w, dtype=np.float32)
+    for k in range(6):
+        yk = sea + h * 0.02 + k * h * 0.04
+        crest = np.exp(-((np.arange(h)[:, None] - (yk + np.sin(xs / (30 + k * 10) + k) * h * 0.006)[None, :]) / 1.5) ** 2)
+        img = screen(img, "#5c6f94", crest * 0.35)
+    rain = Image.new("L", (w, h), 0)
+    r = ImageDraw.Draw(rain)
+    for _ in range(int(w * h / 1000)):
+        x0, y0, ln = rng.random() * w, rng.random() * h, h * (0.03 + rng.random() * 0.05)
+        r.line((x0, y0, x0 - ln * 0.3, y0 + ln), fill=int(50 + rng.random() * 70), width=1)
+    img = screen(img, "#aab8d6", np.asarray(rain).astype(np.float32) / 255.0 * 0.6)
+    return vignette(img, 0.4)
+
+
 THEMES = {
     "aurora": aurora,
     "nebula": nebula,
@@ -554,12 +1468,43 @@ THEMES = {
     "bokeh": bokeh,
     "flow": flow,
     "dotgrid": dotgrid,
+    # pop culture moods (banner and background)
+    "neon_city": neon_city,
+    "pixel_dungeon": pixel_dungeon,
+    "arcade": arcade,
+    "great_wave": great_wave,
+    "anime_sky": anime_sky,
+    "torii": torii_night,
+    "manga": manga_lines,
+    "mecha_hud": mecha_hud,
+    "enchanted_forest": enchanted_forest,
+    "platformer": platformer,
+    "vaporwave": vaporwave,
+    "planet": ringed_planet,
+    "hyperspace": hyperspace,
+    "code_rain": code_rain,
+    "crystal_cave": crystal_cave,
+    "lava_world": lava_world,
+    "snow_night": snow_night,
+    "deep_sea": deep_sea,
+    "blood_moon": blood_moon,
+    "block_world": block_world,
+    "desert_ruins": desert_ruins,
+    "lofi_rain": lofi_rain,
+    "galaxy": galaxy_spiral,
+    "storm": storm,
 }
-BANNER_THEMES = ["aurora", "nebula", "synthwave", "mountains", "ocean", "lowpoly", "topo", "pixel", "sakura", "ember", "circuit", "dunes"]
+BANNER_THEMES = [
+    "aurora", "nebula", "synthwave", "mountains", "ocean", "lowpoly", "topo", "pixel", "sakura", "ember", "circuit", "dunes",
+    "neon_city", "pixel_dungeon", "arcade", "great_wave", "anime_sky", "torii", "manga", "mecha_hud", "enchanted_forest", "platformer", "vaporwave", "planet",
+    "hyperspace", "code_rain", "crystal_cave", "lava_world", "snow_night", "deep_sea", "blood_moon", "block_world", "desert_ruins", "lofi_rain", "galaxy", "storm",
+]
 # Page backgrounds, darkened and softened behind the content
 BACKGROUND_THEMES = [
     "nebula", "aurora", "topo", "circuit", "pixel", "dunes", "ocean", "lowpoly",
     "starfield", "hexgrid", "forest", "bokeh", "flow", "dotgrid", "synthwave", "mountains", "sakura", "ember",
+    "neon_city", "pixel_dungeon", "arcade", "great_wave", "anime_sky", "torii", "manga", "mecha_hud", "enchanted_forest", "platformer", "vaporwave", "planet",
+    "hyperspace", "code_rain", "crystal_cave", "lava_world", "snow_night", "deep_sea", "blood_moon", "block_world", "desert_ruins", "lofi_rain", "galaxy", "storm",
 ]
 
 
