@@ -1,5 +1,11 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.1.1 - Allègement de presence_history - 18/10/2026
+
+- **Fin des relevés de présence par serveur** : le bot enregistrait une ligne par serveur toutes les 15 minutes (conservées 7 jours), soit des millions de lignes (~250 Mo en prod), alors que le site ne lit que le relevé global (`server_id` vide). Seul le relevé global est désormais enregistré : environ 670 lignes sur 7 jours.
+- **Purge automatique au démarrage** des anciens relevés par serveur, par lots de 50 000 lignes pour ne pas bloquer la table.
+- Pour rendre l'espace disque au système, lancer une fois après le déploiement `database/migrations/2026-10-18_bot_v3.1.1_presence_history_cleanup.sql` (`VACUUM FULL`).
+
 ## Version 3.1.0 - Suivi de l'utilisation des commandes - 18/10/2026
 
 - **Enregistrement de chaque commande slash** dans la nouvelle table `bot_command_events`, affichée dans l'onglet « Commandes » de la page admin du site :

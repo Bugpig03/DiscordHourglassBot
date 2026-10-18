@@ -107,6 +107,25 @@ func (db *DB) RecordPresenceHistory(ctx context.Context, serverID *int64, online
 	return err
 }
 
+// PurgePerServerPresenceHistory supprime les instantanés par serveur, qui ne sont plus enregistrés
+// (seul l'instantané global, server_id NULL, est lu par le site). Par lots de 50 000 lignes pour
+// ne pas verrouiller la table longtemps ; renvoie le nombre de lignes supprimées.
+func (db *DB) PurgePerServerPresenceHistory(ctx context.Context) (int64, error) {
+	var total int64
+	for {
+		tag, err := db.Pool.Exec(ctx, `
+			DELETE FROM presence_history
+			WHERE id IN (SELECT id FROM presence_history WHERE server_id IS NOT NULL LIMIT 50000)`)
+		if err != nil {
+			return total, err
+		}
+		total += tag.RowsAffected()
+		if tag.RowsAffected() == 0 {
+			return total, nil
+		}
+	}
+}
+
 // CleanOldPresenceHistory supprime les instantanés de présence datant de plus de 7 jours
 func (db *DB) CleanOldPresenceHistory(ctx context.Context) error {
 	query := `DELETE FROM presence_history WHERE recorded_at < NOW() - INTERVAL '7 days'`

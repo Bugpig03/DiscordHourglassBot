@@ -35,6 +35,17 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 		h.reconcileSessions(s)
 	}()
 
+	// Une fois au démarrage : supprimer les anciens relevés de présence par serveur (plus enregistrés)
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		if removed, err := h.DB.PurgePerServerPresenceHistory(ctx); err != nil {
+			log.Printf("⚠️ Purge des relevés de présence par serveur impossible: %v", err)
+		} else if removed > 0 {
+			log.Printf("🧹 %d relevé(s) de présence par serveur supprimé(s) de presence_history", removed)
+		}
+	}()
+
 	// Lancer la boucle de Heartbeat & actualisation présences (toutes les 30s)
 	go h.startHeartbeatLoop(s)
 }
@@ -292,9 +303,8 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 			offline = 0
 		}
 
-		serverID, _ := strconv.ParseInt(g.ID, 10, 64)
-		_ = h.DB.RecordPresenceHistory(ctx, &serverID, online, idle, dnd, offline)
-
+		// Only the global snapshot is stored: the website never reads per-server history, and one row
+		// per server every 15 min filled presence_history with millions of rows.
 		totalOnline += online
 		totalIdle += idle
 		totalDnd += dnd
