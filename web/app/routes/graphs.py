@@ -45,6 +45,7 @@ _graphs_cache: dict[tuple[str, str], tuple[float, dict]] = {}
 _graphs_cache_lock = threading.Lock()   # guards _graphs_cache, _refreshing and _key_locks
 _refreshing: set[tuple[str, str]] = set()
 _key_locks: dict[tuple[str, str], threading.Lock] = {}
+LAST_REFRESH: dict = {}  # shown on the admin page (last background refresh of this worker)
 
 
 def _store(key: tuple[str, str], data: dict) -> None:
@@ -80,6 +81,7 @@ def _refresh_in_background(app, key: tuple[str, str], delay: float = 0) -> None:
         try:
             _store(key, _compute_outside_request(app, key))
             elapsed_ms = (time.monotonic() - started) * 1000
+            LAST_REFRESH.update({"key": list(key), "at": datetime.utcnow().isoformat(timespec="seconds"), "ms": round(elapsed_ms)})
             # Visitors never wait for this, but a slow refresh means the database needs attention
             (log.warning if elapsed_ms > 2000 else log.info)("Analytics cache %s refreshed in %.0f ms", key, elapsed_ms)
         except Exception:

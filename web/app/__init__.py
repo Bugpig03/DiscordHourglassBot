@@ -19,6 +19,9 @@ from app.routes.graphs import graphs_bp
 from app.routes.api import api_bp
 from app.routes.versus import versus_bp
 from app.routes.customize import customize_bp
+from app.routes.admin import admin_bp
+from app.analytics_tracking import init_tracking
+from app.admin import is_admin
 from app.profile_settings import ensure_table as ensure_profile_settings_table
 from app.auth import (
     auth_bp,
@@ -62,6 +65,9 @@ def create_app():
 
     # CSP with nonces, security headers, rate limiting, CSRF helpers
     init_security(app)
+
+    # Anonymous audience measurement for the admin page (no cookie, no IP stored)
+    init_tracking(app)
 
     # Profile customization table (created if the migration was not applied; never blocks startup)
     ensure_profile_settings_table()
@@ -146,6 +152,7 @@ def create_app():
             "app_version_date": Config.APP_VERSION_DATE,
             "current_user": get_current_user(),
             "is_authenticated": is_authenticated(),
+            "is_admin": is_admin(),
             "can_view_user_sessions": can_view_user_sessions,
             "can_view_user_presence": can_view_user_presence,
             "can_view_server_private_data": can_view_server_private_data,
@@ -256,6 +263,7 @@ def create_app():
     app.register_blueprint(api_bp)
     app.register_blueprint(versus_bp)
     app.register_blueprint(customize_bp)
+    app.register_blueprint(admin_bp)
     app.register_blueprint(auth_bp)
 
     return app

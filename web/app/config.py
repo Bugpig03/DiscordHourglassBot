@@ -86,6 +86,9 @@ class Config:
     # in .env only for a local setup served over plain HTTP on another host name.
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true").lower() not in ("0", "false", "no")
 
+    # Discord user IDs allowed on /admin, comma separated (empty: nobody)
+    ADMIN_USER_IDS = frozenset(i.strip() for i in os.environ.get("ADMIN_USER_IDS", "").split(",") if i.strip().isdigit())
+
     # Static assets: styles.css is cache-busted with ?v=<app version>, icons/images almost never change
     SEND_FILE_MAX_AGE_DEFAULT = timedelta(days=7)
     DB_NAME = os.environ.get("POSTGRESQL_DBNAME", "devhourglass")

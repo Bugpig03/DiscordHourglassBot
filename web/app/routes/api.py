@@ -3,6 +3,7 @@
 import html
 from flask import Blueprint, jsonify, request, Response
 from peewee import fn, JOIN, SQL
+from app.analytics_tracking import record_search
 from app.database import Servers, Users, Stats
 from app.functions import (
     get_user_id_by_username,
@@ -161,6 +162,7 @@ def search_global():
 
     if not q:
         return jsonify({"users": [], "servers": []})
+    record_search(q)
 
     # Search Users
     users_data = []

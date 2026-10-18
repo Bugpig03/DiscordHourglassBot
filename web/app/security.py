@@ -71,6 +71,27 @@ def build_csp() -> str:
     return "; ".join(directives)
 
 
+def client_ip() -> str | None:
+    """Visitor IP as seen by the reverse proxy; None when it cannot be told apart from the proxy.
+
+    Shared by the rate limiter and the anonymous audience measurement (which never stores it).
+    """
+    real_ip = request.headers.get("X-Real-IP", "").strip()
+    if real_ip:
+        return real_ip
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        # The proxy appends the address it received the request from: the right-most entry
+        return forwarded.split(",")[-1].strip()
+    remote = request.remote_addr or ""
+    try:
+        if ipaddress.ip_address(remote).is_private and not ipaddress.ip_address(remote).is_loopback:
+            return None
+    except ValueError:
+        pass
+    return remote or None
+
+
 class RateLimiter:
     """Sliding-window counter per (client IP, rule) kept in memory, thread-safe."""
 
@@ -81,25 +102,12 @@ class RateLimiter:
         self._warned_no_client_ip = False
 
     def client_ip(self) -> str | None:
-        """Visitor IP as seen by the reverse proxy; None when it cannot be told apart from the proxy."""
-        real_ip = request.headers.get("X-Real-IP", "").strip()
-        if real_ip:
-            return real_ip
-        forwarded = request.headers.get("X-Forwarded-For", "")
-        if forwarded:
-            # The proxy appends the address it received the request from: the right-most entry
-            return forwarded.split(",")[-1].strip()
-        remote = request.remote_addr or ""
-        try:
-            if ipaddress.ip_address(remote).is_private and not ipaddress.ip_address(remote).is_loopback:
-                # Behind a proxy that forwards no client IP: every visitor would share one bucket
-                if not self._warned_no_client_ip:
-                    log.warning("Rate limiting disabled: proxy sends neither X-Real-IP nor X-Forwarded-For")
-                    self._warned_no_client_ip = True
-                return None
-        except ValueError:
-            pass
-        return remote or None
+        ip = client_ip()
+        if ip is None and not self._warned_no_client_ip:
+            # Behind a proxy that forwards no client IP: every visitor would share one bucket
+            log.warning("Rate limiting disabled: proxy sends neither X-Real-IP nor X-Forwarded-For")
+            self._warned_no_client_ip = True
+        return ip
 
     def check(self) -> tuple[bool, int]:
         """Return (allowed, retry_after_seconds) for the current request."""

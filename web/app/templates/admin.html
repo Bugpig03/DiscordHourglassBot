@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% set fr = current_lang == 'fr' %}
+
+{% block title %}Admin - Hourglass{% endblock %}
+{% block meta_description %}Admin{% endblock %}
+
+{% macro loading() %}<div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>{% endmacro %}
+
+{% macro kpi(id, label, accent, icon_class) %}
+<div class="dashboard-kpi-card accent-{{ accent }}">
+    <div class="dashboard-kpi-top">
+        <span class="dashboard-kpi-label">{{ label }}</span>
+    </div>
+    <div class="dashboard-kpi-val" id="kpi-{{ id }}"><span class="kpi-skeleton"></span></div>
+    <div class="dashboard-kpi-footer"><span class="an-delta" id="sub-{{ id }}">&nbsp;</span></div>
+</div>
+{% endmacro %}
+
+
+{% block content %}
+<meta name="robots" content="noindex, nofollow">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css', v=asset_version('css/pages/admin.css')) }}">
+
+<div class="an-head adm-head">
+    <div>
+        <h1 class="an-title">Admin</h1>
+        <p class="an-sub" id="admMeta">{{ 'Statistiques internes du site et du bot.' if fr else 'Internal statistics of the site and the bot.' }}</p>
+    </div>
+    <span class="adm-bot-status" id="admBotStatus"></span>
+</div>
+
+<div class="dashboard-kpi-grid an-kpis adm-kpis">
+    {{ kpi('views', 'Visites · 7 jours' if fr else 'Visits · 7 days', 'blue', 'icon-voice') }}
+    {{ kpi('uniques', 'Visiteurs uniques · aujourd’hui' if fr else 'Unique visitors · today', 'emerald', 'icon-users') }}
+    {{ kpi('accounts', 'Comptes Discord liés' if fr else 'Linked Discord accounts', 'violet', 'icon-users') }}
+    {{ kpi('customized', 'Profils personnalisés' if fr else 'Customized profiles', 'amber', 'icon-servers') }}
+</div>
+
+<div class="graphs-tabs-wrapper">
+    <div class="graphs-tabs adm-tabs" role="tablist">
+        <button class="graphs-tab-btn active" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><span>{{ 'Fréquentation' if fr else 'Traffic' }}</span></button>
+        <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><span>{{ 'Comptes' if fr else 'Accounts' }}</span></button>
+        <button class="graphs-tab-btn" data-tab="tab-custom" data-call="switchGraphTab" data-arg="tab-custom"><span>{{ 'Personnalisation' if fr else 'Customization' }}</span></button>
+        <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><span>{{ 'Bot & base' if fr else 'Bot & DB' }}</span></button>
+        <button class="graphs-tab-btn" data-tab="tab-health" data-call="switchGraphTab" data-arg="tab-health"><span>{{ 'Santé' if fr else 'Health' }}</span></button>
+    </div>
+</div>
+
+<!-- ============================ Fréquentation ============================ -->
+<div id="tab-traffic" class="graphs-tab-pane active">
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
+            <div>
+                <h2 class="an-card-title">{{ 'Visites par jour' if fr else 'Visits per day' }}</h2>
+                <p class="an-card-desc" id="trafficSummary">&nbsp;</p>
+            </div>
+            <div class="granularity-toggle-group" role="group">
+                <button type="button" class="granularity-btn active" data-range="30">30 {{ 'jours' if fr else 'days' }}</button>
+                <button type="button" class="granularity-btn" data-range="90">90 {{ 'jours' if fr else 'days' }}</button>
+            </div>
+        </div>
+        <div class="an-chart an-chart-md">{{ loading() }}<canvas id="trafficChart"></canvas></div>
+    </section>
+
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{ 'Pages les plus vues · 30 j' if fr else 'Most viewed pages · 30 d' }}</h2></div>
+            <ol class="an-rank" data-list="traffic.pages">{{ loading() }}</ol>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{ 'Sources · 30 j' if fr else 'Sources · 30 d' }}</h2></div>
+            <ol class="an-rank" data-list="traffic.referrers">{{ loading() }}</ol>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{ 'Profils les plus consultés · 30 j' if fr else 'Most viewed profiles · 30 d' }}</h2></div>
+            <ol class="an-rank" data-list="traffic.top_profiles">{{ loading() }}</ol>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{ 'Fiches serveur les plus consultées · 30 j' if fr else 'Most viewed server pages · 30 d' }}</h2></div>
+            <ol class="an-rank" data-list="traffic.top_servers">{{ loading() }}</ol>
+        </section>
+    </div>
+
+    <div class="an-grid-2 adm-gap">
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head">
+                <h2 class="an-card-title">{{ 'Heures de visite · 30 j' if fr else 'Visit hours · 30 d' }}</h2>
+                <div class="adm-splits" id="trafficSplits"></div>
+            </div>
+            <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{ 'Recherches · 30 j' if fr else 'Searches · 30 d' }}</h2></div>
+            <ol class="an-rank" data-list="traffic.searches">{{ loading() }}</ol>
+        </section>
+    </div>
+</div>
+
+<!-- ============================== Comptes ============================== -->
+<div id="tab-accounts" class="graphs-tab-pane">
+    <div class="adm-stats" id="accountStats"></div>
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Nouveaux comptes liés par semaine' if fr else 'New linked accounts per week' }}</h2>
+                <p class="an-card-desc">{{ 'Première connexion Discord sur le site.' if fr else 'First Discord login on the site.' }}</p></div></div>
+            <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="weeksChart"></canvas></div>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Comptes actifs par jour' if fr else 'Active accounts per day' }}</h2>
+                <p class="an-card-desc">{{ 'Membres connectés qui ont utilisé le site ce jour-là.' if fr else 'Logged-in members who used the site that day.' }}</p></div></div>
+            <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="activeChart"></canvas></div>
+        </section>
+    </div>
+    <section class="gray-box small-border-radius an-card adm-gap">
+        <div class="an-card-head"><h2 class="an-card-title">{{ 'Dernières connexions' if fr else 'Latest logins' }}</h2></div>
+        <div class="adm-table-wrap"><table class="adm-table" id="recentLogins"><tbody><tr><td>…</td></tr></tbody></table></div>
+    </section>
+</div>
+
+<!-- ========================== Personnalisation ========================== -->
+<div id="tab-custom" class="graphs-tab-pane">
+    <div class="adm-stats" id="customStats"></div>
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Couleurs' if fr else 'Colors' }}</h2></div><ol class="an-rank" data-list="customization.accents">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Type de bannière' if fr else 'Banner type' }}</h2></div><ol class="an-rank" data-list="customization.banner_modes">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Bannières de la galerie' if fr else 'Gallery banners' }}</h2></div><ol class="an-rank" data-list="customization.banners">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Fonds d’écran' if fr else 'Backgrounds' }}</h2></div><ol class="an-rank" data-list="customization.backgrounds">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Badges en vitrine' if fr else 'Featured badges' }}</h2></div><ol class="an-rank" data-list="customization.badges">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Records épinglés' if fr else 'Pinned records' }}</h2></div><ol class="an-rank" data-list="customization.records">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Blocs masqués aux visiteurs' if fr else 'Blocks hidden from visitors' }}</h2></div><ol class="an-rank" data-list="customization.hidden">{{ loading() }}</ol></section>
+    </div>
+</div>
+
+<!-- ============================ Bot & base ============================ -->
+<div id="tab-bot" class="graphs-tab-pane">
+    <div class="adm-stats" id="botStats"></div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Serveurs : arrivées et départs du bot' if fr else 'Servers: bot joins and leaves' }}</h2>
+            <p class="an-card-desc">{{ '12 derniers mois.' if fr else 'Last 12 months.' }}</p></div></div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="serversChart"></canvas></div>
+    </section>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Base de données' if fr else 'Database' }}</h2><p class="an-card-desc" id="dbSize">&nbsp;</p></div></div>
+        <div class="adm-table-wrap"><table class="adm-table" id="dbTables"><tbody><tr><td>…</td></tr></tbody></table></div>
+    </section>
+</div>
+
+<!-- ============================== Santé ============================== -->
+<div id="tab-health" class="graphs-tab-pane">
+    <div class="adm-stats" id="healthStats"></div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Erreurs par jour · 30 j' if fr else 'Errors per day · 30 d' }}</h2>
+            <p class="an-card-desc">{{ '404 page introuvable, 429 limite de requêtes, 500 erreur serveur.' if fr else '404 not found, 429 rate limited, 500 server error.' }}</p></div></div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="statusChart"></canvas></div>
+    </section>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><h2 class="an-card-title">{{ 'Adresses 404 les plus fréquentes' if fr else 'Most frequent 404 paths' }}</h2></div>
+        <ol class="an-rank" data-list="health.top_404">{{ loading() }}</ol>
+    </section>
+</div>
+
+<script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang}|tojson }}</script>
+<script src="{{ url_for('static', filename='js/pages/admin.js', v=asset_version('js/pages/admin.js')) }}" defer></script>
+{% endblock %}

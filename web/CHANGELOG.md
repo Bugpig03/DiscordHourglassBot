@@ -1,5 +1,25 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.14.0 - Page Admin & Mesure d'Audience Anonyme - 18/10/2026
+### Nouveautés
+- **Page `/admin`**, réservée aux IDs Discord listés dans la variable d'environnement `ADMIN_USER_IDS` (séparés par des virgules) ; pour tout autre visiteur, elle répond 404. Lien « Admin » dans le menu du compte, visible seulement des admins. Cinq onglets :
+  - **Fréquentation** : pages vues et visiteurs uniques par jour (30 ou 90 jours), pages les plus vues, sources (Discord, Google, accès direct…), profils et fiches serveur les plus consultés, heures de visite, part mobile / ordinateur et FR / EN, recherches les plus tapées.
+  - **Comptes** : comptes Discord liés au moins une fois (et part des membres suivis), nouveaux comptes par semaine, comptes actifs par jour / 7 jours / 30 jours, dernières connexions.
+  - **Personnalisation** : profils personnalisés, couleurs, types de bannière, bannières et fonds les plus choisis, badges en vitrine, records épinglés, blocs masqués, profils privés.
+  - **Bot & base** : serveurs (présents, quittés, actifs sur 30 jours, arrivées et départs par mois), membres suivis, vocal en cours, messages sur 24 h, bot en ligne ou silencieux (dernier relevé de présence), sessions vocales orphelines, taille de la base et des tables.
+  - **Santé** : erreurs 404 / 429 / 500 par jour, adresses 404 les plus fréquentes, durée du dernier calcul de la page Analyses.
+
+### Mesure d'audience
+- **Anonyme et sans cookie** : un visiteur est une empreinte `sha256(clé du jour + IP + navigateur)` tronquée ; la clé change chaque jour, est partagée par les workers via la table `web_daily_salt` et supprimée le lendemain. Aucune IP n'est enregistrée, impossible de reconnaître quelqu'un d'un jour à l'autre. Empreintes effacées après 30 jours, statistiques agrégées après 400 jours.
+- Robots (Discordbot, crawlers, aperçus de liens…), fichiers statiques, API, pré-chargements et pages admin ne sont pas comptés. Pour la recherche en direct, seul le terme final d'une saisie est retenu.
+- **Aucune requête SQL par visite** : les compteurs sont gardés en mémoire et écrits en base toutes les 60 secondes par un thread de fond.
+- Connexions Discord enregistrées (première et dernière connexion, nombre, jours d'activité en étant connecté). Les comptes déjà connus via les réglages de profil (depuis la v3.3.0) sont repris automatiquement.
+- **Politique de confidentialité mise à jour** (mesure d'audience anonyme, données de connexion).
+
+### Technique
+- Nouvelles tables propres au site (`web_*`), créées automatiquement au démarrage : `database/migrations/2026-10-18_web_v3.14.0_admin_stats.sql` (facultative), également ajoutées à `schema_v3.sql`. Aucune table du bot n'est modifiée.
+- L'IP du visiteur est lue par une fonction partagée `client_ip()` (limiteur de requêtes et mesure d'audience).
+
 ## Version 3.13.0 - Galerie Pop Culture : 24 Thèmes Animés & Jeux Vidéo - 18/10/2026
 ### Nouveautés
 - **12 nouveaux thèmes inspirés des animés et des jeux vidéo**, disponibles à la fois en bannière et en fond d'écran : Ville néon (cyberpunk sous la pluie), Donjon pixel (RPG rétro éclairé aux torches), Arcade 8-bit (envahisseurs générés, vaisseau, lasers, effet écran cathodique), Grande vague (estampe japonaise), Ciel d'animé (coucher de soleil, cumulus, poteaux électriques), Sanctuaire (torii, lanternes, brume), Manga (lignes de vitesse et trame), HUD mecha (interface de cockpit), Forêt enchantée (champignons lumineux, lucioles), Plateformes rétro (jeu de plateformes 16 bits), Vaporwave (soleil tranché, damier, glitch) et Planète (géante gazeuse à anneaux).
