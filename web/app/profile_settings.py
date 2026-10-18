@@ -28,23 +28,34 @@ PALETTE = [
     ("lime", "#a3e635", "Citron vert", "Lime"),
     ("emerald", "#34d399", "Émeraude", "Emerald"),
     ("teal", "#2dd4bf", "Turquoise", "Teal"),
+    ("blue", "#60a5fa", "Bleu", "Blue"),
+    ("cyan", "#22d3ee", "Cyan", "Cyan"),
+    ("purple", "#c084fc", "Pourpre", "Purple"),
+    ("fuchsia", "#e879f9", "Fuchsia", "Fuchsia"),
+    ("coral", "#fb7185", "Corail", "Coral"),
+    ("peach", "#fdba74", "Pêche", "Peach"),
+    ("yellow", "#facc15", "Jaune", "Yellow"),
+    ("green", "#4ade80", "Vert", "Green"),
+    ("mint", "#6ee7b7", "Menthe", "Mint"),
+    ("silver", "#cbd5e1", "Argent", "Silver"),
 ]
 PALETTE_HEX = {key: hex_ for key, hex_, _, _ in PALETTE}
 DEFAULT_ACCENT = "sky"
 DISCORD_ACCENT = "discord"  # the accent color of the member's Discord profile
 
-# auto = Discord banner when known, else gradient; image = picture from the gallery (banner_image)
-BANNER_MODES = ("auto", "gradient", "image", "none")
+# auto = the member's Discord banner (gallery picture when there is none); image = picture from the gallery;
+# "gradient" (until v3.15) is still read from old rows and shown as the default gallery picture.
+BANNER_MODES = ("auto", "image", "none")
+DEFAULT_BANNER_IMAGE = "aurora"
 
 # Sections of the "Activité" tab, in display order
-ACTIVITY_BLOCKS = ["streaks", "heatmap", "hourly", "companions"]
+ACTIVITY_BLOCKS = ["streaks", "heatmap", "companions"]
 # Blocks the member can hide from visitors (key: label fr, label en)
 HIDEABLE_BLOCKS = {
     "showcase": ("Vitrine de badges", "Badge showcase"),
     "records": ("Records épinglés", "Pinned records"),
     "streaks": ("Séries et assiduité", "Streaks and consistency"),
     "heatmap": ("Calendrier d’activité", "Activity calendar"),
-    "hourly": ("Rythme horaire", "Hourly rhythm"),
     "companions": ("Compagnons vocaux", "Voice companions"),
     "tab_charts": ("Graphiques", "Charts"),
     "tab_servers": ("Serveurs fréquentés", "Servers"),
@@ -53,7 +64,7 @@ HIDEABLE_BLOCKS = {
 
 DEFAULTS = {
     "accent_color": DEFAULT_ACCENT,
-    "banner_mode": "auto",
+    "banner_mode": "image",
     "discord_banner": None,
     "discord_accent": None,
     "favorite_server_id": None,
@@ -95,7 +106,7 @@ def get_profile_settings(user_id: int | str) -> dict:
     if row:
         settings.update({
             "accent_color": row.accent_color or DEFAULT_ACCENT,
-            "banner_mode": row.banner_mode if row.banner_mode in BANNER_MODES else "auto",
+            "banner_mode": row.banner_mode if row.banner_mode in BANNER_MODES else "image",
             "discord_banner": row.discord_banner,
             "discord_accent": row.discord_accent,
             "favorite_server_id": row.favorite_server_id,
@@ -203,17 +214,19 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
         key, hex_ = DEFAULT_ACCENT, PALETTE_HEX[DEFAULT_ACCENT]
     r, g, b = _hex_to_rgb(hex_)
 
-    mode = settings.get("banner_mode") or "auto"
+    mode = settings.get("banner_mode") or "image"
     banner = settings.get("discord_banner")
     discord_banner_url = None
     if banner:
         ext = "gif" if banner.startswith("a_") else "png"
         discord_banner_url = f"https://cdn.discordapp.com/banners/{int(user_id)}/{banner}.{ext}?size=1024"
-    banner_url = discord_banner_url if mode == "auto" else None
-    if mode == "image":
-        banner_url = gallery_banner_url(settings.get("banner_image"))
-        if not banner_url:
-            mode = "gradient"
+    # No Discord banner (or an old "gradient" choice): the gallery picture, the default one if none was picked
+    if mode not in BANNER_MODES or (mode == "auto" and not discord_banner_url):
+        mode = "image"
+    banner_image = settings.get("banner_image") or DEFAULT_BANNER_IMAGE
+    if not gallery_banner_url(banner_image):
+        banner_image = DEFAULT_BANNER_IMAGE
+    banner_url = discord_banner_url if mode == "auto" else gallery_banner_url(banner_image) if mode == "image" else None
 
     return {
         "accent_key": key,
@@ -224,7 +237,7 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
         "banner_url": banner_url,
         "discord_banner_url": discord_banner_url,
         "show_banner": mode != "none",
-        "banner_image": settings.get("banner_image"),
+        "banner_image": banner_image,
         "background_image": settings.get("background_image"),
         "background_url": background_url(settings.get("background_image")),
     }

@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
-from flask import request
+from flask import g, request
 from peewee import DatabaseError
 
 from app.database import db
@@ -205,11 +205,8 @@ def record_response(response) -> None:
         vhash = None
     domain = _referrer_domain()
     hour = datetime.now(LOCAL_TZ).hour
-    entity = None
-    if page_key == "profile":
-        entity = ("profile", str((request.view_args or {}).get("username", ""))[:64])
-    elif page_key == "server":
-        entity = ("server", str((request.view_args or {}).get("server_id", ""))[:64])
+    # The views store the resolved id (a member can be reached by name or by id)
+    entity = getattr(g, "tracked_entity", None)
     from app.auth import get_current_user
     user = get_current_user()
     with _lock:

@@ -10,6 +10,7 @@
 <!-- Load Chart.js and date-fns time adapter -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<script src="{{ url_for('static', filename='js/activity_charts.js', v=asset_version('js/activity_charts.js')) }}" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for User -->
@@ -25,7 +26,6 @@
 <script type="application/json" id="userServersPieData">{{ charts.user_servers_pie_json|safe_json }}</script>
 <script type="application/json" id="userFavoriteChannelsData">{{ charts.favorite_channels_pie_json|safe_json }}</script>
 {% endif %}
-{% if charts.has_hourly_data and layout.visible.hourly %}<script type="application/json" id="userHourlyActivityData">{{ charts.hourly_activity_json|safe_json }}</script>{% endif %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user_profile.css', v=asset_version('css/pages/user_profile.css')) }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/profile_theme.css', v=asset_version('css/pages/profile_theme.css')) }}">
@@ -411,39 +411,6 @@
         </div>
     </div>
     {% endset %}
-    {% set block_hourly %}
-    <!-- Affluence & Rythme Horaire Personnel (24h) -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span>{{ t('channels.hourly_title') }}</span>
-                </div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.hourly_desc') }}</div>
-            </div>
-            {% if charts.has_hourly_data %}
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                    <span>{{ 'Pic vocal' if current_lang == 'fr' else 'Voice peak' }} : {{ charts.peak_voice_hour }}</span>
-                </span>
-                <span style="background: rgba(129, 140, 248, 0.15); color: #a5b4fc; border: 1px solid rgba(129, 140, 248, 0.3); padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span>{{ 'Pic messages' if current_lang == 'fr' else 'Messages peak' }} : {{ charts.peak_messages_hour }}</span>
-                </span>
-            </div>
-            {% endif %}
-        </div>
-        {% if charts.has_hourly_data %}
-        <div style="position: relative; height: 320px; width: 100%;">
-            <canvas id="userHourlyChart"></canvas>
-        </div>
-        {% else %}
-        {% include "partials/chart_empty_state.html" %}
-        {% endif %}
-    </div>
-    {% endset %}
     {% set block_companions %}
     <!-- Section : Compagnons Vocaux Fréquents -->
     <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
@@ -485,7 +452,7 @@
         {% endif %}
     </div>
     {% endset %}
-    {% set activity_blocks = {'streaks': block_streaks, 'heatmap': block_heatmap, 'hourly': block_hourly, 'companions': block_companions} %}
+    {% set activity_blocks = {'streaks': block_streaks, 'heatmap': block_heatmap, 'companions': block_companions} %}
     {% for key in layout.order %}{% if layout.visible[key] %}
     {% if layout.hidden[key] %}<div class="layout-block-hidden">{{ hidden_tag(key) }}{% endif %}
     {{ activity_blocks[key] }}
@@ -610,160 +577,49 @@
 {% if layout.visible.tab_charts %}
 <div id="tab-charts" class="graphs-tab-pane">
     {% if layout.hidden.tab_charts %}<div class="layout-pane-tag">{{ hidden_tag('tab_charts') }}</div>{% endif %}
-    <div style="margin: 10px 0 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 4px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
-            <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-                {{ t('user_profile.progression_title', username=stats.username) }}
-            </h2>
-        </div>
-
-        <!-- Granularity Selector Toggle -->
-        <div class="granularity-toggle-group">
-            <button type="button" class="granularity-btn {% if charts.default_granularity == 'month' %}active{% endif %}" data-granularity="month" data-call="switchUserGranularity" data-arg="month">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                <span>{{ t('charts.mode_monthly') }}</span>
-            </button>
-            <button type="button" class="granularity-btn {% if charts.default_granularity == 'day' %}active{% endif %}" data-granularity="day" data-call="switchUserGranularity" data-arg="day">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span>{{ t('charts.mode_daily') }}</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Graphique 1 : Progression Cumulative des Heures -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+    <section class="gray-box small-border-radius hg-card" id="userTrendCard">
+        <div class="hg-card-head">
             <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.chart_hours_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('user_profile.chart_hours_desc') }}</div>
+                <h2 class="hg-card-title">{{ 'Évolution de l’activité' if fr else 'Activity over time' }}</h2>
+                <p class="hg-card-desc" data-trend-summary>&nbsp;</p>
             </div>
-            <span style="background: rgba(57, 146, 190, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.total_label') }} {{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="userHoursChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique 2 : Progression Cumulative des Messages -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.chart_msgs_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('user_profile.chart_msgs_desc') }}</div>
-            </div>
-            <span style="background: rgba(88, 101, 242, 0.2); color: #a5b4fc; border: 1px solid rgba(88, 101, 242, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.total_label') }} {{ stats.total_message | num }} {{ t('top.msgs_unit') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="userMessagesChart"></canvas>
-        </div>
-    </div>
-
-    <div style="margin: 30px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #fbbf24; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('user_profile.monthly_section_title') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
-    </div>
-
-    <!-- Graphique 3 : Heures par mois / jour -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" id="userHoursBarTitle" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.monthly_hours_title') }}</div>
-                <div class="small-text gray" id="userHoursBarDesc" style="margin-top: 4px;">{{ t('user_profile.monthly_hours_desc') }}</div>
-            </div>
-            <span id="userHoursBarBadge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.avg_label') }} {{ charts.avg_hours | num(1) }} {{ t('graphs.unit_hours_per_month') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="userMonthlyHoursChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique 4 : Messages par mois / jour -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" id="userMessagesBarTitle" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.monthly_msgs_title') }}</div>
-                <div class="small-text gray" id="userMessagesBarDesc" style="margin-top: 4px;">{{ t('user_profile.monthly_msgs_desc') }}</div>
-            </div>
-            <span id="userMessagesBarBadge" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.avg_label') }} {{ charts.avg_msgs | thousands_fr }} {{ t('graphs.unit_msgs_per_month') }}
-            </span>
-        </div>
-        <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="userMonthlyMessagesChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Graphique 5 : Répartition par serveur (Donut) -->
-    <div style="margin: 30px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #8b5cf6; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('user_profile.pie_section_title') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
-    </div>
-
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('user_profile.pie_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('user_profile.pie_desc') }}</div>
-            </div>
-            <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('user_profile.distribution') }}
-            </span>
-        </div>
-        <div style="position: relative; min-height: 380px; width: 100%; display: flex; justify-content: center; align-items: center;">
-            <canvas id="userServersPieChart" style="max-height: 360px; width: 100%;"></canvas>
-        </div>
-    </div>
-    <!-- Section : Salons Vocaux Favoris & Sessions Récentes -->
-    <div style="margin: 30px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #10b981; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('channels.user_favorite_title') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
-    </div>
-
-    <!-- Graphique 6 : Salons Vocaux Favoris -->
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 25px;">
-        <div style="margin-bottom: 15px;">
-            <div class="medium-bold-text" style="color: #ffffff; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                <span>{{ t('channels.user_favorite_title') }}</span>
-            </div>
-            <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.user_favorite_desc') }}</div>
-        </div>
-        <div style="position: relative; height: 280px; width: 100%; margin-bottom: 15px;">
-            <canvas id="userFavoriteChannelsChart"></canvas>
-        </div>
-        <!-- Tableau des salons favoris -->
-        {% if charts.favorite_channels_table %}
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-            {% for ch in charts.favorite_channels_table %}
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: 0.85rem;">
-                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <span style="font-weight: 600; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ch.name }}</span>
+            <div class="hg-controls">
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Mesure' if fr else 'Metric' }}">
+                    <button type="button" class="granularity-btn active" data-trend-metric="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
+                    <button type="button" class="granularity-btn" data-trend-metric="messages">Messages</button>
                 </div>
-                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                    <span style="color: #38bdf8; font-weight: 700;">{{ ch.hours | num(1) }} h</span>
-                    <span style="color: #8b9bb0; font-size: 0.78rem;">({{ ch.percent }}%)</span>
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Période' if fr else 'Period' }}">
+                    <button type="button" class="granularity-btn" data-trend-period="month">{{ 'Par mois' if fr else 'Monthly' }}</button>
+                    <button type="button" class="granularity-btn" data-trend-period="day">{{ '30 jours' if fr else '30 days' }}</button>
+                </div>
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Affichage' if fr else 'Display' }}">
+                    <button type="button" class="granularity-btn active" data-trend-mode="period">{{ 'Par période' if fr else 'Per period' }}</button>
+                    <button type="button" class="granularity-btn" data-trend-mode="cumul">{{ 'Cumulé' if fr else 'Cumulative' }}</button>
                 </div>
             </div>
-            {% endfor %}
         </div>
-        {% endif %}
-    </div>
+        <div class="hg-chart"><canvas data-trend-canvas></canvas></div>
+    </section>
+
+    <section class="gray-box small-border-radius hg-card" id="userSplitCard">
+        <div class="hg-card-head">
+            <div>
+                <h2 class="hg-card-title">{{ 'Où ' ~ stats.username ~ ' passe son temps en vocal' if fr else 'Where ' ~ stats.username ~ ' spends voice time' }}</h2>
+                <p class="hg-card-desc" data-split-desc>&nbsp;</p>
+            </div>
+            <div class="hg-controls">
+                <div class="granularity-toggle-group" role="group">
+                    <button type="button" class="granularity-btn active" data-split="servers">{{ 'Serveurs' if fr else 'Servers' }}</button>
+                    <button type="button" class="granularity-btn" data-split="channels">{{ 'Salons' if fr else 'Channels' }}</button>
+                </div>
+            </div>
+        </div>
+        <div class="hg-split">
+            <div class="hg-chart"><canvas data-split-canvas></canvas></div>
+            <ul class="hg-split-list" data-split-list></ul>
+        </div>
+        <p class="hg-empty" data-split-empty hidden>{{ 'Pas encore de temps en vocal enregistré.' if fr else 'No voice time recorded yet.' }}</p>
+    </section>
 </div>
 {% endif %}
 
@@ -894,7 +750,7 @@
 <!-- =================================================================== -->
 <!-- CHART INITIALIZATIONS & TAB CONTROLLER (JavaScript)                 -->
 <!-- =================================================================== -->
-<script type="application/json" id="hgPageConfig">{{ {"charts_default_granularity": charts.default_granularity, "current_lang": current_lang, "accent_hex": theme.accent_hex, "accent_rgb": theme.accent_rgb, "t_top_hours_unit": t("top.hours_unit"), "t_top_msgs_unit": t("top.msgs_unit"), "charts_avg_daily_hours": charts.avg_daily_hours, "charts_avg_hours": charts.avg_hours, "t_charts_unit_hours_per_day": t("charts.unit_hours_per_day"), "t_graphs_unit_hours_per_month": t("graphs.unit_hours_per_month"), "t_charts_daily_hours_title": t("charts.daily_hours_title"), "t_user_profile_monthly_hours_title": t("user_profile.monthly_hours_title"), "t_charts_daily_hours_desc": t("charts.daily_hours_desc"), "t_user_profile_monthly_hours_desc": t("user_profile.monthly_hours_desc"), "charts_avg_daily_msgs": charts.avg_daily_msgs, "charts_avg_msgs": charts.avg_msgs, "t_charts_unit_msgs_per_day": t("charts.unit_msgs_per_day"), "t_graphs_unit_msgs_per_month": t("graphs.unit_msgs_per_month"), "t_charts_daily_msgs_title": t("charts.daily_msgs_title"), "t_user_profile_monthly_msgs_title": t("user_profile.monthly_msgs_title"), "t_charts_daily_msgs_desc": t("charts.daily_msgs_desc"), "t_user_profile_monthly_msgs_desc": t("user_profile.monthly_msgs_desc")}|tojson }}</script>
+<script type="application/json" id="hgPageConfig">{{ {"charts_default_granularity": charts.default_granularity, "current_lang": current_lang, "accent_hex": theme.accent_hex, "accent_rgb": theme.accent_rgb}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/user_profile.js', v=asset_version('js/pages/user_profile.js')) }}" defer></script>
 
 {% endblock %}

@@ -96,12 +96,10 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
     if banner_mode not in BANNER_MODES:
         banner_mode = settings["banner_mode"]
 
-    # Gallery pictures: only known keys; choosing the gallery without a picture falls back to the gradient
+    # Gallery pictures: only known keys (the default picture is used when none is sent)
     banner_image = request.form.get("banner_image") or None
     if banner_image not in BANNERS:
         banner_image = None
-    if banner_mode == "image" and not banner_image:
-        banner_mode = "gradient"
     background_image = request.form.get("background_image") or None
     if background_image not in BACKGROUNDS:
         background_image = None

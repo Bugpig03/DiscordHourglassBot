@@ -124,9 +124,16 @@ def compute_admin_data(lang: str = "fr") -> dict:
     searches = _rows("SELECT term, SUM(hits) FROM web_searches_daily WHERE day >= %s GROUP BY term ORDER BY 2 DESC LIMIT 20", (d30[0],))
 
     def top_entities(kind):
-        rows = _rows("SELECT entity_id, SUM(views) FROM web_entity_views_daily WHERE kind = %s AND day >= %s GROUP BY entity_id ORDER BY 2 DESC LIMIT 10", (kind, d30[0]))
+        # Rows recorded before v3.16.0 may hold a username or an id for the same member: merge them by target
+        rows = _rows("SELECT entity_id, SUM(views) FROM web_entity_views_daily WHERE kind = %s AND day >= %s GROUP BY entity_id ORDER BY 2 DESC LIMIT 60", (kind, d30[0]))
         names = _names(kind, [r[0] for r in rows])
-        return [{**names.get(r[0], {"name": r[0], "avatar": None, "url": None}), "value": int(r[1])} for r in rows]
+        merged: dict[str, dict] = {}
+        for entity_id, views in rows:
+            info = names.get(entity_id, {"name": entity_id, "avatar": None, "url": None})
+            key = info.get("url") or f"raw:{entity_id}"
+            item = merged.setdefault(key, {**info, "value": 0})
+            item["value"] += int(views)
+        return sorted(merged.values(), key=lambda x: -x["value"])[:10]
 
     device_counts = {bool(k): int(v) for k, v in devices}
     traffic = {

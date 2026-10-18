@@ -1,4 +1,4 @@
-/* Analytics page: three tabs (Tendances, Rythme, Communauté) fed by /api/graphs/data (cached 5 min server side). */
+/* Analytics page: three tabs (Évolution, Horaires, Communauté) fed by /api/graphs/data (cached 5 min server side). */
 const PAGE_CFG = JSON.parse(document.getElementById('hgPageConfig').textContent);
 const IS_EN = PAGE_CFG.current_lang === 'en';
 const T = (fr, en) => (IS_EN ? en : fr);
@@ -165,61 +165,77 @@ function bindTrendControls() {
 }
 
 // ---------------------------------------------------------------------------
-// Rythme: 24 h curve + day x hour punchcard, presence over 48 h
+// Horaires: presence over 48 h / 7 days, peak hours (one metric at a time) + day x hour grid
 // ---------------------------------------------------------------------------
+let peakMetric = 'hours';
+const PUNCH_SHADES = {
+    hours: ['rgba(56, 189, 248, 0.18)', 'rgba(56, 189, 248, 0.38)', 'rgba(56, 189, 248, 0.6)', 'rgba(56, 189, 248, 0.82)', '#38bdf8'],
+    messages: ['rgba(129, 140, 248, 0.18)', 'rgba(129, 140, 248, 0.38)', 'rgba(129, 140, 248, 0.6)', 'rgba(129, 140, 248, 0.82)', '#a5b4fc'],
+};
+
+function hourLabel(h) {
+    return IS_EN ? `${h}:00` : `${h}h`;
+}
+
 function renderHourly() {
     const d = apiData.hourly;
-    document.getElementById('badgeVoicePeak').textContent = `${T('Pic vocal', 'Voice peak')} : ${d.peak_voice_hour || '--'}`;
-    document.getElementById('badgeMessagesPeak').textContent = `${T('Pic messages', 'Messages peak')} : ${d.peak_messages_hour || '--'}`;
+    const isVoice = peakMetric === 'hours';
+    const values = (isVoice ? d.voice_hours : d.messages_count) || [];
+    const max = Math.max(0, ...values);
+    const peak = max > 0 ? values.indexOf(max) : -1;
+    const color = COLORS[peakMetric];
+    document.getElementById('badgePeak').textContent = peak >= 0
+        ? `${T('Pic', 'Peak')} : ${hourLabel(peak)} – ${hourLabel((peak + 1) % 24)}`
+        : `${T('Pic', 'Peak')} : --`;
+    document.getElementById('peakDesc').textContent = isVoice
+        ? T('Nombre moyen de membres en vocal à chaque heure de la journée.', 'Average number of members in voice at each hour of the day.')
+        : T('Nombre moyen de messages envoyés à chaque heure de la journée.', 'Average number of messages sent at each hour of the day.');
+    const fmtVal = v => isVoice
+        ? `${HG.fmt(v, 1)} ${T('membre(s) en vocal en moyenne', 'member(s) in voice on average')}`
+        : `${HG.fmt(v, 1)} ${T('messages en moyenne', 'messages on average')}`;
+    if (charts.hourly) charts.hourly.destroy();
     charts.hourly = new Chart(document.getElementById('hourlyChart'), {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: d.labels,
-            datasets: [
-                {
-                    label: T('Vocal (h / jour)', 'Voice (h / day)'),
-                    data: d.voice_hours,
-                    borderColor: COLORS.hours,
-                    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 2.5,
-                    pointRadius: 0,
-                    yAxisID: 'y',
-                },
-                {
-                    label: T('Messages (par jour)', 'Messages (per day)'),
-                    data: d.messages_count,
-                    borderColor: COLORS.messages,
-                    borderDash: [5, 4],
-                    fill: false,
-                    tension: 0.4,
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    yAxisID: 'y1',
-                },
-            ],
+            labels: values.map((_, h) => hourLabel(h)),
+            datasets: [{
+                data: values,
+                backgroundColor: values.map((v, i) => (i === peak ? color : color + '59')),
+                hoverBackgroundColor: color,
+                borderRadius: 5,
+                borderSkipped: false,
+            }],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { labels: { color: '#e2e8f0', usePointStyle: true, pointStyle: 'circle' } },
-                tooltip: TOOLTIP,
+                legend: { display: false },
+                tooltip: { ...TOOLTIP, callbacks: {
+                    title: items => `${hourLabel(items[0].dataIndex)} – ${hourLabel((items[0].dataIndex + 1) % 24)}`,
+                    label: c => ` ${fmtVal(c.parsed.y)}`,
+                } },
             },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#94a3b8', maxTicksLimit: 12 } },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: COLORS.hours, maxTicksLimit: 6, callback: v => `${HG.fmt(v, Number.isInteger(v * 10) ? 1 : 2)} h` } },
-                y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: COLORS.messages } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8', autoSkip: true, maxTicksLimit: 12 } },
+                y: { beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8', maxTicksLimit: 6, callback: v => HG.fmt(v, Number.isInteger(v) ? 0 : 1) } },
             },
         },
     });
+    renderPunchcard(apiData.punchcard);
 }
 
 function renderPunchcard(data) {
     const container = document.getElementById('punchcardContent');
     if (!container || !data || !data.days) return;
+    const isVoice = peakMetric === 'hours';
+    const shades = PUNCH_SHADES[peakMetric];
+    document.querySelectorAll('[data-punch-legend]').forEach(el => { el.style.background = shades[Number(el.dataset.punchLegend) - 1]; });
+    document.getElementById('punchTitle').textContent = isVoice
+        ? T('Détail par jour de la semaine (vocal)', 'Detail per day of the week (voice)')
+        : T('Détail par jour de la semaine (messages)', 'Detail per day of the week (messages)');
+    const val = c => (isVoice ? c.voice_hours : c.messages) || 0;
+    const max = Math.max(0, ...data.days.flatMap(r => (r.hours || []).map(val)));
     const dayNamesEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     let html = '<div class="an-punch-grid"><div></div>';
     for (let h = 0; h < 24; h++) html += `<div class="an-punch-hour">${h % 3 === 0 ? (h < 10 ? '0' + h : h) + 'h' : ''}</div>`;
@@ -227,18 +243,27 @@ function renderPunchcard(data) {
         const day = IS_EN ? (dayNamesEn[row.day_index] || row.day_name) : row.day_name;
         html += `<div class="an-punch-day">${HG.esc(day)}</div>`;
         (row.hours || []).forEach(c => {
-            let bg = 'rgba(255, 255, 255, 0.04)';
-            if (c.intensity > 0.75) bg = '#f43f5e';
-            else if (c.intensity > 0.5) bg = 'rgba(129, 140, 248, 0.85)';
-            else if (c.intensity > 0.25) bg = 'rgba(56, 189, 248, 0.6)';
-            else if (c.intensity > 0) bg = 'rgba(56, 189, 248, 0.3)';
-            const tip = IS_EN
-                ? `${day} ${c.hour}:00 · ${HG.fmt(c.voice_hours, 1)} h voice · ${HG.fmt(c.messages)} messages`
-                : `${day} ${c.hour}h · ${HG.fmt(c.voice_hours, 1)} h de vocal · ${HG.fmt(c.messages)} messages`;
+            const v = val(c);
+            const ratio = max > 0 ? v / max : 0;
+            const bg = ratio > 0 ? shades[Math.min(4, Math.floor(ratio * 5 - 1e-9))] : 'rgba(255, 255, 255, 0.04)';
+            const what = isVoice
+                ? T(`${HG.fmt(c.voice_hours, 1)} h de vocal au total`, `${HG.fmt(c.voice_hours, 1)} h of voice in total`)
+                : T(`${HG.fmt(c.messages)} messages au total`, `${HG.fmt(c.messages)} messages in total`);
+            const tip = `${day} ${hourLabel(c.hour)} · ${what}`;
             html += `<div class="punch-cell" style="background: ${bg};" data-tip="${HG.esc(tip)}" aria-label="${HG.esc(tip)}"></div>`;
         });
     });
     container.innerHTML = html + '</div>';
+}
+
+function bindPeakControls() {
+    document.querySelectorAll('[data-peak]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            peakMetric = btn.dataset.peak;
+            document.querySelectorAll('[data-peak]').forEach(b => b.classList.toggle('active', b === btn));
+            if (apiData && initializedTabs.has('tab-rhythm')) renderHourly();
+        });
+    });
 }
 
 let presenceRange = '7d';
@@ -373,7 +398,7 @@ function initTab(tabId) {
     if (!apiData || initializedTabs.has(tabId)) return;
     initializedTabs.add(tabId);
     if (tabId === 'tab-trends') renderTrends();
-    else if (tabId === 'tab-rhythm') { renderHourly(); renderPunchcard(apiData.punchcard); renderPresence(); }
+    else if (tabId === 'tab-rhythm') { renderPresence(); renderHourly(); }
     else if (tabId === 'tab-community') { renderGrowth(); document.querySelectorAll('[data-ranking]').forEach(c => renderRanking(c, 'hours')); }
 }
 
@@ -383,6 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindTrendControls();
     bindRankings();
     bindPresenceControls();
+    bindPeakControls();
 
     const hash = window.location.hash.replace('#', '');
     switchGraphTab(hash || 'tab-trends');

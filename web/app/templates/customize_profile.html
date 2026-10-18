@@ -79,12 +79,11 @@
                     <h2 class="cz-row-title">{{ 'Bannière' if fr else 'Banner' }}</h2>
                     <p class="cz-row-desc">
                         {% if has_discord_banner %}{{ 'Ta bannière Discord a été récupérée à ta connexion.' if fr else 'Your Discord banner was fetched when you logged in.' }}
-                        {% else %}{{ 'Pas de bannière sur ton compte Discord : le dégradé est utilisé à la place.' if fr else 'No banner on your Discord account: the gradient is used instead.' }}{% endif %}
+                        {% else %}{{ 'Pas de bannière sur ton compte Discord : choisis une image de la galerie.' if fr else 'No banner on your Discord account: pick a picture from the gallery.' }}{% endif %}
                     </p>
                 </div>
                 <div class="cz-segmented">
                     <label><input type="radio" name="banner_mode" value="auto" {% if theme.banner_mode == 'auto' %}checked{% endif %}><span>Discord</span></label>
-                    <label><input type="radio" name="banner_mode" value="gradient" {% if theme.banner_mode == 'gradient' %}checked{% endif %}><span>{{ 'Dégradé' if fr else 'Gradient' }}</span></label>
                     <label><input type="radio" name="banner_mode" value="image" {% if theme.banner_mode == 'image' %}checked{% endif %}><span>{{ 'Galerie' if fr else 'Gallery' }}</span></label>
                     <label><input type="radio" name="banner_mode" value="none" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{ 'Aucune' if fr else 'None' }}</span></label>
                 </div>
@@ -208,7 +207,7 @@
                 {% set hidden = settings.layout.hidden or [] %}
                 {% for group_label, keys in [
                     ('En-tête et résumé' if fr else 'Header and summary', ['showcase', 'records']),
-                    ('Onglet Activité' if fr else 'Activity tab', ['streaks', 'heatmap', 'hourly', 'companions']),
+                    ('Onglet Activité' if fr else 'Activity tab', ['streaks', 'heatmap', 'companions']),
                     ('Autres onglets' if fr else 'Other tabs', ['tab_charts', 'tab_servers', 'tab_badges']),
                 ] %}
                 <div class="cz-group">

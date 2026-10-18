@@ -1,5 +1,38 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.16.0 - Graphiques Plus Clairs & Personnalisation - 18/10/2026
+### Analyses
+- Onglets renommés : **« Évolution »** (ex-Tendances) et **« Horaires »** (ex-Rythme).
+- Onglet Horaires : la **présence des membres** passe en haut.
+- « Quand la communauté est active » devient **« Heures de pointe »** :
+  - un seul indicateur à la fois, Vocal ou Messages, au lieu de deux courbes sur deux axes ;
+  - en barres, le nombre moyen de membres en vocal (ou de messages) par heure, avec l'heure de pointe mise en évidence ;
+  - la grille jour × heure suit l'indicateur choisi.
+
+### Profils membre et serveur
+- **Onglet Graphiques fusionné**, avec les mêmes règles que la page Analyses : un seul graphique d'évolution (Vocal / Messages, Par mois / 30 jours, Par période / Cumulé) remplace les quatre graphiques (heures et messages cumulés, puis par mois ou par jour).
+- Profil membre :
+  - le temps en vocal par **serveur** et par **salon** est réuni dans une seule carte, avec un graphique en anneau et un classement ;
+  - le bloc « Affluence & Rythme horaire » est supprimé de l'onglet Activité, et retiré des blocs masquables.
+- Fiche serveur :
+  - le rythme horaire et la punchcard sont réunis en une carte **« Heures de pointe »**, comme sur la page Analyses ;
+  - la grille jour × heure s'affiche aussi pour les petits serveurs ;
+  - les salons vocaux et textuels sont réunis en une carte **« Salons les plus actifs »** (Vocal / Messages).
+- Nouveau script commun `static/js/activity_charts.js` pour les deux profils.
+
+### Personnalisation
+- **20 couleurs de profil** au lieu de 10 : bleu, cyan, pourpre, fuchsia, corail, pêche, jaune, vert, menthe, argent.
+- Bannière :
+  - l'option **Dégradé est supprimée** ;
+  - la **galerie** devient le choix par défaut, avec l'image « Aurore » ;
+  - un ancien choix « dégradé », ou le mode Discord sans bannière Discord, affiche l'image de la galerie.
+- Correction : cliquer sur une image de la galerie met de nouveau à jour l'aperçu en direct. L'image restait masquée après un premier échec de chargement.
+
+### Admin
+- Correction des **profils consultés en double** :
+  - les vues sont enregistrées par membre (ID résolu), et non plus par l'adresse tapée (pseudo ou ID) ;
+  - les anciennes lignes sont regroupées par profil à l'affichage.
+
 ## Version 3.15.0 - Admin : Onglet Commandes du Bot - 18/10/2026
 ### Nouveautés
 - **Onglet « Commandes » de la page admin** (données du bot v3.1.0) : commandes par jour sur 30 jours, total, part en messages privés, taux d'erreur, commandes les plus utilisées, serveurs qui les utilisent le plus, options les plus choisies (type de classement, période…) et tableau des temps de réponse (moyenne, p95, erreurs) par commande. Message explicatif tant que le bot n'a encore rien enregistré.

@@ -40,11 +40,11 @@
     <div class="graphs-tabs" role="tablist">
         <button class="graphs-tab-btn active" data-tab="tab-trends" data-call="switchGraphTab" data-arg="tab-trends">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            <span>{{ 'Tendances' if fr else 'Trends' }}</span>
+            <span>{{ 'Évolution' if fr else 'Over time' }}</span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-rhythm" data-call="switchGraphTab" data-arg="tab-rhythm">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>{{ 'Rythme' if fr else 'Rhythm' }}</span>
+            <span>{{ 'Horaires' if fr else 'Hours' }}</span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -53,7 +53,7 @@
     </div>
 </div>
 
-<!-- ============================ Tendances ============================ -->
+<!-- ============================ Évolution ============================ -->
 <div id="tab-trends" class="graphs-tab-pane active">
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
@@ -80,40 +80,13 @@
     </section>
 </div>
 
-<!-- ============================== Rythme ============================== -->
+<!-- ============================== Horaires ============================== -->
 <div id="tab-rhythm" class="graphs-tab-pane">
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
-                <h2 class="an-card-title">{{ 'Quand la communauté est active' if fr else 'When the community is active' }}</h2>
-                <p class="an-card-desc">{{ 'Moyenne par heure de la journée, puis détail par jour de la semaine.' if fr else 'Average per hour of the day, then detail per day of the week.' }}</p>
-            </div>
-            <div class="an-badges">
-                <span class="an-badge an-badge-blue" id="badgeVoicePeak">{{ 'Pic vocal' if fr else 'Voice peak' }} : --</span>
-                <span class="an-badge an-badge-indigo" id="badgeMessagesPeak">{{ 'Pic messages' if fr else 'Messages peak' }} : --</span>
-            </div>
-        </div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
-        <div class="an-punch-head">
-            <span class="an-subtitle">{{ 'Par jour et par heure' if fr else 'By day and hour' }}</span>
-            <span class="an-legend">
-                <span>{{ 'Calme' if fr else 'Low' }}</span>
-                <i style="background: rgba(255,255,255,0.04);"></i>
-                <i style="background: rgba(56, 189, 248, 0.3);"></i>
-                <i style="background: rgba(56, 189, 248, 0.6);"></i>
-                <i style="background: rgba(129, 140, 248, 0.85);"></i>
-                <i style="background: #f43f5e;"></i>
-                <span>{{ 'Intense' if fr else 'Peak' }}</span>
-            </span>
-        </div>
-        <div class="an-punch">{{ loading() }}<div id="punchcardContent"></div></div>
-    </section>
-
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head">
-            <div>
                 <h2 class="an-card-title">{{ 'Présence des membres' if fr else 'Member presence' }}</h2>
-                <p class="an-card-desc">{{ 'Membres en ligne, absents, en ne pas déranger et hors ligne, heure par heure.' if fr else 'Members online, idle, do not disturb and offline, hour by hour.' }}</p>
+                <p class="an-card-desc">{{ 'Combien de membres sont connectés à Discord, heure par heure.' if fr else 'How many members are connected to Discord, hour by hour.' }}</p>
             </div>
             <div class="an-controls">
                 <span class="an-badge an-badge-green" id="badgePresence">{{ 'Connectés' if fr else 'Online' }} : --</span>
@@ -126,6 +99,36 @@
         <div class="an-chart an-chart-md">{{ loading() }}<canvas id="presenceChart"></canvas>
             <p class="an-empty" id="presenceEmpty" hidden>{{ 'Pas de données de présence sur cette période (le bot n’a pas enregistré de relevé).' if fr else 'No presence data for this period (the bot recorded no snapshot).' }}</p>
         </div>
+    </section>
+
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
+            <div>
+                <h2 class="an-card-title">{{ 'Heures de pointe' if fr else 'Peak hours' }}</h2>
+                <p class="an-card-desc" id="peakDesc">{{ 'Nombre moyen de membres en vocal à chaque heure de la journée.' if fr else 'Average number of members in voice at each hour of the day.' }}</p>
+            </div>
+            <div class="an-controls">
+                <span class="an-badge an-badge-blue" id="badgePeak">{{ 'Pic' if fr else 'Peak' }} : --</span>
+                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Mesure' if fr else 'Metric' }}">
+                    <button type="button" class="granularity-btn active" data-peak="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
+                    <button type="button" class="granularity-btn" data-peak="messages">Messages</button>
+                </div>
+            </div>
+        </div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
+        <div class="an-punch-head">
+            <span class="an-subtitle" id="punchTitle">{{ 'Détail par jour de la semaine (vocal)' if fr else 'Detail per day of the week (voice)' }}</span>
+            <span class="an-legend">
+                <span>{{ 'Calme' if fr else 'Quiet' }}</span>
+                <i data-punch-legend="1"></i>
+                <i data-punch-legend="2"></i>
+                <i data-punch-legend="3"></i>
+                <i data-punch-legend="4"></i>
+                <i data-punch-legend="5"></i>
+                <span>{{ 'Très actif' if fr else 'Busiest' }}</span>
+            </span>
+        </div>
+        <div class="an-punch">{{ loading() }}<div id="punchcardContent"></div></div>
     </section>
 </div>
 

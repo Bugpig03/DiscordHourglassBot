@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from flask import Blueprint, abort, make_response, render_template, request, redirect, url_for
+from flask import Blueprint, abort, g, make_response, render_template, request, redirect, url_for
 from peewee import JOIN, fn
 from app.database import Users, Stats, VoiceSessions, Servers, UserPresence
 from app.gamification import calculate_user_xp_and_level
@@ -58,6 +58,7 @@ def server(server_id: str):
         # Server not found or invalid ID; redirect to homepage
         return redirect(url_for("home.home"))
 
+    g.tracked_entity = ("server", str(int(server_id)))
     lang = request.cookies.get("lang", "fr")
     search_query = request.args.get("q", "").strip()
     has_server_access = can_view_server_private_data(server_id)

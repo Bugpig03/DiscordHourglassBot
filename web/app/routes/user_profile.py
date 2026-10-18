@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, g, render_template, redirect, url_for, request
 from peewee import fn, JOIN
 from app.database import Users, Stats
 from app.functions import (
@@ -30,7 +30,6 @@ from app.functions import (
     get_partial_period,
     get_user_presence,
     get_user_active_voice,
-    get_hourly_activity_distribution,
     get_user_favorite_voice_channels,
     get_recent_voice_sessions,
     get_user_heatmap_data,
@@ -128,6 +127,7 @@ def profile(username: str):
 
     # Resolve target user properties
     user_id = int(target_user.user_id)
+    g.tracked_entity = ("profile", str(user_id))  # audience stats count the member, whether reached by name or id
     display_username = target_user.username or f"User {user_id}"
 
     lang = request.cookies.get("lang", "fr")
@@ -376,14 +376,6 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
         "hours": favorite_channels["hours"]
     })
 
-    # 7. User's hourly activity distribution (24h)
-    hourly_activity = get_hourly_activity_distribution(user_id=user_id, lang=lang)
-    hourly_activity_json = json.dumps({
-        "labels": hourly_activity["labels"],
-        "voice_hours": hourly_activity["voice_hours"],
-        "messages_count": hourly_activity["messages_count"]
-    })
-
     return {
         "chart_data_json": chart_data_json,
         "messages_chart_data_json": messages_chart_data_json,
@@ -403,8 +395,4 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
         "favorite_channels_pie_json": favorite_channels_pie_json,
         "favorite_channels_table": favorite_channels["channels"],
         "has_favorite_channels": favorite_channels["has_data"],
-        "hourly_activity_json": hourly_activity_json,
-        "peak_voice_hour": hourly_activity["peak_voice_hour"],
-        "has_hourly_data": hourly_activity["has_data"],
-        "peak_messages_hour": hourly_activity["peak_messages_hour"],
     }

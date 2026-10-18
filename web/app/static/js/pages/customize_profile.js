@@ -66,6 +66,7 @@
         bannerImg.hidden = !src;
         if (src && bannerImg.getAttribute('src') !== src) {
             delete bannerImg.dataset.fallbackDone;
+            bannerImg.style.display = '';
             bannerImg.src = src;
         }
     }
