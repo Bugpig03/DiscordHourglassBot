@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"hourglass-bot/config"
 	"hourglass-bot/database"
@@ -14,7 +16,7 @@ import (
 )
 
 func main() {
-	log.Println("🚀 Démarrage de Hourglass Bot v3.0.5 (Go Edition)...")
+	log.Println("🚀 Démarrage de Hourglass Bot v3.1.0 (Go Edition)...")
 
 	// 1. Chargement de la configuration
 	cfg, err := config.LoadConfig()
@@ -28,6 +30,13 @@ func main() {
 		log.Fatalf("❌ Erreur de connexion à PostgreSQL: %v", err)
 	}
 	defer db.Close()
+
+	// Table of slash command usage (read by the website admin page), created when the migration was not applied
+	ensureCtx, ensureCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	if err := db.EnsureCommandEventsTable(ensureCtx); err != nil {
+		log.Printf("⚠️ Suivi des commandes désactivé (table bot_command_events indisponible): %v", err)
+	}
+	ensureCancel()
 
 	// 3. Initialisation de la session DiscordGo
 	dg, err := discordgo.New("Bot " + cfg.DiscordToken)

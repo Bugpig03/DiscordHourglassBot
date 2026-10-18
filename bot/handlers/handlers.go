@@ -304,6 +304,7 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	if len(s.State.Guilds) > 0 {
 		_ = h.DB.RecordPresenceHistory(ctx, nil, totalOnline, totalIdle, totalDnd, totalOffline)
 		_ = h.DB.CleanOldPresenceHistory(ctx)
+		_ = h.DB.CleanOldCommandEvents(ctx)
 		log.Printf("📊 [PRESENCE] Instantané 48h enregistré (En ligne: %d, Absent: %d, DND: %d, Hors-ligne: %d)", totalOnline, totalIdle, totalDnd, totalOffline)
 	}
 }

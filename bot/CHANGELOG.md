@@ -1,5 +1,15 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.1.0 - Suivi de l'utilisation des commandes - 18/10/2026
+
+- **Enregistrement de chaque commande slash** dans la nouvelle table `bot_command_events`, affichée dans l'onglet « Commandes » de la page admin du site :
+  - nom de la commande, serveur (vide en message privé), options de choix (`type`, `period`, `scope`), réussite et durée de traitement ;
+  - **aucun identifiant de membre** : les options de type utilisateur (mentions de `/stats`, `/versus`…) ne sont jamais enregistrées ;
+  - une commande qui plante (récupérée par le `recover`) est comptée en erreur ; `/stats` ou `/server` refusés en DM sont notés `dm_refused`.
+- Écriture en arrière-plan (goroutine, délai de 3 s) : une base lente ne retarde jamais la réponse à l'utilisateur.
+- Purge automatique des événements de plus de 90 jours, avec le nettoyage de l'historique de présence (toutes les 15 min).
+- Table créée au démarrage si elle manque (`CREATE TABLE IF NOT EXISTS`) ; migration facultative : `database/migrations/2026-10-18_bot_v3.1.0_command_events.sql`.
+
 ## Version 3.0.5 - Fiabilité du temps vocal & commandes en DM - 16/10/2026
 
 - **Réouverture des sessions limitée aux vraies sessions orphelines (`SyncVoiceSession`)** :

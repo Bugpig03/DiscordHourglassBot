@@ -121,3 +121,15 @@ CREATE TABLE IF NOT EXISTS web_status_daily (day DATE NOT NULL, status SMALLINT 
 CREATE TABLE IF NOT EXISTS web_searches_daily (day DATE NOT NULL, term VARCHAR(40) NOT NULL, hits INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, term));
 CREATE TABLE IF NOT EXISTS web_accounts (user_id BIGINT PRIMARY KEY, first_login_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, last_login_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, login_count INTEGER NOT NULL DEFAULT 1);
 CREATE TABLE IF NOT EXISTS web_logins_daily (day DATE NOT NULL, user_id BIGINT NOT NULL, PRIMARY KEY (day, user_id));
+
+-- 10. Utilisation des commandes slash (bot v3.1.0, lue par la page admin du site)
+CREATE TABLE IF NOT EXISTS bot_command_events (
+    id BIGSERIAL PRIMARY KEY,
+    command VARCHAR(32) NOT NULL,
+    server_id BIGINT,
+    options VARCHAR(120) NOT NULL DEFAULT '',
+    success BOOLEAN NOT NULL DEFAULT TRUE,
+    duration_ms INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_bot_command_events_created ON bot_command_events (created_at);

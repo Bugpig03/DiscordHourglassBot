@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"hourglass-bot/card"
@@ -127,17 +128,24 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 		return
 	}
 
-	// A panic in a command handler must never take the whole bot (and voice tracking) down
+	started := time.Now()
+	success := true
+	note := ""
+	// A panic in a command handler must never take the whole bot (and voice tracking) down.
+	// Every command is then recorded for the website admin page (without any member identifier).
 	defer func() {
 		if r := recover(); r != nil {
+			success = false
 			log.Printf("❌ Panic in /%s command handler: %v", i.ApplicationCommandData().Name, r)
 		}
+		h.recordCommand(i, note, success, time.Since(started))
 	}()
 
 	data := i.ApplicationCommandData()
 
 	// Server-scoped commands cannot run in DMs (no guild, no member)
 	if i.GuildID == "" && (data.Name == "stats" || data.Name == "server") {
+		note = "dm_refused"
 		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -711,4 +719,31 @@ func (h *BotHandler) handleHelp(ctx context.Context, s *discordgo.Session, i *di
 			Content: fallback,
 		})
 	}
+}
+
+// recordCommand stores the command, its server and its choice options (type, period, scope) in the
+// background: user options (mentions) are never stored, and a slow database never delays the reply.
+func (h *BotHandler) recordCommand(i *discordgo.InteractionCreate, note string, success bool, duration time.Duration) {
+	data := i.ApplicationCommandData()
+	var parts []string
+	for _, opt := range data.Options {
+		if opt.Type == discordgo.ApplicationCommandOptionString {
+			parts = append(parts, opt.Name+"="+opt.StringValue())
+		}
+	}
+	if note != "" {
+		parts = append(parts, note)
+	}
+	var serverID *int64
+	if id, err := strconv.ParseInt(i.GuildID, 10, 64); err == nil {
+		serverID = &id
+	}
+	command, options := data.Name, strings.Join(parts, " ")
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		if err := h.DB.RecordCommand(ctx, command, serverID, options, success, duration); err != nil {
+			log.Printf("⚠️ Impossible d'enregistrer la commande /%s: %v", command, err)
+		}
+	}()
 }
