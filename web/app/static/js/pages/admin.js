@@ -154,6 +154,19 @@ function initTab(tabId) {
             [T('Profils privés', 'Private profiles'), HG.fmt(c.private)],
             [T('Serveur favori choisi', 'Favorite server set'), HG.fmt(c.favorite)],
         ]);
+    } else if (tabId === 'tab-commands') {
+        const c = data.commands;
+        document.getElementById('commandsNotice').hidden = c.total > 0;
+        renderStats(document.getElementById('commandStats'), [
+            [T('Commandes · 30 jours', 'Commands · 30 days'), HG.fmt(c.total), `${HG.fmt(c.today)} ${T("aujourd'hui", 'today')}`],
+            [T('En messages privés', 'In direct messages'), HG.fmt(c.dm)],
+            [T('Erreurs', 'Errors'), HG.fmt(c.failed), `${HG.fmt(c.failed_percent, 1)} %`, c.failed ? 'warn' : 'ok'],
+        ]);
+        lineChart('commandsChart', c.labels, [bars(T('Commandes', 'Commands'), c.daily, '#38bdf8')], { type: 'bar' });
+        document.querySelector('#commandPerf tbody').innerHTML = c.perf.map(r => `<tr><td><code>${HG.esc(r.name)}</code></td>
+            <td>${HG.fmt(r.count)}</td><td>${T('moy.', 'avg')} ${HG.fmt(r.avg_ms)} ms</td><td class="adm-muted">p95 ${HG.fmt(r.p95_ms)} ms</td>
+            <td class="${r.failed ? 'adm-bad' : 'adm-muted'}">${HG.fmt(r.failed)} ${T('erreur(s)', 'error(s)')}</td></tr>`).join('')
+            || `<tr><td>${T('Pas encore de données', 'No data yet')}</td></tr>`;
     } else if (tabId === 'tab-bot') {
         const b = data.bot;
         renderStats(document.getElementById('botStats'), [

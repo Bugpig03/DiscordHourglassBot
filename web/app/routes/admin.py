@@ -272,7 +272,38 @@ def compute_admin_data(lang: str = "fr") -> dict:
         "analytics_refresh": dict(LAST_REFRESH),
     }
 
+    # ---------------- Bot commands (table written by the bot since bot v3.1.0) ----------------
+    cmd_daily = _rows("SELECT created_at::date, COUNT(*) FROM bot_command_events WHERE created_at >= %s GROUP BY 1", (d30[0],))
+    cmd_top = _rows(
+        "SELECT command, COUNT(*), SUM(CASE WHEN success THEN 0 ELSE 1 END), "
+        "ROUND(AVG(duration_ms)), PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms) "
+        "FROM bot_command_events WHERE created_at >= %s GROUP BY command ORDER BY 2 DESC", (d30[0],))
+    cmd_servers = _rows(
+        "SELECT e.server_id, s.servername, s.avatar, COUNT(*) FROM bot_command_events e LEFT JOIN servers s ON s.server_id = e.server_id "
+        "WHERE e.created_at >= %s AND e.server_id IS NOT NULL GROUP BY e.server_id, s.servername, s.avatar ORDER BY 4 DESC LIMIT 10", (d30[0],))
+    cmd_options = _rows(
+        "SELECT options, COUNT(*) FROM bot_command_events WHERE created_at >= %s AND options <> '' GROUP BY options ORDER BY 2 DESC LIMIT 10", (d30[0],))
+    cmd_dm = int(_one("SELECT COUNT(*) FROM bot_command_events WHERE created_at >= %s AND server_id IS NULL", (d30[0],)))
+    cmd_total = sum(int(r[1]) for r in cmd_top)
+    cmd_failed = sum(int(r[2] or 0) for r in cmd_top)
+    dm_label = "refusée en DM" if fr else "refused in DM"
+    commands = {
+        "total": cmd_total,
+        "today": _series(cmd_daily, d30)[-1],
+        "failed": cmd_failed,
+        "failed_percent": round(cmd_failed / cmd_total * 100, 1) if cmd_total else 0,
+        "dm": cmd_dm,
+        "labels": [_day_label(d, lang) for d in d30],
+        "daily": _series(cmd_daily, d30),
+        "top": [{"name": f"/{c}", "value": int(n)} for c, n, _, _, _ in cmd_top],
+        "perf": [{"name": f"/{c}", "count": int(n), "failed": int(f or 0), "avg_ms": int(a or 0), "p95_ms": int(p or 0)} for c, n, f, a, p in cmd_top],
+        "servers": [{"name": name or str(sid), "avatar": avatar, "url": url_for("server_profile.server", server_id=sid), "value": int(n)}
+                    for sid, name, avatar, n in cmd_servers],
+        "options": [{"name": o.replace("dm_refused", dm_label), "value": int(n)} for o, n in cmd_options],
+    }
+
     return {
+        "commands": commands,
         "overview": {
             "views_today": views_s[-1], "views_7": period(views_s, 7), "views_7_prev": period(views_s, 7, 7),
             "views_30": period(views_s, 30), "views_30_prev": period(views_s, 30, 30),

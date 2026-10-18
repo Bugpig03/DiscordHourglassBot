@@ -44,6 +44,7 @@
         <button class="graphs-tab-btn active" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><span>{{ 'Fréquentation' if fr else 'Traffic' }}</span></button>
         <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><span>{{ 'Comptes' if fr else 'Accounts' }}</span></button>
         <button class="graphs-tab-btn" data-tab="tab-custom" data-call="switchGraphTab" data-arg="tab-custom"><span>{{ 'Personnalisation' if fr else 'Customization' }}</span></button>
+        <button class="graphs-tab-btn" data-tab="tab-commands" data-call="switchGraphTab" data-arg="tab-commands"><span>{{ "Commandes" if fr else "Commands" }}</span></button>
         <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><span>{{ 'Bot & base' if fr else 'Bot & DB' }}</span></button>
         <button class="graphs-tab-btn" data-tab="tab-health" data-call="switchGraphTab" data-arg="tab-health"><span>{{ 'Santé' if fr else 'Health' }}</span></button>
     </div>
@@ -131,6 +132,26 @@
         <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Badges en vitrine' if fr else 'Featured badges' }}</h2></div><ol class="an-rank" data-list="customization.badges">{{ loading() }}</ol></section>
         <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Records épinglés' if fr else 'Pinned records' }}</h2></div><ol class="an-rank" data-list="customization.records">{{ loading() }}</ol></section>
         <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Blocs masqués aux visiteurs' if fr else 'Blocks hidden from visitors' }}</h2></div><ol class="an-rank" data-list="customization.hidden">{{ loading() }}</ol></section>
+    </div>
+</div>
+
+<!-- ============================= Commandes ============================= -->
+<div id="tab-commands" class="graphs-tab-pane">
+    <p class="adm-notice" id="commandsNotice" hidden>{{ "Aucune commande enregistrée pour l’instant : le suivi démarre avec la version 3.1.0 du bot." if fr else "No command recorded yet: tracking starts with bot version 3.1.0." }}</p>
+    <div class="adm-stats" id="commandStats"></div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ "Commandes utilisées par jour · 30 j" if fr else "Commands used per day · 30 d" }}</h2>
+            <p class="an-card-desc">{{ "Aucun identifiant de membre n’est enregistré : seulement la commande, le serveur, les options de choix et la durée." if fr else "No member identifier is stored: only the command, the server, the choice options and the duration." }}</p></div></div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="commandsChart"></canvas></div>
+    </section>
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Commandes les plus utilisées · 30 j" if fr else "Most used commands · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.top">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Serveurs les plus actifs · 30 j" if fr else "Most active servers · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.servers">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Options les plus choisies · 30 j" if fr else "Most chosen options · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.options">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{ "Temps de réponse et erreurs" if fr else "Response time and errors" }}</h2></div>
+            <div class="adm-table-wrap"><table class="adm-table" id="commandPerf"><tbody><tr><td>…</td></tr></tbody></table></div>
+        </section>
     </div>
 </div>
 

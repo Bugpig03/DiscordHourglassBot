@@ -1,5 +1,9 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.15.0 - Admin : Onglet Commandes du Bot - 18/10/2026
+### Nouveautés
+- **Onglet « Commandes » de la page admin** (données du bot v3.1.0) : commandes par jour sur 30 jours, total, part en messages privés, taux d'erreur, commandes les plus utilisées, serveurs qui les utilisent le plus, options les plus choisies (type de classement, période…) et tableau des temps de réponse (moyenne, p95, erreurs) par commande. Message explicatif tant que le bot n'a encore rien enregistré.
+
 ## Version 3.14.0 - Page Admin & Mesure d'Audience Anonyme - 18/10/2026
 ### Nouveautés
 - **Page `/admin`**, réservée aux IDs Discord listés dans la variable d'environnement `ADMIN_USER_IDS` (séparés par des virgules) ; pour tout autre visiteur, elle répond 404. Lien « Admin » dans le menu du compte, visible seulement des admins. Cinq onglets :

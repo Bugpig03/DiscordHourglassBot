@@ -117,3 +117,19 @@
 .adm-table code {
     color: #a5b4fc;
 }
+
+.adm-notice {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #cbd5e1;
+}
+.adm-notice[hidden] {
+    display: none;
+}
+.adm-bad {
+    color: #fca5a5 !important;
+    font-weight: 700;
+}
