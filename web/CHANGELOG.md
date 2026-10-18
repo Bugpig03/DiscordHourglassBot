@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.12.0 - Onglet Badges Réorganisé par Familles - 18/10/2026
+### Interface
+- **Résumé en tête de l'onglet Badges** : « 28 / 37 badges débloqués · 76 % », barre de progression et décompte par rareté (Commun, Rare, Épique, Légendaire).
+- **Badges rangés en 8 familles** (Vocal, Messages, Niveau, Classement, Serveurs, Fidélité, Activité du mois, Polyvalence), chacune affichée comme une échelle de paliers reliés, du plus facile au plus difficile, avec son compteur (« 6/7 ») et la mention « Complet » une fois terminée. Paliers débloqués à la couleur de leur rareté avec une coche, palier en cours en surbrillance avec sa mini-barre, paliers suivants grisés ; la description passe en info-bulle. Les grandes familles (5 paliers et plus) occupent toute la largeur, les petites vont par deux.
+- **Filtre** Tous / Débloqués / À débloquer.
+- **Valeurs lisibles** : un palier affiche seulement son seuil (« 500 h », « Niveau 30 », « Top 10 », « 50 h + 500 messages ») ; seul le palier en cours montre l'avancement (« 766,6 / 1 000 h », « #75 · objectif Top 50 »), au lieu de « 766,5 / 1,0 h » sur chaque carte.
+
 ## Version 3.11.1 - Page Analyses Instantanée - 18/10/2026
 ### Performance
 - **Plus d'attente sur la page Analyses** : le cache sert toujours immédiatement le dernier résultat calculé ; quand il a plus de 5 minutes, il est recalculé en arrière-plan par un seul thread pendant que les visiteurs reçoivent la version précédente (au plus 6 h d'âge). Avant, le premier visiteur après chaque expiration attendait tout le calcul, et les autres attendaient derrière lui.

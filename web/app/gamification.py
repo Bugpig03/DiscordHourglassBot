@@ -588,3 +588,122 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
             b["progress_percent"] = 0.0
 
     return raw_badges
+
+
+# ------------------------------------------------------------------------------
+# Badges tab: families shown as ladders of tiers
+# ------------------------------------------------------------------------------
+# (key, label fr, label en, badge ids in the order of the ladder: easiest first)
+BADGE_FAMILIES = [
+    ("voice", "Vocal", "Voice", ["voice_bronze", "voice_silver", "voice_gold", "voice_centurion", "voice_diamond", "voice_titan", "voice_legend"]),
+    ("messages", "Messages", "Messages", ["msg_novice", "msg_talkative", "msg_chronicler", "msg_eloquent", "msg_typist", "msg_legend", "msg_overlord"]),
+    ("level", "Niveau", "Level", ["level_5", "level_10", "level_15", "level_20", "level_30", "level_50"]),
+    ("rank", "Classement", "Ranking", ["rank_top50", "rank_top10", "rank_podium"]),
+    ("social", "Serveurs", "Servers", ["social_explorer", "social_nomad", "social_globetrotter", "social_ambassador"]),
+    ("loyalty", "Fidélité", "Loyalty", ["loyalty_member", "loyalty_veteran", "loyalty_pioneer", "loyalty_ancestor"]),
+    ("activity", "Activité du mois", "Monthly activity", ["activity_warmup", "activity_hyperactive", "activity_monthly_champ"]),
+    ("hybrid", "Polyvalence", "Versatility", ["versatile", "hybrid_master", "all_rounder"]),
+]
+RARITY_LABELS = {
+    "common": ("Commun", "Common"),
+    "rare": ("Rare", "Rare"),
+    "epic": ("Épique", "Epic"),
+    "legendary": ("Légendaire", "Legendary"),
+}
+
+
+def _fmt_number(value, lang: str) -> str:
+    """1234.5 -> '1 234,5' (fr) / '1,234.5' (en); whole numbers lose their decimals."""
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    if isinstance(value, int):
+        text = f"{value:,}"
+    else:
+        text = f"{value:,.1f}"
+    if lang == "fr":
+        text = text.replace(",", "\u202f").replace(".", ",")
+    return text
+
+
+def _badge_threshold(badge: dict, family: str, lang: str) -> str:
+    """What the tier asks for, written for people: '500 h', 'Niveau 30', 'Top 10', '50 h + 500 messages'."""
+    target, unit = badge["target"], badge.get("unit") or ""
+    if family == "level":
+        return f"{'Niveau' if lang == 'fr' else 'Level'} {target}"
+    if family == "hybrid" and isinstance(target, str):
+        hours, msgs = (part.strip() for part in target.split("/"))
+        return f"{hours[:-1]} h + {_fmt_number(int(msgs[:-1]), lang)} messages"
+    if isinstance(target, (int, float)):
+        unit = {"msgs": "messages", "j": "jours", "d": "days"}.get(unit, unit)
+        return f"{_fmt_number(target, lang)} {unit}".strip()
+    return str(target)
+
+
+def _badge_progress(badge: dict, family: str, lang: str) -> str:
+    """Progress line of the tier being worked on: '412 / 500 h', '#75 (Top 10 requis)'."""
+    current, target = badge["current"], badge["target"]
+    if family == "rank":
+        return f"{current} · {'objectif' if lang == 'fr' else 'goal'} {target}"
+    if family == "hybrid":
+        return str(current).replace("h /", " h ·").replace("m", " messages")
+    if family == "level":
+        return f"{'Niveau' if lang == 'fr' else 'Level'} {current} / {target}"
+    if isinstance(current, (int, float)) and isinstance(target, (int, float)):
+        unit = badge.get("unit") or ""
+        unit = "" if family == "level" else {"msgs": "messages", "j": "jours", "d": "days"}.get(unit, unit)
+        return f"{_fmt_number(current, lang)} / {_fmt_number(target, lang)} {unit}".strip()
+    return f"{current} / {target}"
+
+
+def build_badge_overview(badges: list[dict], lang: str = "fr") -> dict:
+    """Group badges into ladders: each tier is unlocked, next (the one being worked on) or locked."""
+    by_id = {b["id"]: b for b in badges}
+    fr = lang == "fr"
+    families = []
+    for key, label_fr, label_en, ids in BADGE_FAMILIES:
+        tiers, next_found = [], False
+        for badge_id in ids:
+            badge = by_id.get(badge_id)
+            if not badge:
+                continue
+            if badge["unlocked"]:
+                state = "unlocked"
+            elif not next_found:
+                state, next_found = "next", True
+            else:
+                state = "locked"
+            tiers.append({
+                **badge,
+                "state": state,
+                "threshold": _badge_threshold(badge, key, lang),
+                "progress_text": _badge_progress(badge, key, lang) if state == "next" else "",
+            })
+        if tiers:
+            unlocked = sum(1 for t in tiers if t["state"] == "unlocked")
+            families.append({
+                "key": key,
+                "label": label_fr if fr else label_en,
+                "tiers": tiers,
+                "unlocked": unlocked,
+                "total": len(tiers),
+                "complete": unlocked == len(tiers),
+                "icon": tiers[-1]["icon"],
+            })
+
+    rarity = []
+    for r, (label_fr, label_en) in RARITY_LABELS.items():
+        of_rarity = [b for b in badges if b["rarity"] == r]
+        rarity.append({
+            "rarity": r,
+            "label": label_fr if fr else label_en,
+            "unlocked": sum(1 for b in of_rarity if b["unlocked"]),
+            "total": len(of_rarity),
+        })
+    unlocked = sum(1 for b in badges if b["unlocked"])
+    return {
+        "families": families,
+        "rarity": rarity,
+        "unlocked": unlocked,
+        "total": len(badges),
+        "percent": round(unlocked / len(badges) * 100) if badges else 0,
+    }

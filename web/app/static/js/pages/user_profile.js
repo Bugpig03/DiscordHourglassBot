@@ -650,3 +650,27 @@ function toggleHeatmapView(mode) {
         if (btnMon) btnMon.classList.remove('active');
     }
 }
+
+// Badges tab filter: all / unlocked / to unlock (hides tiers, then families left empty)
+(function () {
+    const buttons = document.querySelectorAll('[data-badge-filter]');
+    if (!buttons.length) return;
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+        const mode = btn.dataset.badgeFilter;
+        buttons.forEach(b => b.classList.toggle('active', b === btn));
+        let visibleFamilies = 0;
+        document.querySelectorAll('.bd-family').forEach(fam => {
+            let visible = 0;
+            fam.querySelectorAll('.bd-tier').forEach(tier => {
+                const unlocked = tier.dataset.state === 'unlocked';
+                const show = mode === 'all' || (mode === 'unlocked' ? unlocked : !unlocked);
+                tier.hidden = !show;
+                if (show) visible++;
+            });
+            fam.hidden = visible === 0;
+            if (visible) visibleFamilies++;
+        });
+        const empty = document.getElementById('badgesEmpty');
+        if (empty) empty.hidden = visibleFamilies > 0;
+    }));
+})();

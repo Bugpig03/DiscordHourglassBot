@@ -36,7 +36,7 @@ from app.functions import (
     get_user_heatmap_data,
     get_user_voice_companions,
 )
-from app.gamification import calculate_user_xp_and_level, calculate_user_badges
+from app.gamification import calculate_user_xp_and_level, calculate_user_badges, build_badge_overview
 from app.cache import cache
 from app.auth import can_view_user_sessions, can_view_user_presence
 from app.profile_settings import get_profile_settings, resolve_profile_theme, resolve_layout
@@ -156,6 +156,7 @@ def profile(username: str):
         "badges": badges,
         "unlocked_count": unlocked_count,
         "total_badges": len(badges),
+        "overview": build_badge_overview(badges, lang=lang),
     }
 
     # Données Heatmap GitHub-style, Compagnons vocaux et records personnels

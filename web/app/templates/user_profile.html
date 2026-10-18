@@ -831,62 +831,60 @@
 {% if layout.visible.tab_badges %}
 <div id="tab-badges" class="graphs-tab-pane">
     {% if layout.hidden.tab_badges %}<div class="layout-pane-tag">{{ hidden_tag('tab_badges') }}</div>{% endif %}
-    <div class="badges-summary-banner gray-box small-border-radius" style="padding: 20px 24px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+    {% set ov = gamification.overview %}
+    {% set fr = current_lang == 'fr' %}
+    <!-- Summary: overall progress and per-rarity counts -->
+    <section class="gray-box small-border-radius bd-summary">
+        <div class="bd-summary-main">
             <div>
-                <div class="big-bold-text nomargin" style="font-size: 1.3rem;">
-                    {{ t('profile.badges_section_title') }}
-                </div>
-                <div class="small-text gray" style="margin-top: 5px;">
-                    {{ t('profile.badges_unlocked_summary', unlocked=gamification.unlocked_count, total=gamification.total_badges) }}
-                </div>
+                <h2 class="bd-summary-title">{{ t('profile.badges_section_title') }}</h2>
+                <div class="bd-summary-count"><strong>{{ ov.unlocked }}</strong> / {{ ov.total }} {{ 'badges débloqués' if fr else 'badges unlocked' }} · {{ ov.percent }} %</div>
             </div>
-            <div class="badges-unlocked-ratio">
-                <span class="ratio-pct">{{ ((gamification.unlocked_count / gamification.total_badges) * 100) | round(0) | int }}%</span>
-                <span class="ratio-label">{{ 'complété' if current_lang == 'fr' else 'completed' }}</span>
+            <div class="granularity-toggle-group bd-filter" role="group" aria-label="{{ 'Filtrer les badges' if fr else 'Filter badges' }}">
+                <button type="button" class="granularity-btn active" data-badge-filter="all">{{ 'Tous' if fr else 'All' }}</button>
+                <button type="button" class="granularity-btn" data-badge-filter="unlocked">{{ 'Débloqués' if fr else 'Unlocked' }}</button>
+                <button type="button" class="granularity-btn" data-badge-filter="locked">{{ 'À débloquer' if fr else 'To unlock' }}</button>
             </div>
         </div>
-        <div class="user-xp-bar-bg" style="margin-top: 14px; height: 6px;">
-            <div class="user-xp-bar-fill" style="width: {{ ((gamification.unlocked_count / gamification.total_badges) * 100) | round(1) }}%;"></div>
+        <div class="user-xp-bar-bg bd-summary-bar"><div class="user-xp-bar-fill" style="width: {{ ov.percent }}%;"></div></div>
+        <div class="bd-rarities">
+            {% for r in ov.rarity %}
+            <span class="bd-rarity rarity-{{ r.rarity }}"><i></i>{{ r.label }} <strong>{{ r.unlocked }}/{{ r.total }}</strong></span>
+            {% endfor %}
         </div>
-    </div>
+    </section>
 
-    <!-- Badges Grid -->
-    <div class="badges-grid">
-        {% for badge in gamification.badges %}
-        <div class="badge-card {% if badge.unlocked %}unlocked rarity-{{ badge.rarity }}{% else %}locked{% endif %}">
-            <div class="badge-card-icon-wrap">
-                <span class="badge-card-icon">{{ badge.icon | safe }}</span>
-                {% if not badge.unlocked %}
-                <span class="badge-card-lock" title="{{ t('profile.locked_badge') }}">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                </span>
-                {% endif %}
-            </div>
-            <div class="badge-card-body">
-                <div class="badge-card-header">
-                    <span class="badge-card-name">{{ badge.name }}</span>
-                    <span class="badge-rarity-pill rarity-{{ badge.rarity }}">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
-                </div>
-                <div class="badge-card-desc">{{ badge.description }}</div>
-                
-                {% if not badge.unlocked %}
-                <div class="badge-progress-wrap">
-                    <div class="badge-progress-bar">
-                        <div class="badge-progress-fill" style="width: {{ badge.progress_percent }}%;"></div>
-                    </div>
-                    <span class="badge-progress-label">{{ badge.current }} / {{ badge.target }} {{ badge.unit }}</span>
-                </div>
-                {% else %}
-                <div class="badge-unlocked-tag">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>{{ 'Débloqué' if current_lang == 'fr' else 'Unlocked' }}</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
+    <!-- One ladder per family: unlocked tiers, the tier being worked on, then the locked ones -->
+    <div class="bd-families">
+        {% for fam in ov.families %}
+        <section class="gray-box small-border-radius bd-family {% if fam.complete %}is-complete{% endif %}" data-unlocked="{{ fam.unlocked }}" data-total="{{ fam.total }}">
+            <header class="bd-family-head">
+                <span class="bd-family-icon">{{ fam.icon | safe }}</span>
+                <h3 class="bd-family-name">{{ fam.label }}</h3>
+                <span class="bd-family-count">{{ fam.unlocked }}/{{ fam.total }}</span>
+                {% if fam.complete %}<span class="bd-complete">{{ 'Complet' if fr else 'Complete' }}</span>{% endif %}
+            </header>
+            <ol class="bd-track">
+                {% for tier in fam.tiers %}
+                <li class="bd-tier is-{{ tier.state }} rarity-{{ tier.rarity }}" data-state="{{ tier.state }}" data-tip="{{ tier.description }}" tabindex="0">
+                    <span class="bd-tier-icon">
+                        {{ tier.icon | safe }}
+                        {% if tier.state == 'unlocked' %}<span class="bd-tier-check" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>{% endif %}
+                    </span>
+                    <span class="bd-tier-name">{{ tier.name }}</span>
+                    <span class="bd-tier-threshold">{{ tier.threshold }}</span>
+                    {% if tier.state == 'next' %}
+                    <span class="bd-tier-progress"><i style="width: {{ tier.progress_percent }}%;"></i></span>
+                    <span class="bd-tier-progress-text">{{ tier.progress_text }}</span>
+                    {% endif %}
+                    <span class="sr-only">{{ ('Débloqué' if fr else 'Unlocked') if tier.state == 'unlocked' else ('En cours' if fr else 'In progress') if tier.state == 'next' else ('Verrouillé' if fr else 'Locked') }}</span>
+                </li>
+                {% endfor %}
+            </ol>
+        </section>
         {% endfor %}
     </div>
+    <p class="bd-empty" id="badgesEmpty" hidden>{{ 'Aucun badge dans ce filtre.' if fr else 'No badge in this filter.' }}</p>
 </div>
 {% endif %}
 

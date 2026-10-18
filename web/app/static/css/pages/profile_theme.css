@@ -787,3 +787,271 @@
     /* Soft focus: the picture stays recognisable but never competes with the content */
     filter: blur(6px);
 }
+
+/* ==========================================================================
+   Badges tab: summary, then one ladder of tiers per family
+   ========================================================================== */
+.bd-summary {
+    padding: 20px 24px !important;
+    margin: 0 0 20px !important;
+}
+.bd-summary-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.bd-summary-title {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+.bd-summary-count {
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 0.92rem;
+}
+.bd-summary-count strong {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+.bd-summary-bar {
+    margin: 14px 0 12px;
+    height: 6px;
+}
+.bd-rarities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+.bd-rarity {
+    --rarity: 16, 185, 129;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #cbd5e1;
+    font-size: 0.85rem;
+}
+.bd-rarity i {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: rgb(var(--rarity));
+}
+.bd-rarity strong {
+    color: #ffffff;
+}
+
+
+
+.bd-families {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+/* Long ladders (5+ tiers) take the full width so every tier stays on one line */
+.bd-family:has(.bd-tier:nth-child(5)) {
+    grid-column: 1 / -1;
+}
+.bd-family {
+    padding: 16px 18px 14px !important;
+    margin: 0 !important;
+    min-width: 0;
+}
+.bd-family.is-complete {
+    border-color: rgba(var(--accent-rgb), 0.35) !important;
+}
+.bd-family-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.bd-family-icon {
+    display: inline-flex;
+    color: var(--accent);
+}
+.bd-family-icon svg {
+    width: 20px;
+    height: 20px;
+}
+.bd-family-name {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.02rem;
+    font-weight: 800;
+}
+.bd-family-count {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.bd-complete {
+    margin-left: auto;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.15);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+/* The ladder */
+.bd-track {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 4px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.bd-tier {
+    --rarity: 16, 185, 129;
+    position: relative;
+    flex: 1 0 104px;
+    max-width: 170px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    padding: 8px 4px 6px;
+    border-radius: 12px;
+    cursor: default;
+    outline: none;
+}
+.bd-tier:focus-visible {
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.7);
+}
+/* Connector between two tiers, at the height of the icons */
+.bd-tier + .bd-tier::before {
+    content: "";
+    position: absolute;
+    top: 28px;
+    right: calc(50% + 24px);
+    width: calc(100% - 40px);
+    height: 2px;
+    background: rgba(255, 255, 255, 0.08);
+}
+.bd-tier.is-unlocked + .bd-tier::before {
+    background: rgba(var(--rarity), 0.5);
+}
+.bd-tier-icon {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #64748b;
+    z-index: 1;
+}
+.bd-tier-icon svg {
+    width: 20px;
+    height: 20px;
+}
+.bd-tier.is-unlocked .bd-tier-icon {
+    color: rgb(var(--rarity));
+    background: rgba(var(--rarity), 0.14);
+    border-color: rgba(var(--rarity), 0.5);
+}
+.bd-tier.is-next .bd-tier-icon {
+    color: #e2e8f0;
+    border: 2px dashed rgba(var(--accent-rgb), 0.8);
+    background: rgba(var(--accent-rgb), 0.1);
+}
+.bd-tier-check {
+    position: absolute;
+    right: -5px;
+    bottom: -5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(var(--rarity));
+    color: #0b1120;
+    box-shadow: 0 0 0 2px #15202e;
+}
+.bd-tier-name {
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.bd-tier-threshold {
+    color: #8b9bb0;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.bd-tier.is-locked .bd-tier-name,
+.bd-tier.is-locked .bd-tier-threshold {
+    opacity: 0.55;
+}
+.bd-tier.is-next {
+    background: rgba(var(--accent-rgb), 0.06);
+}
+.bd-tier-progress {
+    width: 80%;
+    height: 4px;
+    margin-top: 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+.bd-tier-progress i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+}
+.bd-tier-progress-text {
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.bd-empty {
+    color: #94a3b8;
+    text-align: center;
+    padding: 30px;
+}
+
+/* Filters */
+.bd-tier[hidden],
+.bd-family[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .bd-families {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .bd-summary {
+        padding: 16px !important;
+    }
+    .bd-filter {
+        width: 100%;
+    }
+    .bd-filter .granularity-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 6px 4px;
+    }
+    .bd-tier {
+        flex: 0 0 96px;
+    }
+}
+
+/* Rarity colours of the badges tab (declared after .bd-tier / .bd-rarity so they win) */
+.bd-rarity.rarity-rare, .bd-tier.rarity-rare { --rarity: 56, 189, 248; }
+.bd-rarity.rarity-epic, .bd-tier.rarity-epic { --rarity: 192, 132, 252; }
+.bd-rarity.rarity-legendary, .bd-tier.rarity-legendary { --rarity: 251, 191, 36; }
