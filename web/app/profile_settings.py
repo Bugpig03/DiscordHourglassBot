@@ -1,4 +1,4 @@
-"""Profile customization stored in user_profile_settings: accent color, banner and page background
+"""Profile customization stored in user_profile_settings: accent color, banner and page background color
 (Discord, gradient or gallery image), favorite server, featured badges, pinned records and block visibility.
 
 Reads never fail a page: if the table is missing (migration not applied yet) or the query errors,
@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from peewee import DatabaseError
 
 from app.database import db, UserProfileSettings
-from app.profile_gallery import BACKGROUNDS, BANNERS, background_url, banner_url as gallery_banner_url
+from app.profile_gallery import BANNERS, banner_url as gallery_banner_url
 
 log = logging.getLogger(__name__)
 
@@ -43,10 +43,27 @@ PALETTE_HEX = {key: hex_ for key, hex_, _, _ in PALETTE}
 DEFAULT_ACCENT = "sky"
 DISCORD_ACCENT = "discord"  # the accent color of the member's Discord profile
 
-# auto = the member's Discord banner (gallery picture when there is none); image = picture from the gallery;
-# "gradient" (until v3.15) is still read from old rows and shown as the default gallery picture.
-BANNER_MODES = ("auto", "image", "none")
+# image = picture from the gallery; none = no banner. Older modes ("auto" = Discord banner until v3.16,
+# "gradient" until v3.15) are still read from old rows and shown as the gallery picture.
+BANNER_MODES = ("image", "none")
 DEFAULT_BANNER_IMAGE = "aurora"
+
+# Solid page backgrounds (key, hex, label fr, label en): dark shades so the cards and text stay readable
+BACKGROUND_COLORS = [
+    ("midnight", "#0b1220", "Minuit", "Midnight"),
+    ("navy", "#0c1a33", "Marine", "Navy"),
+    ("indigo", "#17153d", "Indigo", "Indigo"),
+    ("violet", "#241538", "Violet", "Violet"),
+    ("plum", "#2b122b", "Prune", "Plum"),
+    ("wine", "#2c0f18", "Bordeaux", "Wine"),
+    ("rust", "#2b1a0e", "Rouille", "Rust"),
+    ("olive", "#1d2110", "Olive", "Olive"),
+    ("forest", "#0e2117", "Forêt", "Forest"),
+    ("teal", "#0b2327", "Sarcelle", "Teal"),
+    ("slate", "#1a1f28", "Ardoise", "Slate"),
+    ("black", "#050608", "Noir", "Black"),
+]
+BACKGROUND_HEX = {k: h for k, h, _, _ in BACKGROUND_COLORS}
 
 # Sections of the "Activité" tab, in display order
 ACTIVITY_BLOCKS = ["streaks", "heatmap", "companions"]
@@ -69,7 +86,7 @@ DEFAULTS = {
     "discord_accent": None,
     "favorite_server_id": None,
     "banner_image": None,
-    "background_image": None,
+    "background_color": None,
     "featured_badges": [],
     "pinned_records": [],
     "layout": {},
@@ -80,6 +97,7 @@ DEFAULTS = {
 LATER_COLUMNS = {
     "banner_image": "VARCHAR(32)",
     "background_image": "VARCHAR(32)",
+    "background_color": "VARCHAR(16)",
 }
 
 
@@ -111,7 +129,7 @@ def get_profile_settings(user_id: int | str) -> dict:
             "discord_accent": row.discord_accent,
             "favorite_server_id": row.favorite_server_id,
             "banner_image": row.banner_image if row.banner_image in BANNERS else None,
-            "background_image": row.background_image if row.background_image in BACKGROUNDS else None,
+            "background_color": row.background_color if row.background_color in BACKGROUND_HEX else None,
             "featured_badges": _json_list(row.featured_badges),
             "pinned_records": _json_list(row.pinned_records),
             "layout": _json_dict(row.layout),
@@ -207,26 +225,19 @@ def discord_accent_hex(settings: dict) -> str | None:
 
 
 def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
-    """Colors, banner and page background the profile page renders with."""
+    """Colors, banner and page background color the profile page renders with."""
     key = settings.get("accent_color") or DEFAULT_ACCENT
     hex_ = discord_accent_hex(settings) if key == DISCORD_ACCENT else PALETTE_HEX.get(key)
     if not hex_:
         key, hex_ = DEFAULT_ACCENT, PALETTE_HEX[DEFAULT_ACCENT]
     r, g, b = _hex_to_rgb(hex_)
 
-    mode = settings.get("banner_mode") or "image"
-    banner = settings.get("discord_banner")
-    discord_banner_url = None
-    if banner:
-        ext = "gif" if banner.startswith("a_") else "png"
-        discord_banner_url = f"https://cdn.discordapp.com/banners/{int(user_id)}/{banner}.{ext}?size=1024"
-    # No Discord banner (or an old "gradient" choice): the gallery picture, the default one if none was picked
-    if mode not in BANNER_MODES or (mode == "auto" and not discord_banner_url):
-        mode = "image"
+    # Old "auto" (Discord banner) and "gradient" choices: the gallery picture, the default one if none was picked
+    mode = settings.get("banner_mode") if settings.get("banner_mode") in BANNER_MODES else "image"
     banner_image = settings.get("banner_image") or DEFAULT_BANNER_IMAGE
     if not gallery_banner_url(banner_image):
         banner_image = DEFAULT_BANNER_IMAGE
-    banner_url = discord_banner_url if mode == "auto" else gallery_banner_url(banner_image) if mode == "image" else None
+    banner_url = gallery_banner_url(banner_image) if mode == "image" else None
 
     return {
         "accent_key": key,
@@ -235,11 +246,10 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
         "is_custom": key != DEFAULT_ACCENT,
         "banner_mode": mode,
         "banner_url": banner_url,
-        "discord_banner_url": discord_banner_url,
         "show_banner": mode != "none",
         "banner_image": banner_image,
-        "background_image": settings.get("background_image"),
-        "background_url": background_url(settings.get("background_image")),
+        "background_color": settings.get("background_color"),
+        "background_hex": BACKGROUND_HEX.get(settings.get("background_color")),
     }
 
 

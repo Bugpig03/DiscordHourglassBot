@@ -77,13 +77,9 @@
             <div class="cz-row">
                 <div class="cz-row-head">
                     <h2 class="cz-row-title">{{ 'Bannière' if fr else 'Banner' }}</h2>
-                    <p class="cz-row-desc">
-                        {% if has_discord_banner %}{{ 'Ta bannière Discord a été récupérée à ta connexion.' if fr else 'Your Discord banner was fetched when you logged in.' }}
-                        {% else %}{{ 'Pas de bannière sur ton compte Discord : choisis une image de la galerie.' if fr else 'No banner on your Discord account: pick a picture from the gallery.' }}{% endif %}
-                    </p>
+                    <p class="cz-row-desc">{{ 'Une image de la galerie en haut de ton profil, ou aucune bannière.' if fr else 'A picture from the gallery at the top of your profile, or no banner.' }}</p>
                 </div>
                 <div class="cz-segmented">
-                    <label><input type="radio" name="banner_mode" value="auto" {% if theme.banner_mode == 'auto' %}checked{% endif %}><span>Discord</span></label>
                     <label><input type="radio" name="banner_mode" value="image" {% if theme.banner_mode == 'image' %}checked{% endif %}><span>{{ 'Galerie' if fr else 'Gallery' }}</span></label>
                     <label><input type="radio" name="banner_mode" value="none" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{ 'Aucune' if fr else 'None' }}</span></label>
                 </div>
@@ -99,18 +95,20 @@
 
             <div class="cz-row">
                 <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Fond d’écran' if fr else 'Background' }}</h2>
-                    <p class="cz-row-desc">{{ 'Image affichée derrière toute ta page de profil, assombrie pour garder le texte lisible.' if fr else 'Picture shown behind your whole profile page, darkened to keep text readable.' }}</p>
+                    <h2 class="cz-row-title">{{ 'Fond de la page' if fr else 'Page background' }}</h2>
+                    <p class="cz-row-desc">{{ 'Couleur unie affichée derrière toute ta page de profil.' if fr else 'Solid color shown behind your whole profile page.' }}</p>
                 </div>
-                <div class="cz-gallery cz-gallery-backgrounds open">
-                    <label class="cz-gallery-item cz-gallery-none">
-                        <input type="radio" name="background_image" value="" data-full="" {% if not theme.background_image %}checked{% endif %}>
-                        <span>{{ 'Aucun' if fr else 'None' }}</span>
+                <div class="swatch-grid">
+                    <label class="swatch" data-tip="{{ 'Par défaut' if fr else 'Default' }}">
+                        <input type="radio" name="background_color" value="" data-hex="" {% if not theme.background_color %}checked{% endif %}>
+                        <span class="swatch-dot swatch-none"></span>
+                        <span class="sr-only">{{ 'Par défaut' if fr else 'Default' }}</span>
                     </label>
-                    {% for item in background_gallery %}
-                    <label class="cz-gallery-item" data-tip="{{ item.label }}">
-                        <input type="radio" name="background_image" value="{{ item.key }}" data-full="{{ item.url }}" {% if theme.background_image == item.key %}checked{% endif %}>
-                        <img src="{{ item.thumb }}" alt="{{ item.label }}" loading="lazy">
+                    {% for color in background_colors %}
+                    <label class="swatch" data-tip="{{ color.label }}">
+                        <input type="radio" name="background_color" value="{{ color.key }}" data-hex="{{ color.hex }}" {% if theme.background_color == color.key %}checked{% endif %}>
+                        <span class="swatch-dot swatch-bg" style="background: {{ color.hex }};"></span>
+                        <span class="sr-only">{{ color.label }}</span>
                     </label>
                     {% endfor %}
                 </div>
@@ -227,12 +225,11 @@
     <!-- Live preview (same header as the profile page) -->
     <aside class="cz-preview" aria-label="{{ 'Aperçu' if fr else 'Preview' }}">
         <div class="cz-preview-label">{{ 'Aperçu' if fr else 'Preview' }}</div>
-        <div id="profilePreview" class="profile-themed cz-preview-frame {% if theme.is_custom %}accent-custom{% endif %} {% if theme.background_url %}has-backdrop{% endif %}"
-             style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};{% if theme.background_url %} --backdrop: url('{{ theme.background_url }}');{% endif %}"
-             data-discord-banner="{{ theme.discord_banner_url or '' }}">
+        <div id="profilePreview" class="profile-themed cz-preview-frame {% if theme.is_custom %}accent-custom{% endif %} {% if theme.background_hex %}has-backdrop{% endif %}"
+             style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};{% if theme.background_hex %} --backdrop-color: {{ theme.background_hex }};{% endif %}">
             <div class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}" style="margin: 0;">
                 <div class="profile-banner" {% if not theme.show_banner %}hidden{% endif %}>
-                    <img src="{{ theme.banner_url or theme.discord_banner_url or '' }}" alt="" loading="eager" data-fallback="hide" {% if not theme.banner_url %}hidden{% endif %}>
+                    <img src="{{ theme.banner_url or '' }}" alt="" loading="eager" data-fallback="hide" {% if not theme.banner_url %}hidden{% endif %}>
                 </div>
                 <div class="profile-hero-body">
                     <div class="profile-hero-main cz-preview-main">

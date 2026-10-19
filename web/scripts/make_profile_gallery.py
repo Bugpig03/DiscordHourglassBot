@@ -1,7 +1,8 @@
-"""Generate the profile image gallery: banners and page backgrounds, all original procedural art.
+"""Generate the profile banner gallery, all original procedural art.
 
 Each theme is drawn with numpy/Pillow (no third-party images, nothing to license). Banners are 1600x400,
-backgrounds 1920x1080 (darker and softer so text stays readable), each with a small thumbnail for the picker.
+each with a small thumbnail for the picker. (The page background gallery was removed in web v3.17.0:
+profiles now use a solid color; the themes used only by it are kept in THEMES.)
 
 Usage (from web/, requires Pillow and numpy):
     python scripts/make_profile_gallery.py app/static/images/profile [theme1,theme2]
@@ -16,7 +17,6 @@ from PIL import Image, ImageDraw, ImageFilter
 
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "app/static/images/profile")
 BANNER = (1600, 400)
-BACKGROUND = (1920, 1080)
 
 
 # ------------------------------------------------------------------------------
@@ -1499,18 +1499,10 @@ BANNER_THEMES = [
     "neon_city", "pixel_dungeon", "arcade", "great_wave", "anime_sky", "torii", "manga", "mecha_hud", "enchanted_forest", "platformer", "vaporwave", "planet",
     "hyperspace", "code_rain", "crystal_cave", "lava_world", "snow_night", "deep_sea", "blood_moon", "block_world", "desert_ruins", "lofi_rain", "galaxy", "storm",
 ]
-# Page backgrounds, darkened and softened behind the content
-BACKGROUND_THEMES = [
-    "nebula", "aurora", "topo", "circuit", "pixel", "dunes", "ocean", "lowpoly",
-    "starfield", "hexgrid", "forest", "bokeh", "flow", "dotgrid", "synthwave", "mountains", "sakura", "ember",
-    "neon_city", "pixel_dungeon", "arcade", "great_wave", "anime_sky", "torii", "manga", "mecha_hud", "enchanted_forest", "platformer", "vaporwave", "planet",
-    "hyperspace", "code_rain", "crystal_cave", "lava_world", "snow_night", "deep_sea", "blood_moon", "block_world", "desert_ruins", "lofi_rain", "galaxy", "storm",
-]
 
 
 def main():
     (OUT / "banners").mkdir(parents=True, exist_ok=True)
-    (OUT / "backgrounds").mkdir(parents=True, exist_ok=True)
     only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 else None  # optional: regenerate some themes only
     for i, name in enumerate(BANNER_THEMES):
         if only and name not in only:
@@ -1519,14 +1511,6 @@ def main():
         img.save(OUT / "banners" / f"{name}.webp", "WEBP", quality=84, method=6)
         img.resize((400, 100), Image.LANCZOS).save(OUT / "banners" / f"{name}_thumb.webp", "WEBP", quality=80)
         print("banner", name)
-    for i, name in enumerate(BACKGROUND_THEMES):
-        if only and name not in only:
-            continue
-        arr = THEMES[name](*BACKGROUND, np.random.default_rng(500 + i))
-        img = to_image(arr * 0.55).filter(ImageFilter.GaussianBlur(1.2))
-        img.save(OUT / "backgrounds" / f"{name}.webp", "WEBP", quality=80, method=6)
-        img.resize((384, 216), Image.LANCZOS).save(OUT / "backgrounds" / f"{name}_thumb.webp", "WEBP", quality=80)
-        print("background", name)
 
 
 if __name__ == "__main__":

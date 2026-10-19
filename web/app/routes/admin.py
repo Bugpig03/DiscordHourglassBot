@@ -12,9 +12,9 @@ from app.cache import cache
 from app.database import db
 from app.functions import get_month_abbr
 from app.gamification import calculate_user_badges
-from app.profile_gallery import BACKGROUNDS, BANNERS
+from app.profile_gallery import BANNERS
 from app.profile_records import RECORD_CATALOG
-from app.profile_settings import HIDEABLE_BLOCKS, PALETTE
+from app.profile_settings import BACKGROUND_COLORS, BANNER_MODES, HIDEABLE_BLOCKS, PALETTE
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -182,7 +182,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
 
     # ---------------- Customization ----------------
     settings_rows = _rows(
-        "SELECT accent_color, banner_mode, banner_image, background_image, favorite_server_id, featured_badges, pinned_records, layout "
+        "SELECT accent_color, banner_mode, banner_image, background_color, favorite_server_id, featured_badges, pinned_records, layout "
         "FROM user_profile_settings")
     accent_c, banner_mode_c, banner_c, bg_c, badge_c, record_c, hidden_c = (Counter() for _ in range(7))
     customized = private = favorite = 0
@@ -193,12 +193,14 @@ def compute_admin_data(lang: str = "fr") -> dict:
             featured, pinned, layout = [], [], {}
         hidden = layout.get("hidden") or []
         is_private = bool(layout.get("private"))
-        changed = (accent not in (None, "sky") or mode not in (None, "auto") or banner or bg or fav or featured or pinned or hidden or is_private)
+        # Older modes (Discord banner, gradient) are now shown as the gallery picture
+        mode = mode if mode in BANNER_MODES else "image"
+        changed = (accent not in (None, "sky") or mode != "image" or banner or bg or fav or featured or pinned or hidden or is_private)
         customized += bool(changed)
         private += is_private
         favorite += bool(fav)
         accent_c[accent or "sky"] += 1
-        banner_mode_c[mode or "auto"] += 1
+        banner_mode_c[mode] += 1
         if banner:
             banner_c[banner] += 1
         if bg:
@@ -208,7 +210,8 @@ def compute_admin_data(lang: str = "fr") -> dict:
         hidden_c.update(hidden)
     palette = {k: (h, f, e) for k, h, f, e in PALETTE}
     badge_names = {b["id"]: b["name"] for b in calculate_user_badges({}, lang=lang)}
-    mode_labels = {"auto": ("Discord", "Discord"), "gradient": ("Dégradé", "Gradient"), "image": ("Galerie", "Gallery"), "none": ("Aucune", "None")}
+    mode_labels = {"image": ("Galerie", "Gallery"), "none": ("Aucune", "None")}
+    bg_colors = {k: (h, f, e) for k, h, f, e in BACKGROUND_COLORS}
     pick = (lambda pair: pair[0] if fr else pair[1])
     customization = {
         "rows": len(settings_rows),
@@ -220,7 +223,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
                      "color": palette[k][0] if k in palette else "#5865f2", "value": v} for k, v in accent_c.most_common()],
         "banner_modes": [{"name": pick(mode_labels.get(k, (k, k))), "value": v} for k, v in banner_mode_c.most_common()],
         "banners": [{"name": pick(BANNERS.get(k, (k, k))), "value": v} for k, v in banner_c.most_common(10)],
-        "backgrounds": [{"name": pick(BACKGROUNDS.get(k, (k, k))), "value": v} for k, v in bg_c.most_common(10)],
+        "backgrounds": [{"name": pick(bg_colors[k][1:]), "color": bg_colors[k][0], "value": v} for k, v in bg_c.most_common(12) if k in bg_colors],
         "badges": [{"name": badge_names.get(k, k), "value": v} for k, v in badge_c.most_common(10)],
         "records": [{"name": pick(RECORD_CATALOG[k][1:]) if k in RECORD_CATALOG else k, "value": v} for k, v in record_c.most_common(9)],
         "hidden": [{"name": pick(HIDEABLE_BLOCKS.get(k, (k, k))), "value": v} for k, v in hidden_c.most_common()],

@@ -1,5 +1,18 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.17.0 - Fond Uni & Bannière Simplifiée - 19/10/2026
+### Personnalisation
+- **Fond de la page : couleur unie** au lieu de la galerie d'images.
+  - 12 teintes sombres au choix (minuit, marine, indigo, violet, prune, bordeaux, rouille, olive, forêt, sarcelle, ardoise, noir), ou le fond par défaut du site.
+  - Les teintes restent sombres pour garder le texte et les cartes lisibles. L'aperçu se met à jour en direct.
+- **Bannière : Galerie ou Aucune**. L'option Discord est supprimée ; un profil qui utilisait la bannière Discord (ou l'ancien dégradé) affiche l'image de la galerie choisie, « Aurore » par défaut.
+- Les 42 images de fond (≈ 1,8 Mo) sont retirées du site et du script `scripts/make_profile_gallery.py`.
+- Admin, onglet Personnalisation : « Couleurs de fond » remplace « Fonds d'écran », et les types de bannière ne comptent plus que Galerie et Aucune.
+
+### Base de données
+- Nouvelle colonne `user_profile_settings.background_color`, ajoutée automatiquement au démarrage.
+- Migration facultative `database/migrations/2026-10-19_web_v3.17.0_profile_background_color.sql` : elle ajoute la colonne, passe les anciens modes de bannière à `image` et vide `background_image`, qui n'est plus utilisée.
+
 ## Version 3.16.0 - Graphiques Plus Clairs & Personnalisation - 18/10/2026
 ### Analyses
 - Onglets renommés : **« Évolution »** (ex-Tendances) et **« Horaires »** (ex-Rythme).

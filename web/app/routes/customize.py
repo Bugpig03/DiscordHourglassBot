@@ -1,4 +1,4 @@
-"""Profile customization page (owner only): color, banner and background, favorite server, showcase, records and layout."""
+"""Profile customization page (owner only): color, banner and background color, favorite server, showcase, records and layout."""
 
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
@@ -13,9 +13,11 @@ from app.profile_records import (
     RECORD_CATALOG,
     featured_badges,
 )
-from app.profile_gallery import BACKGROUNDS, BANNERS, background_url, banner_url, gallery
+from app.profile_gallery import BANNERS, banner_url, gallery
 from app.routes.user_profile import load_profile_extras, load_user_charts_data, load_user_profile_stats
 from app.profile_settings import (
+    BACKGROUND_COLORS,
+    BACKGROUND_HEX,
     BANNER_MODES,
     DISCORD_ACCENT,
     HIDEABLE_BLOCKS,
@@ -67,9 +69,8 @@ def customize_profile():
         theme=resolve_profile_theme(user_id, settings),
         palette=[{"key": k, "hex": h, "label": fr if lang == "fr" else en} for k, h, fr, en in PALETTE],
         discord_accent=discord_accent_hex(settings),
-        has_discord_banner=bool(settings.get("discord_banner")),
         banner_gallery=gallery(BANNERS, banner_url, lang),
-        background_gallery=gallery(BACKGROUNDS, background_url, lang),
+        background_colors=[{"key": k, "hex": h, "label": fr if lang == "fr" else en} for k, h, fr, en in BACKGROUND_COLORS],
         servers=servers,
         favorite_server=favorite_server,
         xp=xp,
@@ -100,9 +101,9 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
     banner_image = request.form.get("banner_image") or None
     if banner_image not in BANNERS:
         banner_image = None
-    background_image = request.form.get("background_image") or None
-    if background_image not in BACKGROUNDS:
-        background_image = None
+    background_color = request.form.get("background_color") or None
+    if background_color not in BACKGROUND_HEX:
+        background_color = None
 
     favorite = request.form.get("favorite_server_id", "")
     allowed_servers = {str(s["server_id"]) for s in servers}
@@ -126,6 +127,6 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
         "accent_color": accent,
         "banner_mode": banner_mode,
         "banner_image": banner_image,
-        "background_image": background_image,
+        "background_color": background_color,
         "favorite_server_id": favorite_server_id,
     }

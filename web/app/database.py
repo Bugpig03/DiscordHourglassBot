@@ -185,12 +185,13 @@ class UserProfileSettings(BaseModel):
 
     user_id = BigIntegerField(primary_key=True)
     accent_color = CharField(max_length=16, default="sky")
-    banner_mode = CharField(max_length=16, default="auto")
+    banner_mode = CharField(max_length=16, default="image")
     discord_banner = CharField(max_length=64, null=True)
     discord_accent = IntegerField(null=True)
     favorite_server_id = BigIntegerField(null=True)
     banner_image = CharField(max_length=32, null=True)       # gallery key when banner_mode == "image"
-    background_image = CharField(max_length=32, null=True)   # gallery key of the page background
+    background_image = CharField(max_length=32, null=True)   # unused since v3.17.0 (background gallery removed)
+    background_color = CharField(max_length=16, null=True)   # key of BACKGROUND_COLORS (solid page background)
     featured_badges = TextField(default="[]")
     pinned_records = TextField(default="[]")
     layout = TextField(default="{}")
