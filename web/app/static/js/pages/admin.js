@@ -55,6 +55,43 @@ function renderList(el, rows) {
     }).join('') || `<li class="an-rank-empty">${T('Pas encore de données', 'No data yet')}</li>`;
 }
 
+// Long lists and tables: scroll inside the card, with a search field to filter the rows
+const SEARCH_FROM = 8;
+const fold = text => (text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+function enhanceLong(box, itemSelector) {
+    const items = [...box.querySelectorAll(itemSelector)];
+    box.classList.toggle('adm-scroll', items.length > SEARCH_FROM);
+    if (items.length <= SEARCH_FROM || box.previousElementSibling?.classList.contains('adm-search')) return;
+    const wrap = document.createElement('label');
+    wrap.className = 'adm-search';
+    wrap.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" placeholder="${T('Rechercher', 'Search')}…" aria-label="${T('Rechercher dans la liste', 'Search the list')}">
+        <span class="adm-search-count"></span>`;
+    box.before(wrap);
+    const input = wrap.querySelector('input');
+    const count = wrap.querySelector('.adm-search-count');
+    const empty = document.createElement('p');
+    empty.className = 'adm-search-empty';
+    empty.textContent = T('Aucun résultat', 'No result');
+    empty.hidden = true;
+    box.after(empty);
+    const update = () => {
+        const q = fold(input.value.trim());
+        let shown = 0;
+        box.querySelectorAll(itemSelector).forEach(el => {
+            const match = !q || fold(el.textContent).includes(q);
+            el.hidden = !match;
+            shown += match;
+        });
+        count.textContent = q ? `${HG.fmt(shown)} / ${HG.fmt(items.length)}` : HG.fmt(items.length);
+        empty.hidden = shown > 0;
+        box.scrollTop = 0;
+    };
+    input.addEventListener('input', update);
+    update();
+}
+
 function renderStats(el, items) {
     el.innerHTML = items.map(([label, value, sub, tone]) => `
         <div class="adm-stat ${tone ? 'is-' + tone : ''}">
@@ -194,6 +231,8 @@ function initTab(tabId) {
         ]);
         lineChart('statusChart', h.labels, [bars('404', h.s404, '#94a3b8'), bars('429', h.s429, '#fbbf24'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
     }
+    pane.querySelectorAll('[data-list]').forEach(el => enhanceLong(el, 'li.an-rank-item'));
+    pane.querySelectorAll('.adm-table-wrap').forEach(el => enhanceLong(el, 'tbody tr'));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

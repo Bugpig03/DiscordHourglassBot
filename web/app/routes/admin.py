@@ -117,15 +117,15 @@ def compute_admin_data(lang: str = "fr") -> dict:
         return sum(series[max(0, end - n):end])
 
     pages = _rows("SELECT page_key, SUM(views) FROM web_pageviews_daily WHERE day >= %s GROUP BY page_key ORDER BY 2 DESC", (d30[0],))
-    referrers = _rows("SELECT domain, SUM(views) FROM web_referrers_daily WHERE day >= %s GROUP BY domain ORDER BY 2 DESC LIMIT 10", (d30[0],))
+    referrers = _rows("SELECT domain, SUM(views) FROM web_referrers_daily WHERE day >= %s GROUP BY domain ORDER BY 2 DESC LIMIT 50", (d30[0],))
     hourly = dict(_rows("SELECT hour, SUM(views) FROM web_hourly_views WHERE day >= %s GROUP BY hour", (d30[0],)))
     devices = _rows("SELECT is_mobile, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY is_mobile", (d30[0],))
     langs = _rows("SELECT lang, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY lang", (d30[0],))
-    searches = _rows("SELECT term, SUM(hits) FROM web_searches_daily WHERE day >= %s GROUP BY term ORDER BY 2 DESC LIMIT 20", (d30[0],))
+    searches = _rows("SELECT term, SUM(hits) FROM web_searches_daily WHERE day >= %s GROUP BY term ORDER BY 2 DESC LIMIT 100", (d30[0],))
 
     def top_entities(kind):
         # Rows recorded before v3.16.0 may hold a username or an id for the same member: merge them by target
-        rows = _rows("SELECT entity_id, SUM(views) FROM web_entity_views_daily WHERE kind = %s AND day >= %s GROUP BY entity_id ORDER BY 2 DESC LIMIT 60", (kind, d30[0]))
+        rows = _rows("SELECT entity_id, SUM(views) FROM web_entity_views_daily WHERE kind = %s AND day >= %s GROUP BY entity_id ORDER BY 2 DESC LIMIT 200", (kind, d30[0]))
         names = _names(kind, [r[0] for r in rows])
         merged: dict[str, dict] = {}
         for entity_id, views in rows:
@@ -133,7 +133,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
             key = info.get("url") or f"raw:{entity_id}"
             item = merged.setdefault(key, {**info, "value": 0})
             item["value"] += int(views)
-        return sorted(merged.values(), key=lambda x: -x["value"])[:10]
+        return sorted(merged.values(), key=lambda x: -x["value"])[:50]
 
     device_counts = {bool(k): int(v) for k, v in devices}
     traffic = {
@@ -162,7 +162,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
     active30 = int(_one("SELECT COUNT(DISTINCT user_id) FROM web_logins_daily WHERE day >= %s", (d30[0],)))
     recent = _rows(
         "SELECT a.user_id, u.username, u.avatar, a.last_login_at, a.login_count, a.first_login_at FROM web_accounts a "
-        "LEFT JOIN users u ON u.user_id = a.user_id ORDER BY a.last_login_at DESC LIMIT 20")
+        "LEFT JOIN users u ON u.user_id = a.user_id ORDER BY a.last_login_at DESC LIMIT 100")
     accounts = {
         "total": accounts_total,
         "members_total": members_total,
@@ -222,10 +222,10 @@ def compute_admin_data(lang: str = "fr") -> dict:
         "accents": [{"name": pick(palette[k][1:]) if k in palette else ("Couleur Discord" if fr else "Discord color"),
                      "color": palette[k][0] if k in palette else "#5865f2", "value": v} for k, v in accent_c.most_common()],
         "banner_modes": [{"name": pick(mode_labels.get(k, (k, k))), "value": v} for k, v in banner_mode_c.most_common()],
-        "banners": [{"name": pick(BANNERS.get(k, (k, k))), "value": v} for k, v in banner_c.most_common(10)],
+        "banners": [{"name": pick(BANNERS.get(k, (k, k))), "value": v} for k, v in banner_c.most_common()],
         "backgrounds": [{"name": pick(bg_colors[k][1:]), "color": bg_colors[k][0], "value": v} for k, v in bg_c.most_common(12) if k in bg_colors],
-        "badges": [{"name": badge_names.get(k, k), "value": v} for k, v in badge_c.most_common(10)],
-        "records": [{"name": pick(RECORD_CATALOG[k][1:]) if k in RECORD_CATALOG else k, "value": v} for k, v in record_c.most_common(9)],
+        "badges": [{"name": badge_names.get(k, k), "value": v} for k, v in badge_c.most_common()],
+        "records": [{"name": pick(RECORD_CATALOG[k][1:]) if k in RECORD_CATALOG else k, "value": v} for k, v in record_c.most_common()],
         "hidden": [{"name": pick(HIDEABLE_BLOCKS.get(k, (k, k))), "value": v} for k, v in hidden_c.most_common()],
     }
 
@@ -271,7 +271,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
     by_status = {s: {} for s in (404, 429, 500)}
     for day, status, hits in status_rows:
         by_status.setdefault(int(status), {})[day] = int(hits)
-    top_404 = _rows("SELECT path_key, SUM(hits) FROM web_status_daily WHERE status = 404 AND day >= %s GROUP BY path_key ORDER BY 2 DESC LIMIT 10", (d30[0],))
+    top_404 = _rows("SELECT path_key, SUM(hits) FROM web_status_daily WHERE status = 404 AND day >= %s GROUP BY path_key ORDER BY 2 DESC LIMIT 50", (d30[0],))
     from app.routes.graphs import LAST_REFRESH
     health = {
         "labels": [_day_label(d, lang) for d in d30],
@@ -290,9 +290,9 @@ def compute_admin_data(lang: str = "fr") -> dict:
         "FROM bot_command_events WHERE created_at >= %s GROUP BY command ORDER BY 2 DESC", (d30[0],))
     cmd_servers = _rows(
         "SELECT e.server_id, s.servername, s.avatar, COUNT(*) FROM bot_command_events e LEFT JOIN servers s ON s.server_id = e.server_id "
-        "WHERE e.created_at >= %s AND e.server_id IS NOT NULL GROUP BY e.server_id, s.servername, s.avatar ORDER BY 4 DESC LIMIT 10", (d30[0],))
+        "WHERE e.created_at >= %s AND e.server_id IS NOT NULL GROUP BY e.server_id, s.servername, s.avatar ORDER BY 4 DESC LIMIT 50", (d30[0],))
     cmd_options = _rows(
-        "SELECT options, COUNT(*) FROM bot_command_events WHERE created_at >= %s AND options <> '' GROUP BY options ORDER BY 2 DESC LIMIT 10", (d30[0],))
+        "SELECT options, COUNT(*) FROM bot_command_events WHERE created_at >= %s AND options <> '' GROUP BY options ORDER BY 2 DESC LIMIT 50", (d30[0],))
     cmd_dm = int(_one("SELECT COUNT(*) FROM bot_command_events WHERE created_at >= %s AND server_id IS NULL", (d30[0],)))
     cmd_total = sum(int(r[1]) for r in cmd_top)
     cmd_failed = sum(int(r[2] or 0) for r in cmd_top)

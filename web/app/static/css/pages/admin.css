@@ -133,3 +133,58 @@
     color: #fca5a5 !important;
     font-weight: 700;
 }
+
+/* Long lists and tables: scroll inside their card, filtered by a search field (admin.js enhanceLong) */
+.adm-scroll {
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.adm-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.adm-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 6px;
+}
+.adm-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #8b9bb0;
+}
+.adm-search:focus-within {
+    border-color: rgba(56, 189, 248, 0.5);
+}
+.adm-search input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: #e2e8f0;
+    font: inherit;
+    font-size: 0.88rem;
+}
+.adm-search-count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.adm-search-empty {
+    margin: 6px 0 0;
+    color: #8b9bb0;
+    font-size: 0.85rem;
+    text-align: center;
+}
+.an-rank-item[hidden],
+.adm-table tr[hidden] {
+    display: none !important;
+}

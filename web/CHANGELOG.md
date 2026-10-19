@@ -1,5 +1,19 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.17.2 - Admin : Recherche et Défilement des Longues Listes - 19/10/2026
+### Admin
+- **Toute liste ou tableau de plus de 8 éléments** a une hauteur limitée, défile dans sa carte et reçoit un **champ de recherche** :
+  - le filtre ne tient compte ni des majuscules ni des accents ;
+  - un compteur « trouvés / total » est affiché, et « Aucun résultat » quand rien ne correspond.
+- **Listes plus complètes** :
+  - sources : 50 au lieu de 10 ;
+  - recherches : 100 au lieu de 20 ;
+  - profils et serveurs consultés : 50 au lieu de 10 ;
+  - dernières connexions : 100 au lieu de 20 ;
+  - adresses 404 : 50 au lieu de 10 ;
+  - serveurs et options des commandes : 50 au lieu de 10 ;
+  - bannières, badges et records : tous au lieu des 9 ou 10 premiers.
+
 ## Version 3.17.1 - Chargement Plus Rapide de la Page Analyses - 19/10/2026
 ### Performances
 - **Cache des Analyses partagé entre les workers Gunicorn**.
