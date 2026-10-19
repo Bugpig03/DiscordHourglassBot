@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.18.1 - Graphique de Présence Plus Rapide - 19/10/2026
+### Performances
+- **Présence des membres** (page Analyses) : le regroupement « un point par heure » est fait par PostgreSQL (`DISTINCT ON` sur l'heure locale) et plus en Python.
+  - Avant, les relevés des 7 derniers jours étaient tous envoyés au site : avant le bot v3.1.1, il en enregistrait un toutes les 8 secondes environ, soit des dizaines de milliers de lignes.
+  - Mesuré sur une copie des données de prod : la courbe sur 7 jours passe de **≈ 400 ms à ≈ 30 ms**, et le calcul complet de la page Analyses de **≈ 450 ms à ≈ 125 ms**. Le résultat est identique, point par point.
+- Migration facultative `database/migrations/2026-10-19_web_v3.18.1_missing_indexes.sql` : crée les 4 index composites prévus dans `schema_v3.sql` qui manquent en prod (activité d'un membre ou d'un serveur sur une période), sans bloquer les tables.
+
 ## Version 3.18.0 - Pas de Bannière par Défaut & Onglet Apparence Plus Lisible - 19/10/2026
 ### Personnalisation
 - **Aucune bannière par défaut**.

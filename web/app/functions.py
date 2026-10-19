@@ -1681,53 +1681,38 @@ def get_user_favorite_voice_channels(user_id: int, limit: int = 6, lang: str = "
 def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr", hours: int = 48) -> dict:
     """Retrieve presence history points (last 48 h by default, up to the 7 days kept by the bot), one per hour."""
     cutoff = datetime.now() - timedelta(hours=hours)
+    from app.database import db
+    clean_tz = sql_timezone(get_user_timezone())
+    local_hour = f"date_trunc('hour', recorded_at AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}')"
 
+    # One point per local hour (the last snapshot of the hour), computed by PostgreSQL: the bot may have
+    # stored a snapshot every few seconds, which used to mean tens of thousands of rows sent to Python.
+    def last_per_hour(source_sql: str, params: list) -> list:
+        sql = (
+            "SELECT DISTINCT ON (h) h, online_count, idle_count, dnd_count, offline_count "
+            f"FROM (SELECT {local_hour} AS h, recorded_at, online_count, idle_count, dnd_count, offline_count FROM ({source_sql}) src) t "
+            "ORDER BY h, recorded_at DESC"
+        )
+        cols = ("hour", "online_count", "idle_count", "dnd_count", "offline_count")
+        return [dict(zip(cols, row)) for row in db.execute_sql(sql, params).fetchall()]
+
+    snapshot = "SELECT recorded_at, online_count, idle_count, dnd_count, offline_count FROM presence_history WHERE recorded_at >= %s"
     if server_id is not None:
-        query = (
-            PresenceHistory
-            .select()
-            .where((PresenceHistory.recorded_at >= cutoff) & (PresenceHistory.server_id == int(server_id)))
-            .order_by(PresenceHistory.recorded_at.asc())
-        )
-        rows = list(query.dicts())
+        rows = last_per_hour(snapshot + " AND server_id = %s", [cutoff, int(server_id)])
     else:
-        # 1. Chercher d'abord les instantanés globaux (server_id IS NULL)
-        query = (
-            PresenceHistory
-            .select()
-            .where((PresenceHistory.recorded_at >= cutoff) & (PresenceHistory.server_id.is_null(True)))
-            .order_by(PresenceHistory.recorded_at.asc())
-        )
-        rows = list(query.dicts())
-
-        # 2. Si aucun global explicite, agréger les serveurs individuels
+        # 1. Global snapshots (server_id IS NULL)
+        rows = last_per_hour(snapshot + " AND server_id IS NULL", [cutoff])
+        # 2. No global snapshot: sum the servers' snapshots taken at the same moment
         if not rows:
-            agg_query = (
-                PresenceHistory
-                .select(
-                    PresenceHistory.recorded_at,
-                    fn.SUM(PresenceHistory.online_count).alias("online_count"),
-                    fn.SUM(PresenceHistory.idle_count).alias("idle_count"),
-                    fn.SUM(PresenceHistory.dnd_count).alias("dnd_count"),
-                    fn.SUM(PresenceHistory.offline_count).alias("offline_count")
-                )
-                .where(PresenceHistory.recorded_at >= cutoff)
-                .group_by(PresenceHistory.recorded_at)
-                .order_by(PresenceHistory.recorded_at.asc())
+            rows = last_per_hour(
+                "SELECT recorded_at, SUM(online_count) AS online_count, SUM(idle_count) AS idle_count, "
+                "SUM(dnd_count) AS dnd_count, SUM(offline_count) AS offline_count "
+                "FROM presence_history WHERE recorded_at >= %s GROUP BY recorded_at",
+                [cutoff],
             )
-            rows = list(agg_query.dicts())
-
         # No fabricated points: a period without snapshots (bot offline) stays empty on the chart
 
-    # Regrouper par heure pour éviter les doublons de labels sur l'axe X (localisé au fuseau utilisateur)
-    hourly_dict = {}
-    for r in rows:
-        dt = r["recorded_at"]
-        if isinstance(dt, str):
-            dt = datetime.fromisoformat(dt)
-        local_dt = to_user_timezone(dt)
-        hour_key = local_dt.strftime("%Y-%m-%d %H:00:00")
-        hourly_dict[hour_key] = (r, local_dt)
+    hourly_dict = {r["hour"].strftime("%Y-%m-%d %H:00:00"): (r, r["hour"]) for r in rows}
 
     labels = []
     online = []
