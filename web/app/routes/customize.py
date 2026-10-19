@@ -19,6 +19,7 @@ from app.profile_settings import (
     BACKGROUND_COLORS,
     BACKGROUND_HEX,
     BANNER_MODES,
+    DEFAULT_BANNER_IMAGE,
     DISCORD_ACCENT,
     HIDEABLE_BLOCKS,
     PALETTE,
@@ -62,15 +63,28 @@ def customize_profile():
         charts = load_user_charts_data(user_id, servers, lang=lang)
         records = load_profile_extras(user_id, stats, charts, lang)["records"]
     favorite_server = next((s for s in servers if s["server_id"] == settings["favorite_server_id"]), None)
+    theme = resolve_profile_theme(user_id, settings)
+    label = (lambda fr, en: fr if lang == "fr" else en)
+    palette = [{"key": k, "hex": h, "label": label(fr, en)} for k, h, fr, en in PALETTE]
+    background_colors = [{"key": k, "hex": h, "label": label(fr, en)} for k, h, fr, en in BACKGROUND_COLORS]
+    banner_gallery = gallery(BANNERS, banner_url, lang)
+    # Names shown next to each setting ("current choice")
+    current_accent = next((c["label"] for c in palette if c["key"] == theme["accent_key"]), label("Couleur Discord", "Discord color"))
+    current_banner = (next((b["label"] for b in banner_gallery if b["key"] == theme["banner_image"]), "")
+                      if theme["banner_mode"] == "image" else label("Aucune", "None"))
+    current_background = next((c["label"] for c in background_colors if c["key"] == theme["background_color"]), label("Par défaut", "Default"))
     return render_template(
         "customize_profile.html",
         member=member,
         settings=settings,
-        theme=resolve_profile_theme(user_id, settings),
-        palette=[{"key": k, "hex": h, "label": fr if lang == "fr" else en} for k, h, fr, en in PALETTE],
+        theme=theme,
+        palette=palette,
+        current_accent=current_accent,
+        current_banner=current_banner,
+        current_background=current_background,
         discord_accent=discord_accent_hex(settings),
-        banner_gallery=gallery(BANNERS, banner_url, lang),
-        background_colors=[{"key": k, "hex": h, "label": fr if lang == "fr" else en} for k, h, fr, en in BACKGROUND_COLORS],
+        banner_gallery=banner_gallery,
+        background_colors=background_colors,
         servers=servers,
         favorite_server=favorite_server,
         xp=xp,
@@ -97,10 +111,10 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
     if banner_mode not in BANNER_MODES:
         banner_mode = settings["banner_mode"]
 
-    # Gallery pictures: only known keys (the default picture is used when none is sent)
+    # Gallery pictures: only known keys; choosing the gallery without a picture uses the default one
     banner_image = request.form.get("banner_image") or None
     if banner_image not in BANNERS:
-        banner_image = None
+        banner_image = DEFAULT_BANNER_IMAGE if banner_mode == "image" else None
     background_color = request.form.get("background_color") or None
     if background_color not in BACKGROUND_HEX:
         background_color = None

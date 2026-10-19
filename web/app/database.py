@@ -185,7 +185,7 @@ class UserProfileSettings(BaseModel):
 
     user_id = BigIntegerField(primary_key=True)
     accent_color = CharField(max_length=16, default="sky")
-    banner_mode = CharField(max_length=16, default="image")
+    banner_mode = CharField(max_length=16, default="none")
     discord_banner = CharField(max_length=64, null=True)
     discord_accent = IntegerField(null=True)
     favorite_server_id = BigIntegerField(null=True)

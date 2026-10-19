@@ -14,7 +14,7 @@ from app.functions import get_month_abbr
 from app.gamification import calculate_user_badges
 from app.profile_gallery import BANNERS
 from app.profile_records import RECORD_CATALOG
-from app.profile_settings import BACKGROUND_COLORS, BANNER_MODES, HIDEABLE_BLOCKS, PALETTE
+from app.profile_settings import BACKGROUND_COLORS, HIDEABLE_BLOCKS, PALETTE, effective_banner_mode
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -193,15 +193,14 @@ def compute_admin_data(lang: str = "fr") -> dict:
             featured, pinned, layout = [], [], {}
         hidden = layout.get("hidden") or []
         is_private = bool(layout.get("private"))
-        # Older modes (Discord banner, gradient) are now shown as the gallery picture
-        mode = mode if mode in BANNER_MODES else "image"
-        changed = (accent not in (None, "sky") or mode != "image" or banner or bg or fav or featured or pinned or hidden or is_private)
+        mode = effective_banner_mode(mode, banner)  # no banner unless a gallery picture was picked
+        changed = (accent not in (None, "sky") or mode == "image" or bg or fav or featured or pinned or hidden or is_private)
         customized += bool(changed)
         private += is_private
         favorite += bool(fav)
         accent_c[accent or "sky"] += 1
         banner_mode_c[mode] += 1
-        if banner:
+        if mode == "image":
             banner_c[banner] += 1
         if bg:
             bg_c[bg] += 1

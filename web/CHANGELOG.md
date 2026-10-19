@@ -1,5 +1,22 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.18.0 - Pas de Bannière par Défaut & Onglet Apparence Plus Lisible - 19/10/2026
+### Personnalisation
+- **Aucune bannière par défaut**.
+  - Une bannière ne s'affiche que si le membre a choisi une image de la galerie.
+  - Les anciens réglages sans image choisie sont lus comme « Aucune » : anciens modes Discord ou dégradé, ou galerie sans image.
+  - Quand on ouvre la galerie, l'image « Aurore » est présélectionnée.
+- **Onglet Apparence réorganisé** :
+  - une courte introduction rappelle que l'aperçu change en direct et qu'il faut enregistrer ;
+  - chaque réglage a une icône, un titre, une description courte et, à droite, le **choix actuel** (« Corail », « Galaxie », « Aucune », « Par défaut »…), mis à jour en direct ;
+  - les options sont alignées sous le titre ; « Aucune » est en premier pour la bannière, puis « Image de la galerie » ;
+  - le **nom de chaque image** s'affiche sous sa miniature dans la galerie, au lieu d'une simple infobulle.
+- Admin : un profil compte comme personnalisé pour sa bannière seulement si une image est choisie.
+
+### Base de données
+- Valeur par défaut de `user_profile_settings.banner_mode` : `none`.
+- Migration facultative `database/migrations/2026-10-19_web_v3.18.0_banner_none_default.sql` : elle passe à `none` les lignes qui n'ont pas d'image choisie.
+
 ## Version 3.17.2 - Admin : Recherche et Défilement des Longues Listes - 19/10/2026
 ### Admin
 - **Toute liste ou tableau de plus de 8 éléments** a une hauteur limitée, défile dans sa carte et reçoit un **champ de recherche** :

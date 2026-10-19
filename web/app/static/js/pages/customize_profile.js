@@ -126,6 +126,19 @@
         if (!submitting && !dirtyHint.hidden) { e.preventDefault(); e.returnValue = ''; }
     });
 
+    // "Current choice" pill next to each Appearance setting
+    function setCurrent(key, text) {
+        const pill = form.querySelector(`[data-current="${key}"]`);
+        if (pill && text) pill.textContent = text;
+    }
+    function refreshCurrent() {
+        const checked = name => form.querySelector(`input[name="${name}"]:checked`);
+        setCurrent('accent_color', checked('accent_color')?.dataset.label);
+        setCurrent('background_color', checked('background_color')?.dataset.label);
+        const mode = checked('banner_mode');
+        setCurrent('banner', mode && mode.value === 'none' ? mode.dataset.label : checked('banner_image')?.dataset.label);
+    }
+
     form.addEventListener('change', function (e) {
         const name = e.target.name;
         if (name === 'accent_color') applyColor();
@@ -136,6 +149,7 @@
         else if (name === 'featured_badges') { applyLimit(badgePicker); applyShowcase(); }
         else if (name === 'pinned_records') applyLimit(recordPicker);
         else if (name === 'layout_private' && visibility) visibility.classList.toggle('is-disabled', privateBox.checked);
+        refreshCurrent();
         refreshDirty();
     });
 

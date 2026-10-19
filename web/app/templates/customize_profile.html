@@ -51,22 +51,28 @@
 
         <!-- ============================ Apparence ============================ -->
         <section class="gray-box small-border-radius cz-panel" data-panel="appearance">
+            <p class="cz-panel-intro">{{ 'Trois réglages, visibles sur tout ton profil. L’aperçu à droite change en direct ; pense à enregistrer.' if fr else 'Three settings, visible across your whole profile. The preview on the right updates live; remember to save.' }}</p>
+
             <div class="cz-row">
-                <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Couleur' if fr else 'Color' }}</h2>
-                    <p class="cz-row-desc">{{ 'Bannière, avatar, niveau, onglets, calendrier et courbes vocales.' if fr else 'Banner, avatar, level, tabs, calendar and voice charts.' }}</p>
+                <div class="cz-row-head cz-row-head-icon">
+                    <span class="cz-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>
+                    <div class="cz-row-text">
+                        <h2 class="cz-row-title">{{ 'Couleur du profil' if fr else 'Profile color' }}</h2>
+                        <p class="cz-row-desc">{{ 'Avatar, niveau, onglets, calendrier et graphiques.' if fr else 'Avatar, level, tabs, calendar and charts.' }}</p>
+                    </div>
+                    <span class="cz-current" data-current="accent_color">{{ current_accent }}</span>
                 </div>
                 <div class="swatch-grid">
                     {% for color in palette %}
                     <label class="swatch" data-tip="{{ color.label }}">
-                        <input type="radio" name="accent_color" value="{{ color.key }}" data-hex="{{ color.hex }}" {% if theme.accent_key == color.key %}checked{% endif %}>
+                        <input type="radio" name="accent_color" value="{{ color.key }}" data-hex="{{ color.hex }}" data-label="{{ color.label }}" {% if theme.accent_key == color.key %}checked{% endif %}>
                         <span class="swatch-dot" style="background: {{ color.hex }};"></span>
                         <span class="sr-only">{{ color.label }}</span>
                     </label>
                     {% endfor %}
                     {% if discord_accent %}
                     <label class="swatch" data-tip="{{ 'Couleur de mon profil Discord' if fr else 'My Discord profile color' }}">
-                        <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
+                        <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" data-label="{{ 'Couleur Discord' if fr else 'Discord color' }}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
                         <span class="swatch-dot swatch-discord" style="background: {{ discord_accent }};"></span>
                         <span class="sr-only">Discord</span>
                     </label>
@@ -75,38 +81,47 @@
             </div>
 
             <div class="cz-row">
-                <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Bannière' if fr else 'Banner' }}</h2>
-                    <p class="cz-row-desc">{{ 'Une image de la galerie en haut de ton profil, ou aucune bannière.' if fr else 'A picture from the gallery at the top of your profile, or no banner.' }}</p>
+                <div class="cz-row-head cz-row-head-icon">
+                    <span class="cz-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></span>
+                    <div class="cz-row-text">
+                        <h2 class="cz-row-title">{{ 'Bannière' if fr else 'Banner' }}</h2>
+                        <p class="cz-row-desc">{{ 'Image affichée en haut de ton profil. Aucune par défaut.' if fr else 'Picture shown at the top of your profile. None by default.' }}</p>
+                    </div>
+                    <span class="cz-current" data-current="banner">{{ current_banner }}</span>
                 </div>
                 <div class="cz-segmented">
-                    <label><input type="radio" name="banner_mode" value="image" {% if theme.banner_mode == 'image' %}checked{% endif %}><span>{{ 'Galerie' if fr else 'Gallery' }}</span></label>
-                    <label><input type="radio" name="banner_mode" value="none" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{ 'Aucune' if fr else 'None' }}</span></label>
+                    <label><input type="radio" name="banner_mode" value="none" data-label="{{ 'Aucune' if fr else 'None' }}" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{ 'Aucune' if fr else 'None' }}</span></label>
+                    <label><input type="radio" name="banner_mode" value="image" {% if theme.banner_mode == 'image' %}checked{% endif %}><span>{{ 'Image de la galerie' if fr else 'Gallery picture' }}</span></label>
                 </div>
                 <div class="cz-gallery cz-gallery-banners {% if theme.banner_mode == 'image' %}open{% endif %}" id="bannerGallery">
                     {% for item in banner_gallery %}
-                    <label class="cz-gallery-item" data-tip="{{ item.label }}">
-                        <input type="radio" name="banner_image" value="{{ item.key }}" data-full="{{ item.url }}" {% if theme.banner_image == item.key %}checked{% endif %}>
-                        <img src="{{ item.thumb }}" alt="{{ item.label }}" loading="lazy">
+                    <label class="cz-gallery-item">
+                        <input type="radio" name="banner_image" value="{{ item.key }}" data-full="{{ item.url }}" data-label="{{ item.label }}" {% if theme.banner_image == item.key %}checked{% endif %}>
+                        <img src="{{ item.thumb }}" alt="" loading="lazy">
+                        <span class="cz-gallery-name">{{ item.label }}</span>
                     </label>
                     {% endfor %}
                 </div>
             </div>
 
             <div class="cz-row">
-                <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Fond de la page' if fr else 'Page background' }}</h2>
-                    <p class="cz-row-desc">{{ 'Couleur unie affichée derrière toute ta page de profil.' if fr else 'Solid color shown behind your whole profile page.' }}</p>
+                <div class="cz-row-head cz-row-head-icon">
+                    <span class="cz-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/></svg></span>
+                    <div class="cz-row-text">
+                        <h2 class="cz-row-title">{{ 'Fond de la page' if fr else 'Page background' }}</h2>
+                        <p class="cz-row-desc">{{ 'Couleur unie derrière toute ta page de profil.' if fr else 'Solid color behind your whole profile page.' }}</p>
+                    </div>
+                    <span class="cz-current" data-current="background_color">{{ current_background }}</span>
                 </div>
                 <div class="swatch-grid">
                     <label class="swatch" data-tip="{{ 'Par défaut' if fr else 'Default' }}">
-                        <input type="radio" name="background_color" value="" data-hex="" {% if not theme.background_color %}checked{% endif %}>
+                        <input type="radio" name="background_color" value="" data-hex="" data-label="{{ 'Par défaut' if fr else 'Default' }}" {% if not theme.background_color %}checked{% endif %}>
                         <span class="swatch-dot swatch-none"></span>
                         <span class="sr-only">{{ 'Par défaut' if fr else 'Default' }}</span>
                     </label>
                     {% for color in background_colors %}
                     <label class="swatch" data-tip="{{ color.label }}">
-                        <input type="radio" name="background_color" value="{{ color.key }}" data-hex="{{ color.hex }}" {% if theme.background_color == color.key %}checked{% endif %}>
+                        <input type="radio" name="background_color" value="{{ color.key }}" data-hex="{{ color.hex }}" data-label="{{ color.label }}" {% if theme.background_color == color.key %}checked{% endif %}>
                         <span class="swatch-dot swatch-bg" style="background: {{ color.hex }};"></span>
                         <span class="sr-only">{{ color.label }}</span>
                     </label>

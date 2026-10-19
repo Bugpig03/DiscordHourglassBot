@@ -658,3 +658,86 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
+
+/* Appearance tab: icon, title and the current choice on one line, then the options */
+.cz-row-head-icon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.cz-row-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+}
+.cz-row-text {
+    flex: 1;
+    min-width: 0;
+}
+.cz-current {
+    flex-shrink: 0;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+[data-panel="appearance"] .cz-row {
+    padding: 22px 0;
+}
+[data-panel="appearance"] .swatch-grid {
+    gap: 12px;
+    padding-left: 50px;
+}
+[data-panel="appearance"] .cz-segmented {
+    margin-left: 50px;
+}
+[data-panel="appearance"] .cz-gallery-banners {
+    margin-left: 50px;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+}
+/* Picture name under each banner thumbnail */
+.cz-gallery-name {
+    display: block;
+    padding: 6px 8px;
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cz-gallery-item:has(input:checked) .cz-gallery-name {
+    color: #38bdf8;
+}
+@media (max-width: 640px) {
+    [data-panel="appearance"] .swatch-grid,
+    [data-panel="appearance"] .cz-segmented,
+    [data-panel="appearance"] .cz-gallery-banners {
+        margin-left: 0;
+        padding-left: 0;
+    }
+    [data-panel="appearance"] .cz-gallery-banners {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .cz-row-head-icon {
+        flex-wrap: wrap;
+    }
+    .cz-current {
+        max-width: 100%;
+    }
+}

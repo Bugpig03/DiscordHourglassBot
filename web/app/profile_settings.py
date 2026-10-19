@@ -43,10 +43,11 @@ PALETTE_HEX = {key: hex_ for key, hex_, _, _ in PALETTE}
 DEFAULT_ACCENT = "sky"
 DISCORD_ACCENT = "discord"  # the accent color of the member's Discord profile
 
-# image = picture from the gallery; none = no banner. Older modes ("auto" = Discord banner until v3.16,
-# "gradient" until v3.15) are still read from old rows and shown as the gallery picture.
+# image = picture from the gallery; none = no banner (the default). A banner is only shown when the member
+# actually picked a gallery picture: older modes ("auto" = Discord banner until v3.16, "gradient" until
+# v3.15) and "image" rows without a picture are read as "none".
 BANNER_MODES = ("image", "none")
-DEFAULT_BANNER_IMAGE = "aurora"
+DEFAULT_BANNER_IMAGE = "aurora"  # picture pre-selected in the gallery when the member opens it
 
 # Solid page backgrounds (key, hex, label fr, label en): dark shades so the cards and text stay readable
 BACKGROUND_COLORS = [
@@ -81,7 +82,7 @@ HIDEABLE_BLOCKS = {
 
 DEFAULTS = {
     "accent_color": DEFAULT_ACCENT,
-    "banner_mode": "image",
+    "banner_mode": "none",
     "discord_banner": None,
     "discord_accent": None,
     "favorite_server_id": None,
@@ -124,7 +125,7 @@ def get_profile_settings(user_id: int | str) -> dict:
     if row:
         settings.update({
             "accent_color": row.accent_color or DEFAULT_ACCENT,
-            "banner_mode": row.banner_mode if row.banner_mode in BANNER_MODES else "image",
+            "banner_mode": effective_banner_mode(row.banner_mode, row.banner_image),
             "discord_banner": row.discord_banner,
             "discord_accent": row.discord_accent,
             "favorite_server_id": row.favorite_server_id,
@@ -224,6 +225,11 @@ def discord_accent_hex(settings: dict) -> str | None:
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
+def effective_banner_mode(mode: str | None, banner_image: str | None) -> str:
+    """'image' only for an explicit gallery choice with a known picture, 'none' otherwise."""
+    return "image" if mode == "image" and banner_image in BANNERS else "none"
+
+
 def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
     """Colors, banner and page background color the profile page renders with."""
     key = settings.get("accent_color") or DEFAULT_ACCENT
@@ -232,11 +238,9 @@ def resolve_profile_theme(user_id: int | str, settings: dict) -> dict:
         key, hex_ = DEFAULT_ACCENT, PALETTE_HEX[DEFAULT_ACCENT]
     r, g, b = _hex_to_rgb(hex_)
 
-    # Old "auto" (Discord banner) and "gradient" choices: the gallery picture, the default one if none was picked
-    mode = settings.get("banner_mode") if settings.get("banner_mode") in BANNER_MODES else "image"
-    banner_image = settings.get("banner_image") or DEFAULT_BANNER_IMAGE
-    if not gallery_banner_url(banner_image):
-        banner_image = DEFAULT_BANNER_IMAGE
+    mode = effective_banner_mode(settings.get("banner_mode"), settings.get("banner_image"))
+    # Picture shown (mode image) or pre-selected in the gallery of the customization page (mode none)
+    banner_image = settings.get("banner_image") if settings.get("banner_image") in BANNERS else DEFAULT_BANNER_IMAGE
     banner_url = gallery_banner_url(banner_image) if mode == "image" else None
 
     return {
