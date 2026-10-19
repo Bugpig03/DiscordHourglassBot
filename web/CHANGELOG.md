@@ -1,5 +1,14 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.17.1 - Chargement Plus Rapide de la Page Analyses - 19/10/2026
+### Performances
+- **Cache des Analyses partagé entre les workers Gunicorn**.
+  - Chaque résultat est aussi écrit dans un fichier JSON du conteneur : dossier temporaire `hourglass-graphs`, modifiable avec `GRAPHS_CACHE_DIR`.
+  - Avant, chacun des 4 workers avait son propre cache, vidé à chaque recyclage (`--max-requests`), et seule la clé par défaut (FR, Europe/Paris) était préchauffée. Un visiteur qui tombait sur un worker neuf, ou qui avait un autre fuseau horaire ou une autre langue, attendait le calcul complet.
+  - Un worker sans résultat reprend celui d'un autre worker. Un fichier verrou fait qu'un seul worker à la fois recalcule une clé ; un verrou de plus de 2 minutes, laissé par un worker planté, est repris.
+- **Données intégrées directement dans la page** quand elles sont déjà en cache : plus de second aller-retour vers `/api/graphs/data`, et les graphiques s'affichent dès le chargement des scripts.
+- Sinon, la requête des données est **préchargée** (`<link rel="preload">`) : elle part avec la page au lieu d'attendre Chart.js et le script de la page.
+
 ## Version 3.17.0 - Fond Uni & Bannière Simplifiée - 19/10/2026
 ### Personnalisation
 - **Fond de la page : couleur unie** au lieu de la galerie d'images.

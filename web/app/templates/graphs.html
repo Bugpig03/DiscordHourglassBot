@@ -19,6 +19,7 @@
 {% endmacro %}
 
 {% block content %}
+{% if not initial_data %}<link rel="preload" href="{{ url_for('graphs.api_graphs_data') }}" as="fetch" crossorigin>{% endif %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
@@ -171,6 +172,7 @@
     </div>
 </div>
 
+{% if initial_data %}<script type="application/json" id="graphsInitialData">{{ initial_data|tojson }}</script>{% endif %}
 <script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang, "server_url": url_for('server_profile.server', server_id=0), "profile_url": url_for('user_profile.profile', username='0'), "server_icon": url_for('static', filename='icons/server.png')}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/graphs.js', v=asset_version('js/pages/graphs.js')) }}" defer></script>
 {% endblock %}

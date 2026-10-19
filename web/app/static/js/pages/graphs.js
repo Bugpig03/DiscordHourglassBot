@@ -413,8 +413,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const hash = window.location.hash.replace('#', '');
     switchGraphTab(hash || 'tab-trends');
 
-    fetch('/api/graphs/data')
-        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    // Data inlined in the page when the server already had it, otherwise one request (preloaded in the page)
+    const inline = document.getElementById('graphsInitialData');
+    const load = inline
+        ? Promise.resolve().then(() => JSON.parse(inline.textContent))
+        : fetch('/api/graphs/data').then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    load
         .then(data => {
             apiData = data;
             renderKpis(data.summary);

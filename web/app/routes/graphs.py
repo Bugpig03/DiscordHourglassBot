@@ -1,7 +1,10 @@
 """Data visualization and analytics graph routes."""
 
+import json
 import logging
 import os
+import re
+import tempfile
 import threading
 import time
 from datetime import datetime, timedelta
@@ -32,28 +35,96 @@ graphs_bp = Blueprint("graphs", __name__)
 
 log = logging.getLogger(__name__)
 
-# Global analytics are identical for every visitor sharing a language and timezone. They are cached
-# per Gunicorn worker and never make a visitor wait once computed:
+# Global analytics are identical for every visitor sharing a language and timezone. They never make a
+# visitor wait once computed:
 #   - younger than GRAPHS_CACHE_TTL_SECONDS: served as is;
 #   - older (up to GRAPHS_CACHE_MAX_AGE_SECONDS): served immediately while ONE background thread recomputes;
 #   - missing or too old: computed once (concurrent visitors of the same key wait for that single run).
-# Each worker also warms the default key (French, Europe/Paris) at startup.
+# Each result is kept in the worker's memory AND in a JSON file shared by all the Gunicorn workers of the
+# container: a worker that just started (or was recycled by --max-requests) or that never saw a timezone
+# reuses what another worker computed instead of making its visitor wait. A lock file lets a single worker
+# refresh a key at a time. The default key (French, Europe/Paris) is also warmed at startup.
 GRAPHS_CACHE_TTL_SECONDS = 300
 GRAPHS_CACHE_MAX_AGE_SECONDS = 6 * 3600
+REFRESH_LOCK_SECONDS = 120  # a refresh lock older than this is considered abandoned (crashed worker)
 DEFAULT_CACHE_KEY = ("fr", "Europe/Paris")
-_graphs_cache: dict[tuple[str, str], tuple[float, dict]] = {}
+SHARED_CACHE_DIR = os.environ.get("GRAPHS_CACHE_DIR") or os.path.join(tempfile.gettempdir(), "hourglass-graphs")
+_graphs_cache: dict[tuple[str, str], tuple[float, dict]] = {}  # key -> (time.time() of the computation, data)
 _graphs_cache_lock = threading.Lock()   # guards _graphs_cache, _refreshing and _key_locks
 _refreshing: set[tuple[str, str]] = set()
 _key_locks: dict[tuple[str, str], threading.Lock] = {}
 LAST_REFRESH: dict = {}  # shown on the admin page (last background refresh of this worker)
 
 
-def _store(key: tuple[str, str], data: dict) -> None:
-    now = time.monotonic()
+def _shared_path(key: tuple[str, str], suffix: str = ".json") -> str:
+    name = re.sub(r"[^A-Za-z0-9_-]", "_", f"{key[0]}__{key[1]}")
+    return os.path.join(SHARED_CACHE_DIR, name + suffix)
+
+
+def _read_shared(key: tuple[str, str]) -> tuple[float, dict] | None:
+    """Result written by any worker, if it is not too old."""
+    path = _shared_path(key)
+    try:
+        ts = os.path.getmtime(path)
+        if time.time() - ts >= GRAPHS_CACHE_MAX_AGE_SECONDS:
+            return None
+        with open(path, encoding="utf-8") as f:
+            return ts, json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def _write_shared(key: tuple[str, str], data: dict) -> None:
+    path = _shared_path(key)
+    tmp = f"{path}.{os.getpid()}.{threading.get_ident()}.tmp"
+    try:
+        os.makedirs(SHARED_CACHE_DIR, exist_ok=True)
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"), default=str)
+        os.replace(tmp, path)  # atomic: readers never see a half-written file
+    except OSError as e:
+        log.warning("Could not write the shared analytics cache %s: %s", path, e)
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+
+
+def _claim_refresh(key: tuple[str, str]) -> bool:
+    """True when this worker may refresh the key (no other worker is doing it right now)."""
+    lock = _shared_path(key, ".lock")
+    for _ in range(2):
+        try:
+            os.makedirs(SHARED_CACHE_DIR, exist_ok=True)
+            os.close(os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            return True
+        except FileExistsError:
+            try:
+                if time.time() - os.path.getmtime(lock) < REFRESH_LOCK_SECONDS:
+                    return False
+                os.remove(lock)  # abandoned by a worker that died mid-refresh: take it over
+            except OSError:
+                pass
+        except OSError:
+            return True  # no writable temp dir: behave as before (per-worker refresh)
+    return False
+
+
+def _release_refresh(key: tuple[str, str]) -> None:
+    try:
+        os.remove(_shared_path(key, ".lock"))
+    except OSError:
+        pass
+
+
+def _store(key: tuple[str, str], data: dict, ts: float | None = None, share: bool = True) -> None:
+    now = time.time()
     with _graphs_cache_lock:
-        _graphs_cache[key] = (now, data)
-        for k in [k for k, (ts, _) in _graphs_cache.items() if now - ts >= GRAPHS_CACHE_MAX_AGE_SECONDS]:
+        _graphs_cache[key] = (ts or now, data)
+        for k in [k for k, (t, _) in _graphs_cache.items() if now - t >= GRAPHS_CACHE_MAX_AGE_SECONDS]:
             del _graphs_cache[k]
+    if share:
+        _write_shared(key, data)
 
 
 def _compute(lang: str) -> dict:
@@ -77,8 +148,19 @@ def _refresh_in_background(app, key: tuple[str, str], delay: float = 0) -> None:
     def run():
         if delay:
             time.sleep(delay)  # warm-up: let the application finish starting first
-        started = time.monotonic()
+        claimed = False
         try:
+            # Another worker may already have a fresh result, or be computing one: reuse it
+            shared = _read_shared(key)
+            if shared and time.time() - shared[0] < GRAPHS_CACHE_TTL_SECONDS:
+                _store(key, shared[1], ts=shared[0], share=False)
+                return
+            claimed = _claim_refresh(key)
+            if not claimed:
+                if shared:
+                    _store(key, shared[1], ts=shared[0], share=False)
+                return
+            started = time.monotonic()
             _store(key, _compute_outside_request(app, key))
             elapsed_ms = (time.monotonic() - started) * 1000
             LAST_REFRESH.update({"key": list(key), "at": datetime.utcnow().isoformat(timespec="seconds"), "ms": round(elapsed_ms)})
@@ -87,32 +169,48 @@ def _refresh_in_background(app, key: tuple[str, str], delay: float = 0) -> None:
         except Exception:
             log.exception("Analytics cache refresh failed for %s", key)
         finally:
+            if claimed:
+                _release_refresh(key)
             with _graphs_cache_lock:
                 _refreshing.discard(key)
 
     threading.Thread(target=run, name=f"graphs-refresh-{key[0]}", daemon=True).start()
 
 
-def get_cached_graphs_data(lang: str, tz_name: str) -> dict:
-    """Analytics data for this language/timezone, without waiting whenever a previous result exists."""
+def get_cached_graphs_data(lang: str, tz_name: str, wait: bool = True) -> dict | None:
+    """Analytics data for this language/timezone, without waiting whenever a previous result exists.
+
+    With wait=False, returns None instead of computing when no result exists yet (used to inline the
+    data in the page only when it is instantly available)."""
     key = (lang, tz_name)
     with _graphs_cache_lock:
         hit = _graphs_cache.get(key)
-        age = time.monotonic() - hit[0] if hit else None
-        if hit and age < GRAPHS_CACHE_TTL_SECONDS:
-            return hit[1]
-        if hit and age < GRAPHS_CACHE_MAX_AGE_SECONDS:
-            if key not in _refreshing:
-                _refreshing.add(key)
-                _refresh_in_background(current_app._get_current_object(), key)
-            return hit[1]
+    if not hit or time.time() - hit[0] >= GRAPHS_CACHE_TTL_SECONDS:
+        # Stale or missing here: another worker may have a newer result in the shared file
+        shared = _read_shared(key)
+        if shared and (not hit or shared[0] > hit[0]):
+            _store(key, shared[1], ts=shared[0], share=False)
+            hit = shared
+
+    with _graphs_cache_lock:
+        if hit:
+            age = time.time() - hit[0]
+            if age < GRAPHS_CACHE_TTL_SECONDS:
+                return hit[1]
+            if age < GRAPHS_CACHE_MAX_AGE_SECONDS:
+                if key not in _refreshing:
+                    _refreshing.add(key)
+                    _refresh_in_background(current_app._get_current_object(), key)
+                return hit[1]
+        if not wait:
+            return None
         key_lock = _key_locks.setdefault(key, threading.Lock())
 
     # Nothing usable yet: a single computation per key, the other visitors wait for its result
     with key_lock:
         with _graphs_cache_lock:
             hit = _graphs_cache.get(key)
-            if hit and time.monotonic() - hit[0] < GRAPHS_CACHE_TTL_SECONDS:
+            if hit and time.time() - hit[0] < GRAPHS_CACHE_TTL_SECONDS:
                 return hit[1]
         data = _compute(lang)
         _store(key, data)
@@ -128,7 +226,6 @@ def warm_graphs_cache(app) -> None:
             return
         _refreshing.add(DEFAULT_CACHE_KEY)
     _refresh_in_background(app, DEFAULT_CACHE_KEY, delay=2)
-
 
 graphs_bp.record_once(lambda state: warm_graphs_cache(state.app))
 
@@ -264,17 +361,19 @@ def compute_graphs_data(lang: str = "fr") -> dict:
     }
 
 
+def _visitor_lang() -> str:
+    lang = request.cookies.get("lang", "fr")
+    return lang if lang in ("fr", "en") else "fr"
+
+
 @graphs_bp.route("/graphs", methods=["GET"])
 def graphs():
-    """Render the analytics shell immediately; the charts load from /api/graphs/data."""
-    return render_template("graphs.html")
+    """Analytics page. When the data is already cached it is inlined in the page (no second request);
+    otherwise the page renders immediately and the charts load from /api/graphs/data."""
+    return render_template("graphs.html", initial_data=get_cached_graphs_data(_visitor_lang(), get_user_timezone(), wait=False))
 
 
 @graphs_bp.route("/api/graphs/data", methods=["GET"])
 def api_graphs_data():
     """Asynchronous JSON endpoint returning analytical metrics for background loading."""
-    lang = request.cookies.get("lang", "fr")
-    if lang not in ("fr", "en"):
-        lang = "fr"
-    data = get_cached_graphs_data(lang, get_user_timezone())
-    return jsonify(data)
+    return jsonify(get_cached_graphs_data(_visitor_lang(), get_user_timezone()))
