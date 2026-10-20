@@ -27,14 +27,11 @@ FROM alpine:3.20
 
 WORKDIR /app
 
-# Installer les certificats SSL, fuseaux horaires et les polices DejaVu
-RUN apk add --no-cache ca-certificates tzdata ttf-dejavu
+# Installer les certificats SSL et les fuseaux horaires (les cartes sont dessinées par le site web)
+RUN apk add --no-cache ca-certificates tzdata
 
 # Copier le binaire compilé depuis l'étape de build
 COPY --from=builder /build/hourglass-bot /app/hourglass-bot
-
-# Copier le dossier de polices pour la génération des cartes d'activité
-COPY fonts/ /app/fonts/
 
 # Exécution du bot
 ENTRYPOINT ["/app/hourglass-bot"]

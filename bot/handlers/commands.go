@@ -3,8 +3,10 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +19,7 @@ import (
 var Commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "stats",
-		Description: "Displays your voice and text statistics on this server with a visual card.",
+		Description: "Your voice and message stats on this server, as a card.",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionUser,
@@ -29,7 +31,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "allstats",
-		Description: "Displays your consolidated global statistics across all servers with a visual card.",
+		Description: "Your voice and message stats across every server, as a card.",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionUser,
@@ -41,7 +43,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "versus",
-		Description: "Compares statistics of two members in a direct 1v1 duel with a visual card.",
+		Description: "Head-to-head duel between two members, as a card.",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionUser,
@@ -55,15 +57,25 @@ var Commands = []*discordgo.ApplicationCommand{
 				Description: "Second member to compare",
 				Required:    true,
 			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "scope",
+				Description: "Compare on this server (default) or across every server",
+				Required:    false,
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{Name: "This server", Value: "server"},
+					{Name: "All servers", Value: "global"},
+				},
+			},
 		},
 	},
 	{
 		Name:        "server",
-		Description: "Displays global statistics and live presence of this Discord server with a visual card.",
+		Description: "Statistics of this server, as a card.",
 	},
 	{
 		Name:        "top",
-		Description: "Visual Top 10 leaderboard card with custom filters.",
+		Description: "Top 10 by voice time or messages, as a card.",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
@@ -100,11 +112,11 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "alltop",
-		Description: "Global Top 10 voice activity leaderboard across all tracked servers.",
+		Description: "Top 10 across every server, as a card.",
 	},
 	{
 		Name:        "help",
-		Description: "Official command guide and features overview of Hourglass Bot.",
+		Description: "Every Hourglass command.",
 	},
 }
 
@@ -182,340 +194,157 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 	}
 }
 
+// sendCard posts a card drawn by the website with a short message; when the website cannot provide it
+// (CARD_TOKEN missing, website down, no data) the command answers with text instead.
+func sendCard(s *discordgo.Session, i *discordgo.InteractionCreate, png []byte, err error, fileName, content string, fallback func() string) {
+	if err == nil && len(png) > 0 {
+		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			Content: content,
+			Files: []*discordgo.File{
+				{Name: fileName, ContentType: "image/png", Reader: bytes.NewReader(png)},
+			},
+		})
+		return
+	}
+	if err != nil && !errors.Is(err, card.ErrDisabled) && !errors.Is(err, card.ErrNotFound) {
+		log.Printf("Card %s unavailable, answering with text: %v", fileName, err)
+	}
+	_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{Content: fallback()})
+}
+
+// fallbackContext gives the text answer its own short deadline (the card request may have used the command's).
+func fallbackContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 5*time.Second)
+}
+
+// userTotals returns the voice time (ongoing sessions included) and messages of a member, on one server or everywhere.
+func (h *BotHandler) userTotals(ctx context.Context, userID, serverID int64, global bool) (seconds, messages int64) {
+	voice := `SELECT COALESCE(SUM(CASE WHEN left_at IS NOT NULL THEN duration_seconds
+	          ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END), 0) FROM voice_sessions WHERE user_id = $1`
+	msgs := `SELECT COALESCE(SUM(count), 0) FROM message_events WHERE user_id = $1`
+	if global {
+		_ = h.DB.Pool.QueryRow(ctx, voice, userID).Scan(&seconds)
+		_ = h.DB.Pool.QueryRow(ctx, msgs, userID).Scan(&messages)
+	} else {
+		_ = h.DB.Pool.QueryRow(ctx, voice+" AND server_id = $2", userID, serverID).Scan(&seconds)
+		_ = h.DB.Pool.QueryRow(ctx, msgs+" AND server_id = $2", userID, serverID).Scan(&messages)
+	}
+	return
+}
+
 func (h *BotHandler) handleStats(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate, isGlobal bool) {
 	// i.Member is only set in guilds; in DMs the invoker is in i.User
 	targetUser := i.User
 	if i.Member != nil {
 		targetUser = i.Member.User
 	}
-	data := i.ApplicationCommandData()
-	for _, opt := range data.Options {
+	for _, opt := range i.ApplicationCommandData().Options {
 		if opt.Name == "user" || opt.Name == "utilisateur" {
 			targetUser = opt.UserValue(s)
 		}
 	}
-
 	userID, _ := strconv.ParseInt(targetUser.ID, 10, 64)
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
 
-	var totalSeconds int64
-	var totalMessages int64
-
-	if isGlobal {
-		_ = h.DB.Pool.QueryRow(ctx, `
-			SELECT COALESCE(SUM(
-				CASE WHEN left_at IS NOT NULL THEN duration_seconds 
-				     ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
-			), 0)
-			FROM voice_sessions
-			WHERE user_id = $1
-		`, userID).Scan(&totalSeconds)
-
-		_ = h.DB.Pool.QueryRow(ctx, `
-			SELECT COALESCE(SUM(count), 0)
-			FROM message_events
-			WHERE user_id = $1
-		`, userID).Scan(&totalMessages)
-	} else {
-		_ = h.DB.Pool.QueryRow(ctx, `
-			SELECT COALESCE(SUM(
-				CASE WHEN left_at IS NOT NULL THEN duration_seconds 
-				     ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
-			), 0)
-			FROM voice_sessions
-			WHERE user_id = $1 AND server_id = $2
-		`, userID, serverID).Scan(&totalSeconds)
-
-		_ = h.DB.Pool.QueryRow(ctx, `
-			SELECT COALESCE(SUM(count), 0)
-			FROM message_events
-			WHERE user_id = $1 AND server_id = $2
-		`, userID, serverID).Scan(&totalMessages)
-	}
-
-	serverName := "Discord Server"
-	if guild, err := s.State.Guild(i.GuildID); err == nil && guild != nil {
-		serverName = guild.Name
-	}
-
-	avatarURL := targetUser.AvatarURL("256")
-
-	// Calculate Rank
-	var rank int = 1
-	if isGlobal {
-		_ = h.DB.Pool.QueryRow(ctx, `
-			SELECT COUNT(*) + 1
-			FROM (
-				SELECT user_id, SUM(CASE WHEN left_at IS NOT NULL THEN duration_seconds ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END) AS s
-				FROM voice_sessions
-				GROUP BY user_id
-				HAVING SUM(CASE WHEN left_at IS NOT NULL THEN duration_seconds ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END) > $1
-			) sub
-		`, totalSeconds).Scan(&rank)
-	} else {
-		_ = h.DB.Pool.QueryRow(ctx, `
-			SELECT COUNT(*) + 1
-			FROM (
-				SELECT user_id, SUM(CASE WHEN left_at IS NOT NULL THEN duration_seconds ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END) AS s
-				FROM voice_sessions
-				WHERE server_id = $1
-				GROUP BY user_id
-				HAVING SUM(CASE WHEN left_at IS NOT NULL THEN duration_seconds ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END) > $2
-			) sub
-		`, serverID, totalSeconds).Scan(&rank)
-	}
-
-	// Server join date
-	joinDateStr := ""
+	params := url.Values{"user": {targetUser.ID}}
 	if !isGlobal {
-		if member, err := s.GuildMember(i.GuildID, targetUser.ID); err == nil && member != nil && !member.JoinedAt.IsZero() {
-			joinDateStr = member.JoinedAt.Format("01/02/2006")
-		}
-		if joinDateStr == "" {
-			var firstJoin time.Time
-			if err := h.DB.Pool.QueryRow(ctx, `SELECT MIN(joined_at) FROM voice_sessions WHERE user_id = $1 AND server_id = $2`, userID, serverID).Scan(&firstJoin); err == nil && !firstJoin.IsZero() {
-				joinDateStr = firstJoin.Format("01/02/2006")
-			}
-		}
+		params.Set("server", i.GuildID)
 	}
+	png, err := card.Fetch(ctx, "member", params)
+	link := fmt.Sprintf("[View full profile on hourglassbot.net](https://hourglassbot.net/profile/%d)", userID)
 
-	pngBytes, err := card.GenerateStatsCard(card.StatsCardParams{
-		Username:      targetUser.Username,
-		AvatarURL:     avatarURL,
-		ServerName:    serverName,
-		TotalSeconds:  totalSeconds,
-		TotalMessages: totalMessages,
-		Rank:          rank,
-		JoinDate:      joinDateStr,
-		IsGlobal:      isGlobal,
+	sendCard(s, i, png, err, fmt.Sprintf("stats_%d.png", userID), link, func() string {
+		if errors.Is(err, card.ErrNotFound) {
+			return fmt.Sprintf("Hourglass has no activity recorded for **%s** yet.", targetUser.Username)
+		}
+		fctx, cancel := fallbackContext()
+		defer cancel()
+		seconds, messages := h.userTotals(fctx, userID, serverID, isGlobal)
+		scope := "on this server"
+		if isGlobal {
+			scope = "on all servers"
+		}
+		return fmt.Sprintf("**%s** %s\n• Voice time: **%s**\n• Messages: **%s**\n%s",
+			targetUser.Username, scope, card.FormatDuration(seconds), card.FormatNumber(messages), link)
 	})
-
-	hours := float64(totalSeconds) / 3600.0
-	scope := "on this server"
-	if isGlobal {
-		scope = "globally (all servers)"
-	}
-
-	fallbackContent := fmt.Sprintf(
-		"**Statistics for %s** (%s):\n• Voice time: **%.1fh** (%d seconds)\n• Messages sent: **%d**\n[View full profile on dashboard](https://hourglassbot.net/profile/%d)",
-		targetUser.Username, scope, hours, totalSeconds, totalMessages, userID,
-	)
-
-	linkContent := fmt.Sprintf("[View full profile on dashboard](https://hourglassbot.net/profile/%d)", userID)
-
-	if err == nil && len(pngBytes) > 0 {
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: linkContent,
-			Files: []*discordgo.File{
-				{
-					Name:        fmt.Sprintf("stats_%s.png", targetUser.Username),
-					ContentType: "image/png",
-					Reader:      bytes.NewReader(pngBytes),
-				},
-			},
-		})
-	} else {
-		log.Printf("Error generating stats card: %v", err)
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fallbackContent,
-		})
-	}
 }
 
 func (h *BotHandler) handleVersus(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
-	data := i.ApplicationCommandData()
 	var u1, u2 *discordgo.User
-
-	for _, opt := range data.Options {
-		if opt.Name == "player1" || opt.Name == "joueur1" {
+	scope := "server"
+	for _, opt := range i.ApplicationCommandData().Options {
+		switch opt.Name {
+		case "player1", "joueur1":
 			u1 = opt.UserValue(s)
-		} else if opt.Name == "player2" || opt.Name == "joueur2" {
+		case "player2", "joueur2":
 			u2 = opt.UserValue(s)
+		case "scope", "portee":
+			scope = opt.StringValue()
 		}
 	}
-
 	if u1 == nil || u2 == nil {
 		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 			Content: "Please designate two valid members for the duel.",
 		})
 		return
 	}
-
+	isGlobal := scope == "global" || i.GuildID == ""
 	u1ID, _ := strconv.ParseInt(u1.ID, 10, 64)
 	u2ID, _ := strconv.ParseInt(u2.ID, 10, 64)
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
 
-	var u1Sec, u1Msg, u2Sec, u2Msg int64
-
-	_ = h.DB.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(
-			CASE WHEN left_at IS NOT NULL THEN duration_seconds 
-			     ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
-		), 0)
-		FROM voice_sessions
-		WHERE user_id = $1 AND server_id = $2
-	`, u1ID, serverID).Scan(&u1Sec)
-
-	_ = h.DB.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(count), 0)
-		FROM message_events
-		WHERE user_id = $1 AND server_id = $2
-	`, u1ID, serverID).Scan(&u1Msg)
-
-	_ = h.DB.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(
-			CASE WHEN left_at IS NOT NULL THEN duration_seconds 
-			     ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
-		), 0)
-		FROM voice_sessions
-		WHERE user_id = $1 AND server_id = $2
-	`, u2ID, serverID).Scan(&u2Sec)
-
-	_ = h.DB.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(count), 0)
-		FROM message_events
-		WHERE user_id = $1 AND server_id = $2
-	`, u2ID, serverID).Scan(&u2Msg)
-
-	serverName := "Discord Server"
-	if guild, err := s.State.Guild(i.GuildID); err == nil && guild != nil {
-		serverName = guild.Name
+	params := url.Values{"u1": {u1.ID}, "u2": {u2.ID}}
+	link := fmt.Sprintf("[Full comparison on hourglassbot.net](https://hourglassbot.net/versus?u1=%d&u2=%d)", u1ID, u2ID)
+	if !isGlobal {
+		params.Set("server", i.GuildID)
+		link = fmt.Sprintf("[Full comparison on hourglassbot.net](https://hourglassbot.net/versus?u1=%d&u2=%d&srv=%d)", u1ID, u2ID, serverID)
 	}
+	png, err := card.Fetch(ctx, "versus", params)
 
-	u1Avatar := u1.AvatarURL("256")
-	u2Avatar := u2.AvatarURL("256")
-
-	pngBytes, err := card.GenerateVersusCard(card.VersusCardParams{
-		U1Name:     u1.Username,
-		U1Avatar:   u1Avatar,
-		U1Seconds:  u1Sec,
-		U1Msgs:     u1Msg,
-		U2Name:     u2.Username,
-		U2Avatar:   u2Avatar,
-		U2Seconds:  u2Sec,
-		U2Msgs:     u2Msg,
-		ServerName: serverName,
-	})
-
-	versusLink := fmt.Sprintf("[View full comparison on dashboard](https://hourglassbot.net/versus?u1=%d&u2=%d)", u1ID, u2ID)
-
-	if err == nil && len(pngBytes) > 0 {
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fmt.Sprintf("**Duel: %s VS %s**\n%s", u1.Username, u2.Username, versusLink),
-			Files: []*discordgo.File{
-				{
-					Name:        fmt.Sprintf("versus_%s_%s.png", u1.Username, u2.Username),
-					ContentType: "image/png",
-					Reader:      bytes.NewReader(pngBytes),
-				},
-			},
-		})
-	} else {
-		log.Printf("Error generating versus card: %v", err)
-		fallback := fmt.Sprintf(
-			"**Duel: %s VS %s**\n\n• **%s**: %.1fh voice | %d msgs\n• **%s**: %.1fh voice | %d msgs\n\n%s",
+	sendCard(s, i, png, err, fmt.Sprintf("versus_%d_%d.png", u1ID, u2ID), link, func() string {
+		if errors.Is(err, card.ErrNotFound) {
+			return "Hourglass has no activity recorded for one of these members yet."
+		}
+		fctx, cancel := fallbackContext()
+		defer cancel()
+		s1, m1 := h.userTotals(fctx, u1ID, serverID, isGlobal)
+		s2, m2 := h.userTotals(fctx, u2ID, serverID, isGlobal)
+		return fmt.Sprintf("**%s VS %s**\n• **%s**: %s voice · %s messages\n• **%s**: %s voice · %s messages\n%s",
 			u1.Username, u2.Username,
-			u1.Username, float64(u1Sec)/3600.0, u1Msg,
-			u2.Username, float64(u2Sec)/3600.0, u2Msg,
-			versusLink,
-		)
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fallback,
-		})
-	}
+			u1.Username, card.FormatDuration(s1), card.FormatNumber(m1),
+			u2.Username, card.FormatDuration(s2), card.FormatNumber(m2), link)
+	})
 }
 
 func (h *BotHandler) handleServerStats(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
+	png, err := card.Fetch(ctx, "server", url.Values{"server": {i.GuildID}})
+	link := fmt.Sprintf("[Server dashboard on hourglassbot.net](https://hourglassbot.net/server/%d)", serverID)
 
-	var totalSeconds int64
-	var totalMessages int64
-
-	_ = h.DB.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(
-			CASE WHEN left_at IS NOT NULL THEN duration_seconds 
-			     ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END
-		), 0)
-		FROM voice_sessions
-		WHERE server_id = $1
-	`, serverID).Scan(&totalSeconds)
-
-	_ = h.DB.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(count), 0)
-		FROM message_events
-		WHERE server_id = $1
-	`, serverID).Scan(&totalMessages)
-
-	serverName := "Discord Server"
-	iconURL := ""
-	memberCount := 0
-	voiceCount := 0
-	onlineCount := 0
-
-	guild, err := s.State.Guild(i.GuildID)
-	if err != nil || guild == nil {
-		guild, _ = s.Guild(i.GuildID)
-	}
-
-	if guild != nil {
-		serverName = guild.Name
-		iconURL = guild.IconURL("256")
-		memberCount = guild.MemberCount
-		voiceCount = len(guild.VoiceStates)
-		for _, p := range guild.Presences {
-			if p.Status != discordgo.StatusOffline {
-				onlineCount++
-			}
+	sendCard(s, i, png, err, fmt.Sprintf("server_%d.png", serverID), link, func() string {
+		if errors.Is(err, card.ErrNotFound) {
+			return "Hourglass has no activity recorded for this server yet."
 		}
-	}
-
-	pngBytes, err := card.GenerateServerCard(card.ServerCardParams{
-		ServerID:      serverID,
-		ServerName:    serverName,
-		IconURL:       iconURL,
-		TotalSeconds:  totalSeconds,
-		TotalMessages: totalMessages,
-		MemberCount:   memberCount,
-		VoiceCount:    voiceCount,
-		OnlineCount:   onlineCount,
+		fctx, cancel := fallbackContext()
+		defer cancel()
+		var seconds, messages int64
+		_ = h.DB.Pool.QueryRow(fctx, `SELECT COALESCE(SUM(CASE WHEN left_at IS NOT NULL THEN duration_seconds
+			ELSE EXTRACT(EPOCH FROM (NOW() - joined_at))::INT END), 0) FROM voice_sessions WHERE server_id = $1`, serverID).Scan(&seconds)
+		_ = h.DB.Pool.QueryRow(fctx, `SELECT COALESCE(SUM(count), 0) FROM message_events WHERE server_id = $1`, serverID).Scan(&messages)
+		name := "this server"
+		if guild, gerr := s.State.Guild(i.GuildID); gerr == nil && guild != nil {
+			name = guild.Name
+		}
+		return fmt.Sprintf("**%s**\n• Voice time: **%s**\n• Messages: **%s**\n%s",
+			name, card.FormatDuration(seconds), card.FormatNumber(messages), link)
 	})
-
-	hours := float64(totalSeconds) / 3600.0
-	dashLink := fmt.Sprintf("[View server dashboard](https://hourglassbot.net/server/%d)", serverID)
-
-	if err == nil && len(pngBytes) > 0 {
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: dashLink,
-			Files: []*discordgo.File{
-				{
-					Name:        fmt.Sprintf("server_%d.png", serverID),
-					ContentType: "image/png",
-					Reader:      bytes.NewReader(pngBytes),
-				},
-			},
-		})
-	} else {
-		log.Printf("Error generating server card: %v", err)
-		fallback := fmt.Sprintf(
-			"**Server Statistics for %s**:\n• Total voice time: **%.1fh** (%s)\n• Total messages: **%s**\n• Members: **%d**\n%s",
-			serverName, hours, card.FormatDuration(totalSeconds), card.FormatNumber(totalMessages), memberCount, dashLink,
-		)
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fallback,
-		})
-	}
 }
 
 func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate, forceGlobal bool) {
 	rankingType := "vocal"
 	period := "all"
 	scope := "server"
-	if forceGlobal {
-		scope = "global"
-	}
-
-	data := i.ApplicationCommandData()
-	for _, opt := range data.Options {
+	for _, opt := range i.ApplicationCommandData().Options {
 		switch opt.Name {
 		case "type":
 			rankingType = opt.StringValue()
@@ -525,200 +354,121 @@ func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session
 			scope = opt.StringValue()
 		}
 	}
-
-	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
 	isGlobal := forceGlobal || scope == "global" || i.GuildID == ""
+	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
 
-	var query string
-	var args []interface{}
-
-	dateFilter := ""
-	if period == "week" {
-		dateFilter = "AND joined_at >= NOW() - INTERVAL '7 days'"
-	} else if period == "month" {
-		dateFilter = "AND joined_at >= NOW() - INTERVAL '30 days'"
-	}
-
+	webType := "voice"
 	if rankingType == "messages" {
-		msgDateFilter := ""
-		if period == "week" {
-			msgDateFilter = "AND created_at >= NOW() - INTERVAL '7 days'"
-		} else if period == "month" {
-			msgDateFilter = "AND created_at >= NOW() - INTERVAL '30 days'"
-		}
-
-		if isGlobal {
-			query = fmt.Sprintf(`
-				SELECT m.user_id, COALESCE(u.username, 'Member'), COALESCE(u.avatar, ''), SUM(m.count) AS total_val
-				FROM message_events m
-				LEFT JOIN users u ON u.user_id = m.user_id
-				WHERE 1=1 %s
-				GROUP BY m.user_id, u.username, u.avatar
-				ORDER BY total_val DESC
-				LIMIT 10
-			`, msgDateFilter)
-		} else {
-			query = fmt.Sprintf(`
-				SELECT m.user_id, COALESCE(u.username, 'Member'), COALESCE(u.avatar, ''), SUM(m.count) AS total_val
-				FROM message_events m
-				LEFT JOIN users u ON u.user_id = m.user_id
-				WHERE m.server_id = $1 %s
-				GROUP BY m.user_id, u.username, u.avatar
-				ORDER BY total_val DESC
-				LIMIT 10
-			`, msgDateFilter)
-			args = append(args, serverID)
-		}
-	} else {
-		if isGlobal {
-			query = fmt.Sprintf(`
-				SELECT vs.user_id, COALESCE(u.username, 'Member'), COALESCE(u.avatar, ''),
-				       SUM(CASE WHEN vs.left_at IS NOT NULL THEN vs.duration_seconds 
-				                ELSE EXTRACT(EPOCH FROM (NOW() - vs.joined_at))::INT END) AS total_val
-				FROM voice_sessions vs
-				LEFT JOIN users u ON u.user_id = vs.user_id
-				WHERE 1=1 %s
-				GROUP BY vs.user_id, u.username, u.avatar
-				ORDER BY total_val DESC
-				LIMIT 10
-			`, dateFilter)
-		} else {
-			query = fmt.Sprintf(`
-				SELECT vs.user_id, COALESCE(u.username, 'Member'), COALESCE(u.avatar, ''),
-				       SUM(CASE WHEN vs.left_at IS NOT NULL THEN vs.duration_seconds 
-				                ELSE EXTRACT(EPOCH FROM (NOW() - vs.joined_at))::INT END) AS total_val
-				FROM voice_sessions vs
-				LEFT JOIN users u ON u.user_id = vs.user_id
-				WHERE vs.server_id = $1 %s
-				GROUP BY vs.user_id, u.username, u.avatar
-				ORDER BY total_val DESC
-				LIMIT 10
-			`, dateFilter)
-			args = append(args, serverID)
-		}
+		webType = "messages"
 	}
+	params := url.Values{"type": {webType}, "period": {period}}
+	link := "[Full leaderboard on hourglassbot.net](https://hourglassbot.net/members)"
+	if !isGlobal {
+		params.Set("server", i.GuildID)
+		link = fmt.Sprintf("[Full leaderboard on hourglassbot.net](https://hourglassbot.net/members?server_id=%d)", serverID)
+	}
+	png, err := card.Fetch(ctx, "top", params)
 
+	sendCard(s, i, png, err, fmt.Sprintf("top_%s_%s.png", webType, period), link, func() string {
+		fctx, cancel := fallbackContext()
+		defer cancel()
+		return h.topText(fctx, rankingType, period, isGlobal, serverID) + "\n" + link
+	})
+}
+
+// topText is the text leaderboard used when the card cannot be drawn.
+func (h *BotHandler) topText(ctx context.Context, rankingType, period string, isGlobal bool, serverID int64) string {
+	interval := ""
+	switch period {
+	case "week":
+		interval = "7 days"
+	case "month":
+		interval = "30 days"
+	}
+	var query string
+	if rankingType == "messages" {
+		query = `SELECT COALESCE(u.username, 'Member'), SUM(m.count) AS total_val
+			FROM message_events m LEFT JOIN users u ON u.user_id = m.user_id WHERE TRUE`
+		if interval != "" {
+			query += " AND m.created_at >= NOW() - INTERVAL '" + interval + "'"
+		}
+		if !isGlobal {
+			query += " AND m.server_id = $1"
+		}
+		query += " GROUP BY m.user_id, u.username ORDER BY total_val DESC LIMIT 10"
+	} else {
+		query = `SELECT COALESCE(u.username, 'Member'),
+			SUM(CASE WHEN vs.left_at IS NOT NULL THEN vs.duration_seconds ELSE EXTRACT(EPOCH FROM (NOW() - vs.joined_at))::INT END) AS total_val
+			FROM voice_sessions vs LEFT JOIN users u ON u.user_id = vs.user_id WHERE TRUE`
+		if interval != "" {
+			query += " AND vs.joined_at >= NOW() - INTERVAL '" + interval + "'"
+		}
+		if !isGlobal {
+			query += " AND vs.server_id = $1"
+		}
+		query += " GROUP BY vs.user_id, u.username ORDER BY total_val DESC LIMIT 10"
+	}
+	var args []interface{}
+	if !isGlobal {
+		args = append(args, serverID)
+	}
 	rows, err := h.DB.Pool.Query(ctx, query, args...)
 	if err != nil {
-		log.Printf("Error querying /top: %v", err)
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: "Error while fetching leaderboard data.",
-		})
-		return
+		log.Printf("Error querying the text leaderboard: %v", err)
+		return "The leaderboard is unavailable right now."
 	}
 	defer rows.Close()
 
-	periodLabel := "All-Time"
-	if period == "month" {
-		periodLabel = "Last 30 Days"
-	} else if period == "week" {
-		periodLabel = "Last 7 Days"
+	title := "Voice"
+	if rankingType == "messages" {
+		title = "Messages"
 	}
-	scopeLabel := "This Server"
-	if isGlobal {
-		scopeLabel = "Global"
-	}
-
-	var entries []card.TopEntry
-	rank := 1
+	out := fmt.Sprintf("**Top 10 · %s**\n", title)
+	rank := 0
 	for rows.Next() {
-		var uID int64
 		var username string
-		var avatar string
-		var totalVal int64
-		if err := rows.Scan(&uID, &username, &avatar, &totalVal); err == nil {
-			valStr := ""
-			if rankingType == "messages" {
-				valStr = card.FormatNumber(totalVal)
-			} else {
-				hours := float64(totalVal) / 3600.0
-				valStr = fmt.Sprintf("%.1fh (%s)", hours, card.FormatDuration(totalVal))
-			}
-
-			entries = append(entries, card.TopEntry{
-				Rank:     rank,
-				Username: username,
-				Avatar:   avatar,
-				Value:    totalVal,
-				ValueStr: valStr,
-			})
-			rank++
+		var value int64
+		if rows.Scan(&username, &value) != nil {
+			continue
 		}
-	}
-
-	webLink := fmt.Sprintf("[View full leaderboard on website](https://hourglassbot.net/server/%d)", serverID)
-	if isGlobal {
-		webLink = "[View full leaderboard on website](https://hourglassbot.net/top)"
-	}
-
-	if len(entries) == 0 {
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fmt.Sprintf("No activity recorded for this period/category.\n%s", webLink),
-		})
-		return
-	}
-
-	// Generate Top 10 Leaderboard visual card
-	pngBytes, err := card.GenerateTopCard(rankingType, periodLabel, scopeLabel, entries)
-	if err == nil && len(pngBytes) > 0 {
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: webLink,
-			Files: []*discordgo.File{
-				{
-					Name:        fmt.Sprintf("top_%s_%s.png", rankingType, period),
-					ContentType: "image/png",
-					Reader:      bytes.NewReader(pngBytes),
-				},
-			},
-		})
-	} else {
-		log.Printf("Error generating top card: %v", err)
-		fallback := fmt.Sprintf("**Top 10 Leaderboard — %s (%s • %s)**:\n\n", rankingType, periodLabel, scopeLabel)
-		for _, e := range entries {
-			fallback += fmt.Sprintf("#%d %s — %s\n", e.Rank, e.Username, e.ValueStr)
+		rank++
+		valueStr := card.FormatDuration(value)
+		if rankingType == "messages" {
+			valueStr = card.FormatNumber(value)
 		}
-		fallback += "\n" + webLink
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fallback,
-		})
+		out += fmt.Sprintf("%d. %s — %s\n", rank, username, valueStr)
 	}
-}
-
-func (h *BotHandler) handleTop(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate, isGlobal bool) {
-	h.handleTopFiltered(ctx, s, i, isGlobal)
+	if rank == 0 {
+		return "No activity recorded for this period yet."
+	}
+	return out
 }
 
 func (h *BotHandler) handleHelp(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
-	pngBytes, err := card.GenerateHelpCard()
-
-	webLink := "Explore the full web dashboard at: https://hourglassbot.net"
-
-	if err == nil && len(pngBytes) > 0 {
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: webLink,
-			Files: []*discordgo.File{
-				{
-					Name:        "hourglass_help.png",
-					ContentType: "image/png",
-					Reader:      bytes.NewReader(pngBytes),
-				},
-			},
-		})
-	} else {
-		log.Printf("Error generating help card: %v", err)
-		fallback := "**Hourglass Bot Command Guide**:\n" +
-			"• `/stats [user]`: Voice & message stats on current server\n" +
-			"• `/allstats [user]`: Consolidated global stats across all servers\n" +
-			"• `/top [type] [period] [scope]`: Filtered Top 10 leaderboard\n" +
-			"• `/alltop`: Global Top 10 voice leaderboard\n" +
-			"• `/versus <p1> <p2>`: Direct 1v1 comparison duel\n" +
-			"• `/server`: Server stats, voice activity & live presence\n" +
-			"• `/help`: Displays this guide\n\n" +
-			webLink
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fallback,
-		})
+	commands := []struct{ name, desc string }{
+		{"/stats [user]", "Your stats on this server: voice, messages, rank and showcase badges."},
+		{"/allstats [user]", "Your stats across every server Hourglass tracks."},
+		{"/top [type] [period] [scope]", "Top 10 by voice time or messages: all time, 30 days or 7 days."},
+		{"/alltop", "Top 10 across every server."},
+		{"/versus <player1> <player2> [scope]", "Head-to-head duel between two members, on this server or everywhere."},
+		{"/server", "Statistics of this server: voice, messages, members and the last 30 days."},
+		{"/help", "This list."},
 	}
+	var desc strings.Builder
+	for _, c := range commands {
+		desc.WriteString(fmt.Sprintf("`%s`\n%s\n\n", c.name, c.desc))
+	}
+	desc.WriteString("Cards use the color, banner and badges members choose on their profile at **[hourglassbot.net](https://hourglassbot.net)**.")
+
+	_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+		Embeds: []*discordgo.MessageEmbed{{
+			Title:       "Hourglass commands",
+			URL:         "https://hourglassbot.net",
+			Description: desc.String(),
+			Color:       0x38bdf8,
+			Footer:      &discordgo.MessageEmbedFooter{Text: "Voice and message activity · no audio and no message content recorded"},
+		}},
+	})
 }
 
 // recordCommand stores the command, its server and its choice options (type, period, scope) in the

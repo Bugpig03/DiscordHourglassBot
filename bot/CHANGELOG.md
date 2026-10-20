@@ -1,5 +1,22 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.2.0 - Cartes Dessinées par le Site Web - 20/10/2026
+
+- **Les cartes images viennent du site web (v3.19.0)** : le bot ne dessine plus rien.
+  - Il demande le PNG à `WEB_INTERNAL_URL` (par défaut `https://hourglassbot.net`) avec l'en-tête `X-Card-Token` égal à `CARD_TOKEN`.
+  - Les cartes reprennent ainsi la couleur, la bannière, le fond et les badges en vitrine du profil du membre.
+  - Si le site ne répond pas, ou si `CARD_TOKEN` n'est pas configuré, la commande répond en **texte**.
+- **`/versus`** : nouvelle option **`scope`**, pour comparer sur ce serveur (par défaut) ou sur tous les serveurs.
+- **`/help`** répond par un message texte (embed) : plus lisible, liens cliquables, sans problème de taille d'image.
+- `/stats` : la date affichée est la première activité vue par Hourglass sur le serveur, et non plus la date d'arrivée sur le serveur Discord, qui était au format américain.
+- `/top` et `/alltop` : même classement que la page Membres du site.
+- Nombres au format international (`12,450`).
+- Suppression du moteur de dessin (`fogleman/gg`, `golang.org/x/image`) et des polices DejaVu : image Docker et binaire plus légers.
+
+### Variables d'environnement à ajouter
+- `CARD_TOKEN` : la même valeur que sur le site.
+- `WEB_INTERNAL_URL` : facultative. Par exemple `http://hourglass-web:5002` si le bot et le site sont sur le même réseau Docker, sinon l'adresse publique du site.
+
 ## Version 3.1.1 - Allègement de presence_history - 18/10/2026
 
 - **Fin des relevés de présence par serveur** : le bot enregistrait une ligne par serveur toutes les 15 minutes (conservées 7 jours), soit des millions de lignes (~250 Mo en prod), alors que le site ne lit que le relevé global (`server_id` vide). Seul le relevé global est désormais enregistré : environ 670 lignes sur 7 jours.
