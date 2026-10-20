@@ -84,8 +84,12 @@ docker run -d \
   -e POSTGRESQL_DBNAME="hourglass" \
   -e POSTGRESQL_USER="postgres" \
   -e POSTGRESQL_PASSWORD="votre_mot_de_passe" \
+  -e CARD_TOKEN="secret_partage_avec_le_site" \
+  -e WEB_INTERNAL_URL="http://hourglass-web:5002" \
   bugpig/hourglass_bot
 ```
+
+> Les cartes images du bot (`/stats`, `/versus`, `/top`, `/server`) sont dessinées par le site web : `CARD_TOKEN` doit avoir **la même valeur** sur le bot et sur le site, et `WEB_INTERNAL_URL` est l'adresse du site vue depuis le bot (par défaut `https://hourglassbot.net`). Sans `CARD_TOKEN`, le bot répond en texte.
 
 ### 2. Dashboard Web (`./web`)
 ```bash
@@ -103,6 +107,8 @@ docker run -d \
   -e POSTGRESQL_USER="postgres" \
   -e POSTGRESQL_PASSWORD="votre_mot_de_passe" \
   -e FLASK_SECRET_KEY="cle_secrete_aleatoire" \
+  -e CARD_TOKEN="secret_partage_avec_le_site" \
+  -e ADMIN_USER_IDS="votre_id_discord" \
   bugpig/hourglass_web
 ```
 

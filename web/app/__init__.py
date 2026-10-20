@@ -17,6 +17,7 @@ from app.routes.user_profile import user_profile_bp
 from app.routes.server_profile import server_profile_bp
 from app.routes.graphs import graphs_bp
 from app.routes.api import api_bp
+from app.routes.cards import cards_bp
 from app.routes.versus import versus_bp
 from app.routes.customize import customize_bp
 from app.routes.admin import admin_bp
@@ -261,6 +262,7 @@ def create_app():
     app.register_blueprint(server_profile_bp)
     app.register_blueprint(graphs_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(cards_bp)
     app.register_blueprint(versus_bp)
     app.register_blueprint(customize_bp)
     app.register_blueprint(admin_bp)

@@ -197,100 +197,39 @@ GET /api/search?q={query}&type={all|users|servers}&limit={limit}
 
 ---
 
-## 2. Endpoints Cartes Graphiques SVG (v2.6.0)
+## 2. Endpoints Cartes Graphiques SVG (v3.19.0)
 
-Les endpoints ci-dessous renvoient directement un fichier vectoriel avec l'en-tête HTTP `Content-Type: image/svg+xml`.
+Les endpoints ci-dessous renvoient une carte vectorielle autonome (`Content-Type: image/svg+xml`), avec la même mise en forme que les images du bot Discord : style du site, police Inter et textes en anglais.
 
 > [!TIP]
-> **Résolution flexible** : Pour tous les endpoints utilisateurs, vous pouvez renseigner indifféremment le **pseudonyme Discord** (`hyst3ry`) ou l'**ID numérique** (`303525237012692994`).
+> **Résolution flexible** : pour les membres, utilisez indifféremment le **pseudonyme Discord** (`hyst3ry`) ou l'**ID numérique** (`303525237012692994`).
 >
-> **Langue** : Ajoutez le paramètre d'URL `?lang=en` pour obtenir le visuel en anglais (par défaut `?lang=en` dans le bot, `?lang=fr` également supporté).
+> **Taille** : les cartes sont dessinées sur un canevas de 1200 px de large et s'affichent à 600 px (nettes sur les écrans haute densité). La hauteur dépend du contenu.
 >
-> **Gestion d'erreur 404** : Si l'utilisateur ou le serveur est introuvable, l'API renvoie une carte d'erreur SVG stylisée pour éviter les images brisées dans Discord.
+> **Personnalisation** : les cartes d'un membre reprennent la couleur, la bannière, le fond et les badges en vitrine choisis sur son profil.
+>
+> **Erreur 404** : un membre ou un serveur inconnu renvoie une carte d'erreur SVG (pas d'image cassée).
+>
+> Le paramètre `?lang=` des versions précédentes est ignoré : les cartes sont toujours en anglais.
 
----
+| Carte | Endpoints | Paramètres |
+|---|---|---|
+| Profil d'un membre, tous serveurs (`/allstats`) | `GET /api/card/user/{username}` · `GET /api/card/allstats/{username}` | — |
+| Profil d'un membre sur un serveur (`/stats`) | `GET /api/card/user/{username}/server/{server_id}` · `GET /api/card/stats/{username}/{server_id}` | — |
+| Duel entre deux membres (`/versus`) | `GET /api/card/versus/{user1}/{user2}` | `?server={server_id}` : comparer sur un serveur (sinon tous serveurs) |
+| Top 10 d'un serveur (`/top`) | `GET /api/card/top/server/{server_id}` · `GET /api/card/server/{server_id}/top` | `?type=voice\|messages`, `?period=all\|month\|week` |
+| Top 10 tous serveurs (`/alltop`) | `GET /api/card/top` · `GET /api/card/top/global` · `GET /api/card/alltop` | `?type=voice\|messages`, `?period=all\|month\|week` |
+| Statistiques d'un serveur (`/server`) | `GET /api/card/server/{server_id}` | — |
+| Liste des commandes | `GET /api/card/commands` · `GET /api/card/help` · `GET /api/card/aide` | — |
 
-### Profil utilisateur global (!allstats)
-Génère la carte de profil d'un utilisateur avec ses métriques globales, son rang mondial (badge empilé sans collision), son niveau XP adaptatif, sa barre de progression et ses 3 meilleurs badges SVG.
+Contenu des cartes :
+- **Profil** : avatar, niveau et titre, rang, barre d'XP, puis 4 tuiles (vocal, messages, 30 derniers jours, « Tracked since ») et jusqu'à 3 badges en vitrine. « Tracked since » est la première activité vue par Hourglass sur ce serveur (`/stats`) ou sur tous les serveurs (`/allstats`).
+- **Duel** : chaque camp a la couleur de profil de son membre ; un verdict, puis 5 manches (vocal, messages, 30 derniers jours, rang, badges) avec le gagnant mis en avant.
+- **Top 10** : podium des 3 premiers, puis les places 4 à 10.
+- **Serveur** : rang, 4 tuiles (vocal, messages, membres, en vocal maintenant) et la courbe du vocal sur 30 jours.
 
-```http
-GET /api/card/user/{username}
-GET /api/card/allstats/{username}
-```
-- **Dimensions** : 560 × 220 px
-- **Paramètres** :
-  - `{username}` : Pseudonyme ou `user_id` numérique Discord.
-  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
-
----
-
-### Profil utilisateur sur un serveur (!stats)
-Génère la carte de profil d'un joueur restreinte à un serveur particulier : rang au sein de la guilde (badge empilé), 4 tuiles métriques équilibrées (heures de vocal, messages, niveau / XP serveur et date d'arrivée).
-
-```http
-GET /api/card/user/{username}/server/{server_id}
-GET /api/card/stats/{username}/{server_id}
-```
-- **Dimensions** : 560 × 220 px
-- **Paramètres** :
-  - `{username}` : Pseudonyme ou `user_id` numérique Discord.
-  - `{server_id}` : Identifiant numérique du serveur.
-  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
-
----
-
-### Top 10 vocal d'un serveur (!top)
-Génère le classement sous forme de carte SVG des 10 membres les plus actifs en vocal sur le serveur sélectionné (médailles or/argent/bronze, avatars agrandis 32px avec liserés de médailles, hauteur dynamique selon le nombre de membres, niveaux, temps vocal et messages).
-
-```http
-GET /api/card/top/server/{server_id}
-GET /api/card/server/{server_id}/top
-```
-- **Dimensions** : 620 × dynamique (max 587 px)
-- **Paramètres** :
-  - `{server_id}` : Identifiant numérique du serveur.
-  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
-
----
-
-### Top 10 vocal global (!alltop)
-Génère le classement général des 10 utilisateurs les plus actifs en vocal sur l'ensemble de tous les serveurs du bot Hourglass (avatars agrandis 32px avec liserés de médailles, hauteur dynamique).
-
-```http
-GET /api/card/top
-GET /api/card/top/global
-GET /api/card/alltop
-```
-- **Dimensions** : 620 × dynamique (max 587 px)
-- **Paramètres** :
-  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
-
----
-
-### Statistiques d'un serveur (!server)
-Génère la carte récapitulative des statistiques d'une guilde : temps vocal total cumulé, volume de messages, nombre de membres suivis, rang du serveur (badge empilé), date d'enregistrement et mise en avant du **Champion vocal du serveur**.
-
-```http
-GET /api/card/server/{server_id}
-```
-- **Dimensions** : 560 × 225 px
-- **Paramètres** :
-  - `{server_id}` : Identifiant numérique du serveur.
-  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
-
----
-
-### Guide d'aide des commandes (!help / /help)
-Génère une carte moderne en grille 2 colonnes récapitulant les commandes disponibles du bot, leurs puces de commandes slash, leurs badges de catégorie, descriptions complètes et rappels de préfixes classiques (legacy).
-
-```http
-GET /api/card/commands
-GET /api/card/help
-GET /api/card/aide
-```
-- **Dimensions** : 820 × 490 px
-- **Paramètres** :
-  - `?lang=en` (défaut) ou `?lang=fr` (optionnel).
+### Images PNG du bot (interne)
+Le bot Discord récupère les mêmes cartes en PNG via `GET /internal/card/{member|versus|top|server}.png`, avec l'en-tête `X-Card-Token` égal à la variable `CARD_TOKEN`, définie à l'identique sur le site et sur le bot. Ces adresses répondent 404 tant que `CARD_TOKEN` n'est pas configuré.
 
 ---
 

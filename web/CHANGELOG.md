@@ -1,5 +1,36 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.19.0 - Nouvelles Cartes de Statistiques - 20/10/2026
+### Cartes (bot Discord et cartes SVG intégrables)
+- **Toutes les cartes sont refaites dans le style du site**, et le site les dessine aussi pour le bot : une seule mise en forme pour les deux.
+  - Le bot récupère des PNG via `/internal/card/{member,versus,top,server}.png`, protégés par la variable `CARD_TOKEN`, à partager avec le bot.
+  - Les cartes publiques `/api/card/...` gardent leurs adresses, en SVG.
+- **Pensées pour être lues en petit**, sans cliquer :
+  - canevas de 1200 px de large, rendu net en 2x ;
+  - gros chiffres, au moins 24 px de texte, au maximum 4 statistiques principales ;
+  - police Inter embarquée (licence OFL), textes toujours en anglais pour toutes les communautés.
+- **Carte de profil** (`/stats`, `/allstats`) :
+  - elle reprend la **couleur**, la **bannière** de la galerie, le **fond uni** et les **3 badges en vitrine** du profil, ou les plus rares si le membre n'en a pas choisi ;
+  - niveau et titre, rang, barre d'XP, puis 4 tuiles : vocal, messages, 30 derniers jours et **« Tracked since »**.
+  - « Tracked since » remplace l'ancienne date d'arrivée sur le serveur Discord : c'est la première activité vue par Hourglass **sur ce serveur** pour `/stats`, et **sur tous les serveurs** pour `/allstats`.
+- **Carte de duel** (`/versus`), refaite :
+  - chaque camp a la couleur de profil de son membre, avec une seconde couleur si les deux se ressemblent ;
+  - un verdict (« eluen wins 4–1 »), puis 5 manches : vocal, messages, 30 derniers jours, rang, badges. Le gagnant de chaque manche est mis en avant ;
+  - elle compare sur le serveur ou sur tous les serveurs. Nouvelle carte SVG `/api/card/versus/{user1}/{user2}[?server=]`.
+- **Top 10** (`/top`, `/alltop`) :
+  - podium des 3 premiers, puis les places 4 à 10 sur deux colonnes ;
+  - suppression du niveau estimé à partir d'une seule mesure, qui était trompeur ;
+  - même classement que la page Membres, filtres vocal / messages et toutes périodes / 30 jours / 7 jours ;
+  - avatars téléchargés en parallèle : ≈ 3 s → 0,6 s.
+- **Carte serveur** (`/server`) : rang, 4 tuiles (vocal, messages, membres, en vocal maintenant) et la courbe du vocal sur 30 jours.
+- Les emojis et caractères absents de la police (emojis, CJK) sont retirés des noms au lieu d'afficher des carrés vides.
+- Cartes mises en cache 2 minutes dans un cache dédié et limité (48 entrées) : les images intégrées n'encombrent pas la mémoire des workers.
+- Ancien code des cartes SVG supprimé de `routes/api.py`, remplacé par `app/cards/` (design, données, mise en page) et `routes/cards.py`.
+
+### Déploiement
+- Nouvelles dépendances : `Pillow`, `resvg-py`, `fonttools`. Ce sont des wheels Linux précompilées, sans paquet système à installer.
+- Nouvelle variable **`CARD_TOKEN`** : une chaîne secrète, à mettre à la même valeur sur le bot (v3.2.0).
+
 ## Version 3.18.1 - Graphique de Présence Plus Rapide - 19/10/2026
 ### Performances
 - **Présence des membres** (page Analyses) : le regroupement « un point par heure » est fait par PostgreSQL (`DISTINCT ON` sur l'heure locale) et plus en Python.

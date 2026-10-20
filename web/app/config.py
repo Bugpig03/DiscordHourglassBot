@@ -89,6 +89,9 @@ class Config:
     # Discord user IDs allowed on /admin, comma separated (empty: nobody)
     ADMIN_USER_IDS = frozenset(i.strip() for i in os.environ.get("ADMIN_USER_IDS", "").split(",") if i.strip().isdigit())
 
+    # Secret shared with the Discord bot to fetch its card images from /internal/card/... (empty: disabled)
+    CARD_TOKEN = os.environ.get("CARD_TOKEN", "").strip()
+
     # Static assets: styles.css is cache-busted with ?v=<app version>, icons/images almost never change
     SEND_FILE_MAX_AGE_DEFAULT = timedelta(days=7)
     DB_NAME = os.environ.get("POSTGRESQL_DBNAME", "devhourglass")

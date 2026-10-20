@@ -11,3 +11,6 @@ python-dotenv==1.2.3
 gunicorn==23.0.0
 Werkzeug==3.1.9
 requests>=2.31.0
+Pillow==12.3.0
+resvg-py==0.5.0
+fonttools==4.66.1
