@@ -1,5 +1,28 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.21.0 - Passe Mobile, Déconnexion & Connexion Discord sur Téléphone - 23/10/2026
+### Téléphone
+- **Menu burger refait** :
+  - panneau opaque (le texte de la page ne transparaît plus), avec la page assombrie et bloquée derrière ;
+  - **carte du compte en haut**, toujours ouverte (avatar, pseudo, Mon profil, Admin, Déconnexion) au lieu d'un menu déroulant imbriqué ;
+  - liens de 50 px de haut, recherche en pleine largeur sans le raccourci « Ctrl+K » inutile sur téléphone, langue et Inviter côte à côte ;
+  - le bouton « Se connecter » passe en tête quand on n'est pas connecté ;
+  - il se ferme au toucher à l'extérieur, sur un lien, avec Échap, ou quand l'écran devient assez large.
+- **Membres / Serveurs** :
+  - suppression du grand vide sous la recherche (le bloc de recherche prenait 220 px de haut en affichage vertical) ;
+  - Période et Trier par côte à côte ;
+  - le pseudo passe au-dessus du badge de niveau au lieu d'être tronqué.
+- **Accueil** : les 4 chiffres clés en grille 2 × 2 compacte (269 px au lieu de 688 px).
+- Boutons de filtre et onglets de personnalisation d'au moins 40 à 44 px de haut, plus faciles à toucher.
+- Champs de saisie à 16 px : l'iPhone ne zoome plus tout seul quand on touche un champ.
+
+### Corrections
+- **Déconnexion** : retour à l'accueil. Avant, on revenait à la page précédente, ce qui donnait une erreur 404 depuis `/admin`, réservée aux admins connectés.
+- **Connexion Discord sur téléphone** :
+  - plus de fenêtre popup, une navigation normale à la place : une fenêtre ouverte par script n'est jamais confiée à l'application Discord ;
+  - adresse d'autorisation officielle `discord.com/oauth2/authorize`, sans `/api/` : l'ancienne forme empêchait Android d'ouvrir l'application.
+  - Discord ne garantit pas ce passage par l'application. Si elle ne s'ouvre pas, la connexion se fait dans le navigateur, une seule fois.
+
 ## Version 3.20.0 - Onglets Plus Clairs & Admin : Arrivées et Membres Présents - 23/10/2026
 ### Navigation dans les pages (profil, fiche serveur, Analyses, admin)
 - **Les onglets deviennent une vraie barre de sections.**

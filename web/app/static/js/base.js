@@ -5,19 +5,32 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
             const toggle = document.getElementById('mobileNavToggle');
             const menu = document.getElementById('appNavMenu');
             if (toggle && menu) {
-                toggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isOpen = menu.classList.toggle('open');
+                // Phone menu: the page behind is dimmed and locked (body.nav-open); closes on an outside tap,
+                // on Escape, on a link, and when the screen becomes wide enough for the full navbar
+                const setMenu = (isOpen) => {
+                    menu.classList.toggle('open', isOpen);
                     toggle.classList.toggle('open', isOpen);
                     toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    document.body.classList.toggle('nav-open', isOpen);
+                };
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    setMenu(!menu.classList.contains('open'));
                 });
 
                 document.addEventListener('click', (e) => {
                     if (menu.classList.contains('open') && !menu.contains(e.target) && !toggle.contains(e.target)) {
-                        menu.classList.remove('open');
-                        toggle.classList.remove('open');
-                        toggle.setAttribute('aria-expanded', 'false');
+                        setMenu(false);
                     }
+                });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && menu.classList.contains('open')) setMenu(false);
+                });
+                menu.addEventListener('click', (e) => {
+                    if (e.target.closest('a[href]') || e.target.closest('#quickSearchBtn')) setMenu(false);
+                });
+                window.matchMedia('(min-width: 1025px)').addEventListener('change', (e) => {
+                    if (e.matches) setMenu(false);
                 });
 
                 // Dropdown hover buffer & mouseleave grace period
@@ -98,6 +111,13 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
         // Discord OAuth2 Popup Authentication
         // data-call="startDiscordLogin" on the Discord login links (navbar and /login)
         window.startDiscordLogin = function(_, event, link) {
+            // Phones and tablets: same tab, no popup. A window opened by script is never handed to the
+            // Discord app, a plain navigation can be (when the system links discord.com to the app).
+            if (window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                if (event) event.preventDefault();
+                window.location.href = link.href.replace(/([?&])popup=1(&|$)/, '$1popup=0$2');
+                return;
+            }
             openDiscordAuthPopup(event, link.href);
         };
 

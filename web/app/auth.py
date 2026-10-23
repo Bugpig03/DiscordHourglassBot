@@ -23,7 +23,8 @@ from app.analytics_tracking import record_login
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 DISCORD_API_BASE = "https://discord.com/api"
-DISCORD_OAUTH_AUTHORIZE_URL = "https://discord.com/api/oauth2/authorize"
+# Documented address without /api (the /api/ variant kept Android from opening the authorization in the Discord app)
+DISCORD_OAUTH_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
 DISCORD_OAUTH_TOKEN_URL = "https://discord.com/api/oauth2/token"
 DISCORD_SCOPES = "identify guilds"
 
@@ -407,23 +408,15 @@ def token_login():
 
 @auth_bp.route("/logout", methods=["GET", "POST"])
 def logout():
-    """Log out (POST with CSRF token only) and return to the page the visitor came from.
+    """Log out (POST with CSRF token only) and go back to the home page.
 
-    A plain GET no longer logs out, so a third-party page cannot disconnect visitors with an <img> or a link.
+    Not to the previous page: some only exist for a logged-in member (/admin answers 404 to visitors).
+    A plain GET does not log out, so a third-party page cannot disconnect visitors with an <img> or a link.
     """
     if request.method == "POST" and valid_csrf(request.form.get("csrf_token")):
         for key in ("user", "guild_ids", "oauth_state", "oauth_next_url", "oauth_is_popup", "csrf_token"):
             session.pop(key, None)
-    return redirect(_local_referrer_path())
-
-
-def _local_referrer_path() -> str:
-    """Path of the Referer when it belongs to this site, otherwise "/"."""
-    referrer = urllib.parse.urlsplit(request.referrer or "")
-    if referrer.netloc and referrer.netloc != request.host:
-        return "/"
-    path = referrer.path + (f"?{referrer.query}" if referrer.query else "")
-    return _safe_redirect_target(path or "/")
+    return redirect(url_for("home.home"))
 
 
 @auth_bp.route("/dev-login")

@@ -5842,3 +5842,249 @@ button.btn-versus-action {
     mask-image: linear-gradient(90deg, #000 calc(100% - 30px), transparent);
   }
 }
+
+/* ==========================================================================
+   Phone pass (v3.21.0). Kept at the end of the file so it wins over the older responsive rules.
+   ========================================================================== */
+@media (max-width: 1024px) {
+  /* ---- Burger menu: a solid sheet, account first, big rows, dimmed page behind ---- */
+  body.nav-open {
+    overflow: hidden;              /* the page no longer scrolls under the menu */
+  }
+  body.nav-open::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(3, 7, 12, 0.62);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+  body.nav-open .app-header {
+    z-index: 1002;
+  }
+  .mobile-nav-toggle {
+    width: 44px;
+    height: 44px;
+  }
+  .app-nav-menu {
+    background: #111b27;           /* solid: no page text showing through */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    padding: 14px;
+    max-height: calc(100dvh - 104px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .app-nav-menu.open {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: stretch;
+  }
+  /* The actions become items of the menu grid, so they can be ordered around the links */
+  .app-nav-actions {
+    display: contents;
+  }
+  .app-nav-list {
+    grid-column: 1 / -1;
+    order: 2;
+    gap: 4px;
+  }
+  .app-nav-link {
+    min-height: 50px;
+    padding: 12px 16px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    border-radius: 12px;
+    gap: 14px;
+  }
+  .app-nav-link .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .btn-quick-search {
+    grid-column: 1 / -1;
+    order: 3;
+    min-height: 48px;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 0 16px;
+    font-size: 0.98rem;
+    border-radius: 12px;
+  }
+  .btn-quick-search .search-btn-kbd {
+    display: none;                 /* no keyboard shortcut on a phone */
+  }
+  .lang-switch {
+    order: 4;
+    height: 48px;
+    width: auto;
+    border-radius: 12px;
+  }
+  .lang-btn {
+    font-size: 0.95rem;
+  }
+  .btn-discord-nav {
+    order: 4;
+    height: 48px;
+    width: auto;
+    border-radius: 12px;
+    font-size: 0.95rem;
+  }
+  /* Logged out: the Discord button leads the menu */
+  .app-nav-actions > .btn-discord-login {
+    grid-column: 1 / -1;
+    order: 1;
+    min-height: 50px;
+    justify-content: center;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+  /* Logged in: an account card at the top (name, then its links, always open) */
+  .app-nav-actions > .nav-dropdown {
+    grid-column: 1 / -1;
+    order: 1;
+    width: 100%;
+    padding: 6px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+  }
+  .app-nav-actions > .nav-dropdown .auth-user-btn {
+    width: 100%;
+    min-height: 52px;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 6px 10px;
+    border: 0;
+    background: transparent;
+    pointer-events: none;          /* a title, the links below are always shown */
+  }
+  .app-nav-actions > .nav-dropdown .auth-user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .app-nav-actions > .nav-dropdown .auth-user-name {
+    display: inline;
+    max-width: none;
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+  .app-nav-actions > .nav-dropdown .chevron-icon {
+    display: none;
+  }
+  .app-nav-actions > .nav-dropdown .nav-dropdown-menu {
+    margin: 2px 0 0;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 0;
+  }
+  .app-nav-actions > .nav-dropdown .nav-dropdown-item {
+    min-height: 46px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.98rem;
+  }
+}
+
+@media (max-width: 640px) {
+  /* ---- Members / servers filters: no empty block, two selects side by side ---- */
+  .top-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+  }
+  .top-form .top-filter-group {
+    flex: none;
+    min-width: 0;
+  }
+  .top-form .top-search-group,
+  .top-form .top-server-filter-group,
+  .top-form .top-button {
+    grid-column: 1 / -1;
+  }
+  .top-form .top-label {
+    font-size: 0.85rem;
+  }
+  .top-select {
+    min-height: 44px;
+    padding-left: 12px;
+    padding-right: 26px;
+    text-overflow: ellipsis;
+  }
+
+  /* ---- Ranking rows: the name gets the full width, the level goes under it ---- */
+  .stats-box .username-fixed {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+  .stats-box .username-fixed .text-overflow {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stats-box .user-level-tag {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 760px) {
+  /* ---- Touch targets: at least ~40 px ---- */
+  .granularity-btn {
+    min-height: 40px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .cz-tab {
+    min-height: 44px;
+  }
+  .profile-vitrine-edit {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+  }
+  /* iOS zooms into any field under 16 px when it is focused */
+  input[type="text"],
+  input[type="search"],
+  input:not([type]),
+  select,
+  textarea,
+  .page-search-input,
+  .global-search-input {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* ---- Home figures: a compact 2 x 2 grid instead of four full-screen cards ---- */
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .dashboard-kpi-grid .dashboard-kpi-card {
+    padding: 14px;
+    min-height: 0;
+  }
+  .dashboard-kpi-grid .dashboard-kpi-icon {
+    display: none;
+  }
+  .dashboard-kpi-grid .dashboard-kpi-label {
+    font-size: 0.7rem;
+    line-height: 1.3;
+  }
+  .dashboard-kpi-grid .dashboard-kpi-val {
+    font-size: 1.45rem;
+    margin: 6px 0;
+  }
+  .dashboard-kpi-grid .dashboard-kpi-pill {
+    font-size: 0.7rem;
+    white-space: normal;
+    line-height: 1.3;
+  }
+}
