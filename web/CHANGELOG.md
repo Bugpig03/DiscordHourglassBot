@@ -1,5 +1,27 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.20.0 - Onglets Plus Clairs & Admin : Arrivées et Membres Présents - 23/10/2026
+### Navigation dans les pages (profil, fiche serveur, Analyses, admin)
+- **Les onglets deviennent une vraie barre de sections.**
+  - Avant, des boutons séparés ressemblaient aux filtres (Vocal / Messages…), et beaucoup de visiteurs ne voyaient pas que c'étaient des onglets.
+  - Maintenant, une seule barre regroupe les sections. Celle qui est ouverte est surélevée et soulignée par la couleur du profil.
+- **Un sous-titre sous chaque onglet** dit ce qu'il contient : « Séries, calendrier, sessions », « Évolution et répartition », « Présence et heures de pointe »…
+- **« Autres sections » en bas de chaque onglet** : des boutons vers les autres sections, qui remontent jusqu'à la barre.
+- Sur mobile :
+  - la barre défile horizontalement, avec un fondu à droite tant que d'autres sections sont cachées ;
+  - la section ouverte reste toujours visible dans la barre ;
+  - les sous-titres sont masqués pour gagner de la place.
+- Le style des onglets, copié dans trois fichiers CSS, est réuni dans `styles.css`.
+
+### Admin (onglet Bot & base)
+- **« Membres présents sur les serveurs »** : les personnes uniques vues par le bot sur tous ses serveurs, y compris celles qui n'ont jamais parlé ni rejoint un vocal. Chacune compte une fois, même présente sur plusieurs serveurs, et les bots sont exclus.
+  - Le total, en ligne, **jamais actifs** (nombre et %), déjà actifs, serveurs par membre ;
+  - une courbe sur 30 jours, qui commence au premier relevé, sans faux zéros.
+  - Données relevées par le bot v3.3.0 toutes les 15 minutes (table `bot_member_snapshots`). Un message s'affiche tant qu'aucun relevé n'existe.
+- **30 derniers membres arrivés** : la date de leur première activité vue par Hourglass, et le serveur où elle a eu lieu.
+- **30 derniers serveurs arrivés** : la date d'ajout du bot, et son départ éventuel.
+- Ces listes défilent et ont un champ de recherche, comme les autres longues listes de l'admin.
+
 ## Version 3.19.0 - Nouvelles Cartes de Statistiques - 20/10/2026
 ### Cartes (bot Discord et cartes SVG intégrables)
 - **Toutes les cartes sont refaites dans le style du site**, et le site les dessine aussi pour le bot : une seule mise en forme pour les deux.

@@ -134,3 +134,13 @@ CREATE TABLE IF NOT EXISTS bot_command_events (
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_bot_command_events_created ON bot_command_events (created_at);
+
+-- Unique members present on the servers, every 15 min (bot v3.3.0, admin page only, kept 90 days)
+CREATE TABLE IF NOT EXISTS bot_member_snapshots (
+    recorded_at TIMESTAMP WITHOUT TIME ZONE PRIMARY KEY DEFAULT NOW(),
+    unique_members INTEGER NOT NULL,
+    unique_online INTEGER NOT NULL,
+    memberships INTEGER NOT NULL,
+    servers INTEGER NOT NULL,
+    known_members INTEGER NOT NULL
+);

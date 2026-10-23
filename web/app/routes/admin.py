@@ -244,7 +244,52 @@ def compute_admin_data(lang: str = "fr") -> dict:
     sizes = _rows(
         "SELECT c.relname, GREATEST(c.reltuples, 0)::bigint, pg_total_relation_size(c.oid) FROM pg_class c "
         "WHERE c.relname = ANY(%s) AND c.relkind = 'r' ORDER BY 3 DESC", (DB_TABLES,))
+    # Latest arrivals: a member arrives with their first stats row (first activity seen on any server)
+    member_rows = _rows(
+        "SELECT f.user_id, f.first_seen, u.username, u.avatar, sv.server_id, sv.servername FROM ("
+        " SELECT DISTINCT ON (user_id) user_id, server_id, date_creation AS first_seen FROM stats"
+        " WHERE date_creation IS NOT NULL ORDER BY user_id, date_creation) f"
+        " LEFT JOIN users u ON u.user_id = f.user_id LEFT JOIN servers sv ON sv.server_id = f.server_id"
+        " ORDER BY f.first_seen DESC LIMIT 30")
+    server_rows = _rows(
+        "SELECT server_id, servername, avatar, first_tracked_at, left_at FROM servers"
+        " WHERE first_tracked_at IS NOT NULL ORDER BY first_tracked_at DESC LIMIT 30")
+    arrivals = {
+        "members": [{
+            "name": name or str(uid), "avatar": avatar, "url": url_for("user_profile.profile", username=uid),
+            "at": first.isoformat(timespec="minutes"),
+            "server": srv_name or (str(srv_id) if srv_id else None),
+            "server_url": url_for("server_profile.server", server_id=srv_id) if srv_id else None,
+        } for uid, first, name, avatar, srv_id, srv_name in member_rows],
+        "servers": [{
+            "name": name or str(sid), "avatar": avatar, "url": url_for("server_profile.server", server_id=sid),
+            "at": first.isoformat(timespec="minutes"), "left": left.isoformat(timespec="minutes") if left else None,
+        } for sid, name, avatar, first, left in server_rows],
+    }
+
+    # Unique people present on the servers right now (bot v3.3.0 snapshot, every 15 min), active or not
+    snap = _rows("SELECT recorded_at, unique_members, unique_online, memberships, servers, known_members "
+                 "FROM bot_member_snapshots ORDER BY recorded_at DESC LIMIT 1")
+    snap_days = _rows("SELECT recorded_at::date, MAX(unique_members), MAX(known_members) FROM bot_member_snapshots "
+                      "WHERE recorded_at >= %s GROUP BY 1 ORDER BY 1", (d30[0],))
+    audience = None
+    if snap:
+        at, unique, online, memberships, servers_listed, known = snap[0]
+        audience = {
+            "at": at.isoformat(timespec="minutes"), "unique": int(unique), "online": int(online),
+            "memberships": int(memberships), "servers": int(servers_listed), "known": int(known),
+            "silent": max(0, int(unique) - int(known)),
+            "silent_percent": round((int(unique) - int(known)) / int(unique) * 100, 1) if unique else 0,
+            "per_member": round(int(memberships) / int(unique), 2) if unique else 0,
+            # Only the days with a snapshot (no fake zeros before the bot started counting)
+            "labels": [_day_label(r[0], lang) for r in snap_days],
+            "unique_daily": [int(r[1]) for r in snap_days],
+            "known_daily": [int(r[2]) for r in snap_days],
+        }
+
     bot = {
+        "arrivals": arrivals,
+        "audience": audience,
         "servers_total": int(_one("SELECT COUNT(*) FROM servers")),
         "servers_present": int(_one("SELECT COUNT(*) FROM servers WHERE is_bot_present")),
         "servers_left": int(_one("SELECT COUNT(*) FROM servers WHERE NOT is_bot_present")),

@@ -36,68 +36,6 @@
     box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
 }
 
-/* Tab Navigation Styles */
-.graphs-tabs-wrapper {
-    margin: 25px 0 25px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 14px;
-}
-.graphs-tabs {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 4px 2px 8px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-    -webkit-overflow-scrolling: touch;
-}
-.graphs-tabs::-webkit-scrollbar {
-    height: 5px;
-}
-.graphs-tabs::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 4px;
-}
-.graphs-tab-btn {
-    background: #15202e;
-    color: #94a3b8;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 10px 18px;
-    border-radius: 12px;
-    font-size: 0.92rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    white-space: nowrap;
-    user-select: none;
-}
-.graphs-tab-btn:hover {
-    background: #1c2a3a;
-    color: #ffffff;
-    border-color: rgba(56, 189, 248, 0.35);
-    transform: translateY(-1px);
-}
-.graphs-tab-btn.active {
-    background: rgba(57, 146, 190, 0.2);
-    color: #38bdf8;
-    border-color: #38bdf8;
-    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
-}
-.graphs-tab-btn .tab-badge {
-    background: rgba(255, 255, 255, 0.08);
-    color: #94a3b8;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-.graphs-tab-btn.active .tab-badge {
-    background: rgba(56, 189, 248, 0.3);
-    color: #e0f2fe;
-}
 .graphs-tab-pane {
     display: none;
 }

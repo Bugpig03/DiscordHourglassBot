@@ -41,15 +41,15 @@
     <div class="graphs-tabs" role="tablist">
         <button class="graphs-tab-btn active" data-tab="tab-trends" data-call="switchGraphTab" data-arg="tab-trends">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            <span>{{ 'Évolution' if fr else 'Over time' }}</span>
+            <span class="tab-text"><span class="tab-title">{{ 'Évolution' if fr else 'Over time' }}</span><small class="tab-desc">{{ 'Vocal et messages dans le temps' if fr else 'Voice and messages over time' }}</small></span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-rhythm" data-call="switchGraphTab" data-arg="tab-rhythm">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>{{ 'Horaires' if fr else 'Hours' }}</span>
+            <span class="tab-text"><span class="tab-title">{{ 'Horaires' if fr else 'Hours' }}</span><small class="tab-desc">{{ 'Présence et heures de pointe' if fr else 'Presence and peak hours' }}</small></span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>{{ 'Communauté' if fr else 'Community' }}</span>
+            <span class="tab-text"><span class="tab-title">{{ 'Communauté' if fr else 'Community' }}</span><small class="tab-desc">{{ 'Nouveaux membres et classements' if fr else 'New members and rankings' }}</small></span>
         </button>
     </div>
 </div>

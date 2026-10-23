@@ -243,27 +243,27 @@
 <!-- TAB NAVIGATION BAR                                                  -->
 <!-- =================================================================== -->
 <div class="graphs-tabs-wrapper">
-    <div class="graphs-tabs">
+    <div class="graphs-tabs" role="tablist">
         <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchUserProfileTab" data-arg="tab-activity">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-            <span>{{ t('user_profile.tab_activity') }}</span>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_activity') }}</span><small class="tab-desc">{{ 'Séries, calendrier, sessions' if fr else 'Streaks, calendar, sessions' }}</small></span>
         </button>
         {% if layout.visible.tab_charts %}
         <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchUserProfileTab" data-arg="tab-charts">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            <span>{{ t('user_profile.tab_graphs') }}</span>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_graphs') }}</span><small class="tab-desc">{{ 'Évolution et répartition' if fr else 'Trends and breakdown' }}</small></span>
         </button>
         {% endif %}
         {% if layout.visible.tab_servers %}
         <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchUserProfileTab" data-arg="tab-servers">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
-            <span>{{ t('user_profile.tab_servers') }}</span>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_servers') }}</span><small class="tab-desc">{{ 'Ses serveurs et classements' if fr else 'Servers and rankings' }}</small></span>
         </button>
         {% endif %}
         {% if layout.visible.tab_badges %}
         <button class="graphs-tab-btn" data-tab="tab-badges" data-call="switchUserProfileTab" data-arg="tab-badges">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-            <span>{{ t('user_profile.tab_badges') }}</span>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_badges') }}</span><small class="tab-desc">{{ 'Débloqués et à venir' if fr else 'Unlocked and upcoming' }}</small></span>
         </button>
         {% endif %}
     </div>

@@ -41,12 +41,12 @@
 
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs adm-tabs" role="tablist">
-        <button class="graphs-tab-btn active" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><span>{{ 'Fréquentation' if fr else 'Traffic' }}</span></button>
-        <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><span>{{ 'Comptes' if fr else 'Accounts' }}</span></button>
-        <button class="graphs-tab-btn" data-tab="tab-custom" data-call="switchGraphTab" data-arg="tab-custom"><span>{{ 'Personnalisation' if fr else 'Customization' }}</span></button>
-        <button class="graphs-tab-btn" data-tab="tab-commands" data-call="switchGraphTab" data-arg="tab-commands"><span>{{ "Commandes" if fr else "Commands" }}</span></button>
-        <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><span>{{ 'Bot & base' if fr else 'Bot & DB' }}</span></button>
-        <button class="graphs-tab-btn" data-tab="tab-health" data-call="switchGraphTab" data-arg="tab-health"><span>{{ 'Santé' if fr else 'Health' }}</span></button>
+        <button class="graphs-tab-btn active" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><span class="tab-text"><span class="tab-title">{{ 'Fréquentation' if fr else 'Traffic' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><span class="tab-text"><span class="tab-title">{{ 'Comptes' if fr else 'Accounts' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-custom" data-call="switchGraphTab" data-arg="tab-custom"><span class="tab-text"><span class="tab-title">{{ 'Personnalisation' if fr else 'Customization' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-commands" data-call="switchGraphTab" data-arg="tab-commands"><span class="tab-text"><span class="tab-title">{{ "Commandes" if fr else "Commands" }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><span class="tab-text"><span class="tab-title">{{ 'Bot & base' if fr else 'Bot & DB' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-health" data-call="switchGraphTab" data-arg="tab-health"><span class="tab-text"><span class="tab-title">{{ 'Santé' if fr else 'Health' }}</span></span></button>
     </div>
 </div>
 
@@ -158,6 +158,25 @@
 <!-- ============================ Bot & base ============================ -->
 <div id="tab-bot" class="graphs-tab-pane">
     <div class="adm-stats" id="botStats"></div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Membres présents sur les serveurs' if fr else 'Members present on the servers' }}</h2>
+            <p class="an-card-desc">{{ 'Personnes uniques vues par le bot sur tous ses serveurs, y compris celles qui n’ont jamais parlé ni rejoint un vocal (chacune comptée une fois). Relevé toutes les 15 min.' if fr else 'Unique people seen by the bot on all its servers, including those who never talked nor joined voice (each counted once). Snapshot every 15 min.' }}</p></div></div>
+        <p class="adm-notice" id="audienceNotice" hidden>{{ 'Pas encore de relevé : il apparaît 15 minutes après le démarrage du bot v3.3.0.' if fr else 'No snapshot yet: it appears 15 minutes after bot v3.3.0 starts.' }}</p>
+        <div class="adm-stats" id="audienceStats"></div>
+        <div class="an-chart an-chart-sm" id="audienceChartWrap">{{ loading() }}<canvas id="audienceChart"></canvas></div>
+    </section>
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><div><h2 class="an-card-title">{{ '30 derniers membres arrivés' if fr else 'Last 30 members to arrive' }}</h2>
+                <p class="an-card-desc">{{ 'Première activité vue par Hourglass, et le serveur où elle a eu lieu.' if fr else 'First activity seen by Hourglass, and the server where it happened.' }}</p></div></div>
+            <div class="adm-table-wrap"><table class="adm-table" id="recentMembers"><tbody><tr><td>…</td></tr></tbody></table></div>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><div><h2 class="an-card-title">{{ '30 derniers serveurs arrivés' if fr else 'Last 30 servers to arrive' }}</h2>
+                <p class="an-card-desc">{{ 'Date d’ajout du bot, et départ éventuel.' if fr else 'When the bot was added, and left if it did.' }}</p></div></div>
+            <div class="adm-table-wrap"><table class="adm-table" id="recentServers"><tbody><tr><td>…</td></tr></tbody></table></div>
+        </section>
+    </div>
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Serveurs : arrivées et départs du bot' if fr else 'Servers: bot joins and leaves' }}</h2>
             <p class="an-card-desc">{{ '12 derniers mois.' if fr else 'Last 12 months.' }}</p></div></div>

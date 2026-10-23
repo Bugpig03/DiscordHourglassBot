@@ -81,3 +81,65 @@
     }, { passive: true });
     window.addEventListener('scroll', hide, { passive: true });
 })();
+
+// Tabbed pages: at the end of each section, buttons to the other sections (many visitors never noticed
+// the tab bar). They click the real tab, so each page keeps its own switching logic, then bring the bar back in view.
+document.addEventListener('DOMContentLoaded', function () {
+    const bar = document.querySelector('.graphs-tabs:not(.adm-tabs)');
+    if (!bar) return;
+    const tabs = Array.from(bar.querySelectorAll('.graphs-tab-btn[data-tab]'));
+    if (tabs.length < 2) return;
+    const fr = document.documentElement.lang !== 'en';
+    tabs.forEach(function (tab) {
+        tab.setAttribute('role', 'tab');
+        const pane = document.getElementById(tab.dataset.tab);
+        if (!pane) return;
+        const nav = document.createElement('nav');
+        nav.className = 'tab-next';
+        nav.setAttribute('aria-label', fr ? 'Autres sections' : 'Other sections');
+        const label = document.createElement('span');
+        label.className = 'tab-next-label';
+        label.textContent = fr ? 'Autres sections' : 'Other sections';
+        nav.appendChild(label);
+        tabs.filter(function (other) { return other !== tab; }).forEach(function (other) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'tab-next-btn';
+            const icon = other.querySelector('svg');
+            if (icon) btn.appendChild(icon.cloneNode(true));
+            const title = document.createElement('span');
+            title.textContent = (other.querySelector('.tab-title') || other).textContent.trim();
+            btn.appendChild(title);
+            btn.addEventListener('click', function () {
+                other.click();
+                bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            nav.appendChild(btn);
+        });
+        pane.appendChild(nav);
+    });
+});
+
+// Tab bars wider than the screen (mobile): fade the right edge while sections remain hidden
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.graphs-tabs').forEach(function (bar) {
+        const update = function () {
+            bar.classList.toggle('has-more', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4);
+        };
+        // Keep the open section visible in the bar (it may be scrolled out on a phone)
+        const reveal = function () {
+            const active = bar.querySelector('.graphs-tab-btn.active');
+            if (!active || bar.scrollWidth <= bar.clientWidth) return;
+            const left = active.offsetLeft - bar.offsetLeft;
+            if (left < bar.scrollLeft || left + active.offsetWidth > bar.scrollLeft + bar.clientWidth) {
+                bar.scrollLeft = Math.max(0, left - 12);  // instant: a smooth scroll is cancelled by the page scroll
+                update();
+            }
+        };
+        bar.addEventListener('click', function () { setTimeout(reveal, 0); });
+        bar.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        update();
+        setTimeout(reveal, 0);
+    });
+});
