@@ -1,5 +1,13 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.3.0 - Comptage des Membres Uniques - 23/10/2026
+
+- **Relevé des membres présents sur les serveurs**, toutes les 15 minutes avec le relevé de présence, pour la page admin du site (v3.20.0) :
+  - membres **uniques** sur l'ensemble des serveurs : chacun compte une fois, et les bots sont exclus ;
+  - combien sont en ligne, combien ont déjà une activité enregistrée (et donc combien n'ont jamais parlé ni rejoint un vocal), le nombre d'appartenances et le nombre de serveurs listés.
+- Le bot se sert des listes de membres que Discord lui envoie déjà au démarrage (intent des membres) : aucune nouvelle permission, et aucun identifiant de membre n'est stocké, seulement des totaux.
+- Table `bot_member_snapshots`, créée au démarrage si elle manque, et purgée après 90 jours. Migration facultative : `database/migrations/2026-10-23_bot_v3.3.0_member_snapshots.sql`.
+
 ## Version 3.2.0 - Cartes Dessinées par le Site Web - 20/10/2026
 
 - **Les cartes images viennent du site web (v3.19.0)** : le bot ne dessine plus rien.

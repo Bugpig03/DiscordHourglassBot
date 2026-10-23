@@ -277,10 +277,33 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	totalDnd := 0
 	totalOffline := 0
 
+	// Unique people across every server (admin page): a member present on several servers counts once
+	members := make(map[string]struct{})
+	online := make(map[string]struct{})
+	memberships, listedServers := 0, 0
+
 	for _, g := range s.State.Guilds {
 		guild, err := s.State.Guild(g.ID)
 		if err != nil || guild == nil {
 			continue
+		}
+		if len(guild.Members) > 0 {
+			listedServers++
+		}
+		for _, m := range guild.Members {
+			if m.User == nil {
+				continue
+			}
+			if m.User.Bot {
+				continue
+			}
+			memberships++
+			members[m.User.ID] = struct{}{}
+		}
+		for _, p := range guild.Presences {
+			if p.User != nil && p.Status != discordgo.StatusOffline && p.Status != "" {
+				online[p.User.ID] = struct{}{}
+			}
 		}
 		online, idle, dnd := 0, 0, 0
 		for _, p := range guild.Presences {
@@ -316,6 +339,29 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		_ = h.DB.CleanOldPresenceHistory(ctx)
 		_ = h.DB.CleanOldCommandEvents(ctx)
 		log.Printf("📊 [PRESENCE] Instantané 48h enregistré (En ligne: %d, Absent: %d, DND: %d, Hors-ligne: %d)", totalOnline, totalIdle, totalDnd, totalOffline)
+	}
+
+	if len(members) > 0 {
+		snapshot := database.MemberSnapshot{UniqueMembers: len(members), Memberships: memberships, Servers: listedServers}
+		for id := range online {
+			if _, isMember := members[id]; isMember {
+				snapshot.UniqueOnline++
+			}
+		}
+		if known, err := h.DB.KnownUserIDs(ctx); err == nil {
+			for id := range members {
+				if n, perr := strconv.ParseInt(id, 10, 64); perr == nil {
+					if _, ok := known[n]; ok {
+						snapshot.KnownMembers++
+					}
+				}
+			}
+		}
+		if err := h.DB.RecordMemberSnapshot(ctx, snapshot); err != nil {
+			log.Printf("⚠️ Membres uniques non enregistrés: %v", err)
+		} else {
+			log.Printf("👥 [MEMBRES] %d membres uniques (%d en ligne, %d déjà actifs) sur %d serveurs", snapshot.UniqueMembers, snapshot.UniqueOnline, snapshot.KnownMembers, snapshot.Servers)
+		}
 	}
 }
 
