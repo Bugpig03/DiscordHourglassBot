@@ -422,6 +422,12 @@
             <div class="small-text gray" style="margin-top: 4px;">
                 {{ 'Membres avec qui ' ~ stats.username ~ ' passe le plus de temps en vocal dans les mêmes salons.' if current_lang == 'fr' else 'Users who spent the most simultaneous voice time with ' ~ stats.username ~ '.' }}
             </div>
+            {% if companions_since %}
+            <div class="companions-since" data-tip="{{ 'Les salons vocaux sont enregistrés depuis cette date : le temps passé ensemble avant n’est pas connu.' if current_lang == 'fr' else 'Voice channels are recorded since this date: time spent together before is unknown.' }}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ ('Données depuis le ' if current_lang == 'fr' else 'Data since ') ~ companions_since }}
+            </div>
+            {% endif %}
         </div>
 
         {% if voice_companions %}

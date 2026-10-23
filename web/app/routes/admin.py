@@ -230,7 +230,11 @@ def compute_admin_data(lang: str = "fr") -> dict:
 
     # ---------------- Bot & database ----------------
     month_start = (today.replace(day=1) - timedelta(days=330)).replace(day=1)
-    joins = dict(_rows("SELECT DATE_TRUNC('month', first_tracked_at)::date, COUNT(*) FROM servers WHERE first_tracked_at >= %s GROUP BY 1", (month_start,)))
+    # Arrival of a server: first_tracked_at or its first stats row, whichever is older (the column was added in
+    # October 2026 with DEFAULT CURRENT_TIMESTAMP: servers known before carry that day)
+    arrived_sql = ("SELECT s.server_id, s.servername, s.avatar, LEAST(s.first_tracked_at, f.first) AS arrived, s.left_at FROM servers s"
+                   " LEFT JOIN (SELECT server_id, MIN(date_creation) AS first FROM stats GROUP BY server_id) f ON f.server_id = s.server_id")
+    joins = dict(_rows(f"SELECT DATE_TRUNC('month', arrived)::date, COUNT(*) FROM ({arrived_sql}) a WHERE arrived >= %s GROUP BY 1", (month_start,)))
     leaves = dict(_rows("SELECT DATE_TRUNC('month', left_at)::date, COUNT(*) FROM servers WHERE left_at >= %s GROUP BY 1", (month_start,)))
     months = []
     m = month_start
@@ -251,9 +255,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
         " WHERE date_creation IS NOT NULL ORDER BY user_id, date_creation) f"
         " LEFT JOIN users u ON u.user_id = f.user_id LEFT JOIN servers sv ON sv.server_id = f.server_id"
         " ORDER BY f.first_seen DESC LIMIT 30")
-    server_rows = _rows(
-        "SELECT server_id, servername, avatar, first_tracked_at, left_at FROM servers"
-        " WHERE first_tracked_at IS NOT NULL ORDER BY first_tracked_at DESC LIMIT 30")
+    server_rows = _rows(f"SELECT * FROM ({arrived_sql}) a WHERE arrived IS NOT NULL ORDER BY arrived DESC LIMIT 30")
     arrivals = {
         "members": [{
             "name": name or str(uid), "avatar": avatar, "url": url_for("user_profile.profile", username=uid),
@@ -317,6 +319,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
         by_status.setdefault(int(status), {})[day] = int(hits)
     top_404 = _rows("SELECT path_key, SUM(hits) FROM web_status_daily WHERE status = 404 AND day >= %s GROUP BY path_key ORDER BY 2 DESC LIMIT 50", (d30[0],))
     from app.routes.graphs import LAST_REFRESH
+    from app import config as app_config
     health = {
         "labels": [_day_label(d, lang) for d in d30],
         "s404": [by_status[404].get(d, 0) for d in d30],
@@ -324,6 +327,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
         "s500": [by_status[500].get(d, 0) for d in d30],
         "top_404": [{"name": p, "value": int(n)} for p, n in top_404],
         "analytics_refresh": dict(LAST_REFRESH),
+        "session_key_source": app_config.SECRET_KEY_SOURCE,
     }
 
     # ---------------- Bot commands (table written by the bot since bot v3.1.0) ----------------

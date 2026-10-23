@@ -190,3 +190,14 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
+
+/* Voice companions: discreet start date of the data */
+.companions-since {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    color: #7c8ba1;
+    font-size: 0.78rem;
+    cursor: help;
+}

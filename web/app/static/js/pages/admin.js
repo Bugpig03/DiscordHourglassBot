@@ -311,6 +311,18 @@ function sectionHealth() {
                 r.at ? `${T('dernier rafraîchissement', 'last refresh')} ${dateText(r.at)} (${T('ce worker', 'this worker')})` : T('pas encore rafraîchi sur ce worker', 'not refreshed on this worker yet'),
                 r.ms > 2000 ? 'warn' : ''],
         ]);
+        // Session key: anything but a stored key means members are logged out when the container is recreated
+        const keySources = {
+            env: [T('Variable SECRET_KEY', 'SECRET_KEY variable'), T('stable entre les mises à jour', 'stable across updates'), 'ok'],
+            discord: [T('Dérivée de DISCORD_CLIENT_SECRET', 'Derived from DISCORD_CLIENT_SECRET'), T('stable entre les mises à jour', 'stable across updates'), 'ok'],
+            database: [T('Enregistrée en base', 'Stored in the database'), T('stable entre les mises à jour', 'stable across updates'), 'ok'],
+            file: [T('Fichier du conteneur', 'Container file'), T('perdue à chaque mise à jour : membres déconnectés', 'lost on every update: members logged out'), 'ko'],
+            random: [T('Aléatoire', 'Random'), T('change à chaque démarrage : membres déconnectés', 'changes on every start: members logged out'), 'ko'],
+        };
+        const ks = keySources[h.session_key_source] || keySources.random;
+        const tiles = document.getElementById('healthStats');
+        tiles.insertAdjacentHTML('beforeend', `<div class="adm-stat is-${ks[2]}"><span class="adm-stat-label">${T('Clé de session', 'Session key')}</span>
+            <span class="adm-stat-value" style="font-size:1.05rem">${HG.esc(ks[0])}</span><span class="adm-stat-sub">${HG.esc(ks[1])}</span></div>`);
         lineChart('statusChart', h.labels, [bars('404', h.s404, '#94a3b8'), bars('429', h.s429, '#fbbf24'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
 }
 

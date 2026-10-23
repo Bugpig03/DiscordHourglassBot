@@ -39,19 +39,57 @@ def load_app_version() -> tuple[str, str]:
     return "3.0.0", "17/10/2026"
 
 
+# Where the session key came from (shown on the admin page): "env", "discord", "database", "file" or "random"
+SECRET_KEY_SOURCE = "random"
+
+
+def _database_secret_key() -> str | None:
+    """Session key kept in web_settings: created once by the first worker, then read by every worker and restart."""
+    try:
+        import psycopg2
+        conn = psycopg2.connect(
+            dbname=os.environ.get("POSTGRESQL_DBNAME", "devhourglass"), user=os.environ.get("POSTGRESQL_USER", "postgres"),
+            password=os.environ.get("POSTGRESQL_PASSWORD", "admin"), host=os.environ.get("POSTGRESQL_HOST", "localhost"),
+            port=int(os.environ.get("POSTGRESQL_PORT", "5432")), connect_timeout=5,
+        )
+    except Exception:
+        return None
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute("CREATE TABLE IF NOT EXISTS web_settings (key VARCHAR(64) PRIMARY KEY, value TEXT NOT NULL)")
+            cur.execute("INSERT INTO web_settings (key, value) VALUES ('session_secret', %s) ON CONFLICT (key) DO NOTHING",
+                        (secrets.token_hex(32),))
+            cur.execute("SELECT value FROM web_settings WHERE key = 'session_secret'")
+            row = cur.fetchone()
+            return row[0] if row else None
+    except Exception:
+        return None
+    finally:
+        conn.close()
+
+
 def load_secret_key() -> str:
     """Return the session signing key without ever falling back to a value published in the source code.
 
     Priority: SECRET_KEY / FLASK_SECRET_KEY env var, then a key derived from DISCORD_CLIENT_SECRET
-    (stable across Gunicorn workers), then a random key persisted once in web/.flask_secret_key.
+    (stable across Gunicorn workers), then a random key stored once in the database (survives the
+    container being recreated by an update, so members stay logged in), then web/.flask_secret_key.
     """
+    global SECRET_KEY_SOURCE
     configured = os.environ.get("SECRET_KEY") or os.environ.get("FLASK_SECRET_KEY")
     if configured:
+        SECRET_KEY_SOURCE = "env"
         return configured
 
     client_secret = os.environ.get("DISCORD_CLIENT_SECRET")
     if client_secret:
+        SECRET_KEY_SOURCE = "discord"
         return hashlib.sha256(f"hourglass-session:{client_secret}".encode()).hexdigest()
+
+    stored = _database_secret_key()
+    if stored:
+        SECRET_KEY_SOURCE = "database"
+        return stored
 
     key_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".flask_secret_key")
     try:
@@ -65,6 +103,7 @@ def load_secret_key() -> str:
         with open(key_path, "r", encoding="utf-8") as f:
             key = f.read().strip()
         if key:
+            SECRET_KEY_SOURCE = "file"
             return key
     except OSError:
         pass

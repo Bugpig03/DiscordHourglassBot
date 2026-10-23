@@ -935,15 +935,19 @@ def get_user_raw_join_date(user_id: int, server_id: int | None = None):
 
 
 def get_server_raw_join_date(server_id: int | str):
-    """Return the raw earliest recorded activity datetime for a server (oldest registered user on the server)."""
+    """Earliest date Hourglass knew the server: first_tracked_at or its first activity, whichever is older.
+
+    first_tracked_at was added in October 2026 with DEFAULT CURRENT_TIMESTAMP, so every server known before
+    that day carries the migration date: its first stats row tells when the bot really started tracking it.
+    """
     int_server_id = int(server_id)
     server = Servers.select(Servers.first_tracked_at).where(Servers.server_id == int_server_id).first()
-    if server and server.first_tracked_at:
-        return server.first_tracked_at
-    min_date = Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == int_server_id).scalar()
-    if not min_date:
-        min_date = VoiceSessions.select(fn.MIN(VoiceSessions.joined_at)).where(VoiceSessions.server_id == int_server_id).scalar()
-    return min_date
+    candidates = [server.first_tracked_at] if server and server.first_tracked_at else []
+    candidates.append(Stats.select(fn.MIN(Stats.date_creation)).where(Stats.server_id == int_server_id).scalar())
+    if not any(candidates):
+        candidates.append(VoiceSessions.select(fn.MIN(VoiceSessions.joined_at)).where(VoiceSessions.server_id == int_server_id).scalar())
+    known = [d for d in candidates if d]
+    return min(known) if known else None
 
 
 def get_server_join_date(server_id: int | str, lang: str = "fr") -> str:
@@ -1913,6 +1917,18 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
         "best_day": best_day,
         "has_data": total_active_days > 0
     }
+
+
+def get_user_companions_since(user_id: int | str):
+    """Start of the data behind the voice companions: the member's first voice session recorded with its channel.
+
+    Companions are found by matching sessions in the same channel at the same time; archived sessions (is_legacy)
+    have no channel, so they never count.
+    """
+    return (VoiceSessions
+            .select(fn.MIN(VoiceSessions.joined_at))
+            .where((VoiceSessions.user_id == int(user_id)) & VoiceSessions.channel_id.is_null(False) & (VoiceSessions.is_legacy == False))
+            .scalar())
 
 
 def get_user_voice_companions(user_id: int | str, server_id: int | str | None = None, limit: int = 6) -> list[dict]:

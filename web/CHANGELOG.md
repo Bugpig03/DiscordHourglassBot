@@ -1,5 +1,26 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.23.0 - Vraie Date d'Arrivée des Serveurs, Ancienneté des Compagnons & Sessions Durables - 23/10/2026
+### Corrections
+- **Date d'arrivée des serveurs** : 45 serveurs sur 49 affichaient le 4 octobre 2026.
+  - Cause : la colonne `servers.first_tracked_at` a été ajoutée ce jour-là avec `DEFAULT CURRENT_TIMESTAMP`, si bien que tous les serveurs déjà connus ont reçu la date de la migration.
+  - La date affichée est maintenant la plus ancienne entre `first_tracked_at` et la première ligne de statistiques du serveur.
+  - Partout où elle apparaît : fiche serveur, carte `/server` (« Tracked since »), et dans l'admin les 30 derniers serveurs arrivés ainsi que le graphique des arrivées par mois.
+  - Migration facultative `database/migrations/2026-10-23_web_v3.23.0_server_first_tracked_fix.sql` : elle corrige aussi les dates enregistrées, et ne fait que les avancer.
+
+### Profil
+- **Compagnons vocaux fréquents** : mention discrète « Données depuis le … », avec une infobulle explicative.
+  - C'est la première session vocale du membre enregistrée avec son salon.
+  - Les sessions plus anciennes, archivées sans salon, ne permettent pas de savoir qui était ensemble.
+
+### Connexion
+- **Les membres restent connectés après une mise à jour.**
+  - Sans `SECRET_KEY`, `FLASK_SECRET_KEY` ni `DISCORD_CLIENT_SECRET`, la clé qui signe le cookie de session était un fichier du conteneur, perdu à chaque redéploiement, ce qui déconnectait tout le monde.
+  - La clé est maintenant créée une seule fois en base (table `web_settings`), puis réutilisée par tous les workers et à chaque démarrage.
+  - Si l'une de ces variables est déjà définie, rien ne change.
+  - Dans ce cas précis, cette mise à jour déconnecte les membres une dernière fois.
+- Admin, onglet Technique : nouvelle tuile **« Clé de session »**, qui indique d'où vient la clé. Elle passe en rouge si les membres seront déconnectés à chaque mise à jour.
+
 ## Version 3.22.0 - Admin Réorganisé & Onglets Mieux Alignés - 23/10/2026
 ### Admin
 - **Six onglets regroupés par thème**, avec une icône chacun :

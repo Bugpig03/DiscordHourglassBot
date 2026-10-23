@@ -34,6 +34,8 @@ from app.functions import (
     get_recent_voice_sessions,
     get_user_heatmap_data,
     get_user_voice_companions,
+    get_user_companions_since,
+    format_date_localized,
 )
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges, build_badge_overview
 from app.cache import cache
@@ -177,6 +179,7 @@ def profile(username: str):
         heatmap_annual=extras["heatmap_annual"],
         heatmap_monthly=extras["heatmap_monthly"],
         voice_companions=extras["voice_companions"],
+        companions_since=extras["companions_since"],
         records=pinned_records(extras["records"], settings["pinned_records"]),
         showcase=featured_badges(badges, settings["featured_badges"]),
         can_view_presence=can_view_presence,
@@ -198,12 +201,14 @@ def load_profile_extras(user_id: int, stats: dict, charts: dict, lang: str = "fr
     heatmap_annual = cache.get_or_set(("heatmap", user_id, 365, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=365))
     heatmap_monthly = cache.get_or_set(("heatmap", user_id, 30, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=30))
     voice_companions = cache.get_or_set(("companions", user_id), PROFILE_CACHE_SECONDS, lambda: get_user_voice_companions(user_id, limit=6))
+    companions_since = cache.get_or_set(("companions_since", user_id), PROFILE_CACHE_SECONDS, lambda: get_user_companions_since(user_id))
     sources = cache.get_or_set(("record_sources", user_id), PROFILE_CACHE_SECONDS, lambda: query_record_sources(user_id))
     records = build_records(sources, stats, heatmap_annual, voice_companions, charts.get("peak_voice_hour"), lang)
     return {
         "heatmap_annual": heatmap_annual,
         "heatmap_monthly": heatmap_monthly,
         "voice_companions": voice_companions,
+        "companions_since": format_date_localized(companions_since, lang=lang) if companions_since else None,
         "records": records,
     }
 
