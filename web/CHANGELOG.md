@@ -1,5 +1,23 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.22.0 - Admin Réorganisé & Onglets Mieux Alignés - 23/10/2026
+### Admin
+- **Six onglets regroupés par thème**, avec une icône chacun :
+  - **Vue d'ensemble** (nouvel onglet par défaut) : 8 chiffres clés (visites, visiteurs, comptes liés, profils personnalisés, membres présents, serveurs, commandes, erreurs serveur), chacun cliquable vers son onglet, et la courbe des visites sur 30 jours ;
+  - **Site web** (ex-Fréquentation) ;
+  - **Comptes** : connexions et personnalisation des profils, réunies en un seul onglet, en deux parties titrées ;
+  - **Communauté** : membres présents, derniers membres et serveurs arrivés, arrivées et départs du bot ;
+  - **Bot** : état du bot et commandes ;
+  - **Technique** : santé du site et taille des tables de la base.
+- La rangée de 4 chiffres au-dessus des onglets passe dans la Vue d'ensemble, ce qui allège le haut de la page.
+- Titres de partie dans les onglets qui regroupent plusieurs sujets.
+- Les anciens liens (`#tab-health`, `#tab-commands`, `#tab-custom`) ouvrent le bon onglet.
+
+### Onglets (toutes les pages)
+- Icône et titre **centrés** dans leur part de la barre.
+- Un onglet n'est plus jamais plus étroit que son titre : sur écran étroit, la barre défile au lieu de faire se chevaucher les titres, avec un fondu à droite tant que des onglets sont cachés (désormais sur toutes les tailles d'écran).
+- Les sous-titres sont coupés avec « … » quand la place manque, au lieu d'élargir la barre.
+
 ## Version 3.21.0 - Passe Mobile, Déconnexion & Connexion Discord sur Téléphone - 23/10/2026
 ### Téléphone
 - **Menu burger refait** :

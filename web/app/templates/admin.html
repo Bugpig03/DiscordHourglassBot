@@ -6,16 +6,6 @@
 
 {% macro loading() %}<div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>{% endmacro %}
 
-{% macro kpi(id, label, accent, icon_class) %}
-<div class="dashboard-kpi-card accent-{{ accent }}">
-    <div class="dashboard-kpi-top">
-        <span class="dashboard-kpi-label">{{ label }}</span>
-    </div>
-    <div class="dashboard-kpi-val" id="kpi-{{ id }}"><span class="kpi-skeleton"></span></div>
-    <div class="dashboard-kpi-footer"><span class="an-delta" id="sub-{{ id }}">&nbsp;</span></div>
-</div>
-{% endmacro %}
-
 
 {% block content %}
 <meta name="robots" content="noindex, nofollow">
@@ -32,26 +22,29 @@
     <span class="adm-bot-status" id="admBotStatus"></span>
 </div>
 
-<div class="dashboard-kpi-grid an-kpis adm-kpis">
-    {{ kpi('views', 'Visites · 7 jours' if fr else 'Visits · 7 days', 'blue', 'icon-voice') }}
-    {{ kpi('uniques', 'Visiteurs uniques · aujourd’hui' if fr else 'Unique visitors · today', 'emerald', 'icon-users') }}
-    {{ kpi('accounts', 'Comptes Discord liés' if fr else 'Linked Discord accounts', 'violet', 'icon-users') }}
-    {{ kpi('customized', 'Profils personnalisés' if fr else 'Customized profiles', 'amber', 'icon-servers') }}
-</div>
-
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs adm-tabs" role="tablist">
-        <button class="graphs-tab-btn active" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><span class="tab-text"><span class="tab-title">{{ 'Fréquentation' if fr else 'Traffic' }}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><span class="tab-text"><span class="tab-title">{{ 'Comptes' if fr else 'Accounts' }}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-custom" data-call="switchGraphTab" data-arg="tab-custom"><span class="tab-text"><span class="tab-title">{{ 'Personnalisation' if fr else 'Customization' }}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-commands" data-call="switchGraphTab" data-arg="tab-commands"><span class="tab-text"><span class="tab-title">{{ "Commandes" if fr else "Commands" }}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><span class="tab-text"><span class="tab-title">{{ 'Bot & base' if fr else 'Bot & DB' }}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-health" data-call="switchGraphTab" data-arg="tab-health"><span class="tab-text"><span class="tab-title">{{ 'Santé' if fr else 'Health' }}</span></span></button>
+        <button class="graphs-tab-btn active" data-tab="tab-overview" data-call="switchGraphTab" data-arg="tab-overview"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span class="tab-text"><span class="tab-title">{{ 'Vue d’ensemble' if fr else 'Overview' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span class="tab-text"><span class="tab-title">{{ 'Site web' if fr else 'Website' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg><span class="tab-text"><span class="tab-title">{{ 'Comptes' if fr else 'Accounts' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="tab-text"><span class="tab-title">{{ 'Communauté' if fr else 'Community' }}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg><span class="tab-text"><span class="tab-title">Bot</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-tech" data-call="switchGraphTab" data-arg="tab-tech"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span class="tab-text"><span class="tab-title">{{ 'Technique' if fr else 'Technical' }}</span></span></button>
     </div>
 </div>
 
-<!-- ============================ Fréquentation ============================ -->
-<div id="tab-traffic" class="graphs-tab-pane active">
+<!-- ========================== Vue d'ensemble ========================== -->
+<div id="tab-overview" class="graphs-tab-pane active">
+    <div class="adm-tiles" id="overviewTiles"></div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Visites · 30 derniers jours' if fr else 'Visits · last 30 days' }}</h2>
+            <p class="an-card-desc" id="overviewSummary">&nbsp;</p></div></div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="overviewChart"></canvas></div>
+    </section>
+</div>
+
+<!-- ============================== Site web ============================== -->
+<div id="tab-traffic" class="graphs-tab-pane">
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
@@ -102,6 +95,7 @@
 
 <!-- ============================== Comptes ============================== -->
 <div id="tab-accounts" class="graphs-tab-pane">
+    <h2 class="adm-section-title">{{ 'Connexions au site' if fr else 'Site logins' }}</h2>
     <div class="adm-stats" id="accountStats"></div>
     <div class="an-grid-2">
         <section class="gray-box small-border-radius an-card">
@@ -119,10 +113,7 @@
         <div class="an-card-head"><h2 class="an-card-title">{{ 'Dernières connexions' if fr else 'Latest logins' }}</h2></div>
         <div class="adm-table-wrap"><table class="adm-table" id="recentLogins"><tbody><tr><td>…</td></tr></tbody></table></div>
     </section>
-</div>
-
-<!-- ========================== Personnalisation ========================== -->
-<div id="tab-custom" class="graphs-tab-pane">
+    <h2 class="adm-section-title">{{ 'Personnalisation des profils' if fr else 'Profile customization' }}</h2>
     <div class="adm-stats" id="customStats"></div>
     <div class="an-grid-2">
         <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ 'Couleurs' if fr else 'Colors' }}</h2></div><ol class="an-rank" data-list="customization.accents">{{ loading() }}</ol></section>
@@ -135,29 +126,8 @@
     </div>
 </div>
 
-<!-- ============================= Commandes ============================= -->
-<div id="tab-commands" class="graphs-tab-pane">
-    <p class="adm-notice" id="commandsNotice" hidden>{{ "Aucune commande enregistrée pour l’instant : le suivi démarre avec la version 3.1.0 du bot." if fr else "No command recorded yet: tracking starts with bot version 3.1.0." }}</p>
-    <div class="adm-stats" id="commandStats"></div>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{ "Commandes utilisées par jour · 30 j" if fr else "Commands used per day · 30 d" }}</h2>
-            <p class="an-card-desc">{{ "Aucun identifiant de membre n’est enregistré : seulement la commande, le serveur, les options de choix et la durée." if fr else "No member identifier is stored: only the command, the server, the choice options and the duration." }}</p></div></div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="commandsChart"></canvas></div>
-    </section>
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Commandes les plus utilisées · 30 j" if fr else "Most used commands · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.top">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Serveurs les plus actifs · 30 j" if fr else "Most active servers · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.servers">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Options les plus choisies · 30 j" if fr else "Most chosen options · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.options">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{ "Temps de réponse et erreurs" if fr else "Response time and errors" }}</h2></div>
-            <div class="adm-table-wrap"><table class="adm-table" id="commandPerf"><tbody><tr><td>…</td></tr></tbody></table></div>
-        </section>
-    </div>
-</div>
-
-<!-- ============================ Bot & base ============================ -->
-<div id="tab-bot" class="graphs-tab-pane">
-    <div class="adm-stats" id="botStats"></div>
+<!-- ============================ Communauté ============================ -->
+<div id="tab-community" class="graphs-tab-pane">
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Membres présents sur les serveurs' if fr else 'Members present on the servers' }}</h2>
             <p class="an-card-desc">{{ 'Personnes uniques vues par le bot sur tous ses serveurs, y compris celles qui n’ont jamais parlé ni rejoint un vocal (chacune comptée une fois). Relevé toutes les 15 min.' if fr else 'Unique people seen by the bot on all its servers, including those who never talked nor joined voice (each counted once). Snapshot every 15 min.' }}</p></div></div>
@@ -182,14 +152,34 @@
             <p class="an-card-desc">{{ '12 derniers mois.' if fr else 'Last 12 months.' }}</p></div></div>
         <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="serversChart"></canvas></div>
     </section>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Base de données' if fr else 'Database' }}</h2><p class="an-card-desc" id="dbSize">&nbsp;</p></div></div>
-        <div class="adm-table-wrap"><table class="adm-table" id="dbTables"><tbody><tr><td>…</td></tr></tbody></table></div>
-    </section>
 </div>
 
-<!-- ============================== Santé ============================== -->
-<div id="tab-health" class="graphs-tab-pane">
+<!-- ================================ Bot ================================ -->
+<div id="tab-bot" class="graphs-tab-pane">
+    <h2 class="adm-section-title">{{ 'État du bot' if fr else 'Bot status' }}</h2>
+    <div class="adm-stats" id="botStats"></div>
+    <h2 class="adm-section-title">{{ 'Commandes' if fr else 'Commands' }}</h2>
+    <p class="adm-notice" id="commandsNotice" hidden>{{ "Aucune commande enregistrée pour l’instant : le suivi démarre avec la version 3.1.0 du bot." if fr else "No command recorded yet: tracking starts with bot version 3.1.0." }}</p>
+    <div class="adm-stats" id="commandStats"></div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ "Commandes utilisées par jour · 30 j" if fr else "Commands used per day · 30 d" }}</h2>
+            <p class="an-card-desc">{{ "Aucun identifiant de membre n’est enregistré : seulement la commande, le serveur, les options de choix et la durée." if fr else "No member identifier is stored: only the command, the server, the choice options and the duration." }}</p></div></div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="commandsChart"></canvas></div>
+    </section>
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Commandes les plus utilisées · 30 j" if fr else "Most used commands · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.top">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Serveurs les plus actifs · 30 j" if fr else "Most active servers · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.servers">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{ "Options les plus choisies · 30 j" if fr else "Most chosen options · 30 d" }}</h2></div><ol class="an-rank" data-list="commands.options">{{ loading() }}</ol></section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{ "Temps de réponse et erreurs" if fr else "Response time and errors" }}</h2></div>
+            <div class="adm-table-wrap"><table class="adm-table" id="commandPerf"><tbody><tr><td>…</td></tr></tbody></table></div>
+        </section>
+    </div>
+</div>
+
+<!-- ============================= Technique ============================= -->
+<div id="tab-tech" class="graphs-tab-pane">
+    <h2 class="adm-section-title">{{ 'Santé du site' if fr else 'Site health' }}</h2>
     <div class="adm-stats" id="healthStats"></div>
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Erreurs par jour · 30 j' if fr else 'Errors per day · 30 d' }}</h2>
@@ -199,6 +189,11 @@
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head"><h2 class="an-card-title">{{ 'Adresses 404 les plus fréquentes' if fr else 'Most frequent 404 paths' }}</h2></div>
         <ol class="an-rank" data-list="health.top_404">{{ loading() }}</ol>
+    </section>
+    <h2 class="adm-section-title">{{ 'Base de données' if fr else 'Database' }}</h2>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{ 'Taille des tables' if fr else 'Table sizes' }}</h2><p class="an-card-desc" id="dbSize">&nbsp;</p></div></div>
+        <div class="adm-table-wrap"><table class="adm-table" id="dbTables"><tbody><tr><td>…</td></tr></tbody></table></div>
     </section>
 </div>
 

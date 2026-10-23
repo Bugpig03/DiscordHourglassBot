@@ -5,14 +5,16 @@ const T = (fr, en) => (IS_EN ? en : fr);
 const charts = {};
 const initializedTabs = new Set();
 let data = null;
-let currentTab = 'tab-traffic';
+let currentTab = 'tab-overview';
 let trafficRange = 30;
 
 const TOOLTIP = { backgroundColor: 'rgba(15, 23, 42, 0.95)', titleColor: '#fff', bodyColor: '#e2e8f0', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, padding: 10 };
 const GRID = { color: 'rgba(255, 255, 255, 0.06)' };
 
 function switchGraphTab(tabId) {
-    if (!document.getElementById(tabId)) tabId = 'tab-traffic';
+    const OLD_TABS = { 'tab-custom': 'tab-accounts', 'tab-commands': 'tab-bot', 'tab-health': 'tab-tech' };
+    tabId = OLD_TABS[tabId] || tabId;
+    if (!document.getElementById(tabId)) tabId = 'tab-overview';
     currentTab = tabId;
     document.querySelectorAll('.graphs-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
     document.querySelectorAll('.graphs-tab-pane').forEach(p => p.classList.toggle('active', p.id === tabId));
@@ -123,16 +125,9 @@ const area = (label, values, color) => ({ label, data: values, borderColor: colo
 const bars = (label, values, color) => ({ label, data: values, backgroundColor: color, borderRadius: 4 });
 
 // ---------------------------------------------------------------------------
+// Header: bot status and update time (the key figures are in the Overview tab)
 function renderKpis() {
     const o = data.overview;
-    const set = (id, value, sub) => {
-        document.getElementById('kpi-' + id).textContent = value;
-        document.getElementById('sub-' + id).textContent = sub;
-    };
-    set('views', HG.fmt(o.views_7), o.delta_7 === null ? T('Mesure en cours de démarrage', 'Tracking just started') : `${pct(o.delta_7)} ${T('vs 7 j précédents', 'vs previous 7 d')}`);
-    set('uniques', HG.fmt(o.uniques_today), `${T('Moyenne 7 j', '7-day average')} : ${HG.fmt(o.uniques_7_avg, 1)}`);
-    set('accounts', HG.fmt(o.accounts), `+${HG.fmt(o.accounts_new_week)} ${T('cette semaine', 'this week')}`);
-    set('customized', HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`);
     const b = data.bot;
     const status = document.getElementById('admBotStatus');
     status.textContent = b.bot_online ? T('Bot en ligne', 'Bot online') : T('Bot silencieux', 'Bot silent');
@@ -154,13 +149,50 @@ function renderTraffic() {
     document.getElementById('trafficSummary').textContent = `${HG.fmt(total)} ${T('pages vues', 'page views')} · ${HG.fmt(uniq)} ${T('visiteurs-jour', 'visitor-days')}`;
 }
 
-function initTab(tabId) {
-    if (!data || initializedTabs.has(tabId)) return;
-    initializedTabs.add(tabId);
-    const pane = document.getElementById(tabId);
-    pane.querySelectorAll('[data-list]').forEach(el => renderList(el, get(el.dataset.list)));
+// ---------------------------------------------------------------------------
+// Tabs are made of sections; each tab renders its sections once, when first opened
+// ---------------------------------------------------------------------------
+const TAB_LABELS = {
+    'tab-traffic': T('Site web', 'Website'), 'tab-accounts': T('Comptes', 'Accounts'),
+    'tab-community': T('Communauté', 'Community'), 'tab-bot': 'Bot', 'tab-tech': T('Technique', 'Technical'),
+};
 
-    if (tabId === 'tab-traffic') {
+function sectionOverview() {
+    const o = data.overview, b = data.bot, c = data.commands, h = data.health, a = b.audience;
+    const sum = arr => (arr || []).reduce((x, y) => x + y, 0);
+    const errors500 = sum(h.s500);
+    const tiles = [
+        ['tab-traffic', T('Visites · 7 jours', 'Visits · 7 days'), HG.fmt(o.views_7),
+            o.delta_7 === null ? T('mesure en cours de démarrage', 'tracking just started') : `${pct(o.delta_7)} ${T('vs 7 j précédents', 'vs previous 7 d')}`, ''],
+        ['tab-traffic', T('Visiteurs uniques · aujourd’hui', 'Unique visitors · today'), HG.fmt(o.uniques_today), `${T('moyenne 7 j', '7-day average')} : ${HG.fmt(o.uniques_7_avg, 1)}`, ''],
+        ['tab-accounts', T('Comptes Discord liés', 'Linked Discord accounts'), HG.fmt(o.accounts), `+${HG.fmt(o.accounts_new_week)} ${T('cette semaine', 'this week')}`, ''],
+        ['tab-accounts', T('Profils personnalisés', 'Customized profiles'), HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`, ''],
+        ['tab-community', T('Membres présents', 'Members present'), a ? HG.fmt(a.unique) : '—',
+            a ? `${HG.fmt(a.silent_percent, 1)} % ${T('jamais actifs', 'never active')}` : T('en attente du bot v3.3.0', 'waiting for bot v3.3.0'), ''],
+        ['tab-community', T('Serveurs du bot', 'Bot servers'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`, ''],
+        ['tab-bot', T('Commandes · 30 jours', 'Commands · 30 days'), HG.fmt(c.total), `${HG.fmt(c.failed_percent, 1)} % ${T('d’erreurs', 'errors')}`, c.failed ? 'warn' : ''],
+        ['tab-tech', T('Erreurs serveur · 30 j', 'Server errors · 30 d'), HG.fmt(errors500), `${HG.fmt(sum(h.s404))} ${T('pages introuvables', 'pages not found')}`, errors500 ? 'ko' : 'ok'],
+    ];
+    const box = document.getElementById('overviewTiles');
+    box.innerHTML = tiles.map(([tab, label, value, sub, tone]) => `
+        <button type="button" class="adm-tile ${tone ? 'is-' + tone : ''}" data-goto="${tab}">
+            <span class="adm-stat-label">${HG.esc(label)}</span>
+            <span class="adm-tile-value">${value}</span>
+            <span class="adm-stat-sub">${HG.esc(sub)}</span>
+            <span class="adm-tile-go">${HG.esc(TAB_LABELS[tab])}</span>
+        </button>`).join('');
+    box.querySelectorAll('[data-goto]').forEach(btn => btn.addEventListener('click', () => switchGraphTab(btn.dataset.goto)));
+    const t = data.traffic;
+    lineChart('overviewChart', t.labels.slice(-30), [
+        area(T('Pages vues', 'Page views'), t.views.slice(-30), '#38bdf8'),
+        area(T('Visiteurs uniques', 'Unique visitors'), t.uniques.slice(-30), '#a78bfa'),
+    ]);
+    document.getElementById('overviewSummary').textContent =
+        `${HG.fmt(sum(t.views.slice(-30)))} ${T('pages vues', 'page views')} · ${HG.fmt(sum(t.uniques.slice(-30)))} ${T('visiteurs-jour', 'visitor-days')}`;
+}
+
+function sectionTraffic() {
+
         renderTraffic();
         const t = data.traffic;
         lineChart('hourlyChart', [...Array(24).keys()].map(h => `${h}h`), [bars(T('Pages vues', 'Page views'), t.hourly, '#38bdf8')], { type: 'bar' });
@@ -169,7 +201,10 @@ function initTab(tabId) {
         document.getElementById('trafficSplits').innerHTML =
             `<span>📱 ${HG.fmt(dev.mobile / totalDev * 100)} %</span><span>💻 ${HG.fmt(dev.desktop / totalDev * 100)} %</span>` +
             `<span>FR ${HG.fmt((langs.fr || 0) / totalLang * 100)} %</span><span>EN ${HG.fmt((langs.en || 0) / totalLang * 100)} %</span>`;
-    } else if (tabId === 'tab-accounts') {
+}
+
+function sectionAccounts() {
+
         const a = data.accounts;
         renderStats(document.getElementById('accountStats'), [
             [T('Comptes liés au moins une fois', 'Accounts linked at least once'), HG.fmt(a.total), `${HG.fmt(a.linked_percent, 1)} % ${T('des', 'of the')} ${HG.fmt(a.members_total)} ${T('membres suivis', 'tracked members')}`],
@@ -184,14 +219,20 @@ function initTab(tabId) {
             <td>${dateText(r.last)}</td><td>${HG.fmt(r.count)} ${T('connexion(s)', 'login(s)')}</td>
             <td class="adm-muted">${T('depuis', 'since')} ${dateText(r.first)}</td></tr>`).join('')
             || `<tr><td>${T('Aucune connexion enregistrée', 'No login recorded')}</td></tr>`;
-    } else if (tabId === 'tab-custom') {
+}
+
+function sectionCustomization() {
+
         const c = data.customization;
         renderStats(document.getElementById('customStats'), [
             [T('Profils personnalisés', 'Customized profiles'), HG.fmt(c.customized), `${HG.fmt(c.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`],
             [T('Profils privés', 'Private profiles'), HG.fmt(c.private)],
             [T('Serveur favori choisi', 'Favorite server set'), HG.fmt(c.favorite)],
         ]);
-    } else if (tabId === 'tab-commands') {
+}
+
+function sectionCommands() {
+
         const c = data.commands;
         document.getElementById('commandsNotice').hidden = c.total > 0;
         renderStats(document.getElementById('commandStats'), [
@@ -204,7 +245,10 @@ function initTab(tabId) {
             <td>${HG.fmt(r.count)}</td><td>${T('moy.', 'avg')} ${HG.fmt(r.avg_ms)} ms</td><td class="adm-muted">p95 ${HG.fmt(r.p95_ms)} ms</td>
             <td class="${r.failed ? 'adm-bad' : 'adm-muted'}">${HG.fmt(r.failed)} ${T('erreur(s)', 'error(s)')}</td></tr>`).join('')
             || `<tr><td>${T('Pas encore de données', 'No data yet')}</td></tr>`;
-    } else if (tabId === 'tab-bot') {
+}
+
+function sectionBotStatus() {
+
         const b = data.bot;
         renderStats(document.getElementById('botStats'), [
             [T('Serveurs où le bot est présent', 'Servers with the bot'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_left)} ${T('quittés', 'left')} · ${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`],
@@ -214,6 +258,10 @@ function initTab(tabId) {
                 b.presence_age_min === null ? '' : ago(b.presence_age_min), b.bot_online ? 'ok' : 'ko'],
             [T('Sessions vocales orphelines', 'Orphan voice sessions'), HG.fmt(b.orphans), T('ouvertes depuis plus de 24 h', 'open for more than 24 h'), b.orphans ? 'warn' : 'ok'],
         ]);
+}
+
+function sectionCommunity() {
+        const b = data.bot;
         lineChart('serversChart', b.months.labels, [bars(T('Arrivées', 'Joins'), b.months.joins, '#34d399'), bars(T('Départs', 'Leaves'), b.months.leaves, '#f87171')], { type: 'bar' });
         // Unique members present on the servers (active or not)
         const a = b.audience;
@@ -242,10 +290,17 @@ function initTab(tabId) {
             <td>${dateText(r.at)}</td>
             <td class="${r.left ? 'adm-bad' : 'adm-muted'}">${r.left ? `${T('parti le', 'left on')} ${dateText(r.left)}` : T('présent', 'present')}</td></tr>`).join('')
             || `<tr><td>${T('Aucun serveur', 'No server')}</td></tr>`;
+}
+
+function sectionDatabase() {
+        const b = data.bot;
         document.getElementById('dbSize').textContent = `${T('Taille totale', 'Total size')} : ${HG.fmt(b.db_mb, 1)} Mo`;
         document.querySelector('#dbTables tbody').innerHTML = b.tables.map(r => `<tr><td><code>${HG.esc(r.name)}</code></td>
             <td>${HG.fmt(r.rows)} ${T('lignes', 'rows')}</td><td>${HG.fmt(r.mb, 1)} Mo</td></tr>`).join('');
-    } else if (tabId === 'tab-health') {
+}
+
+function sectionHealth() {
+
         const h = data.health;
         const r = h.analytics_refresh || {};
         renderStats(document.getElementById('healthStats'), [
@@ -257,7 +312,23 @@ function initTab(tabId) {
                 r.ms > 2000 ? 'warn' : ''],
         ]);
         lineChart('statusChart', h.labels, [bars('404', h.s404, '#94a3b8'), bars('429', h.s429, '#fbbf24'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
-    }
+}
+
+const TAB_SECTIONS = {
+    'tab-overview': [sectionOverview],
+    'tab-traffic': [sectionTraffic],
+    'tab-accounts': [sectionAccounts, sectionCustomization],
+    'tab-community': [sectionCommunity],
+    'tab-bot': [sectionBotStatus, sectionCommands],
+    'tab-tech': [sectionHealth, sectionDatabase],
+};
+
+function initTab(tabId) {
+    if (!data || initializedTabs.has(tabId)) return;
+    initializedTabs.add(tabId);
+    const pane = document.getElementById(tabId);
+    pane.querySelectorAll('[data-list]').forEach(el => renderList(el, get(el.dataset.list)));
+    (TAB_SECTIONS[tabId] || []).forEach(render => render());
     pane.querySelectorAll('[data-list]').forEach(el => enhanceLong(el, 'li.an-rank-item'));
     pane.querySelectorAll('.adm-table-wrap').forEach(el => enhanceLong(el, 'tbody tr'));
 }
@@ -270,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-range]').forEach(b => b.classList.toggle('active', b === btn));
         if (data) renderTraffic();
     }));
-    switchGraphTab(window.location.hash.replace('#', '') || 'tab-traffic');
+    switchGraphTab(window.location.hash.replace('#', '') || 'tab-overview');
     fetch('/admin/data', { credentials: 'same-origin' })
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(json => {

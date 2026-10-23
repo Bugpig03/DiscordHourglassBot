@@ -5688,10 +5688,12 @@ button.btn-versus-action {
 }
 .graphs-tab-btn {
   position: relative;
+  /* Equal shares of the bar, never narrower than the icon + title (the bar scrolls instead of overlapping) */
   flex: 1 1 0;
-  min-width: 0;
+  min-width: min-content;
   display: flex;
   align-items: center;
+  justify-content: center;         /* icon + title centered in their share of the bar */
   gap: 12px;
   padding: 11px 16px 13px;
   border: 0;
@@ -5752,6 +5754,9 @@ button.btn-versus-action {
   white-space: nowrap;
 }
 .tab-desc {
+  display: block;
+  width: 0;                        /* adds nothing to the tab's minimum width: cut with "…" when space runs out */
+  min-width: 100%;
   margin-top: 2px;
   color: #7c8ba1;
   font-size: 0.78rem;
@@ -5775,6 +5780,12 @@ button.btn-versus-action {
 .graphs-tab-btn.active .tab-badge {
   background: rgba(var(--tab-accent-rgb), 0.3);
   color: #e0f2fe;
+}
+
+/* Fade on the right edge while more sections are hidden (class set by ui.js), on any screen */
+.graphs-tabs.has-more {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 30px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 30px), transparent);
 }
 
 /* "Other sections" at the end of each section */
@@ -5835,11 +5846,6 @@ button.btn-versus-action {
   }
   .tab-desc {
     display: none;
-  }
-  /* Fade on the right edge while more sections are hidden (class set by ui.js) */
-  .graphs-tabs.has-more {
-    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 30px), transparent);
-    mask-image: linear-gradient(90deg, #000 calc(100% - 30px), transparent);
   }
 }
 
