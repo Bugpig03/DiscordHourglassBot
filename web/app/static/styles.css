@@ -5688,9 +5688,9 @@ button.btn-versus-action {
 }
 .graphs-tab-btn {
   position: relative;
-  /* Equal shares of the bar, never narrower than the icon + title (the bar scrolls instead of overlapping) */
+  /* Equal shares of the bar; ui.js hides the subtitles, then scrolls the bar, rather than cutting a text */
   flex: 1 1 0;
-  min-width: min-content;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;         /* icon + title centered in their share of the bar */
@@ -5746,17 +5746,17 @@ button.btn-versus-action {
 .tab-text {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  min-width: 0;                    /* as wide as its longest line (title or subtitle), within the tab */
 }
 .tab-title {
   font-weight: 800;
   font-size: 0.97rem;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tab-desc {
   display: block;
-  width: 0;                        /* adds nothing to the tab's minimum width: cut with "…" when space runs out */
-  min-width: 100%;
   margin-top: 2px;
   color: #7c8ba1;
   font-size: 0.78rem;
@@ -5836,16 +5836,62 @@ button.btn-versus-action {
   background: rgba(var(--tab-accent-rgb, 56, 189, 248), 0.08);
 }
 
+/* Never a text cut in the middle (classes set by ui.js): a bar where one subtitle does not fit shows no
+   subtitle; a bar where even a title does not fit keeps each tab at its natural width and scrolls */
+.graphs-tabs.no-desc .tab-desc {
+  display: none;
+}
+@media (min-width: 761px) {
+  .graphs-tabs.tabs-scroll .graphs-tab-btn {
+    flex: 1 0 auto;                /* natural width, still filling the bar when there is room */
+  }
+}
+
+/* Phones: every section visible at once, in a grid (no horizontal scroll), the icon above the title */
 @media (max-width: 760px) {
+  .graphs-tabs,
+  .graphs-tabs.has-more {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .graphs-tabs:has(> .graphs-tab-btn:nth-child(3):last-child),
+  .graphs-tabs:has(> .graphs-tab-btn:nth-child(5)) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .graphs-tabs:has(> .graphs-tab-btn:nth-child(2):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .graphs-tab-btn {
-    flex: 0 0 auto;
-    padding: 9px 13px 11px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 5px;
+    min-width: 0;
+    padding: 9px 4px 11px;
+    text-align: center;
   }
   .graphs-tab-btn > svg {
     padding: 6px;
   }
+  .graphs-tab-btn .tab-text {
+    align-items: center;
+    width: 100%;
+  }
+  .graphs-tab-btn .tab-title {
+    font-size: 0.8rem;
+    line-height: 1.2;
+    white-space: normal;
+  }
   .tab-desc {
     display: none;
+  }
+  .graphs-tab-btn.active::after {
+    left: 24%;
+    right: 24%;
   }
 }
 

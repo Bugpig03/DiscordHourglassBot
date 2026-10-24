@@ -44,28 +44,48 @@ SECRET_KEY_SOURCE = "random"
 
 
 def _database_secret_key() -> str | None:
-    """Session key kept in web_settings: created once by the first worker, then read by every worker and restart."""
+    """Session key kept in web_settings: created once, then read by every Gunicorn worker and every restart.
+
+    All workers must end up with the SAME key, or a member is logged in on some pages and not on others.
+    The 4 workers start together: concurrent CREATE TABLE IF NOT EXISTS can fail in PostgreSQL (unique
+    violation on pg_type), so the table creation is a separate step whose error is ignored, and the whole
+    read is retried before giving up.
+    """
+    import time
     try:
         import psycopg2
-        conn = psycopg2.connect(
-            dbname=os.environ.get("POSTGRESQL_DBNAME", "devhourglass"), user=os.environ.get("POSTGRESQL_USER", "postgres"),
-            password=os.environ.get("POSTGRESQL_PASSWORD", "admin"), host=os.environ.get("POSTGRESQL_HOST", "localhost"),
-            port=int(os.environ.get("POSTGRESQL_PORT", "5432")), connect_timeout=5,
-        )
-    except Exception:
+    except ImportError:
         return None
-    try:
-        with conn, conn.cursor() as cur:
-            cur.execute("CREATE TABLE IF NOT EXISTS web_settings (key VARCHAR(64) PRIMARY KEY, value TEXT NOT NULL)")
-            cur.execute("INSERT INTO web_settings (key, value) VALUES ('session_secret', %s) ON CONFLICT (key) DO NOTHING",
-                        (secrets.token_hex(32),))
-            cur.execute("SELECT value FROM web_settings WHERE key = 'session_secret'")
-            row = cur.fetchone()
-            return row[0] if row else None
-    except Exception:
-        return None
-    finally:
-        conn.close()
+    for attempt in range(8):
+        conn = None
+        try:
+            conn = psycopg2.connect(
+                dbname=os.environ.get("POSTGRESQL_DBNAME", "devhourglass"), user=os.environ.get("POSTGRESQL_USER", "postgres"),
+                password=os.environ.get("POSTGRESQL_PASSWORD", "admin"), host=os.environ.get("POSTGRESQL_HOST", "localhost"),
+                port=int(os.environ.get("POSTGRESQL_PORT", "5432")), connect_timeout=5,
+            )
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("CREATE TABLE IF NOT EXISTS web_settings (key VARCHAR(64) PRIMARY KEY, value TEXT NOT NULL)")
+                except psycopg2.Error:
+                    pass  # another worker created it at the same moment
+                cur.execute("INSERT INTO web_settings (key, value) VALUES ('session_secret', %s) ON CONFLICT (key) DO NOTHING",
+                            (secrets.token_hex(32),))
+                cur.execute("SELECT value FROM web_settings WHERE key = 'session_secret'")
+                row = cur.fetchone()
+                if row and row[0]:
+                    return row[0]
+        except Exception:
+            pass
+        finally:
+            if conn is not None:
+                conn.close()
+        time.sleep(0.25 * (attempt + 1))
+    import logging
+    logging.getLogger(__name__).warning(
+        "Session key: database unreachable, falling back to a local key (members may be logged out between pages)")
+    return None
 
 
 def load_secret_key() -> str:

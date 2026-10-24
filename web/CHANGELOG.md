@@ -1,5 +1,18 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.23.1 - Connexion Stable entre les Pages & Onglets sans Texte Coupé - 24/10/2026
+### Corrections
+- **Déconnexions aléatoires d'une page à l'autre** (apparues avec la v3.23.0).
+  - Les 4 workers Gunicorn lisent la clé de session en base au démarrage. Démarrés au même instant, l'un d'eux pouvait échouer (création concurrente de la table `web_settings`) et retomber sur une autre clé. On était alors connecté sur certaines pages et pas sur d'autres, selon le worker qui répondait.
+  - La création de la table est maintenant une étape à part, dont l'erreur de concurrence est ignorée. La lecture est retentée jusqu'à 8 fois, environ 9 secondes, avant d'abandonner, et un avertissement apparaît dans les logs si un worker doit utiliser une autre clé.
+  - La clé déjà enregistrée en base est conservée : aucune nouvelle déconnexion.
+- **Onglets : plus aucun texte coupé.**
+  - Le bloc de texte d'un onglet centré prenait la largeur du titre, si bien que le sous-titre, souvent plus long, était toujours tronqué.
+  - Le bloc prend maintenant la largeur de sa ligne la plus longue.
+  - Si un sous-titre ne tient pas, tous les sous-titres de la barre sont masqués.
+  - Si même un titre ne tient pas, chaque onglet garde sa largeur naturelle et la barre défile.
+- **Onglets sur téléphone** : une grille au lieu d'une barre qui défile, avec toutes les sections visibles d'un coup, l'icône au-dessus du titre, 3 ou 4 par ligne (3 × 2 pour l'admin).
+
 ## Version 3.23.0 - Vraie Date d'Arrivée des Serveurs, Ancienneté des Compagnons & Sessions Durables - 23/10/2026
 ### Corrections
 - **Date d'arrivée des serveurs** : 45 serveurs sur 49 affichaient le 4 octobre 2026.

@@ -136,9 +136,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 update();
             }
         };
+        // Never a cut text: subtitles all or none, then scroll the bar if even a title does not fit
+        const isCut = function (selector) {
+            return Array.from(bar.querySelectorAll(selector)).some(function (el) {
+                return el.offsetParent !== null && el.scrollWidth > el.clientWidth + 1;
+            });
+        };
+        const fitDescs = function () {
+            bar.classList.remove('no-desc', 'tabs-scroll');
+            if (isCut('.tab-desc')) bar.classList.add('no-desc');
+            if (isCut('.tab-title')) bar.classList.add('tabs-scroll');
+        };
         bar.addEventListener('click', function () { setTimeout(reveal, 0); });
         bar.addEventListener('scroll', update, { passive: true });
-        window.addEventListener('resize', update);
+        window.addEventListener('resize', function () { fitDescs(); update(); });
+        fitDescs();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitDescs(); update(); });
         update();
         setTimeout(reveal, 0);
     });
