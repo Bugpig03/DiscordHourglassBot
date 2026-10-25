@@ -1,0 +1,2074 @@
+{
+ "p0001": [
+  "Historique / Non classé",
+  "Legacy / Uncategorized"
+ ],
+ "p0002": [
+  "Autres ({n} salons)",
+  "Others ({n} channels)"
+ ],
+ "p0003": [
+  "#général (historique)",
+  "#general (legacy)"
+ ],
+ "p0004": [
+  "Historique (Non classé)",
+  "Legacy (Unclassified)"
+ ],
+ "p0005": [
+  "Salon Vocal",
+  "Voice Channel"
+ ],
+ "p0006": [
+  "Vocal",
+  "Voice"
+ ],
+ "p0007": [
+  "{n} h sur 30 j",
+  "{n} h in 30 d"
+ ],
+ "p0008": [
+  "{n} messages",
+  "{n} messages"
+ ],
+ "p0009": [
+  "Niveau {n}",
+  "Level {n}"
+ ],
+ "p0010": [
+  "N°1 + {n} h",
+  "No. 1 + {n} h"
+ ],
+ "p0011": [
+  "N°1",
+  "No. 1"
+ ],
+ "p0012": [
+  "Top {n}",
+  "Top {n}"
+ ],
+ "p0013": [
+  "{n} serveurs",
+  "{n} servers"
+ ],
+ "p0014": [
+  "{n} jours",
+  "{n} days"
+ ],
+ "p0015": [
+  "{h} h + {m} messages",
+  "{h} h + {m} messages"
+ ],
+ "p0016": [
+  "non classé",
+  "unranked"
+ ],
+ "p0017": [
+  "Prochain palier : {tier} ({goal}).",
+  "Next tier: {tier} ({goal})."
+ ],
+ "p0018": [
+  "Palier maximum atteint.",
+  "Highest tier reached."
+ ],
+ "p0019": [
+  "{what} : {current}. {goal}",
+  "{what}: {current}. {goal}"
+ ],
+ "p0020": [
+  "Verrouillé",
+  "Locked"
+ ],
+ "p0021": [
+  "{badge} · {tier} : {goal}",
+  "{badge} · {tier}: {goal}"
+ ],
+ "p0022": [
+  "jour",
+  "day"
+ ],
+ "p0023": [
+  "jours",
+  "days"
+ ],
+ "p0024": [
+  "jours actifs d’affilée",
+  "active days in a row"
+ ],
+ "p0025": [
+  "messages",
+  "messages"
+ ],
+ "p0026": [
+  "{h} h ensemble",
+  "{h} h together"
+ ],
+ "p0027": [
+  "créneau le plus actif",
+  "most active time slot"
+ ],
+ "p0028": [
+  "jours avec de l’activité",
+  "days with activity"
+ ],
+ "p0029": [
+  "Couleur Discord",
+  "Discord color"
+ ],
+ "p0030": [
+  "Aucune",
+  "None"
+ ],
+ "p0031": [
+  "Par défaut",
+  "Default"
+ ],
+ "p0032": [
+  "Serveur",
+  "Server"
+ ],
+ "p0033": [
+  "Membre {id}",
+  "Member {id}"
+ ],
+ "p0034": [
+  "Autres ({n} membres)",
+  "Others ({n} members)"
+ ],
+ "p0035": [
+  "Autres ({n} serveurs)",
+  "Others ({n} servers)"
+ ],
+ "p0036": [
+  "Trop de requêtes, réessayez dans quelques secondes.",
+  "Too many requests, please retry in a few seconds."
+ ],
+ "p0037": [
+  "Statistiques internes du site et du bot.",
+  "Internal statistics of the site and the bot."
+ ],
+ "p0038": [
+  "Vue d’ensemble",
+  "Overview"
+ ],
+ "p0039": [
+  "Site web",
+  "Website"
+ ],
+ "p0040": [
+  "Comptes",
+  "Accounts"
+ ],
+ "p0041": [
+  "Communauté",
+  "Community"
+ ],
+ "p0042": [
+  "Technique",
+  "Technical"
+ ],
+ "p0043": [
+  "Visites · 30 derniers jours",
+  "Visits · last 30 days"
+ ],
+ "p0044": [
+  "Visites par jour",
+  "Visits per day"
+ ],
+ "p0045": [
+  "Pages les plus vues · 30 j",
+  "Most viewed pages · 30 d"
+ ],
+ "p0046": [
+  "Sources · 30 j",
+  "Sources · 30 d"
+ ],
+ "p0047": [
+  "Profils les plus consultés · 30 j",
+  "Most viewed profiles · 30 d"
+ ],
+ "p0048": [
+  "Fiches serveur les plus consultées · 30 j",
+  "Most viewed server pages · 30 d"
+ ],
+ "p0049": [
+  "Heures de visite · 30 j",
+  "Visit hours · 30 d"
+ ],
+ "p0050": [
+  "Recherches · 30 j",
+  "Searches · 30 d"
+ ],
+ "p0051": [
+  "Connexions au site",
+  "Site logins"
+ ],
+ "p0052": [
+  "Nouveaux comptes liés par semaine",
+  "New linked accounts per week"
+ ],
+ "p0053": [
+  "Première connexion Discord sur le site.",
+  "First Discord login on the site."
+ ],
+ "p0054": [
+  "Comptes actifs par jour",
+  "Active accounts per day"
+ ],
+ "p0055": [
+  "Membres connectés qui ont utilisé le site ce jour-là.",
+  "Logged-in members who used the site that day."
+ ],
+ "p0056": [
+  "Dernières connexions",
+  "Latest logins"
+ ],
+ "p0057": [
+  "Personnalisation des profils",
+  "Profile customization"
+ ],
+ "p0058": [
+  "Couleurs",
+  "Colors"
+ ],
+ "p0059": [
+  "Type de bannière",
+  "Banner type"
+ ],
+ "p0060": [
+  "Bannières de la galerie",
+  "Gallery banners"
+ ],
+ "p0061": [
+  "Couleurs de fond",
+  "Background colors"
+ ],
+ "p0062": [
+  "Badges en vitrine",
+  "Featured badges"
+ ],
+ "p0063": [
+  "Records épinglés",
+  "Pinned records"
+ ],
+ "p0064": [
+  "Blocs masqués aux visiteurs",
+  "Blocks hidden from visitors"
+ ],
+ "p0065": [
+  "Membres présents sur les serveurs",
+  "Members present on the servers"
+ ],
+ "p0066": [
+  "Personnes uniques vues par le bot sur tous ses serveurs, y compris celles qui n’ont jamais parlé ni rejoint un vocal (chacune comptée une fois). Relevé toutes les 15 min.",
+  "Unique people seen by the bot on all its servers, including those who never talked nor joined voice (each counted once). Snapshot every 15 min."
+ ],
+ "p0067": [
+  "Pas encore de relevé : il apparaît 15 minutes après le démarrage du bot v3.3.0.",
+  "No snapshot yet: it appears 15 minutes after bot v3.3.0 starts."
+ ],
+ "p0068": [
+  "30 derniers membres arrivés",
+  "Last 30 members to arrive"
+ ],
+ "p0069": [
+  "Première activité vue par Hourglass, et le serveur où elle a eu lieu.",
+  "First activity seen by Hourglass, and the server where it happened."
+ ],
+ "p0070": [
+  "30 derniers serveurs arrivés",
+  "Last 30 servers to arrive"
+ ],
+ "p0071": [
+  "Date d’ajout du bot, et départ éventuel.",
+  "When the bot was added, and left if it did."
+ ],
+ "p0072": [
+  "Serveurs : arrivées et départs du bot",
+  "Servers: bot joins and leaves"
+ ],
+ "p0073": [
+  "12 derniers mois.",
+  "Last 12 months."
+ ],
+ "p0074": [
+  "État du bot",
+  "Bot status"
+ ],
+ "p0075": [
+  "Commandes",
+  "Commands"
+ ],
+ "p0076": [
+  "Aucune commande enregistrée pour l’instant : le suivi démarre avec la version 3.1.0 du bot.",
+  "No command recorded yet: tracking starts with bot version 3.1.0."
+ ],
+ "p0077": [
+  "Commandes utilisées par jour · 30 j",
+  "Commands used per day · 30 d"
+ ],
+ "p0078": [
+  "Aucun identifiant de membre n’est enregistré : seulement la commande, le serveur, les options de choix et la durée.",
+  "No member identifier is stored: only the command, the server, the choice options and the duration."
+ ],
+ "p0079": [
+  "Commandes les plus utilisées · 30 j",
+  "Most used commands · 30 d"
+ ],
+ "p0080": [
+  "Serveurs les plus actifs · 30 j",
+  "Most active servers · 30 d"
+ ],
+ "p0081": [
+  "Options les plus choisies · 30 j",
+  "Most chosen options · 30 d"
+ ],
+ "p0082": [
+  "Temps de réponse et erreurs",
+  "Response time and errors"
+ ],
+ "p0083": [
+  "Santé du site",
+  "Site health"
+ ],
+ "p0084": [
+  "Erreurs par jour · 30 j",
+  "Errors per day · 30 d"
+ ],
+ "p0085": [
+  "404 page introuvable, 429 limite de requêtes, 500 erreur serveur.",
+  "404 not found, 429 rate limited, 500 server error."
+ ],
+ "p0086": [
+  "Adresses 404 les plus fréquentes",
+  "Most frequent 404 paths"
+ ],
+ "p0087": [
+  "Base de données",
+  "Database"
+ ],
+ "p0088": [
+  "Taille des tables",
+  "Table sizes"
+ ],
+ "p0089": [
+  "Statistiques vocales et textuelles de vos serveurs Discord : temps en vocal, messages, classements, badges et graphiques.",
+  "Voice and text statistics for your Discord servers: voice time, messages, leaderboards, badges and charts."
+ ],
+ "p0090": [
+  "Rechercher",
+  "Search"
+ ],
+ "p0091": [
+  "Tapez le nom d'un membre ou d'un serveur...",
+  "Type a member or server name to search..."
+ ],
+ "p0092": [
+  "Personnaliser mon profil",
+  "Customize my profile"
+ ],
+ "p0093": [
+  "Les changements apparaissent dans l’aperçu, puis sur ta page une fois enregistrés.",
+  "Changes show in the preview, then on your page once saved."
+ ],
+ "p0094": [
+  "Voir mon profil",
+  "View my profile"
+ ],
+ "p0095": [
+  "Profil enregistré.",
+  "Profile saved."
+ ],
+ "p0096": [
+  "L’enregistrement a échoué, réessaie dans quelques instants.",
+  "Saving failed, please try again in a moment."
+ ],
+ "p0097": [
+  "Hourglass ne t’a pas encore vu sur un serveur : ton profil apparaîtra dès que tu auras passé du temps en vocal ou envoyé des messages là où le bot est présent.",
+  "Hourglass has not seen you on a server yet: your profile will appear once you spend time in voice or send messages where the bot is present."
+ ],
+ "p0098": [
+  "Apparence",
+  "Appearance"
+ ],
+ "p0099": [
+  "Vitrine",
+  "Showcase"
+ ],
+ "p0100": [
+  "Confidentialité",
+  "Privacy"
+ ],
+ "p0101": [
+  "Trois réglages, visibles sur tout ton profil. L’aperçu à droite change en direct ; pense à enregistrer.",
+  "Three settings, visible across your whole profile. The preview on the right updates live; remember to save."
+ ],
+ "p0102": [
+  "Couleur du profil",
+  "Profile color"
+ ],
+ "p0103": [
+  "Avatar, niveau, onglets, calendrier et graphiques.",
+  "Avatar, level, tabs, calendar and charts."
+ ],
+ "p0104": [
+  "Couleur de mon profil Discord",
+  "My Discord profile color"
+ ],
+ "p0105": [
+  "Bannière",
+  "Banner"
+ ],
+ "p0106": [
+  "Image affichée en haut de ton profil. Aucune par défaut.",
+  "Picture shown at the top of your profile. None by default."
+ ],
+ "p0107": [
+  "Image de la galerie",
+  "Gallery picture"
+ ],
+ "p0108": [
+  "Fond de la page",
+  "Page background"
+ ],
+ "p0109": [
+  "Couleur unie derrière toute ta page de profil.",
+  "Solid color behind your whole profile page."
+ ],
+ "p0110": [
+  "Ta vitrine apparaît sous ton en-tête : c’est ta sélection personnelle.",
+  "Your showcase appears under your header: it is your personal selection."
+ ],
+ "p0111": [
+  "Serveur favori",
+  "Favorite server"
+ ],
+ "p0112": [
+  "Affiché dans ta vitrine avec ton rang et ton temps vocal.",
+  "Shown in your showcase with your rank and voice time."
+ ],
+ "p0113": [
+  "Aucun",
+  "None"
+ ],
+ "p0114": [
+  "Choisis jusqu’à 3 badges. Sans choix, tes 3 plus hauts paliers sont affichés.",
+  "Pick up to 3 badges. Without a choice, your 3 highest tiers are shown."
+ ],
+ "p0115": [
+  "Tu n’as pas encore débloqué de badge.",
+  "You have not unlocked any badge yet."
+ ],
+ "p0116": [
+  "Jusqu’à 4 records. Sans choix, une sélection par défaut est affichée.",
+  "Up to 4 records. Without a choice, a default selection is shown."
+ ],
+ "p0117": [
+  "Pas encore assez d’activité pour établir des records.",
+  "Not enough activity yet to set records."
+ ],
+ "p0118": [
+  "Profil privé",
+  "Private profile"
+ ],
+ "p0119": [
+  "Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.",
+  "Visitors only see your header, level and totals. You stay visible in leaderboards, Versus and server pages."
+ ],
+ "p0120": [
+  "Blocs visibles par les visiteurs",
+  "Blocks visible to visitors"
+ ],
+ "p0121": [
+  "Tu vois toujours tous tes blocs ; les blocs masqués portent la mention « Masqué aux visiteurs ».",
+  "You always see all your blocks; hidden ones are tagged \"Hidden from visitors\"."
+ ],
+ "p0122": [
+  "En-tête et résumé",
+  "Header and summary"
+ ],
+ "p0123": [
+  "Onglet Activité",
+  "Activity tab"
+ ],
+ "p0124": [
+  "Autres onglets",
+  "Other tabs"
+ ],
+ "p0125": [
+  "Modifications non enregistrées",
+  "Unsaved changes"
+ ],
+ "p0126": [
+  "Enregistrer",
+  "Save"
+ ],
+ "p0127": [
+  "Aperçu",
+  "Preview"
+ ],
+ "p0128": [
+  "Analyses",
+  "Analytics"
+ ],
+ "p0129": [
+  "L’activité de toute la communauté Hourglass, tous serveurs confondus.",
+  "Activity of the whole Hourglass community, across all servers."
+ ],
+ "p0130": [
+  "Vocal · 30 jours",
+  "Voice · 30 days"
+ ],
+ "p0131": [
+  "Messages · 30 jours",
+  "Messages · 30 days"
+ ],
+ "p0132": [
+  "Membres actifs · 30 jours",
+  "Active members · 30 days"
+ ],
+ "p0133": [
+  "Serveurs actifs · 30 jours",
+  "Active servers · 30 days"
+ ],
+ "p0134": [
+  "Évolution",
+  "Over time"
+ ],
+ "p0135": [
+  "Vocal et messages dans le temps",
+  "Voice and messages over time"
+ ],
+ "p0136": [
+  "Horaires",
+  "Hours"
+ ],
+ "p0137": [
+  "Présence et heures de pointe",
+  "Presence and peak hours"
+ ],
+ "p0138": [
+  "Nouveaux membres et classements",
+  "New members and rankings"
+ ],
+ "p0139": [
+  "Évolution de l’activité",
+  "Activity over time"
+ ],
+ "p0140": [
+  "Mesure",
+  "Metric"
+ ],
+ "p0141": [
+  "Période",
+  "Period"
+ ],
+ "p0142": [
+  "Par mois",
+  "Monthly"
+ ],
+ "p0143": [
+  "30 jours",
+  "30 days"
+ ],
+ "p0144": [
+  "Affichage",
+  "Display"
+ ],
+ "p0145": [
+  "Par période",
+  "Per period"
+ ],
+ "p0146": [
+  "Cumulé",
+  "Cumulative"
+ ],
+ "p0147": [
+  "Présence des membres",
+  "Member presence"
+ ],
+ "p0148": [
+  "Combien de membres sont connectés à Discord, heure par heure.",
+  "How many members are connected to Discord, hour by hour."
+ ],
+ "p0149": [
+  "Connectés",
+  "Online"
+ ],
+ "p0150": [
+  "7 jours",
+  "7 days"
+ ],
+ "p0151": [
+  "Pas de données de présence sur cette période (le bot n’a pas enregistré de relevé).",
+  "No presence data for this period (the bot recorded no snapshot)."
+ ],
+ "p0152": [
+  "Heures de pointe",
+  "Peak hours"
+ ],
+ "p0153": [
+  "Nombre moyen de membres en vocal à chaque heure de la journée.",
+  "Average number of members in voice at each hour of the day."
+ ],
+ "p0154": [
+  "Pic",
+  "Peak"
+ ],
+ "p0155": [
+  "Détail par jour de la semaine (vocal)",
+  "Detail per day of the week (voice)"
+ ],
+ "p0156": [
+  "Calme",
+  "Quiet"
+ ],
+ "p0157": [
+  "Très actif",
+  "Busiest"
+ ],
+ "p0158": [
+  "Nouveaux membres par mois",
+  "New members per month"
+ ],
+ "p0159": [
+  "Membres vus pour la première fois par le bot.",
+  "Members seen by the bot for the first time."
+ ],
+ "p0160": [
+  "Serveurs les plus actifs",
+  "Most active servers"
+ ],
+ "p0161": [
+  "Voir tous les serveurs",
+  "See all servers"
+ ],
+ "p0162": [
+  "Membres les plus actifs",
+  "Most active members"
+ ],
+ "p0163": [
+  "Voir le classement complet",
+  "See the full leaderboard"
+ ],
+ "p0164": [
+  "sur 30j",
+  "in 30d"
+ ],
+ "p0165": [
+  "profils enregistrés",
+  "server profiles"
+ ],
+ "p0166": [
+  "SERVEURS ACTIFS",
+  "ACTIVE SERVERS"
+ ],
+ "p0167": [
+  "Serveurs connectés",
+  "Connected servers"
+ ],
+ "p0168": [
+  "Analyses complètes",
+  "Full Analytics"
+ ],
+ "p0169": [
+  "Pas encore assez d’activité",
+  "Not enough activity yet"
+ ],
+ "p0170": [
+  "Ce graphique se remplira automatiquement au fil des sessions vocales et des messages suivis par Hourglass.",
+  "This chart will fill up automatically as Hourglass tracks voice sessions and messages."
+ ],
+ "p0171": [
+  "Pagination",
+  "Pagination"
+ ],
+ "p0172": [
+  "Page précédente",
+  "Previous page"
+ ],
+ "p0173": [
+  "Page suivante",
+  "Next page"
+ ],
+ "p0174": [
+  "Aller à",
+  "Go to"
+ ],
+ "p0175": [
+  "Invisible / Hors ligne",
+  "Invisible / Offline"
+ ],
+ "p0176": [
+  "{server} : {hours} h en vocal, {messages} messages, {members} membres actifs suivis par Hourglass.",
+  "{server}: {hours} h in voice, {messages} messages, {members} active members tracked by Hourglass."
+ ],
+ "p0177": [
+  "Heures de pointe, salons, sessions",
+  "Peak hours, channels, sessions"
+ ],
+ "p0178": [
+  "Évolution et top membres",
+  "Trends and top members"
+ ],
+ "p0179": [
+  "Classement et présence",
+  "Ranking and presence"
+ ],
+ "p0180": [
+  "En ligne",
+  "Online"
+ ],
+ "p0181": [
+  "Absents",
+  "Idle"
+ ],
+ "p0182": [
+  "Ne pas déranger",
+  "Do Not Disturb"
+ ],
+ "p0183": [
+  "Hors ligne / Invisible",
+  "Offline / Invisible"
+ ],
+ "p0184": [
+  "en vocal",
+  "in voice"
+ ],
+ "p0185": [
+  "Voir plus",
+  "Show more"
+ ],
+ "p0186": [
+  "restants",
+  "remaining"
+ ],
+ "p0187": [
+  "Salons les plus actifs",
+  "Most active channels"
+ ],
+ "p0188": [
+  "Pas encore d’activité enregistrée dans les salons.",
+  "No channel activity recorded yet."
+ ],
+ "p0189": [
+  "depuis hier",
+  "since yesterday"
+ ],
+ "p0190": [
+  "en 7 jours",
+  "in 7 days"
+ ],
+ "p0191": [
+  "+%d place(s) ",
+  "+%d spot(s) "
+ ],
+ "p0192": [
+  "%d place(s) ",
+  "%d spot(s) "
+ ],
+ "p0193": [
+  "Nouveau dans le classement ",
+  "New in the ranking "
+ ],
+ "p0194": [
+  "NOUV.",
+  "NEW"
+ ],
+ "p0195": [
+  "Même place ",
+  "Same spot "
+ ],
+ "p0196": [
+  "Niveau {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.",
+  "Level {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass."
+ ],
+ "p0197": [
+  "Masqué aux visiteurs",
+  "Hidden from visitors"
+ ],
+ "p0198": [
+  "Identifiant Discord",
+  "Discord ID"
+ ],
+ "p0199": [
+  "En vocal",
+  "In voice"
+ ],
+ "p0200": [
+  "Personnaliser",
+  "Customize"
+ ],
+ "p0201": [
+  "Modifier ma vitrine",
+  "Edit my showcase"
+ ],
+ "p0202": [
+  "Badges mis en avant",
+  "Featured badges"
+ ],
+ "p0203": [
+  "sur",
+  "of"
+ ],
+ "p0204": [
+  "{name} a choisi de garder ses statistiques détaillées privées.",
+  "{name} chose to keep their detailed statistics private."
+ ],
+ "p0205": [
+  "Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.",
+  "Your profile is private: visitors only see the header, level and totals."
+ ],
+ "p0206": [
+  "Modifier",
+  "Change"
+ ],
+ "p0207": [
+  "Séries, calendrier, sessions",
+  "Streaks, calendar, sessions"
+ ],
+ "p0208": [
+  "Évolution et répartition",
+  "Trends and breakdown"
+ ],
+ "p0209": [
+  "Ses serveurs et classements",
+  "Servers and rankings"
+ ],
+ "p0210": [
+  "Débloqués et à venir",
+  "Unlocked and upcoming"
+ ],
+ "p0211": [
+  "Série actuelle",
+  "Current streak"
+ ],
+ "p0212": [
+  "Inactif aujourd’hui",
+  "Inactive today"
+ ],
+ "p0213": [
+  "Record de série",
+  "Best streak"
+ ],
+ "p0214": [
+  "Record historique",
+  "All-time best"
+ ],
+ "p0215": [
+  "Jours actifs (1 an)",
+  "Active days (1 yr)"
+ ],
+ "p0216": [
+  "d’assiduité",
+  "active rate"
+ ],
+ "p0217": [
+  "Journée record",
+  "Peak day"
+ ],
+ "p0218": [
+  "Aucune donnée",
+  "No data"
+ ],
+ "p0219": [
+  "Calendrier d’activité",
+  "Activity Calendar"
+ ],
+ "p0220": [
+  "Nuances basées sur le temps vocal et les messages envoyés.",
+  "Activity intensity based on voice time and message counts."
+ ],
+ "p0221": [
+  "Annuel (12 mois)",
+  "Annual (12 mos)"
+ ],
+ "p0222": [
+  "Mensuel (30 jours)",
+  "Monthly (30 days)"
+ ],
+ "p0224": [
+  "Moins",
+  "Less"
+ ],
+ "p0225": [
+  "Plus",
+  "More"
+ ],
+ "p0226": [
+  "vocal",
+  "voice"
+ ],
+ "p0227": [
+  "Compagnons Vocaux Fréquents",
+  "Frequent Voice Companions"
+ ],
+ "p0228": [
+  "Membres avec qui {name} passe le plus de temps en vocal dans les mêmes salons.",
+  "Users who spent the most simultaneous voice time with {name}."
+ ],
+ "p0229": [
+  "Les salons vocaux sont enregistrés depuis cette date : le temps passé ensemble avant n’est pas connu.",
+  "Voice channels are recorded since this date: time spent together before is unknown."
+ ],
+ "p0231": [
+  "sessions",
+  "sessions"
+ ],
+ "p0232": [
+  "Aucun compagnon vocal identifié pour le moment. Rejoignez des salons vocaux avec d'autres membres !",
+  "No voice companions recorded yet. Join voice channels with other members!"
+ ],
+ "p0233": [
+  "Où {name} passe son temps en vocal",
+  "Where {name} spends voice time"
+ ],
+ "p0234": [
+  "Serveurs",
+  "Servers"
+ ],
+ "p0235": [
+  "Salons",
+  "Channels"
+ ],
+ "p0236": [
+  "Pas encore de temps en vocal enregistré.",
+  "No voice time recorded yet."
+ ],
+ "p0237": [
+  "paliers atteints",
+  "tiers reached"
+ ],
+ "p0238": [
+  "Filtrer les badges",
+  "Filter badges"
+ ],
+ "p0239": [
+  "Tous",
+  "All"
+ ],
+ "p0240": [
+  "Débloqués",
+  "Unlocked"
+ ],
+ "p0241": [
+  "À débloquer",
+  "To unlock"
+ ],
+ "p0242": [
+  "Débloqué",
+  "Unlocked"
+ ],
+ "p0243": [
+  "En cours",
+  "In progress"
+ ],
+ "p0244": [
+  "Aucun badge dans ce filtre.",
+  "No badge in this filter."
+ ],
+ "p0245": [
+  "Comparatif détaillé des métriques",
+  "Detailed Metric Breakdown"
+ ],
+ "p0246": [
+  "catégories",
+  "categories"
+ ],
+ "p0247": [
+  "Total cumulé",
+  "Running total"
+ ],
+ "p0248": [
+  "Total",
+  "Total"
+ ],
+ "p0249": [
+  "mois",
+  "month"
+ ],
+ "p0250": [
+  "Heures en vocal",
+  "Voice hours"
+ ],
+ "p0251": [
+  "Moyenne",
+  "Average"
+ ],
+ "p0252": [
+  "Total sur la période",
+  "Total over the period"
+ ],
+ "p0253": [
+  "Total sur 30 jours",
+  "Total over 30 days"
+ ],
+ "p0254": [
+  "moyenne",
+  "average"
+ ],
+ "p0255": [
+  "Détail par jour de la semaine (messages)",
+  "Detail per day of the week (messages)"
+ ],
+ "p0256": [
+  "{n} h de vocal au total",
+  "{n} h of voice in total"
+ ],
+ "p0257": [
+  "{n} messages au total",
+  "{n} messages in total"
+ ],
+ "p0258": [
+  "Nombre moyen de messages envoyés à chaque heure de la journée.",
+  "Average number of messages sent at each hour of the day."
+ ],
+ "p0259": [
+  "membre(s) en vocal en moyenne",
+  "member(s) in voice on average"
+ ],
+ "p0260": [
+  "messages en moyenne",
+  "messages on average"
+ ],
+ "p0261": [
+  "Aucun résultat trouvé pour « {q} »",
+  "No results found for \"{q}\""
+ ],
+ "p0262": [
+  "Utilisateurs",
+  "Users"
+ ],
+ "p0263": [
+  "Nv.",
+  "Lv."
+ ],
+ "p0264": [
+  "Profil Utilisateur",
+  "User Profile"
+ ],
+ "p0265": [
+  "Mois en cours : données partielles",
+  "Current month: data still coming in"
+ ],
+ "p0266": [
+  "Aujourd’hui : journée en cours",
+  "Today: day still in progress"
+ ],
+ "p0267": [
+  "paliers",
+  "tiers"
+ ],
+ "p0268": [
+  "Rang global",
+  "Global rank"
+ ],
+ "p0269": [
+  "Vocal total",
+  "Total voice"
+ ],
+ "p0270": [
+  "Vocal 30 j",
+  "Voice 30 d"
+ ],
+ "p0271": [
+  "Messages",
+  "Messages"
+ ],
+ "p0272": [
+  "Suivi depuis le",
+  "Tracked since"
+ ],
+ "p0273": [
+  "Bot actif",
+  "Bot active"
+ ],
+ "p0274": [
+  "Bot parti",
+  "Bot left"
+ ],
+ "p0275": [
+  "Rang",
+  "Rank"
+ ],
+ "p0276": [
+  "Membres suivis",
+  "Tracked members"
+ ],
+ "p0277": [
+  "j",
+  "d"
+ ],
+ "p0278": [
+  "il y a {t}",
+  "{t} ago"
+ ],
+ "p0279": [
+  "Pas encore de données",
+  "No data yet"
+ ],
+ "p0280": [
+  "Rechercher dans la liste",
+  "Search the list"
+ ],
+ "p0281": [
+  "Aucun résultat",
+  "No result"
+ ],
+ "p0282": [
+  "Bot en ligne",
+  "Bot online"
+ ],
+ "p0283": [
+  "Bot silencieux",
+  "Bot silent"
+ ],
+ "p0284": [
+  "Dernier relevé de présence",
+  "Last presence snapshot"
+ ],
+ "p0285": [
+  "Mis à jour",
+  "Updated"
+ ],
+ "p0286": [
+  "mesure d’audience depuis le",
+  "audience tracked since"
+ ],
+ "p0287": [
+  "Pages vues",
+  "Page views"
+ ],
+ "p0288": [
+  "Visiteurs uniques",
+  "Unique visitors"
+ ],
+ "p0289": [
+  "pages vues",
+  "page views"
+ ],
+ "p0290": [
+  "visiteurs-jour",
+  "visitor-days"
+ ],
+ "p0291": [
+  "Visites · 7 jours",
+  "Visits · 7 days"
+ ],
+ "p0292": [
+  "mesure en cours de démarrage",
+  "tracking just started"
+ ],
+ "p0293": [
+  "vs 7 j précédents",
+  "vs previous 7 d"
+ ],
+ "p0294": [
+  "Visiteurs uniques · aujourd’hui",
+  "Unique visitors · today"
+ ],
+ "p0295": [
+  "moyenne 7 j",
+  "7-day average"
+ ],
+ "p0296": [
+  "Comptes Discord liés",
+  "Linked Discord accounts"
+ ],
+ "p0297": [
+  "cette semaine",
+  "this week"
+ ],
+ "p0298": [
+  "Profils personnalisés",
+  "Customized profiles"
+ ],
+ "p0299": [
+  "des comptes liés",
+  "of linked accounts"
+ ],
+ "p0300": [
+  "Membres présents",
+  "Members present"
+ ],
+ "p0301": [
+  "jamais actifs",
+  "never active"
+ ],
+ "p0302": [
+  "en attente du bot v3.3.0",
+  "waiting for bot v3.3.0"
+ ],
+ "p0303": [
+  "Serveurs du bot",
+  "Bot servers"
+ ],
+ "p0304": [
+  "actifs sur 30 j",
+  "active in 30 d"
+ ],
+ "p0305": [
+  "Commandes · 30 jours",
+  "Commands · 30 days"
+ ],
+ "p0306": [
+  "d’erreurs",
+  "errors"
+ ],
+ "p0307": [
+  "Erreurs serveur · 30 j",
+  "Server errors · 30 d"
+ ],
+ "p0308": [
+  "pages introuvables",
+  "pages not found"
+ ],
+ "p0309": [
+  "Comptes liés au moins une fois",
+  "Accounts linked at least once"
+ ],
+ "p0310": [
+  "des",
+  "of the"
+ ],
+ "p0311": [
+  "membres suivis",
+  "tracked members"
+ ],
+ "p0312": [
+  "Nouveaux cette semaine",
+  "New this week"
+ ],
+ "p0313": [
+  "Actifs · 7 jours",
+  "Active · 7 days"
+ ],
+ "p0314": [
+  "Actifs · 30 jours",
+  "Active · 30 days"
+ ],
+ "p0315": [
+  "Nouveaux comptes",
+  "New accounts"
+ ],
+ "p0316": [
+  "Comptes actifs",
+  "Active accounts"
+ ],
+ "p0317": [
+  "connexion(s)",
+  "login(s)"
+ ],
+ "p0318": [
+  "depuis",
+  "since"
+ ],
+ "p0319": [
+  "Aucune connexion enregistrée",
+  "No login recorded"
+ ],
+ "p0320": [
+  "Profils privés",
+  "Private profiles"
+ ],
+ "p0321": [
+  "Serveur favori choisi",
+  "Favorite server set"
+ ],
+ "p0322": [
+  "aujourd'hui",
+  "today"
+ ],
+ "p0323": [
+  "En messages privés",
+  "In direct messages"
+ ],
+ "p0324": [
+  "Erreurs",
+  "Errors"
+ ],
+ "p0325": [
+  "moy.",
+  "avg"
+ ],
+ "p0326": [
+  "erreur(s)",
+  "error(s)"
+ ],
+ "p0327": [
+  "Serveurs où le bot est présent",
+  "Servers with the bot"
+ ],
+ "p0328": [
+  "quittés",
+  "left"
+ ],
+ "p0329": [
+  "En vocal maintenant",
+  "In voice now"
+ ],
+ "p0330": [
+  "messages sur 24 h",
+  "messages in 24 h"
+ ],
+ "p0331": [
+  "Dernier relevé du bot",
+  "Last bot snapshot"
+ ],
+ "p0332": [
+  "Sessions vocales orphelines",
+  "Orphan voice sessions"
+ ],
+ "p0333": [
+  "ouvertes depuis plus de 24 h",
+  "open for more than 24 h"
+ ],
+ "p0334": [
+  "Arrivées",
+  "Joins"
+ ],
+ "p0335": [
+  "Départs",
+  "Leaves"
+ ],
+ "p0336": [
+  "Membres uniques",
+  "Unique members"
+ ],
+ "p0337": [
+  "relevé",
+  "snapshot"
+ ],
+ "p0338": [
+  "Jamais actifs",
+  "Never active"
+ ],
+ "p0339": [
+  "n’ont jamais parlé ni rejoint un vocal",
+  "never talked nor joined voice"
+ ],
+ "p0340": [
+  "Déjà actifs",
+  "Already active"
+ ],
+ "p0341": [
+  "ont un profil Hourglass",
+  "have a Hourglass profile"
+ ],
+ "p0342": [
+  "Serveurs par membre",
+  "Servers per member"
+ ],
+ "p0343": [
+  "appartenances sur",
+  "memberships on"
+ ],
+ "p0344": [
+  "serveurs",
+  "servers"
+ ],
+ "p0345": [
+  "Aucun membre",
+  "No member"
+ ],
+ "p0346": [
+  "parti le",
+  "left on"
+ ],
+ "p0347": [
+  "présent",
+  "present"
+ ],
+ "p0348": [
+  "Aucun serveur",
+  "No server"
+ ],
+ "p0349": [
+  "Taille totale",
+  "Total size"
+ ],
+ "p0350": [
+  "lignes",
+  "rows"
+ ],
+ "p0351": [
+  "limite de requêtes atteinte",
+  "rate limit reached"
+ ],
+ "p0352": [
+  "Calcul de la page Analyses",
+  "Analytics page computation"
+ ],
+ "p0353": [
+  "dernier rafraîchissement",
+  "last refresh"
+ ],
+ "p0354": [
+  "ce worker",
+  "this worker"
+ ],
+ "p0355": [
+  "pas encore rafraîchi sur ce worker",
+  "not refreshed on this worker yet"
+ ],
+ "p0356": [
+  "Variable SECRET_KEY",
+  "SECRET_KEY variable"
+ ],
+ "p0357": [
+  "stable entre les mises à jour",
+  "stable across updates"
+ ],
+ "p0358": [
+  "Dérivée de DISCORD_CLIENT_SECRET",
+  "Derived from DISCORD_CLIENT_SECRET"
+ ],
+ "p0359": [
+  "Enregistrée en base",
+  "Stored in the database"
+ ],
+ "p0360": [
+  "Fichier du conteneur",
+  "Container file"
+ ],
+ "p0361": [
+  "perdue à chaque mise à jour : membres déconnectés",
+  "lost on every update: members logged out"
+ ],
+ "p0362": [
+  "Aléatoire",
+  "Random"
+ ],
+ "p0363": [
+  "change à chaque démarrage : membres déconnectés",
+  "changes on every start: members logged out"
+ ],
+ "p0364": [
+  "Clé de session",
+  "Session key"
+ ],
+ "p0365": [
+  "Erreur de chargement",
+  "Loading error"
+ ],
+ "p0366": [
+  "msgs",
+  "msgs"
+ ],
+ "p0367": [
+  "Pas de comparaison",
+  "No comparison"
+ ],
+ "p0368": [
+  "vs 30 j précédents",
+  "vs previous 30 d"
+ ],
+ "p0369": [
+  "sur 7 jours",
+  "over 7 days"
+ ],
+ "p0370": [
+  "sur 48 h",
+  "over 48 h"
+ ],
+ "p0371": [
+  "Connectés en moyenne",
+  "Online on average"
+ ],
+ "p0372": [
+  "Absent",
+  "Idle"
+ ],
+ "p0373": [
+  "Hors ligne",
+  "Offline"
+ ],
+ "p0374": [
+  "membres",
+  "members"
+ ],
+ "p0375": [
+  "Nouveaux membres",
+  "New members"
+ ],
+ "p0376": [
+  "nouveaux membres",
+  "new members"
+ ],
+ "p0377": [
+  "Heures",
+  "Hours"
+ ],
+ "p0378": [
+  "Heures en vocal par salon vocal.",
+  "Voice hours per voice channel."
+ ],
+ "p0379": [
+  "Messages par salon textuel.",
+  "Messages per text channel."
+ ],
+ "p0380": [
+  "Tous les serveurs",
+  "All servers"
+ ],
+ "p0381": [
+  "Classement global tous serveurs",
+  "Global leaderboard across all servers"
+ ],
+ "p0382": [
+  "Choisir",
+  "Select"
+ ],
+ "p0383": [
+  "Serveurs ({n})",
+  "Servers ({n})"
+ ],
+ "p0384": [
+  "Aucun serveur trouvé pour « {q} »",
+  "No server found for \"{q}\""
+ ],
+ "p0385": [
+  "Heures en vocal par serveur (top 10).",
+  "Voice hours per server (top 10)."
+ ],
+ "p0386": [
+  "Salons vocaux favoris, tous serveurs confondus.",
+  "Favorite voice channels, all servers combined."
+ ],
+ "p0387": [
+  "Aucun utilisateur trouvé pour « {q} »",
+  "No user found for \"{q}\""
+ ],
+ "p0388": [
+  "Utilisateurs ({n})",
+  "Users ({n})"
+ ],
+ "p0389": [
+  "Novice Curieux",
+  "Curious Novice"
+ ],
+ "p0390": [
+  "Initié Actif",
+  "Active Initiate"
+ ],
+ "p0391": [
+  "Membre Confirmé",
+  "Senior Member"
+ ],
+ "p0392": [
+  "Expert des Ondes",
+  "Voice Expert"
+ ],
+ "p0393": [
+  "Vétéran de l'Éther",
+  "Aether Veteran"
+ ],
+ "p0394": [
+  "Grand Maître",
+  "Grandmaster"
+ ],
+ "p0395": [
+  "Légende Hourglass",
+  "Hourglass Legend"
+ ],
+ "p0396": [
+  "Bronze",
+  "Bronze"
+ ],
+ "p0397": [
+  "Argent",
+  "Silver"
+ ],
+ "p0398": [
+  "Or",
+  "Gold"
+ ],
+ "p0399": [
+  "Platine",
+  "Platinum"
+ ],
+ "p0400": [
+  "Diamant",
+  "Diamond"
+ ],
+ "p0401": [
+  "Légende",
+  "Legend"
+ ],
+ "p0402": [
+  "Mythique",
+  "Mythic"
+ ],
+ "p0403": [
+  "Temps passé en vocal",
+  "Time spent in voice"
+ ],
+ "p0404": [
+  "Messages envoyés",
+  "Messages sent"
+ ],
+ "p0405": [
+  "Niveau",
+  "Level"
+ ],
+ "p0406": [
+  "Niveau atteint",
+  "Level reached"
+ ],
+ "p0407": [
+  "Classement",
+  "Ranking"
+ ],
+ "p0408": [
+  "Place au classement vocal global",
+  "Spot in the global voice ranking"
+ ],
+ "p0409": [
+  "Serveurs fréquentés",
+  "Servers joined"
+ ],
+ "p0410": [
+  "Fidélité",
+  "Loyalty"
+ ],
+ "p0411": [
+  "Ancienneté depuis la première activité",
+  "Time since the first activity"
+ ],
+ "p0412": [
+  "Activité",
+  "Activity"
+ ],
+ "p0413": [
+  "Heures en vocal sur les 30 derniers jours",
+  "Voice hours over the last 30 days"
+ ],
+ "p0414": [
+  "Polyvalence",
+  "Versatility"
+ ],
+ "p0415": [
+  "Vocal et messages à la fois",
+  "Voice and messages together"
+ ],
+ "p0416": [
+  "Plus longue session",
+  "Longest session"
+ ],
+ "p0417": [
+  "Meilleure journée",
+  "Best day"
+ ],
+ "p0418": [
+  "Plus longue série",
+  "Longest streak"
+ ],
+ "p0419": [
+  "Meilleur mois en vocal",
+  "Best voice month"
+ ],
+ "p0420": [
+  "Meilleur mois en messages",
+  "Best message month"
+ ],
+ "p0421": [
+  "Serveur principal",
+  "Main server"
+ ],
+ "p0422": [
+  "Meilleur compagnon vocal",
+  "Top voice companion"
+ ],
+ "p0423": [
+  "Heure de pointe en vocal",
+  "Peak voice hour"
+ ],
+ "p0424": [
+  "Jours actifs sur un an",
+  "Active days in a year"
+ ],
+ "p0425": [
+  "Aurore boréale",
+  "Northern lights"
+ ],
+ "p0426": [
+  "Nébuleuse",
+  "Nebula"
+ ],
+ "p0427": [
+  "Synthwave",
+  "Synthwave"
+ ],
+ "p0428": [
+  "Crépuscule",
+  "Dusk mountains"
+ ],
+ "p0429": [
+  "Océan de nuit",
+  "Night ocean"
+ ],
+ "p0430": [
+  "Low poly",
+  "Low poly"
+ ],
+ "p0431": [
+  "Topographie",
+  "Topography"
+ ],
+ "p0432": [
+  "Ville pixel",
+  "Pixel city"
+ ],
+ "p0433": [
+  "Sakura",
+  "Sakura"
+ ],
+ "p0434": [
+  "Braises",
+  "Embers"
+ ],
+ "p0435": [
+  "Circuit",
+  "Circuit"
+ ],
+ "p0436": [
+  "Dunes",
+  "Dunes"
+ ],
+ "p0437": [
+  "Ville néon",
+  "Neon city"
+ ],
+ "p0438": [
+  "Donjon pixel",
+  "Pixel dungeon"
+ ],
+ "p0439": [
+  "Arcade 8-bit",
+  "8-bit arcade"
+ ],
+ "p0440": [
+  "Grande vague",
+  "Great wave"
+ ],
+ "p0441": [
+  "Ciel d’animé",
+  "Anime sky"
+ ],
+ "p0442": [
+  "Sanctuaire",
+  "Shrine"
+ ],
+ "p0443": [
+  "Manga",
+  "Manga"
+ ],
+ "p0444": [
+  "HUD mecha",
+  "Mecha HUD"
+ ],
+ "p0445": [
+  "Forêt enchantée",
+  "Enchanted forest"
+ ],
+ "p0446": [
+  "Plateformes rétro",
+  "Retro platformer"
+ ],
+ "p0447": [
+  "Vaporwave",
+  "Vaporwave"
+ ],
+ "p0448": [
+  "Planète",
+  "Planet"
+ ],
+ "p0449": [
+  "Hyperespace",
+  "Hyperspace"
+ ],
+ "p0450": [
+  "Pluie de code",
+  "Code rain"
+ ],
+ "p0451": [
+  "Grotte de cristal",
+  "Crystal cave"
+ ],
+ "p0452": [
+  "Monde de lave",
+  "Lava world"
+ ],
+ "p0453": [
+  "Nuit enneigée",
+  "Snowy night"
+ ],
+ "p0454": [
+  "Abysses",
+  "Deep sea"
+ ],
+ "p0455": [
+  "Lune de sang",
+  "Blood moon"
+ ],
+ "p0456": [
+  "Monde de blocs",
+  "Block world"
+ ],
+ "p0457": [
+  "Ruines du désert",
+  "Desert ruins"
+ ],
+ "p0458": [
+  "Lo-fi pluie",
+  "Lo-fi rain"
+ ],
+ "p0459": [
+  "Galaxie",
+  "Galaxy"
+ ],
+ "p0460": [
+  "Orage",
+  "Storm"
+ ],
+ "p0461": [
+  "Blurple",
+  "Blurple"
+ ],
+ "p0462": [
+  "Ciel",
+  "Sky"
+ ],
+ "p0463": [
+  "Indigo",
+  "Indigo"
+ ],
+ "p0464": [
+  "Violet",
+  "Violet"
+ ],
+ "p0465": [
+  "Rose",
+  "Pink"
+ ],
+ "p0466": [
+  "Rouge",
+  "Red"
+ ],
+ "p0467": [
+  "Orange",
+  "Orange"
+ ],
+ "p0468": [
+  "Ambre",
+  "Amber"
+ ],
+ "p0469": [
+  "Citron vert",
+  "Lime"
+ ],
+ "p0470": [
+  "Émeraude",
+  "Emerald"
+ ],
+ "p0471": [
+  "Turquoise",
+  "Teal"
+ ],
+ "p0472": [
+  "Bleu",
+  "Blue"
+ ],
+ "p0473": [
+  "Cyan",
+  "Cyan"
+ ],
+ "p0474": [
+  "Pourpre",
+  "Purple"
+ ],
+ "p0475": [
+  "Fuchsia",
+  "Fuchsia"
+ ],
+ "p0476": [
+  "Corail",
+  "Coral"
+ ],
+ "p0477": [
+  "Pêche",
+  "Peach"
+ ],
+ "p0478": [
+  "Jaune",
+  "Yellow"
+ ],
+ "p0479": [
+  "Vert",
+  "Green"
+ ],
+ "p0480": [
+  "Menthe",
+  "Mint"
+ ],
+ "p0481": [
+  "Minuit",
+  "Midnight"
+ ],
+ "p0482": [
+  "Marine",
+  "Navy"
+ ],
+ "p0483": [
+  "Prune",
+  "Plum"
+ ],
+ "p0484": [
+  "Bordeaux",
+  "Wine"
+ ],
+ "p0485": [
+  "Rouille",
+  "Rust"
+ ],
+ "p0486": [
+  "Olive",
+  "Olive"
+ ],
+ "p0487": [
+  "Forêt",
+  "Forest"
+ ],
+ "p0488": [
+  "Sarcelle",
+  "Teal"
+ ],
+ "p0489": [
+  "Ardoise",
+  "Slate"
+ ],
+ "p0490": [
+  "Noir",
+  "Black"
+ ],
+ "p0491": [
+  "Vitrine de badges",
+  "Badge showcase"
+ ],
+ "p0492": [
+  "Séries et assiduité",
+  "Streaks and consistency"
+ ],
+ "p0493": [
+  "Compagnons vocaux",
+  "Voice companions"
+ ],
+ "p0494": [
+  "Graphiques",
+  "Charts"
+ ],
+ "p0495": [
+  "Badges",
+  "Badges"
+ ],
+ "p0496": [
+  "Connexion annulée : vous avez refusé l'autorisation sur Discord.",
+  "Login cancelled: you declined the authorization on Discord."
+ ],
+ "p0497": [
+  "La session de sécurité a expiré. Veuillez cliquer à nouveau pour vous connecter.",
+  "The security session has expired. Please click again to log in."
+ ],
+ "p0498": [
+  "Impossible de valider la session auprès de Discord. Veuillez réessayer.",
+  "Could not validate the session with Discord. Please try again."
+ ],
+ "p0499": [
+  "Erreur d'authentification Discord ({code}).",
+  "Discord authentication error ({code})."
+ ],
+ "p0500": [
+  "Serveur {id}",
+  "Server {id}"
+ ],
+ "p0501": [
+  "404 - Page Introuvable - Hourglass",
+  "404 - Page Not Found - Hourglass"
+ ],
+ "p0502": [
+  "Oups ! Page introuvable",
+  "Oops! Page not found"
+ ],
+ "p0503": [
+  "Erreur 404",
+  "404 Error"
+ ],
+ "p0504": [
+  "La ressource que vous recherchez semble introuvable ou a été déplacée.",
+  "The page you are looking for cannot be found or has been moved."
+ ],
+ "p0505": [
+  "Retourner à l’accueil",
+  "Back to home"
+ ],
+ "p0506": [
+  "Effacer la recherche",
+  "Clear search"
+ ],
+ "p0507": [
+  "Rechercher (Entrée)",
+  "Search (Enter)"
+ ],
+ "p0508": [
+  "{n} sessions",
+  "{n} sessions"
+ ],
+ "p0509": [
+  "Série en cours",
+  "Active streak"
+ ],
+ "p0510": [
+  "Effacer",
+  "Clear"
+ ],
+ "p0511": [
+  "Retour aux statistiques globales",
+  "Back to global statistics"
+ ],
+ "p0512": [
+  "Langue",
+  "Language"
+ ],
+ "p0513": [
+  "Traduction fournie pour information : en cas de différence, la version française fait foi.",
+  "Translation provided for information: if the versions differ, the French version prevails."
+ ],
+ "p0514": [
+  "Données depuis le {date}",
+  "Data since {date}"
+ ],
+ "p0515": [
+  "Records",
+  "Records"
+ ],
+ "p0516": [
+  "badges",
+  "badges"
+ ],
+ "p0517": [
+  "Menu",
+  "Menu"
+ ],
+ "p0518": [
+  "Page {n}",
+  "Page {n}"
+ ],
+ "p0519": [
+  "{day} : aucune activité",
+  "{day}: no activity"
+ ],
+ "p0520": [
+  "{day} : {hours} h · {messages} messages",
+  "{day}: {hours} h · {messages} messages"
+ ]
+}

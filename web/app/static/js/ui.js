@@ -7,6 +7,30 @@
 (function () {
     const HG = (window.HG = window.HG || {});
 
+    // Site language: code ('fr', 'pt'…) and Intl locale ('pt-BR') come from <html data-lang data-locale>
+    const root = document.documentElement;
+    HG.lang = root.dataset.lang || 'fr';
+    HG.locale = root.dataset.locale || 'fr-FR';
+    let phrases = null;
+    // Translate an inline pair: French text, English text, optional {placeholders}. Other languages read
+    // the translations embedded in the page (#hgI18n), keyed by the French text, and fall back to English.
+    HG.tr = function (fr, en, vars) {
+        let text = fr;
+        if (HG.lang === 'en') text = en;
+        else if (HG.lang !== 'fr') {
+            if (!phrases) {
+                const node = document.getElementById('hgI18n');
+                try { phrases = node ? JSON.parse(node.textContent) : {}; } catch (e) { phrases = {}; }
+            }
+            text = phrases[fr] != null ? phrases[fr] : en;
+        }
+        return vars ? text.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : text;
+    };
+    // Localized weekday name, 0 = Monday ('long' or 'short')
+    HG.weekday = function (index, width) {
+        return new Date(Date.UTC(2024, 0, 1 + index)).toLocaleDateString(HG.locale, { weekday: width || 'long', timeZone: 'UTC' });
+    };
+
     // Escape text before inserting it into an HTML string (server names and usernames are free text)
     HG.esc = function (value) {
         return String(value == null ? '' : value)
@@ -82,41 +106,10 @@
     window.addEventListener('scroll', hide, { passive: true });
 })();
 
-// Tabbed pages: at the end of each section, buttons to the other sections (many visitors never noticed
-// the tab bar). They click the real tab, so each page keeps its own switching logic, then bring the bar back in view.
+// Tabbed pages: the tab buttons are announced as tabs
 document.addEventListener('DOMContentLoaded', function () {
-    const bar = document.querySelector('.graphs-tabs:not(.adm-tabs)');
-    if (!bar) return;
-    const tabs = Array.from(bar.querySelectorAll('.graphs-tab-btn[data-tab]'));
-    if (tabs.length < 2) return;
-    const fr = document.documentElement.lang !== 'en';
-    tabs.forEach(function (tab) {
+    document.querySelectorAll('.graphs-tabs:not(.adm-tabs) .graphs-tab-btn[data-tab]').forEach(function (tab) {
         tab.setAttribute('role', 'tab');
-        const pane = document.getElementById(tab.dataset.tab);
-        if (!pane) return;
-        const nav = document.createElement('nav');
-        nav.className = 'tab-next';
-        nav.setAttribute('aria-label', fr ? 'Autres sections' : 'Other sections');
-        const label = document.createElement('span');
-        label.className = 'tab-next-label';
-        label.textContent = fr ? 'Autres sections' : 'Other sections';
-        nav.appendChild(label);
-        tabs.filter(function (other) { return other !== tab; }).forEach(function (other) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'tab-next-btn';
-            const icon = other.querySelector('svg');
-            if (icon) btn.appendChild(icon.cloneNode(true));
-            const title = document.createElement('span');
-            title.textContent = (other.querySelector('.tab-title') || other).textContent.trim();
-            btn.appendChild(title);
-            btn.addEventListener('click', function () {
-                other.click();
-                bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-            nav.appendChild(btn);
-        });
-        pane.appendChild(nav);
     });
 });
 

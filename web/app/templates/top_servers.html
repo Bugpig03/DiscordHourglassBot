@@ -5,14 +5,14 @@
 {% block content %}
 {% from "partials/pagination.html" import pagination with context %}
 <div class="members-page-header">
-    <h1 class="big-bold-text nomargin">{{ t('servers_page.heading') }}</h1>
+    <h1 class="big-bold-text nomargin" data-ghost="#1">{{ t('servers_page.heading') }}</h1>
 </div>
 
 <form method="GET" action="{{ url_for('top.top_servers') }}" id="top-filter-form" class="top-form" data-live-form>
     <div class="top-filter-group top-search-group">
         <label for="topSearchInput" class="top-label">{{ t('top.search_label') }}</label>
         <div class="page-search-bar top-search-bar">
-            <svg class="page-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            <svg class="page-search-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
             <input type="text" id="topSearchInput" name="q" data-live-search value="{{ request.args.get('q', '') }}" placeholder="{{ t('servers_page.search_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
         </div>
     </div>
@@ -42,25 +42,30 @@
 <div data-live-region>
 
 {% if servers %}
+    {% set move_label = tr('depuis hier', 'since yesterday') if request.args.get('period') == '24h' else tr('en 7 jours', 'in 7 days') %}
     {% for server in servers %}
-    {% set server_rank = loop.index + ((request.args.get('page', 1)|int - 1) * 20) %}
-    <div class="gray-box link" style="padding: 12px 16px;">
-        <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}">
+    {% set server_rank = server.rank or (loop.index + ((request.args.get('page', 1)|int - 1) * 20)) %}
+    <div class="gray-box link" style="padding: 0;">
+        <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" data-hover="server:{{ server.server_id }}" style="padding: 12px 16px;">
             <div class="stats-box">
                 {% if request.args.get('sort_by') != 'name' %}
                 <span class="rank-badge {% if server_rank == 1 %}rank-1{% elif server_rank == 2 %}rank-2{% elif server_rank == 3 %}rank-3{% else %}rank-other{% endif %}">
                     #{{ server_rank }}
                 </span>
+                {% if server.move > 0 %}<span class="rank-move up" title="{{ tr('+%d place(s) ', '+%d spot(s) ')|format(server.move) }}{{ move_label }}">▲{{ server.move }}</span>
+                {% elif server.move < 0 %}<span class="rank-move down" title="{{ tr('%d place(s) ', '%d spot(s) ')|format(server.move) }}{{ move_label }}">▼{{ -server.move }}</span>
+                {% elif server.is_new %}<span class="rank-move new" title="{{ tr('Nouveau dans le classement ', 'New in the ranking ') }}{{ move_label }}">{{tr('NOUV.', 'NEW')}}</span>
+                {% elif server.rank is defined %}<span class="rank-move same" title="{{ tr('Même place ', 'Same spot ') }}{{ move_label }}">=</span>{% endif %}
                 {% endif %}
                 <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
                      class="small-pp border-server" alt="avatar">
                 <span class="username-fixed">{{ server.servername }}</span>
                 {% if server.is_bot_present == False %}<span class="server-untracked-badge" data-tip="{{ t('servers.bot_inactive_tooltip') }}">{{ t('servers.bot_inactive') }}</span>{% endif %}
                 <span class="hours-fixed">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ (server.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}
+                    <svg width="13" height="13" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>{{ (server.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}
                 </span>
                 <span class="messages-fixed">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ server.messages | thousands_fr }} {{ t('top.msgs_unit') }}
+                    <svg width="13" height="13" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>{{ server.messages | thousands_fr }} {{ t('top.msgs_unit') }}
                 </span>
             </div>
         </a>

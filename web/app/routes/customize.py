@@ -9,7 +9,6 @@ from app.profile_records import (
     DEFAULT_PINNED_RECORDS,
     MAX_FEATURED_BADGES,
     MAX_PINNED_RECORDS,
-    RARITY_ORDER,
     RECORD_CATALOG,
     featured_badges,
 )
@@ -31,6 +30,7 @@ from app.profile_settings import (
     save_profile_settings,
 )
 from app.security import valid_csrf
+from app.i18n import current_lang, tr
 
 customize_bp = Blueprint("customize", __name__)
 
@@ -43,7 +43,7 @@ def customize_profile():
     user_id = int(user["id"])
     member = Users.get_or_none(Users.user_id == user_id)
     settings = get_profile_settings(user_id)
-    lang = request.cookies.get("lang", "fr")
+    lang = current_lang()
     stats = load_user_profile_stats(user_id, member.username or user["username"], can_view_presence=False) if member else None
     servers = stats["user_servers_stats"] if stats else []
     badges = calculate_user_badges(stats, lang=lang) if stats else []
@@ -64,7 +64,7 @@ def customize_profile():
         records = load_profile_extras(user_id, stats, charts, lang)["records"]
     favorite_server = next((s for s in servers if s["server_id"] == settings["favorite_server_id"]), None)
     theme = resolve_profile_theme(user_id, settings)
-    label = (lambda fr, en: fr if lang == "fr" else en)
+    label = (lambda fr, en: tr(fr, en, lang))
     palette = [{"key": k, "hex": h, "label": label(fr, en)} for k, h, fr, en in PALETTE]
     background_colors = [{"key": k, "hex": h, "label": label(fr, en)} for k, h, fr, en in BACKGROUND_COLORS]
     banner_gallery = gallery(BANNERS, banner_url, lang)
@@ -88,13 +88,13 @@ def customize_profile():
         servers=servers,
         favorite_server=favorite_server,
         xp=xp,
-        # Rarest first: the badges worth showing off are at the top of the picker
-        badges=sorted((b for b in badges if b["unlocked"]), key=lambda b: RARITY_ORDER.get(b["rarity"], 0), reverse=True),
+        # Highest tiers first: the badges worth showing off are at the top of the picker
+        badges=sorted((b for b in badges if b["unlocked"]), key=lambda b: b["tier"], reverse=True),
         showcase=featured_badges(badges, settings["featured_badges"]),
         records=records,
         pinned_keys=settings["pinned_records"] or [k for k in DEFAULT_PINNED_RECORDS if k in records],
         layout=resolve_layout(settings, is_owner=True),
-        block_labels={k: (fr if lang == "fr" else en) for k, (fr, en) in HIDEABLE_BLOCKS.items()},
+        block_labels={k: tr(fr, en, lang) for k, (fr, en) in HIDEABLE_BLOCKS.items()},
         max_badges=MAX_FEATURED_BADGES,
         max_records=MAX_PINNED_RECORDS,
         saved=request.args.get("saved"),

@@ -1,0 +1,1753 @@
+/* ==========================================================================
+   ARÈNE THEME (web 3.24.0)
+   Loaded after styles.css and the page stylesheets: Discord greys, blurple accent, Chakra Petch for
+   titles and figures, IBM Plex Sans for text, cut corners instead of rounded glass cards.
+   Avatars stay round, and the colours members pick for their profile still win on their own page.
+   ========================================================================== */
+
+/* Self-hosted fonts (SIL Open Font License): the CSP only allows fonts from this site */
+@font-face { font-family: "Chakra Petch"; font-style: italic; font-weight: 600; font-display: swap; src: url("../fonts/chakra-petch-600i-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Chakra Petch"; font-style: italic; font-weight: 600; font-display: swap; src: url("../fonts/chakra-petch-600i-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Chakra Petch"; font-style: italic; font-weight: 700; font-display: swap; src: url("../fonts/chakra-petch-700i-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Chakra Petch"; font-style: italic; font-weight: 700; font-display: swap; src: url("../fonts/chakra-petch-700i-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/chakra-petch-500-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/chakra-petch-500-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/chakra-petch-600-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/chakra-petch-600-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/chakra-petch-700-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/chakra-petch-700-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/ibm-plex-sans-var-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+:root {
+  --ar-bg: #15161a;
+  --ar-bg-2: #1a1c21;
+  --ar-panel: #212329;
+  --ar-panel-2: #292c33;
+  --ar-line: #2e3138;
+  --ar-fg: #f2f3f5;
+  --ar-muted: #a3a6b0;
+  --ar-dim: #72767d;
+  --ar-accent: #717cf8;
+  --ar-accent-hi: #a5acff;
+  --ar-accent-soft: rgba(113, 124, 248, 0.16);
+  --ar-gold: #f5c542;
+  --ar-silver: #c9ced6;
+  --ar-bronze: #d08a4f;
+  --ar-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --ar-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --cut-s: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  --cut-m: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  --slant: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+/* --------------------------------------------------------------- base */
+html body {
+  background: var(--ar-bg);
+  color: var(--ar-fg);
+  font-family: var(--ar-body);
+  font-size: 15px;
+}
+
+html body h1,
+html body h2,
+html body h3,
+html body .giant-bold-text,
+html body .big-bold-text,
+html body .dashboard-hero-title,
+html body .dashboard-section-title,
+html body .home-section-title,
+html body .an-title,
+html body .an-card-title,
+html body .hg-card-title,
+html body .legal-title,
+html body .legal-card-title,
+html body .versus-title,
+html body .versus-metrics-title,
+html body .podium-card-title,
+html body .common-servers-title,
+html body .modal-title,
+html body .profile-hero-name,
+html body .profile-records-title,
+html body .cz-title,
+html body .adm-section-title {
+  font-family: var(--ar-display);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+html body .dashboard-hero-title,
+html body .legal-title,
+html body .versus-title,
+html body .an-title,
+html body .cz-title,
+html body .profile-hero-name {
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+html body .dashboard-section-title,
+html body .home-section-title,
+html body .an-card-title,
+html body .hg-card-title,
+html body .podium-card-title,
+html body .legal-card-title,
+html body .versus-metrics-title,
+html body .common-servers-title,
+html body .profile-records-title,
+html body .adm-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+/* Every figure uses the display face with fixed-width digits */
+html body .home-stats-value,
+html body .dashboard-kpi-val,
+html body .podium-value,
+html body .podium-rank,
+html body .rank,
+html body .hours-fixed,
+html body .messages-fixed,
+html body .xp-fixed,
+html body .an-delta,
+html body .an-rank-value,
+html body .an-rank-pos,
+html body .adm-stat-value,
+html body .adm-tile-value,
+html body .score-number,
+html body .score-digit,
+html body .metric-side-val,
+html body .user-level-num,
+html body .profile-record-value,
+html body .ratio-pct,
+html body .pager-btn,
+html body .page-link {
+  font-family: var(--ar-display);
+  font-variant-numeric: tabular-nums;
+}
+
+html body .dashboard-kpi-val,
+html body .home-stats-value,
+html body .score-number,
+html body .score-digit,
+html body .user-level-num,
+html body .podium-rank,
+html body .rank {
+  font-style: italic;
+  font-weight: 700;
+}
+
+/* Small labels above figures */
+html body .dashboard-kpi-label,
+html body .home-stats-label,
+html body .adm-stat-label,
+html body .dashboard-hero-badge,
+html body .home-section-badge,
+html body .badge-rarity-pill,
+html body .hg-badge,
+html body .an-badge,
+html body .metrics-count-badge,
+html body .fighter-player-tag,
+html body .search-group-title,
+html body .snippet-label,
+html body .versus-input-label,
+html body .top-label {
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+html body a { color: var(--ar-accent-hi); }
+
+html body ::selection { background: rgba(113, 124, 248, 0.45); }
+
+/* --------------------------------------------------------------- navbar: flat bar glued to the top */
+html body .main-container { padding-top: 0; }
+
+/* Edge-to-edge bar without leaving the content column: the background is a pseudo-element stretched far
+   to both sides, and the page clips what passes its edges (overflow-x: clip keeps the sticky bar working
+   and, unlike a 100vw width, never depends on the scrollbar). Menus under the bar are not clipped. */
+html { overflow-x: hidden; } /* fallback for browsers without overflow: clip (iOS < 16) */
+html body { overflow-x: clip; }
+html body .app-header {
+  top: 0;
+  margin: 0 0 26px;
+  padding: 0;
+  background: none;
+}
+html body .app-header::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: -100vmax;
+  right: -100vmax;
+  background: rgba(21, 22, 26, 0.94);
+  border-bottom: 1px solid var(--ar-line);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+html body .app-navbar,
+html body .app-navbar:hover {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
+  min-height: 60px;
+}
+
+html body .app-brand { gap: 10px; }
+html body .app-logo {
+  width: 34px;
+  height: 34px;
+  padding: 6px;
+  background: var(--ar-accent);
+  clip-path: var(--cut-s);
+  filter: none;
+}
+html body .app-brand:hover .app-logo { transform: none; filter: none; }
+html body .app-title {
+  font-family: var(--ar-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 1rem;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--ar-fg);
+}
+html body .app-badge {
+  font-family: var(--ar-display);
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--slant);
+  background: var(--ar-accent-soft);
+  color: var(--ar-accent-hi);
+  padding: 2px 8px;
+}
+
+html body .app-nav-link {
+  position: relative;
+  border-radius: 0;
+  border: 0;
+  background: none;
+  padding: 19px 12px;
+  color: var(--ar-muted);
+  font-family: var(--ar-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.82rem;
+}
+html body .app-nav-list {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  gap: 0;
+}
+
+html body .app-nav-link { display: inline-flex; align-items: center; gap: 7px; }
+html body .app-nav-link .nav-icon { display: inline-block; width: 14px; height: 14px; color: var(--ar-dim); }
+html body .app-nav-link:hover .nav-icon { color: var(--ar-muted); }
+html body .app-nav-link.active .nav-icon { color: var(--ar-accent-hi); }
+html body .app-nav-link:hover { background: none; color: var(--ar-fg); }
+html body .app-nav-link.active {
+  background: none;
+  color: var(--ar-fg);
+  box-shadow: none;
+}
+html body .app-nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 3px;
+  background: var(--ar-accent);
+}
+
+html body .btn-quick-search,
+html body .lang-switch,
+html body .auth-user-btn,
+html body .btn-discord-nav,
+html body .btn-discord-login,
+html body .mobile-nav-toggle {
+  border-radius: 0;
+  clip-path: var(--cut-s);
+  box-shadow: none;
+}
+html body .btn-quick-search {
+  background: var(--ar-panel);
+  border: 1px solid var(--ar-line);
+  color: var(--ar-dim);
+}
+html body .btn-quick-search:hover { background: var(--ar-panel-2); color: var(--ar-muted); border-color: #3a3e47; }
+html body .search-btn-kbd,
+html body .search-hint-item kbd,
+html body .search-esc-key,
+html body .page-search-enter-kbd {
+  font-family: var(--ar-display);
+  border-radius: 0;
+  background: var(--ar-panel-2);
+  border-color: transparent;
+  box-shadow: none;
+}
+html body .lang-switch { background: var(--ar-panel); border-color: var(--ar-line); }
+html body .lang-btn { border-radius: 0; font-family: var(--ar-display); }
+html body .lang-btn.active { background: var(--ar-accent-soft); box-shadow: none; }
+html body .btn-discord-nav {
+  background: var(--ar-panel);
+  border: 1px solid var(--ar-line);
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+}
+html body .btn-discord-nav:hover { background: var(--ar-panel-2); }
+html body .btn-discord-login {
+  background: var(--ar-accent);
+  border: 0;
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+html body .btn-discord-login:hover { background: #8790ff; transform: none; }
+html body .auth-user-btn { background: var(--ar-panel); border: 1px solid var(--ar-line); }
+html body .auth-user-btn:hover { background: var(--ar-panel-2); }
+html body .auth-user-name { font-weight: 600; }
+
+/* Menus and popovers keep straight corners but no clipping (they must overflow freely) */
+html body .nav-dropdown-menu,
+html body .page-search-dropdown,
+html body .top-server-dropdown,
+html body .hg-tooltip {
+  border-radius: 2px;
+  background: #1e1f24;
+  border: 1px solid var(--ar-line);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+html body .nav-dropdown-menu::before { display: none; }
+html body .nav-dropdown-item { border-radius: 0; }
+html body .nav-dropdown-item:hover { background: var(--ar-panel-2); }
+
+/* Mobile drawer */
+@media (max-width: 1024px) {
+  html body .app-nav-menu {
+    border-radius: 0;
+    background: #1b1c21;
+    border: 1px solid var(--ar-line);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  }
+  html body .app-nav-link { padding: 12px 14px; }
+  html body .app-nav-link .nav-icon { display: inline-block; }
+  html body .app-nav-link.active { background: var(--ar-accent-soft); }
+  html body .app-nav-link.active::after { left: 0; right: auto; top: 0; bottom: 0; width: 3px; height: auto; }
+}
+
+/* --------------------------------------------------------------- surfaces */
+html body .gray-box,
+html body .an-card,
+html body .hg-card,
+html body .dashboard-chart-box,
+html body .dashboard-section-wrap,
+html body .legal-card,
+html body .versus-selector-box,
+html body .versus-metrics-container,
+html body .versus-chart-card,
+html body .versus-common-servers-wrapper,
+html body .cz-panel,
+html body .user-level-card,
+html body .dashboard-telemetry-bar,
+html body .adm-tile,
+html body .adm-stat,
+html body .stats-box,
+html body .commands-table-wrapper,
+html body .xp-guide-item,
+html body .global-search-dialog,
+html body .hourglass-modal-content,
+html body .top-form,
+html body .heatmap-month-card,
+html body .companion-card {
+  border-radius: 0;
+  background: var(--ar-panel);
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Cut corners on cards that never host a dropdown */
+html body .an-card,
+html body .hg-card,
+html body .dashboard-chart-box,
+html body .legal-card,
+html body .versus-chart-card,
+html body .versus-metrics-container,
+html body .user-level-card,
+html body .dashboard-kpi-card,
+html body .home-stats-box,
+html body .dashboard-podium-card,
+html body .adm-tile,
+html body .adm-stat,
+html body .xp-guide-item,
+html body .heatmap-month-card,
+html body .companion-card,
+html body .profile-record,
+html body .versus-fighter-card,
+html body .dashboard-hero {
+  clip-path: var(--cut-m);
+}
+
+html body .dashboard-section-wrap { background: none; padding-left: 0; padding-right: 0; }
+
+/* KPI tiles */
+html body .dashboard-kpi-card,
+html body .home-stats-box {
+  border-radius: 0;
+  background: var(--ar-panel);
+  border: 0;
+  box-shadow: none;
+}
+html body .dashboard-kpi-card:hover,
+html body .home-stats-box:hover { background: var(--ar-panel-2); transform: none; box-shadow: none; }
+html body .dashboard-kpi-card::before,
+html body .dashboard-kpi-card::after { display: none; }
+html body .dashboard-kpi-icon,
+html body .home-stats-icon,
+html body .podium-card-icon,
+html body .home-section-icon,
+html body .xp-guide-icon-box,
+html body .legal-icon-badge,
+html body .versus-icon-badge,
+html body .cz-row-head-icon,
+html body .cz-list-icon,
+html body .profile-record-icon,
+html body .profile-showcase-icon,
+html body .metric-category-icon {
+  border-radius: 0;
+  clip-path: var(--cut-s);
+  box-shadow: none;
+}
+html body .dashboard-kpi-pill,
+html body .home-section-badge,
+html body .hg-badge,
+html body .an-badge,
+html body .metrics-count-badge,
+html body .badge-rarity-pill,
+html body .user-level-tag,
+html body .server-pill,
+html body .xp-guide-chip,
+html body .legal-badge-updated,
+html body .active-server-badge,
+html body .dashboard-hero-badge,
+html body .tab-badge,
+html body .fighter-badge,
+html body .fighter-player-tag,
+html body .search-item-badge,
+html body .layout-pane-tag,
+html body .layout-hidden-tag,
+html body .cz-chip {
+  border-radius: 0;
+  clip-path: var(--slant);
+  border-color: transparent;
+}
+
+/* Home hero */
+html body .dashboard-hero {
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 14px),
+    linear-gradient(120deg, #262a5e 0%, #2a2350 55%, #1d1f2c 100%);
+}
+html body .dashboard-hero::before,
+html body .dashboard-hero::after { opacity: 0.35; }
+
+/* --------------------------------------------------------------- buttons and controls */
+html body .btn-hero-discord,
+html body .btn-hero-secondary,
+html body .top-button,
+html body .versus-submit-btn,
+html body .btn-versus-action,
+html body .btn-discord,
+html body .btn-export-card,
+html body .btn-download-svg,
+html body .btn-copy-snippet,
+html body .btn-customize-save,
+html body .btn-customize-profile,
+html body .btn-clear-server-filter,
+html body .dashboard-section-link,
+html body .podium-card-more,
+html body .an-more {
+  border-radius: 0;
+  clip-path: var(--cut-s);
+  font-family: var(--ar-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: none;
+}
+html body .btn-hero-discord,
+html body .top-button,
+html body .versus-submit-btn,
+html body .btn-discord,
+html body .btn-download-svg,
+html body .btn-customize-save {
+  background: var(--ar-accent);
+  border-color: transparent;
+  color: #fff;
+}
+html body .btn-hero-discord:hover,
+html body .top-button:hover,
+html body .versus-submit-btn:hover,
+html body .btn-discord:hover,
+html body .btn-download-svg:hover,
+html body .btn-customize-save:hover {
+  background: #8790ff;
+  transform: none;
+  box-shadow: none;
+}
+html body .btn-hero-secondary,
+html body .btn-versus-action,
+html body .btn-export-card,
+html body .btn-copy-snippet,
+html body .btn-customize-profile,
+html body .dashboard-section-link,
+html body .podium-card-more,
+html body .an-more {
+  background: var(--ar-panel-2);
+  border-color: transparent;
+  color: var(--ar-fg);
+}
+
+html body .top-select,
+html body .search-input,
+html body .snippet-input,
+html body .cz-select,
+html body .page-search-bar,
+html body .top-server-search-bar,
+html body .versus-input-group input,
+html body .pager-jump input {
+  border-radius: 0;
+  background: var(--ar-panel-2);
+  border-color: var(--ar-line);
+  box-shadow: none;
+}
+html body .page-search-bar,
+html body .top-server-search-bar { clip-path: var(--cut-s); }
+html body .page-search-bar:focus-within,
+html body .top-server-search-bar:focus-within,
+html body .top-select:focus,
+html body .search-input:focus {
+  border-color: var(--ar-accent);
+  box-shadow: none;
+}
+
+/* Segmented controls */
+html body .granularity-toggle-group,
+html body .chart-btn-group,
+html body .cz-segmented,
+html body .lang-switch {
+  border-radius: 0;
+  gap: 3px;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+html body .granularity-btn,
+html body .chart-toggle-btn,
+html body .cz-segmented button {
+  border-radius: 0;
+  clip-path: var(--slant);
+  background: var(--ar-panel-2);
+  border: 0;
+  font-family: var(--ar-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.74rem;
+  color: var(--ar-muted);
+}
+html body .granularity-btn.active,
+html body .chart-toggle-btn.active,
+html body .cz-segmented button.active,
+html body .cz-segmented button[aria-pressed="true"],
+html body .granularity-btn[aria-pressed="true"] {
+  background: var(--ar-accent);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* Pagination */
+html body .pager-btn,
+html body .page-link,
+html body .page-link-selected {
+  border-radius: 0;
+  clip-path: var(--slant);
+  background: var(--ar-panel);
+  border-color: transparent;
+}
+html body .pager-btn.is-current,
+html body .page-link-selected { background: var(--ar-accent); color: #fff; }
+
+/* --------------------------------------------------------------- tabs */
+html body .graphs-tabs,
+html body .top-tabs-wrapper .nav-menu-horizontal-short,
+html body .hub-nav-bar,
+html body .cz-tabs,
+html body .adm-tabs {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  gap: 4px;
+}
+html body .graphs-tab-btn,
+html body .top-tab-btn,
+html body .nav-menu-item-short a,
+html body .hub-nav-pill,
+html body .cz-tab {
+  border-radius: 0;
+  clip-path: var(--slant);
+  background: var(--ar-panel);
+  border: 0;
+  box-shadow: none;
+  color: var(--ar-muted);
+}
+html body .graphs-tab-btn .tab-title,
+html body .top-tab-btn,
+html body .nav-menu-item-short a,
+html body .hub-nav-pill,
+html body .cz-tab {
+  font-family: var(--ar-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+html body .graphs-tab-btn:hover,
+html body .top-tab-btn:hover,
+html body .nav-menu-item-short a:hover,
+html body .hub-nav-pill:hover,
+html body .cz-tab:hover {
+  background: var(--ar-panel-2);
+  color: var(--ar-fg);
+}
+html body .graphs-tab-btn.active,
+html body .top-tab-btn.active,
+html body .nav-menu-item-short-selected a,
+html body .hub-nav-pill.active,
+html body .cz-tab.active,
+html body .cz-tab[aria-selected="true"] {
+  background: var(--ar-accent);
+  color: #fff;
+  box-shadow: none;
+}
+html body .graphs-tab-btn.active .tab-desc { color: rgba(255, 255, 255, 0.8); }
+html body .graphs-tab-btn.active svg,
+html body .top-tab-btn.active svg { color: #fff; stroke: currentColor; }
+
+/* --------------------------------------------------------------- rankings */
+html body .podium-item,
+html body .an-rank-item,
+html body .search-result-item,
+html body .versus-metric-row,
+html body .hover-row,
+html body .cz-list-item,
+html body .cz-row,
+html body .continous-container {
+  border-radius: 0;
+}
+html body .podium-item { background: var(--ar-panel-2); clip-path: var(--cut-s); border: 0; }
+html body .podium-item:hover { background: #30333b; transform: none; }
+
+html body .rank-badge,
+html body .podium-rank {
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  border: 0;
+  color: var(--ar-dim);
+}
+html body .rank-badge.rank-1,
+html body .podium-rank.rank-1 { color: var(--ar-gold); background: none; }
+html body .rank-badge.rank-2,
+html body .podium-rank.rank-2 { color: var(--ar-silver); background: none; }
+html body .rank-badge.rank-3,
+html body .podium-rank.rank-3 { color: var(--ar-bronze); background: none; }
+html body .rank-badge.rank-other { background: none; }
+
+html body .user-level-tag {
+  font-family: var(--ar-display);
+  font-weight: 700;
+  background: var(--ar-accent-soft);
+  color: #cdd2ff;
+  border: 0;
+}
+
+html body .an-rank-bar,
+html body .user-xp-bar-bg,
+html body .badge-progress-bar,
+html body .gauge-bar,
+html body .bd-summary-bar,
+html body .bd-track {
+  border-radius: 0;
+}
+html body .user-xp-bar-fill,
+html body .badge-progress-fill,
+html body .gauge-fill { border-radius: 0; }
+
+/* --------------------------------------------------------------- badges */
+html body .badge-card {
+  border-radius: 0;
+  clip-path: var(--cut-s);
+  background: var(--ar-panel-2);
+  border: 0;
+  box-shadow: none;
+}
+html body .badge-card:hover { transform: none; }
+html body .badge-card-icon-wrap,
+html body .badge-card-icon,
+html body .badge-card-lock { border-radius: 0; clip-path: var(--cut-s); }
+html body .badge-card.unlocked { box-shadow: none; border-left: 3px solid currentColor; }
+
+/* Shine on the n°1 of the home podiums: a light sweep every 4.5 s */
+@media (prefers-reduced-motion: no-preference) {
+html body .podium-item:first-child::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.16) 50%, transparent 65%);
+    transform: translateX(-100%);
+    animation: ar-shine 4.5s ease-in-out infinite;
+  }
+  html body .podium-item:first-child { position: relative; overflow: hidden; }
+}
+@keyframes ar-shine {
+  0%, 60% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* --------------------------------------------------------------- versus */
+html body .versus-fighter-card { border-radius: 0; border: 0; background: var(--ar-panel); box-shadow: none; }
+html body .versus-fighter-card.fighter-winner { box-shadow: none; border-top: 3px solid var(--ar-gold); }
+html body .versus-neon-badge {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  background: var(--ar-bg-2);
+  box-shadow: none;
+  font-family: var(--ar-display);
+  font-style: italic;
+}
+html body .versus-swap-btn { border-radius: 0; clip-path: var(--cut-s); }
+html body .duel-outcome-pill,
+html body .fighter-champion-ribbon { border-radius: 0; clip-path: var(--slant); font-family: var(--ar-display); text-transform: uppercase; letter-spacing: 0.06em; }
+html body .fighter-name,
+html body .fighter-name a { font-family: var(--ar-display); text-transform: uppercase; letter-spacing: 0.03em; }
+
+/* --------------------------------------------------------------- search modal */
+html body .global-search-backdrop { background: rgba(8, 9, 12, 0.72); backdrop-filter: none; -webkit-backdrop-filter: none; }
+html body .global-search-dialog { clip-path: var(--cut-m); border: 0; }
+html body .search-result-item { clip-path: var(--cut-s); }
+html body .search-result-item.selected { background: var(--ar-accent-soft); border-color: transparent; }
+html body .search-item-avatar { border-radius: 50%; }
+
+/* --------------------------------------------------------------- profile (hero, records, showcase) */
+html body .profile-hero,
+html body .profile-banner,
+html body .profile-backdrop { border-radius: 0; }
+html body .profile-hero { clip-path: var(--cut-m); }
+html body .profile-showcase-item,
+html body .profile-record,
+html body .profile-fav-server,
+html body .bd-family,
+html body .bd-tier,
+html body .bd-summary,
+html body .cz-gallery-item,
+html body .swatch,
+html body .profile-private-notice,
+html body .chart-empty-state,
+html body .legal-highlight-box,
+html body .adm-notice,
+html body .cz-notice {
+  border-radius: 0;
+}
+html body .profile-showcase-item { clip-path: var(--cut-s); position: relative; overflow: hidden; }
+html body .profile-level .user-level-circle,
+html body .user-level-circle {
+  border-radius: 0;
+  clip-path: var(--slant);
+  font-family: var(--ar-display);
+  font-style: italic;
+}
+
+/* Customization page */
+html body .cz-savebar { border-radius: 0; clip-path: var(--cut-s); background: #101115; }
+html body .cz-switch { border-radius: 2px; }
+html body .swatch { clip-path: var(--cut-s); }
+
+/* --------------------------------------------------------------- tables */
+html body .commands-table th,
+html body .adm-table th {
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+}
+
+/* --------------------------------------------------------------- footer */
+html body footer { border-top: 1px solid var(--ar-line); background: #121316; }
+html body .footer-link { font-family: var(--ar-display); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78rem; }
+
+/* --------------------------------------------------------------- big outline figures behind the podium */
+html body .podium-rank.rank-1,
+html body .podium-rank.rank-2,
+html body .podium-rank.rank-3 { font-size: 1.25rem; }
+
+/* --------------------------------------------------------------- hourglass logo flips every 6 s */
+@media (prefers-reduced-motion: no-preference) {
+  html body .app-logo { animation: ar-flip 6s cubic-bezier(0.7, 0, 0.3, 1) infinite; }
+}
+@keyframes ar-flip {
+  0%, 88% { transform: rotate(0); }
+  100% { transform: rotate(180deg); }
+}
+
+/* --------------------------------------------------------------- page loader (slow navigations only) */
+html body .ar-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: none;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  background: rgba(21, 22, 26, 0.86);
+}
+html body .ar-loader.show { display: grid; }
+html body .ar-loader-glass {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  background: var(--ar-accent);
+  clip-path: var(--cut-m);
+}
+html body .ar-loader-glass img { width: 34px; height: 34px; image-rendering: pixelated; }
+html body .ar-loader-text {
+  font-family: var(--ar-display);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ar-muted);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html body .ar-loader-glass img { animation: ar-flip-fast 1.2s cubic-bezier(0.7, 0, 0.3, 1) infinite; }
+}
+@keyframes ar-flip-fast { from { transform: rotate(0); } to { transform: rotate(180deg); } }
+
+/* --------------------------------------------------------------- small fixes */
+html body .podium-card-more,
+html body .dashboard-section-link {
+  white-space: nowrap;
+  font-size: 0.72rem;
+  padding: 7px 12px;
+}
+
+/* Page titles: uppercase display face */
+html body main h1,
+html body .big-bold-text {
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+}
+
+/* Ranking rows (members, servers, server members) */
+html body .stats-box { background: none; }
+/* The whole row box is the link: it turns grey as a whole on hover (no inner box, no jump) */
+html body div.gray-box.link { clip-path: var(--cut-s); }
+html body div.gray-box.link:hover {
+  background: var(--ar-panel-2);
+  border-color: transparent;
+  transform: none;
+  box-shadow: none;
+}
+html body .rank-badge,
+html body .rank-badge.rank-1,
+html body .rank-badge.rank-2,
+html body .rank-badge.rank-3,
+html body .rank-badge.rank-other {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--ar-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+html body .rank-badge.rank-other { color: var(--ar-dim); }
+html body .hours-fixed,
+html body .messages-fixed,
+html body .xp-fixed {
+  border-radius: 0;
+  clip-path: var(--slant);
+  border-color: transparent;
+  font-weight: 700;
+}
+html body .hours-fixed { background: var(--ar-accent-soft); color: var(--ar-accent-hi); }
+
+/* Profile: showcase panel, level bar, streak chips */
+html body .profile-vitrine,
+html body .profile-level {
+  border-radius: 0;
+  clip-path: var(--cut-m);
+}
+html body .profile-vitrine-server { border-radius: 0; clip-path: var(--cut-s); }
+html body .profile-streak-icon { border-radius: 0; clip-path: var(--cut-s); }
+
+/* Versus */
+html body .top-tabs { border-radius: 0; clip-path: var(--cut-s); }
+html body .fighter-score-display { border-radius: 0; clip-path: var(--cut-s); }
+html body .metric-center-label {
+  border-radius: 0;
+  clip-path: var(--slant);
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Customization page */
+html body .cz-panel-intro,
+html body .cz-row-icon,
+html body .cz-preview-frame,
+html body .cz-current,
+html body .cz-counter,
+html body .cz-dirty,
+html body .hg-split-item {
+  border-radius: 0;
+}
+html body .cz-preview-frame { clip-path: var(--cut-m); }
+html body .cz-row-icon { clip-path: var(--cut-s); }
+html body .cz-current,
+html body .cz-counter {
+  clip-path: var(--slant);
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Admin and help page */
+html body .adm-bot-status {
+  border-radius: 0;
+  clip-path: var(--slant);
+  font-family: var(--ar-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+html body .commands-table,
+html body .chart-loading-overlay,
+html body .app-nav-list { border-radius: 0; }
+
+/* Phone menu: account block */
+@media (max-width: 1024px) {
+  html body .app-nav-item.nav-dropdown,
+  html body .nav-dropdown-item {
+    border-radius: 0;
+  }
+  html body .app-nav-item.nav-dropdown { clip-path: var(--cut-s); background: var(--ar-panel); border-color: transparent; }
+}
+
+/* --------------------------------------------------------------- rank movement (members and servers) */
+html body .rank-move {
+  flex-shrink: 0;
+  min-width: 30px;
+  font-family: var(--ar-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+html body .rank-move.up { color: #3ba55d; }
+html body .rank-move.down { color: #ed4245; }
+html body .rank-move.same { color: var(--ar-dim); }
+html body .rank-move.new {
+  padding: 3px 6px;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  background: var(--ar-accent-soft);
+  color: var(--ar-accent-hi);
+  clip-path: var(--slant);
+}
+
+/* --------------------------------------------------------------- hover card (members, servers, podiums) */
+html body .hovercard {
+  --hc-accent: var(--ar-accent);
+  position: fixed;
+  z-index: 2000;
+  width: 290px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  background: #1b1c21;
+  border-top: 3px solid var(--hc-accent);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+  clip-path: var(--cut-m);
+  pointer-events: none;
+}
+html body .hovercard[hidden] { display: none; }
+html body .hc-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
+html body .hc-avatar { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 0 0 2px var(--hc-accent); }
+html body .hc-avatar.hc-square { border-radius: 0; clip-path: var(--cut-s); box-shadow: none; }
+html body .hc-id { display: grid; gap: 3px; min-width: 0; }
+html body .hc-id b {
+  font-family: var(--ar-display);
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html body .hc-title { color: var(--hc-accent); font-size: 0.82rem; font-weight: 600; }
+html body .hc-level { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+html body .hc-lvl {
+  padding: 2px 10px;
+  background: var(--hc-accent);
+  color: #fff;
+  font-family: var(--ar-display);
+  font-style: italic;
+  font-weight: 700;
+  clip-path: var(--slant);
+}
+html body .hc-bar { height: 6px; background: var(--ar-panel-2); overflow: hidden; }
+html body .hc-bar i { display: block; height: 100%; background: var(--hc-accent); }
+html body .hc-pct { font-family: var(--ar-display); font-weight: 700; font-size: 0.8rem; color: var(--hc-accent); }
+html body .hc-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+html body .hc-stats div { display: grid; gap: 1px; padding: 7px 9px; background: var(--ar-panel); clip-path: var(--cut-s); min-width: 0; }
+html body .hc-stats b { font-family: var(--ar-display); font-style: italic; font-size: 1rem; white-space: nowrap; }
+html body .hc-stats b small { font-style: normal; font-size: 0.72rem; color: var(--ar-muted); margin-left: 2px; }
+html body .hc-stats span { font-family: var(--ar-display); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.62rem; color: var(--ar-muted); }
+html body .hc-badges { display: flex; align-items: center; gap: 6px; }
+html body .hc-badge {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--rc);
+  background: color-mix(in srgb, var(--rc) 18%, transparent);
+  clip-path: var(--cut-s);
+}
+html body .hc-badge svg { width: 16px; height: 16px; }
+html body .hc-badge-count { margin-left: auto; font-family: var(--ar-display); font-size: 0.75rem; color: var(--ar-muted); }
+html body .hc-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+html body .hc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  font-family: var(--ar-display);
+  font-weight: 600;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  clip-path: var(--slant);
+}
+html body .hc-chip.ok { background: rgba(59, 165, 93, 0.16); color: #7ee0a0; }
+html body .hc-chip.off { background: rgba(237, 66, 69, 0.16); color: #f79a9c; }
+html body .hc-chip.live { background: var(--ar-accent-soft); color: var(--ar-accent-hi); }
+html body .hc-chip.live i { width: 6px; height: 6px; border-radius: 50%; background: #3ba55d; }
+html body .hc-foot { font-size: 0.75rem; color: var(--ar-dim); }
+
+/* --------------------------------------------------------------- profile page: everything follows the member's color */
+html body .profile-themed {
+  --ar-accent: var(--accent);
+  --ar-accent-hi: color-mix(in srgb, var(--accent) 72%, #fff);
+  --ar-accent-soft: rgba(var(--accent-rgb), 0.16);
+}
+html body .profile-themed .home-stats-icon {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.14);
+  border-color: rgba(var(--accent-rgb), 0.3);
+}
+html body .profile-themed .hours-fixed { color: var(--ar-accent-hi); }
+
+/* --------------------------------------------------------------- badges: square icon frames */
+html body .bd-tier-icon,
+html body .bd-family-icon,
+html body .bd-rarity,
+html body .bd-summary,
+html body .badge-card-icon-wrap,
+html body .badge-card-icon,
+html body .profile-showcase-icon,
+html body .cz-chip-icon {
+  border-radius: 0;
+}
+html body .bd-family-icon,
+html body .profile-showcase-icon,
+html body .cz-chip-icon { clip-path: var(--cut-s); }
+html body .bd-tier-check { border-radius: 0; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); box-shadow: none; }
+
+/* Ranking rows on phones: compact rank column, the movement under the rank, more room for the name */
+@media (max-width: 600px) {
+  html body .gray-box.link > a.link { padding: 10px 12px !important; }
+  html body .stats-box { gap: 9px; }
+  html body .rank-badge,
+  html body .rank-badge.rank-1,
+  html body .rank-badge.rank-2,
+  html body .rank-badge.rank-3,
+  html body .rank-badge.rank-other { min-width: 30px; padding: 0; font-size: 0.95rem; }
+  html body .rank-move { min-width: 0; margin-left: -6px; font-size: 0.68rem; }
+  html body .rank-move.same { display: none; }
+  html body .rank-move.new { padding: 2px 4px; font-size: 0.55rem; }
+  html body .stats-box .small-pp { width: 38px; min-width: 38px; height: 38px; flex-shrink: 0; }
+  html body .hours-fixed { padding: 3px 8px; font-size: 0.78rem; }
+}
+
+/* Chart card controls: badges and toggles wrap instead of leaving the screen */
+html body .an-controls { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+html body .an-badge { white-space: normal; max-width: 100%; }
+
+/* Statistic tiles on phones: 2 per row (a 5th tile takes the full width), compact, icon in the corner */
+@media (max-width: 600px) {
+  html body .home-stats-container,
+  html body .home-stats-container.stats-4,
+  html body .home-stats-container.stats-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  html body .home-stats-container.stats-5 > :nth-child(n) { grid-column: auto; }
+  html body .home-stats-container.stats-5 > :last-child { grid-column: 1 / -1; }
+  html body .home-stats-box { position: relative; padding: 12px; min-width: 0; }
+  html body .home-stats-box .home-stats-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+  }
+  html body .home-stats-box .home-stats-icon svg,
+  html body .home-stats-box .home-stats-icon img { width: 14px; height: 14px; }
+  html body .home-stats-label { padding-right: 30px; font-size: 0.66rem; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; }
+  html body .home-stats-value { font-size: 1.25rem; }
+}
+
+/* Tabs and toggles on phones: cut corners instead of the slant (the slant ate the first and last letters) */
+@media (max-width: 760px) {
+  html body .graphs-tab-btn,
+  html body .top-tab-btn,
+  html body .cz-tab,
+  html body .granularity-btn,
+  html body .chart-toggle-btn,
+  html body .cz-segmented button {
+    clip-path: var(--cut-s);
+  }
+  html body .graphs-tab-btn { padding-left: 4px; padding-right: 4px; }
+  html body .graphs-tab-btn .tab-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    line-height: 1.2;
+  }
+}
+html body .bd-complete { border-radius: 0; clip-path: var(--slant); font-family: var(--ar-display); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Admin lists on phones: each row on two lines (name, then details) instead of a sideways scroll */
+@media (max-width: 600px) {
+  html body .adm-table-wrap table thead { display: none; }
+  html body .adm-table-wrap table,
+  html body .adm-table-wrap tbody { display: block; width: 100%; }
+  html body .adm-table-wrap tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 10px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--ar-line);
+  }
+  html body .adm-table-wrap td { padding: 0 !important; border: 0 !important; white-space: normal; font-size: 0.82rem; min-width: 0; }
+  html body .adm-table-wrap td:first-child { grid-column: 1 / -1; font-size: 0.92rem; }
+  html body .adm-table-wrap td:first-child .adm-user { min-width: 0; }
+}
+
+/* Versus mode switch on phones: two equal halves, the label wraps instead of being cut */
+@media (max-width: 600px) {
+  html body .top-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  html body .top-tabs .top-tab-btn {
+    min-width: 0;
+    justify-content: center;
+    padding: 8px 6px;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+  html body .top-tabs .top-tab-btn svg { flex-shrink: 0; }
+}
+html body .hc-stats div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+/* Filter forms above the lists: cut-corner rows are painted as layers, they must not cover the dropdowns */
+html body .top-form { position: relative; z-index: 30; }
+html body .page-search-wrap,
+html body .top-server-search-wrap { position: relative; z-index: 31; }
+
+/* Shine on the Legend and Mythic showcase badges: drawn in the background, so the box's ::after stays free for
+   its cut-corner outline */
+@media (prefers-reduced-motion: no-preference) {
+  html body :is(.profile-showcase-item.rarity-legend, .profile-showcase-item.rarity-mythic) {
+    background-image: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%);
+    background-size: 300% 100%;
+    background-repeat: no-repeat;
+    animation: ar-shine-bg 4.5s ease-in-out infinite;
+  }
+}
+@keyframes ar-shine-bg {
+  0%, 60% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* --------------------------------------------------------------- cut-corner outlines (js/corners.js)
+   The diagonal of each cut corner, drawn with the box's own border: same color, same thickness. */
+html body .ar-cut-pos { position: relative; }
+html body .ar-cut[data-cut-tl]::before,
+html body .ar-cut[data-cut-br]::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: calc(var(--cut) * 1.4142);
+  height: 0;
+  pointer-events: none;
+  transform: rotate(-45deg);
+}
+html body .ar-cut[data-cut-tl]::before {
+  left: calc(-1 * var(--cut-bl));
+  top: calc(var(--cut) - var(--cut-bt));
+  transform-origin: 0 0;
+}
+html body .ar-cut[data-cut-tl="top"]::before { border-top: inherit; }
+html body .ar-cut[data-cut-tl="left"]::before { border-top: var(--cut-tlw) solid var(--cut-tlc); }
+html body .ar-cut[data-cut-br]::after {
+  right: calc(-1 * var(--cut-br));
+  bottom: calc(var(--cut) - var(--cut-bb));
+  transform-origin: 100% 100%;
+}
+html body .ar-cut[data-cut-br="bottom"]::after { border-bottom: inherit; }
+html body .ar-cut[data-cut-br="right"]::after { border-bottom: var(--cut-brw) solid var(--cut-brc); }
+
+/* Filter rows: the search field next to its label takes the remaining width (it was 100% of the group
+   on top of the label, so it ran past the right edge of the filter box) */
+html body .top-form .top-filter-group { min-width: 0; max-width: 100%; }
+html body .top-form .top-filter-group > .page-search-wrap,
+html body .top-form .top-filter-group > .page-search-bar {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* The two search fields keep a usable width: when the row is too short, the server filter wraps below */
+html body .top-form .top-search-group,
+html body .top-form .top-server-filter-group { flex: 1 1 340px; min-width: min(340px, 100%); }
+
+/* --------------------------------------------------------------- pixel-art icons (app/pixel_icons.py)
+   Filled 9 x 9 drawings in currentColor: the old rules that colored line icons with "stroke" now set
+   "color", and no outline may be added around the pixels. */
+html body svg[data-px] {
+  stroke: none !important;
+  fill: currentColor !important;
+  shape-rendering: crispEdges;
+  flex-shrink: 0;
+}
+
+/* A little less uniform: on the home page, the voice total (the figure the site is about) gets a wider
+   tile and a bigger number than the three others */
+@media (min-width: 1025px) {
+  html body .dashboard-kpi-grid { grid-template-columns: 1.55fr repeat(3, minmax(0, 1fr)); }
+  html body .dashboard-kpi-grid > .dashboard-kpi-card:first-child .dashboard-kpi-val {
+    font-size: 2.9rem;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+}
+/* An icon in running text sits on the text's middle, not on its baseline */
+html body svg[data-px] { vertical-align: -0.14em; }
+html body .pill-fallback-icon,
+html body .empty-swords-icon { display: inline-grid; place-items: center; color: var(--ar-muted); }
+html body .empty-swords-icon { color: var(--ar-dim); }
+
+/* ==========================================================================
+   PEPS (web 3.24.0): type colors, arcade buttons, outline figures, background glows, podium rows, motion
+   ========================================================================== */
+:root {
+  --c-voice: #717cf8;
+  --c-msg: #3fd1a0;
+  --c-xp: #f5b03b;
+  --c-server: #ff6b5e;
+  --c-streak: #ff8a3d;
+  --c-member: #b07cff;
+  --c-rank: #f5c542;
+}
+
+/* ---------- 1. one color per kind of figure (voice, messages, members, servers, XP, rank) */
+html body .dashboard-kpi-card:is(.accent-blue, .accent-emerald, .accent-violet, .accent-amber, .accent-orange) {
+  --tone: var(--c-voice);
+  border-top: 3px solid var(--tone);
+}
+html body .dashboard-kpi-card.accent-emerald { --tone: var(--c-msg); }
+html body .dashboard-kpi-card.accent-violet { --tone: var(--c-member); }
+html body .dashboard-kpi-card.accent-amber { --tone: var(--c-server); }
+html body .dashboard-kpi-card.accent-orange { --tone: var(--c-streak); }
+html body .dashboard-kpi-card .dashboard-kpi-icon { background: var(--tone); color: #15161a; border-color: transparent; }
+html body .dashboard-kpi-card .dashboard-kpi-pill {
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 15%, transparent);
+  border-color: transparent;
+}
+
+html body .home-stats-box.tone-voice { --tone: var(--c-voice); }
+html body .home-stats-box.tone-msg { --tone: var(--c-msg); }
+html body .home-stats-box.tone-rank { --tone: var(--c-rank); }
+html body .home-stats-box[class*="tone-"] { box-shadow: inset 0 3px 0 var(--tone); }
+html body .home-stats-box[class*="tone-"] .home-stats-icon { background: var(--tone); color: #15161a; border-color: transparent; }
+/* On a profile everything keeps the member color, the icons just get a solid fill */
+html body .profile-themed .home-stats-icon { background: var(--accent); color: #15161a; border-color: transparent; }
+
+html body .messages-fixed { background: rgba(63, 209, 160, 0.14); color: var(--c-msg); }
+html body .xp-fixed { background: rgba(245, 176, 59, 0.15); color: var(--c-xp); }
+html body .user-level-tag[class*="tier-"] { background: rgba(245, 176, 59, 0.16); color: var(--c-xp); }
+html body .dashboard-podium-card:has(.icon-servers) .podium-value { color: var(--c-server); }
+html body .dashboard-podium-card:has(.icon-servers) .podium-card-icon { background: var(--c-server); color: #15161a; }
+html body .dashboard-podium-card:has(.icon-users) .podium-card-icon { background: var(--c-voice); color: #15161a; }
+
+/* ---------- 2. arcade buttons: hard offset shadow, the button sinks into it when pressed.
+   The cut-corner face is drawn by ::before, so the drop shadow follows the cut corners. */
+html body :is(.btn-hero-discord, .top-button, .versus-submit-btn, .btn-discord, .btn-download-svg, .btn-customize-save, .btn-discord-login) {
+  --face: var(--ar-accent);
+  --face-hover: #8790ff;
+  --edge: #343a99;
+}
+html body :is(.btn-hero-secondary, .btn-versus-action, .btn-export-card, .btn-copy-snippet, .btn-customize-profile, .dashboard-section-link, .podium-card-more, .an-more, .btn-clear-server-filter) {
+  --face: var(--ar-panel-2);
+  --face-hover: #30333b;
+  --edge: #0b0c0f;
+}
+html body :is(.btn-hero-discord, .top-button, .versus-submit-btn, .btn-discord, .btn-download-svg, .btn-customize-save, .btn-discord-login,
+  .btn-hero-secondary, .btn-versus-action, .btn-export-card, .btn-copy-snippet, .btn-customize-profile, .dashboard-section-link, .podium-card-more, .an-more, .btn-clear-server-filter) {
+  position: relative;
+  isolation: isolate;
+  background: none !important;
+  clip-path: none;
+  border-color: transparent;
+  filter: drop-shadow(0 4px 0 var(--edge));
+  transition: transform 0.08s ease, filter 0.08s ease;
+}
+html body :is(.btn-hero-discord, .top-button, .versus-submit-btn, .btn-discord, .btn-download-svg, .btn-customize-save, .btn-discord-login,
+  .btn-hero-secondary, .btn-versus-action, .btn-export-card, .btn-copy-snippet, .btn-customize-profile, .dashboard-section-link, .podium-card-more, .an-more, .btn-clear-server-filter)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--face);
+  clip-path: var(--cut-s);
+  transition: background-color 0.15s ease;
+}
+html body :is(.btn-hero-discord, .top-button, .versus-submit-btn, .btn-discord, .btn-download-svg, .btn-customize-save, .btn-discord-login,
+  .btn-hero-secondary, .btn-versus-action, .btn-export-card, .btn-copy-snippet, .btn-customize-profile, .dashboard-section-link, .podium-card-more, .an-more, .btn-clear-server-filter):hover::before {
+  background: var(--face-hover);
+}
+html body :is(.btn-hero-discord, .top-button, .versus-submit-btn, .btn-discord, .btn-download-svg, .btn-customize-save, .btn-discord-login,
+  .btn-hero-secondary, .btn-versus-action, .btn-export-card, .btn-copy-snippet, .btn-customize-profile, .dashboard-section-link, .podium-card-more, .an-more, .btn-clear-server-filter):active {
+  transform: translateY(3px);
+  filter: drop-shadow(0 1px 0 var(--edge));
+}
+
+/* ---------- 3. outline figures behind the page titles, the home hero and the podiums */
+html body [data-ghost] { position: relative; isolation: isolate; }
+html body [data-ghost]::before {
+  content: attr(data-ghost);
+  position: absolute;
+  z-index: -1;
+  left: -0.05em;
+  top: 50%;
+  transform: translateY(-52%);
+  font-family: var(--ar-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 2.9em;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.09);
+  pointer-events: none;
+}
+html body .versus-title[data-ghost]::before { left: 50%; transform: translate(-50%, -52%); }
+html body .ar-ghost {
+  position: absolute;
+  pointer-events: none;
+  font-family: var(--ar-display);
+  font-style: italic;
+  font-weight: 700;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.1);
+}
+html body .dashboard-hero { position: relative; overflow: hidden; }
+html body .hero-ghost { right: -10px; bottom: -28px; font-size: clamp(6rem, 18vw, 13rem); }
+html body .podium-list { counter-reset: pod; }
+html body .podium-item { counter-increment: pod; position: relative; overflow: hidden; }
+html body .podium-item::before {
+  content: counter(pod);
+  position: absolute;
+  right: 34%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--ar-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 4rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+/* ---------- 4. soft color glows in the page background */
+html body {
+  background:
+    radial-gradient(900px 520px at 8% -6%, rgba(113, 124, 248, 0.18), transparent 70%),
+    radial-gradient(760px 520px at 100% 45%, rgba(255, 138, 61, 0.08), transparent 70%),
+    radial-gradient(700px 500px at 18% 100%, rgba(63, 209, 160, 0.07), transparent 70%),
+    var(--ar-bg);
+  background-attachment: fixed;
+}
+
+/* ---------- 5. podium rows: the top 3 of every ranking in gold, silver and bronze */
+html body div.gray-box.link:has(.rank-badge.rank-1) { background: linear-gradient(90deg, rgba(245, 197, 66, 0.2), var(--ar-panel) 55%); box-shadow: inset 3px 0 0 var(--ar-gold); }
+html body div.gray-box.link:has(.rank-badge.rank-2) { background: linear-gradient(90deg, rgba(201, 206, 214, 0.15), var(--ar-panel) 55%); box-shadow: inset 3px 0 0 var(--ar-silver); }
+html body div.gray-box.link:has(.rank-badge.rank-3) { background: linear-gradient(90deg, rgba(208, 138, 79, 0.17), var(--ar-panel) 55%); box-shadow: inset 3px 0 0 var(--ar-bronze); }
+html body div.gray-box.link:has(.rank-badge.rank-1):hover { background: linear-gradient(90deg, rgba(245, 197, 66, 0.26), var(--ar-panel-2) 55%); }
+html body div.gray-box.link:has(.rank-badge.rank-2):hover { background: linear-gradient(90deg, rgba(201, 206, 214, 0.2), var(--ar-panel-2) 55%); }
+html body div.gray-box.link:has(.rank-badge.rank-3):hover { background: linear-gradient(90deg, rgba(208, 138, 79, 0.22), var(--ar-panel-2) 55%); }
+html body div.gray-box.link :is(.rank-badge.rank-1, .rank-badge.rank-2, .rank-badge.rank-3) { font-size: 1.3rem; }
+html body div.gray-box.link:has(.rank-badge.rank-1) :is(.small-pp, .big-pp) { box-shadow: 0 0 0 2px var(--ar-gold); }
+@media (prefers-reduced-motion: no-preference) {
+  html body div.gray-box.link:has(.rank-badge.rank-1) { position: relative; overflow: hidden; }
+  html body div.gray-box.link:has(.rank-badge.rank-1)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+    transform: translateX(-100%);
+    animation: ar-shine 4.5s ease-in-out infinite;
+  }
+}
+
+/* ---------- 6. motion: panels light up in their own color on hover, live dots pulse
+   (the key figures counting up are in js/countup.js) */
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
+  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card) {
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
+  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card):hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone, var(--ar-accent)) 55%, transparent),
+    inset 0 0 26px color-mix(in srgb, var(--tone, var(--ar-accent)) 12%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html body :is(.hero-pulse-dot, .profile-live-dot) { animation: ar-pulse 1.6s ease-in-out infinite; }
+}
+@keyframes ar-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 165, 93, 0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(59, 165, 93, 0); }
+}
+
+/* ---------------------------------------------------------------------------
+   Badge tiers (gamification.TIERS): the tier color is the badge color everywhere
+   (showcase, badges tab, customize page). Legend glows in violet with a passing shine; Mythic, the top
+   tier, is holographic: a rainbow that keeps sliding over its frame and its name, with a soft white glow.
+   --------------------------------------------------------------------------- */
+html body .rarity-bronze { --rarity: 208, 138, 79; }
+html body .rarity-silver { --rarity: 201, 206, 214; }
+html body .rarity-gold { --rarity: 245, 197, 66; }
+html body .rarity-platinum { --rarity: 79, 216, 196; }
+html body .rarity-diamond { --rarity: 111, 182, 255; }
+html body .rarity-legend { --rarity: 176, 124, 255; }
+html body .rarity-mythic { --rarity: 255, 138, 216; --holo: linear-gradient(100deg, #ff7bd5, #ffd36e, #5ff0b0, #6fb6ff, #b07cff, #ff7bd5); }
+html body .rarity-locked { --rarity: 114, 118, 125; }
+
+html body .bd-family-tier {
+  margin-left: auto;
+  padding: 2px 10px;
+  clip-path: var(--slant);
+  font-family: var(--ar-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--rarity));
+  background: rgba(var(--rarity), 0.16);
+}
+
+/* Legend: solid violet, glowing frame */
+html body .bd-family-tier.rarity-legend { background: #b07cff; color: #15161a; }
+html body .profile-showcase-item.rarity-legend,
+html body .cz-chip.rarity-legend,
+html body .bd-family:has(.bd-family-tier.rarity-legend) {
+  box-shadow: 0 0 16px rgba(176, 124, 255, 0.25), inset 0 0 0 1px rgba(176, 124, 255, 0.55);
+}
+
+/* Mythic: holographic name, frame and icon */
+html body .bd-family-tier.rarity-mythic { background: var(--holo); background-size: 300% 100%; color: #15161a; }
+html body .rarity-mythic .profile-showcase-rarity,
+html body .cz-chip.rarity-mythic .cz-chip-name,
+html body .bd-tier.rarity-mythic.is-unlocked .bd-tier-name {
+  background: var(--holo);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+html body .profile-showcase-item.rarity-mythic,
+html body .cz-chip.rarity-mythic,
+html body .bd-family:has(.bd-family-tier.rarity-mythic) {
+  border-color: transparent;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+html body .profile-showcase-item.rarity-mythic .profile-showcase-icon,
+html body .cz-chip.rarity-mythic .cz-chip-icon,
+html body .bd-tier.rarity-mythic.is-unlocked .bd-tier-icon {
+  background: var(--holo);
+  background-size: 300% 100%;
+  color: #15161a;
+  border-color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html body :is(.bd-family-tier.rarity-mythic, .rarity-mythic .profile-showcase-rarity, .cz-chip.rarity-mythic .cz-chip-name,
+    .bd-tier.rarity-mythic.is-unlocked .bd-tier-name, .profile-showcase-item.rarity-mythic .profile-showcase-icon,
+    .cz-chip.rarity-mythic .cz-chip-icon, .bd-tier.rarity-mythic.is-unlocked .bd-tier-icon) {
+    animation: ar-holo 4s linear infinite;
+  }
+}
+@keyframes ar-holo {
+  from { background-position: 0% 0; }
+  to { background-position: 300% 0; }
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive test pass (320 to 1920 px): overflows, readable sizes, touch targets
+   --------------------------------------------------------------------------- */
+/* Home podium cards: the "see all" button goes under the title when the card is narrow */
+html body .podium-card-header { flex-wrap: wrap; gap: 10px; min-width: 0; }
+html body .dashboard-podium-card,
+html body .dashboard-podiums-grid > * { min-width: 0; }
+
+/* Server page, busiest channels: the donut and the list never push the card wider than the screen */
+html body .hg-split > * { min-width: 0; }
+html body .hg-split-item { grid-template-columns: 10px minmax(0, 1fr) auto 56px; }
+@media (max-width: 720px) {
+  html body .hg-split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 380px) {
+  html body .hg-split-item { grid-template-columns: 10px minmax(0, 1fr) auto; }
+  html body .hg-split-pct { display: none; }
+}
+
+/* Smallest text stays readable (10 px minimum) */
+html body .app-badge { font-size: 0.66rem; }
+html body .user-level-sub { font-size: 0.64rem; }
+html body :is(.fighter-player-tag, .fighter-badge, .score-text, .fighter-champion-ribbon span) { font-size: max(0.68rem, 10.5px); }
+
+/* Touch targets on phones: fields and links at least about 36 px high */
+@media (max-width: 600px) {
+  html body :is(.page-search-input, .adm-search input) { min-height: 36px; }
+  html body .page-search-clear { min-width: 34px; min-height: 34px; }
+  html body .page-search-enter-kbd { min-height: 32px; min-width: 32px; }
+  html body .an-rank-name { padding-block: 7px; }
+  html body .an-more { min-height: 36px; display: inline-flex; align-items: center; }
+  html body .fighter-name a { display: inline-block; padding-block: 6px; }
+}
+
+/* Home podiums on very small phones: tighter row so the names keep their room */
+@media (max-width: 400px) {
+  html body .dashboard-podium-card { padding-left: 12px; padding-right: 12px; }
+  html body .podium-item { gap: 8px; padding: 9px 10px; }
+  html body .podium-avatar { width: 34px; height: 34px; }
+  html body .podium-value { font-size: 0.85rem; }
+}
+
+/* Full navbar on narrow desktops (1025 to 1360 px): everything must fit, the account or login button
+   included (logged out, "Se connecter" is much wider than the avatar) */
+@media (min-width: 1025px) and (max-width: 1360px) {
+  html body .app-nav-link { padding-left: 8px; padding-right: 8px; gap: 5px; letter-spacing: 0.05em; }
+  html body .app-nav-link.active::after { left: 8px; right: 8px; }
+  html body .auth-user-name { display: none; }
+  html body .app-nav-actions { gap: 6px; }
+  html body .discord-btn-text { display: none; } /* the invite button keeps its Discord icon (title on hover) */
+  html body .btn-discord-nav { padding-left: 10px; padding-right: 10px; }
+  html body .btn-discord-login { padding-left: 12px; padding-right: 12px; }
+}
+@media (min-width: 1025px) and (max-width: 1180px) {
+  html body .app-nav-link .nav-icon { display: none; }
+  html body .search-btn-kbd { display: none; }
+  html body .app-title { letter-spacing: 0.06em; }
+}
+
+/* ---------------------------------------------------------------------------
+   Languages (v3.25.0): language menu, and the scripts the Arène fonts do not cover
+   --------------------------------------------------------------------------- */
+html body .lang-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 10px 0 11px;
+  border-radius: 0;
+  clip-path: var(--cut-s);
+  background: var(--ar-panel);
+  border: 1px solid var(--ar-line);
+  color: var(--ar-text, #f2f3f5);
+  font-family: var(--ar-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+html body .lang-menu-btn:hover,
+html body .lang-menu.open .lang-menu-btn { background: var(--ar-panel-2); }
+html body .lang-menu-btn .chevron-icon { margin-left: 0; }
+html body .lang-menu .lang-flag,
+html body .lang-menu-item .lang-flag {
+  width: 18px;
+  height: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+html body .lang-menu-name { display: none; }
+html body .lang-menu-list {
+  left: auto;
+  right: 0;
+  min-width: 0;
+  width: max-content;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, max-content));
+  gap: 2px;
+  padding: 6px;
+}
+html body .lang-menu-item {
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ar-muted, #c9ccd3);
+}
+html body .lang-menu-item:hover { transform: none; color: #fff; }
+html body .lang-menu-item.active {
+  background: var(--ar-accent-soft);
+  color: #fff;
+  box-shadow: inset 3px 0 0 var(--ar-accent);
+}
+
+/* Phone menu: one full row, the list opens in place under the button */
+@media (max-width: 1024px) {
+  html body .app-nav-actions > .nav-dropdown.lang-menu {
+    grid-column: 1 / -1;
+    order: 4;
+    padding: 0;
+    background: none;
+    border: 0;
+    clip-path: none;
+  }
+  html body .app-nav-actions > .btn-discord-nav { grid-column: 1 / -1; order: 5; }
+  html body .lang-menu-btn {
+    width: 100%;
+    height: auto;
+    min-height: 48px;
+    padding: 0 16px;
+    gap: 12px;
+    font-family: var(--ar-body);
+    font-size: 0.98rem;
+    letter-spacing: 0;
+  }
+  html body .lang-menu-btn .lang-code { display: none; }
+  html body .lang-menu-name { display: inline; flex: 1; text-align: left; }
+  html body .app-nav-actions > .nav-dropdown.lang-menu .chevron-icon { display: inline-block; }
+  html body .app-nav-actions > .nav-dropdown.lang-menu .nav-dropdown-menu,
+  html body .lang-menu:hover .nav-dropdown-menu,
+  html body .lang-menu.is-hovered .nav-dropdown-menu {
+    position: static;
+    display: none;
+    width: 100%;
+    margin: 6px 0 0;
+    padding: 4px;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+    box-shadow: none;
+    background: var(--ar-panel);
+    border: 0;
+    grid-template-columns: 1fr 1fr;
+  }
+  html body .app-nav-actions > .nav-dropdown.lang-menu.open .nav-dropdown-menu { display: grid; }
+  html body .lang-menu-item { min-height: 46px; font-size: 0.95rem; }
+}
+
+/* Cyrillic, Devanagari, Japanese and Korean: the Arène fonts only draw Latin letters, so these scripts
+   use the best system font of each platform, chosen explicitly instead of the browser's first guess */
+html:lang(ru) {
+  --ar-display: "Chakra Petch", "Segoe UI", "Roboto", "Noto Sans", system-ui, sans-serif;
+  --ar-body: "IBM Plex Sans", "Segoe UI", "Roboto", "Noto Sans", system-ui, sans-serif;
+}
+html:lang(hi) {
+  --ar-display: "Chakra Petch", "Nirmala UI", "Kohinoor Devanagari", "Noto Sans Devanagari", system-ui, sans-serif;
+  --ar-body: "IBM Plex Sans", "Nirmala UI", "Kohinoor Devanagari", "Noto Sans Devanagari", system-ui, sans-serif;
+}
+html:lang(ja) {
+  --ar-display: "Chakra Petch", "Hiragino Sans", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif;
+  --ar-body: "IBM Plex Sans", "Hiragino Sans", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif;
+}
+html:lang(ko) {
+  --ar-display: "Chakra Petch", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --ar-body: "IBM Plex Sans", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+}
+/* Letter spacing breaks the joined letters of Devanagari and spreads Japanese and Korean characters apart */
+html:lang(hi) body *,
+html:lang(ja) body *,
+html:lang(ko) body * { letter-spacing: 0 !important; }
+/* Legal pages in a language other than French: the French text prevails */
+html body .legal-lang-note {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  background: var(--ar-accent-soft);
+  border-left: 3px solid var(--ar-accent);
+  color: var(--ar-muted, #c9ccd3);
+  font-size: 0.88rem;
+}
+/* Russian: the Cyrillic system font is wider, the full navbar needs a little more room */
+@media (min-width: 1361px) and (max-width: 1420px) {
+  html:lang(ru) body .app-nav-link .nav-icon { display: none; }
+}
+/* Badge family header: long names (German, Russian…) push the tier tag to a second line instead of out of the card */
+html body .bd-family-head { flex-wrap: wrap; row-gap: 6px; }
+html body .bd-family-name { min-width: 0; overflow-wrap: anywhere; }

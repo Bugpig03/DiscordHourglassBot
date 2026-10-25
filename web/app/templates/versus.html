@@ -13,18 +13,9 @@
     <!-- Header Hero -->
     <div class="versus-hero">
         <div class="versus-icon-badge">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
-                <line x1="13" y1="19" x2="19" y2="13"/>
-                <line x1="16" y1="16" x2="20" y2="20"/>
-                <line x1="19" y1="21" x2="21" y2="19"/>
-                <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/>
-                <line x1="5" y1="14" x2="9" y2="18"/>
-                <line x1="7" y1="17" x2="4" y2="20"/>
-                <line x1="3" y1="19" x2="5" y2="21"/>
-            </svg>
+            <svg width="30" height="30" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="swords"><path d="M0 0h2v1h-2zM7 0h2v1h-2zM0 1h3v1h-3zM6 1h3v1h-3zM1 2h3v1h-3zM5 2h3v1h-3zM2 3h5v1h-5zM3 4h3v1h-3zM2 5h5v1h-5zM1 6h3v1h-3zM5 6h3v1h-3zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
         </div>
-        <h1 class="versus-title">{{ t('versus.heading') }}</h1>
+        <h1 class="versus-title" data-ghost="1V1">{{ t('versus.heading') }}</h1>
         <p class="versus-subtitle">{{ t('versus.subtitle') }}</p>
     </div>
 
@@ -32,11 +23,11 @@
     <div class="top-tabs-wrapper" style="text-align: center; margin-bottom: 22px;">
         <div class="top-tabs">
             <a href="{{ url_for('versus.versus', tab='users') }}" class="top-tab-btn {% if tab == 'users' %}active{% endif %}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
                 <span>{{ t('versus.tab_users') }}</span>
             </a>
             <a href="{{ url_for('versus.versus', tab='servers') }}" class="top-tab-btn {% if tab == 'servers' %}active{% endif %}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                <svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
                 <span>{{ t('versus.tab_servers') }}</span>
             </a>
         </div>
@@ -59,12 +50,10 @@
                     </label>
                     <div class="page-search-wrap">
                         <div class="page-search-bar bar-p1">
-                            <svg class="page-search-icon icon-p1" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
-                            </svg>
+                            <svg class="page-search-icon icon-p1" width="17" height="17" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
                             <input type="text" name="u1" id="inputEntity1" value="{{ u1_val }}" placeholder="{{ t('versus.user1_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
-                            <button type="button" class="page-search-clear" id="clearEntity1" style="display: none;" title="Effacer">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <button type="button" class="page-search-clear" id="clearEntity1" style="display: none;" title="{{ tr('Effacer', 'Clear') }}">
+                                <svg width="12" height="12" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="close"><path d="M0 0h1v1h-1zM8 0h1v1h-1zM0 1h2v1h-2zM7 1h2v1h-2zM1 2h2v1h-2zM6 2h2v1h-2zM2 3h2v1h-2zM5 3h2v1h-2zM3 4h3v1h-3zM2 5h2v1h-2zM5 5h2v1h-2zM1 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
                             </button>
                         </div>
                         <div id="dropdownEntity1" class="page-search-dropdown" style="display: none;">
@@ -80,7 +69,7 @@
 
                 <!-- Swap Button -->
                 <button type="button" class="versus-swap-btn" data-call="swapVersusInputs" title="{{ t('versus.swap_btn') }}">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+                    <svg width="20" height="20" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="swap"><path d="M5 0h1v1h-1zM0 1h9v1h-9zM5 2h1v1h-1zM3 5h1v1h-1zM0 6h9v1h-9zM3 7h1v1h-1z"/></svg>
                 </button>
 
                 <!-- Player 2 Selector -->
@@ -91,12 +80,10 @@
                     </label>
                     <div class="page-search-wrap">
                         <div class="page-search-bar bar-p2">
-                            <svg class="page-search-icon icon-p2" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
-                            </svg>
+                            <svg class="page-search-icon icon-p2" width="17" height="17" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
                             <input type="text" name="u2" id="inputEntity2" value="{{ u2_val }}" placeholder="{{ t('versus.user2_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
-                            <button type="button" class="page-search-clear" id="clearEntity2" style="display: none;" title="Effacer">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <button type="button" class="page-search-clear" id="clearEntity2" style="display: none;" title="{{ tr('Effacer', 'Clear') }}">
+                                <svg width="12" height="12" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="close"><path d="M0 0h1v1h-1zM8 0h1v1h-1zM0 1h2v1h-2zM7 1h2v1h-2zM1 2h2v1h-2zM6 2h2v1h-2zM2 3h2v1h-2zM5 3h2v1h-2zM3 4h3v1h-3zM2 5h2v1h-2zM5 5h2v1h-2zM1 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
                             </button>
                         </div>
                         <div id="dropdownEntity2" class="page-search-dropdown" style="display: none;">
@@ -118,12 +105,10 @@
                     </label>
                     <div class="page-search-wrap">
                         <div class="page-search-bar bar-p1">
-                            <svg class="page-search-icon icon-p1" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
-                            </svg>
+                            <svg class="page-search-icon icon-p1" width="17" height="17" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
                             <input type="text" name="s1" id="inputEntity1" value="{{ s1_val }}" placeholder="{{ t('versus.server1_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
-                            <button type="button" class="page-search-clear" id="clearEntity1" style="display: none;" title="Effacer">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <button type="button" class="page-search-clear" id="clearEntity1" style="display: none;" title="{{ tr('Effacer', 'Clear') }}">
+                                <svg width="12" height="12" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="close"><path d="M0 0h1v1h-1zM8 0h1v1h-1zM0 1h2v1h-2zM7 1h2v1h-2zM1 2h2v1h-2zM6 2h2v1h-2zM2 3h2v1h-2zM5 3h2v1h-2zM3 4h3v1h-3zM2 5h2v1h-2zM5 5h2v1h-2zM1 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
                             </button>
                         </div>
                         <div id="dropdownEntity1" class="page-search-dropdown" style="display: none;">
@@ -139,7 +124,7 @@
 
                 <!-- Swap Button -->
                 <button type="button" class="versus-swap-btn" data-call="swapVersusInputs" title="{{ t('versus.swap_btn') }}">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+                    <svg width="20" height="20" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="swap"><path d="M5 0h1v1h-1zM0 1h9v1h-9zM5 2h1v1h-1zM3 5h1v1h-1zM0 6h9v1h-9zM3 7h1v1h-1z"/></svg>
                 </button>
 
                 <!-- Server 2 Selector -->
@@ -150,12 +135,10 @@
                     </label>
                     <div class="page-search-wrap">
                         <div class="page-search-bar bar-p2">
-                            <svg class="page-search-icon icon-p2" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>
-                            </svg>
+                            <svg class="page-search-icon icon-p2" width="17" height="17" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
                             <input type="text" name="s2" id="inputEntity2" value="{{ s2_val }}" placeholder="{{ t('versus.server2_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
-                            <button type="button" class="page-search-clear" id="clearEntity2" style="display: none;" title="Effacer">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <button type="button" class="page-search-clear" id="clearEntity2" style="display: none;" title="{{ tr('Effacer', 'Clear') }}">
+                                <svg width="12" height="12" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="close"><path d="M0 0h1v1h-1zM8 0h1v1h-1zM0 1h2v1h-2zM7 1h2v1h-2zM1 2h2v1h-2zM6 2h2v1h-2zM2 3h2v1h-2zM5 3h2v1h-2zM3 4h3v1h-3zM2 5h2v1h-2zM5 5h2v1h-2zM1 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
                             </button>
                         </div>
                         <div id="dropdownEntity2" class="page-search-dropdown" style="display: none;">
@@ -172,7 +155,7 @@
 
             <button type="submit" class="versus-submit-btn">
                 <span>{{ t('versus.compare_btn') }}</span>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                <svg width="17" height="17" aria-hidden="true" viewBox="-0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chevron_right"><path d="M1 0h2v1h-2zM2 1h2v1h-2zM3 2h2v1h-2zM4 3h2v1h-2zM5 4h2v1h-2zM4 5h2v1h-2zM3 6h2v1h-2zM2 7h2v1h-2zM1 8h2v1h-2z"/></svg>
             </button>
         </form>
 
@@ -182,7 +165,7 @@
                 {% if common_servers %}
                     <div class="common-servers-header">
                         <div class="common-servers-title">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                            <svg width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
                             <span>{{ t('versus.common_servers_heading') }}</span>
                         </div>
                     </div>
@@ -197,7 +180,7 @@
                                 {% if srv.avatar %}
                                     <img src="{{ srv.avatar }}" class="pill-avatar" alt="icon" data-fallback="hide">
                                 {% else %}
-                                    <span class="pill-fallback-icon">🏰</span>
+                                    <span class="pill-fallback-icon">{{ pixel_icon('servers', 16) }}</span>
                                 {% endif %}
                                 <span class="pill-text">{{ srv.name }}</span>
                             </a>
@@ -205,7 +188,7 @@
                     </div>
                 {% else %}
                     <div class="common-servers-none">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                        <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="alert"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h1v1h-1zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM4 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
                         <span>{{ t('versus.no_common_servers') }}</span>
                     </div>
                 {% endif %}
@@ -221,8 +204,8 @@
                     <span class="active-server-pulse"></span>
                     <span>{{ t('versus.server_duel_scope', server_name=selected_server.name) }}</span>
                 </div>
-                <a href="{{ url_for('versus.versus', tab='users', u1=u1_val, u2=u2_val) }}" class="btn-clear-server-filter" title="Retour aux statistiques globales">
-                    ✕ <span>{{ t('versus.all_servers_option') }}</span>
+                <a href="{{ url_for('versus.versus', tab='users', u1=u1_val, u2=u2_val) }}" class="btn-clear-server-filter" title="{{ tr('Retour aux statistiques globales', 'Back to global statistics') }}">
+                    {{ pixel_icon('close', 11) }} <span>{{ t('versus.all_servers_option') }}</span>
                 </a>
             </div>
         {% endif %}
@@ -233,7 +216,7 @@
             <div class="versus-fighter-card fighter-1 {% if comparison.overall_winner == '1' %}fighter-winner{% endif %}">
                 {% if comparison.overall_winner == '1' %}
                     <div class="fighter-champion-ribbon">
-                        <span>🏆 {{ t('versus.winner_badge') }}</span>
+                        <span>{{ pixel_icon('trophy', 13) }} {{ t('versus.winner_badge') }}</span>
                     </div>
                 {% endif %}
 
@@ -289,15 +272,15 @@
                 <div class="duel-outcome-wrapper">
                     {% if comparison.overall_winner == '1' %}
                         <div class="duel-outcome-pill winner-pill-1">
-                            <span>👑 {{ t('versus.overall_winner_title', name=entity1.username if tab == 'users' else entity1.name) }}</span>
+                            <span>{{ pixel_icon('crown', 14) }} {{ t('versus.overall_winner_title', name=entity1.username if tab == 'users' else entity1.name) }}</span>
                         </div>
                     {% elif comparison.overall_winner == '2' %}
                         <div class="duel-outcome-pill winner-pill-2">
-                            <span>👑 {{ t('versus.overall_winner_title', name=entity2.username if tab == 'users' else entity2.name) }}</span>
+                            <span>{{ pixel_icon('crown', 14) }} {{ t('versus.overall_winner_title', name=entity2.username if tab == 'users' else entity2.name) }}</span>
                         </div>
                     {% else %}
                         <div class="duel-outcome-pill tie-pill">
-                            <span>🤝 {{ t('versus.overall_tie_title') }}</span>
+                            <span>{{ pixel_icon('scale', 14) }} {{ t('versus.overall_tie_title') }}</span>
                         </div>
                     {% endif %}
                 </div>
@@ -307,7 +290,7 @@
             <div class="versus-fighter-card fighter-2 {% if comparison.overall_winner == '2' %}fighter-winner{% endif %}">
                 {% if comparison.overall_winner == '2' %}
                     <div class="fighter-champion-ribbon">
-                        <span>🏆 {{ t('versus.winner_badge') }}</span>
+                        <span>{{ pixel_icon('trophy', 13) }} {{ t('versus.winner_badge') }}</span>
                     </div>
                 {% endif %}
 
@@ -350,8 +333,8 @@
         <!-- Metric Duel Breakdown List -->
         <div class="gray-box small-border-radius versus-metrics-container">
             <div class="versus-metrics-title-row">
-                <h3 class="versus-metrics-title">📊 {{ 'Comparatif détaillé des métriques' if current_lang == 'fr' else 'Detailed Metric Breakdown' }}</h3>
-                <span class="metrics-count-badge">{{ comparison.metrics|length }} {{ 'catégories' if current_lang == 'fr' else 'categories' }}</span>
+                <h3 class="versus-metrics-title">{{ pixel_icon('chart', 18) }} {{tr('Comparatif détaillé des métriques', 'Detailed Metric Breakdown')}}</h3>
+                <span class="metrics-count-badge">{{ comparison.metrics|length }} {{tr('catégories', 'categories')}}</span>
             </div>
 
             <div class="versus-metrics-list">
@@ -360,7 +343,7 @@
                         <div class="metric-row-header">
                             <!-- Left Fighter Value -->
                             <div class="metric-side-val side-left {% if m.winner == '1' %}is-winner{% endif %}">
-                                {% if m.winner == '1' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">👑</span>{% endif %}
+                                {% if m.winner == '1' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">{{ pixel_icon('crown', 14) }}</span>{% endif %}
                                 <span class="val-number">
                                     {% if m.unit == 'h' %}
                                         {{ m.v1 }} h
@@ -377,15 +360,8 @@
                             <!-- Central Metric Title & Icon -->
                             <div class="metric-center-label">
                                 <span class="metric-category-icon">
-                                    {% if m.key == 'hours' %}⏱️
-                                    {% elif m.key == 'messages' %}💬
-                                    {% elif m.key == 'level' %}⭐
-                                    {% elif m.key == 'activity_30d' %}⚡
-                                    {% elif m.key == 'rank' %}🏅
-                                    {% elif m.key == 'badges' %}🎖️
-                                    {% elif m.key == 'servers' %}🌐
-                                    {% elif m.key == 'members' %}👥
-                                    {% else %}📊{% endif %}
+                                    {{ pixel_icon({'hours': 'clock', 'messages': 'chat', 'level': 'star', 'activity_30d': 'zap', 'rank': 'trophy',
+                                                   'badges': 'award', 'servers': 'globe', 'members': 'users'}.get(m.key, 'chart'), 14) }}
                                 </span>
                                 <span class="metric-category-name">{{ t(m.label_key) }}</span>
                             </div>
@@ -403,7 +379,7 @@
                                         {{ m.v2 }}
                                     {% endif %}
                                 </span>
-                                {% if m.winner == '2' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">👑</span>{% endif %}
+                                {% if m.winner == '2' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">{{ pixel_icon('crown', 14) }}</span>{% endif %}
                             </div>
                         </div>
 
@@ -428,11 +404,11 @@
                 <div>
                     <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">
                         {% if selected_server %}
-                            📈 {{ t('versus.chart_title_users') }} ({{ selected_server.name }})
+                            {{ pixel_icon('trend', 18) }} {{ t('versus.chart_title_users') }} ({{ selected_server.name }})
                         {% elif tab == 'users' %}
-                            📈 {{ t('versus.chart_title_users') }}
+                            {{ pixel_icon('trend', 18) }} {{ t('versus.chart_title_users') }}
                         {% else %}
-                            📈 {{ t('versus.chart_title_servers') }}
+                            {{ pixel_icon('trend', 18) }} {{ t('versus.chart_title_servers') }}
                         {% endif %}
                     </div>
                     <div class="small-text gray" style="margin-top: 4px;">{{ t('versus.chart_desc') }}</div>
@@ -446,7 +422,7 @@
     {% else %}
         <!-- Empty State / No Match -->
         <div class="gray-box small-border-radius versus-empty-arena">
-            <div class="empty-swords-icon">⚔️</div>
+            <div class="empty-swords-icon">{{ pixel_icon('swords', 54) }}</div>
             <div class="empty-arena-title">{{ t('versus.no_data') }}</div>
         </div>
     {% endif %}

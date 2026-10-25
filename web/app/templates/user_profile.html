@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ t('user_profile.title', username=stats.username) }}{% endblock %}
-{% block meta_description %}{% if current_lang == 'fr' %}Niveau {{ gamification.xp_info.level }} · {{ stats.total_time_hours | num(1) }} h en vocal · {{ stats.total_message | num }} messages · {{ gamification.unlocked_count }}/{{ gamification.total_badges }} badges sur Hourglass.{% else %}Level {{ gamification.xp_info.level }} · {{ stats.total_time_hours | num(1) }} h in voice · {{ stats.total_message | num }} messages · {{ gamification.unlocked_count }}/{{ gamification.total_badges }} badges on Hourglass.{% endif %}{% endblock %}
+{% block meta_description %}{{ tr('Niveau {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.', 'Level {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num, badges=gamification.unlocked_count, total=gamification.total_badges) }}{% endblock %}
 {% block og_image %}{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png', _external=True) }}{% endblock %}
 
 
@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user_profile.css', v=asset_version('css/pages/user_profile.css')) }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/profile_theme.css', v=asset_version('css/pages/profile_theme.css')) }}">
 
-{% macro hidden_tag(key) %}{% if layout.hidden[key] %}<span class="layout-hidden-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>{{ 'Masqué aux visiteurs' if current_lang == 'fr' else 'Hidden from visitors' }}</span>{% endif %}{% endmacro %}
+{% macro hidden_tag(key) %}{% if layout.hidden[key] %}<span class="layout-hidden-tag"><svg width="13" height="13" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="eye_off"><path d="M0 0h1v1h-1zM1 1h1v1h-1zM2 2h5v1h-5zM1 3h1v1h-1zM3 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM4 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM7 5h1v1h-1zM2 6h5v1h-5zM7 7h1v1h-1zM8 8h1v1h-1z"/></svg>{{tr('Masqué aux visiteurs', 'Hidden from visitors')}}</span>{% endif %}{% endmacro %}
 
 <div class="profile-themed {% if theme.is_custom %}accent-custom{% endif %}" style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};">
 {% if theme.background_hex %}
@@ -39,7 +39,6 @@
 {% endif %}
 
 <!-- Profile header: identity, level and personal touches (banner, color, favorite server, showcase) -->
-{% set fr = current_lang == 'fr' %}
 <section class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}" aria-labelledby="profileName">
     {% if theme.show_banner %}
     <div class="profile-banner">
@@ -55,23 +54,23 @@
                      alt="avatar">
                 {% if can_view_presence and stats.presence %}
                 <span class="status-indicator-badge status-{{ stats.presence.status }}"
-                      data-tip="{{ stats.presence.label_fr if fr else stats.presence.label_en }}" aria-label="{{ stats.presence.label_fr if fr else stats.presence.label_en }}"></span>
+                      data-tip="{{ tr(stats.presence.label_fr, stats.presence.label_en) }}" aria-label="{{ tr(stats.presence.label_fr, stats.presence.label_en) }}"></span>
                 {% endif %}
             </div>
 
             <div class="profile-hero-info">
-                <h1 id="profileName" class="profile-hero-name">{{ stats.username }}</h1>
+                <h1 id="profileName" class="profile-hero-name" data-ghost="{{ gamification.xp_info.level }}">{{ stats.username }}</h1>
                 <div class="profile-hero-meta">
-                    <span class="profile-hero-title">{{ gamification.xp_info.title_fr if fr else gamification.xp_info.title_en }}</span>
+                    <span class="profile-hero-title">{{ tr(gamification.xp_info.title_fr, gamification.xp_info.title_en) }}</span>
                     <span class="profile-hero-sep" aria-hidden="true">•</span>
                     <span>{{ t('user_profile.member_since') }} {{ stats.join_date }}</span>
                     <span class="profile-hero-sep" aria-hidden="true">•</span>
-                    <span class="profile-hero-id" data-tip="{{ 'Identifiant Discord' if fr else 'Discord ID' }}">ID {{ stats.user_id }}</span>
+                    <span class="profile-hero-id" data-tip="{{tr('Identifiant Discord', 'Discord ID')}}">ID {{ stats.user_id }}</span>
                 </div>
                 {% if can_view_presence and stats.active_voice %}
                 <span class="profile-live-voice">
                     <span class="profile-live-dot"></span>
-                    {{ 'En vocal' if fr else 'In voice' }} : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }})
+                    {{tr('En vocal', 'In voice')}} : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }})
                 </span>
                 {% endif %}
             </div>
@@ -79,12 +78,12 @@
             <div class="profile-hero-actions">
                 {% if is_owner %}
                 <a href="{{ url_for('customize.customize_profile') }}" class="btn-customize-profile">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                    <span>{{ 'Personnaliser' if fr else 'Customize' }}</span>
+                    <svg width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="pen"><path d="M7 0h1v1h-1zM6 1h3v1h-3zM5 2h3v1h-3zM4 3h3v1h-3zM3 4h3v1h-3zM2 5h3v1h-3zM1 6h3v1h-3zM0 7h2v1h-2zM0 8h1v1h-1z"/></svg>
+                    <span>{{tr('Personnaliser', 'Customize')}}</span>
                 </a>
                 {% endif %}
                 <a href="{{ url_for('versus.versus', u1=stats.user_id) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                    <svg width="17" height="17" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="swords"><path d="M0 0h2v1h-2zM7 0h2v1h-2zM0 1h3v1h-3zM6 1h3v1h-3zM1 2h3v1h-3zM5 2h3v1h-3zM2 3h5v1h-5zM3 4h3v1h-3zM2 5h5v1h-5zM1 6h3v1h-3zM5 6h3v1h-3zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
                     <span>{{ t('profile.versus_btn') }}</span>
                 </a>
             </div>
@@ -118,11 +117,11 @@
 <section class="profile-vitrine" aria-labelledby="profileVitrineTitle">
     <div class="profile-vitrine-head">
         <h2 id="profileVitrineTitle" class="profile-vitrine-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
-            {{ 'Vitrine' if fr else 'Showcase' }}
+            <svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="pin"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM2 3h5v1h-5zM1 4h7v1h-7zM0 5h9v1h-9zM4 6h1v1h-1zM4 7h1v1h-1zM4 8h1v1h-1z"/></svg>
+            {{tr('Vitrine', 'Showcase')}}
         </h2>
         {% if is_owner %}
-        <a class="profile-vitrine-edit" href="{{ url_for('customize.customize_profile') }}">{{ 'Modifier ma vitrine' if fr else 'Edit my showcase' }}</a>
+        <a class="profile-vitrine-edit" href="{{ url_for('customize.customize_profile') }}">{{tr('Modifier ma vitrine', 'Edit my showcase')}}</a>
         {% endif %}
     </div>
 
@@ -130,14 +129,14 @@
     <div class="profile-vitrine-top">
         {% if show_showcase %}
         <div class="profile-vitrine-part">
-            <div class="profile-vitrine-label">{{ 'Badges' }} {{ hidden_tag('showcase') }}</div>
-            <div class="profile-showcase" aria-label="{{ 'Badges mis en avant' if fr else 'Featured badges' }}">
+            <div class="profile-vitrine-label">{{ tr('Badges', 'Badges') }} {{ hidden_tag('showcase') }}</div>
+            <div class="profile-showcase" aria-label="{{tr('Badges mis en avant', 'Featured badges')}}">
                 {% for badge in showcase %}
                 <div class="profile-showcase-item rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
                     <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
                     <span class="profile-showcase-text">
                         <span class="profile-showcase-name">{{ badge.name }}</span>
-                        <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
+                        <span class="profile-showcase-rarity">{{ badge.tier_label }}</span>
                     </span>
                 </div>
                 {% endfor %}
@@ -146,12 +145,12 @@
         {% endif %}
         {% if favorite_server %}
         <div class="profile-vitrine-part">
-            <div class="profile-vitrine-label">{{ 'Serveur favori' if fr else 'Favorite server' }}</div>
+            <div class="profile-vitrine-label">{{tr('Serveur favori', 'Favorite server')}}</div>
             <a class="profile-vitrine-server" href="{{ url_for('server_profile.server', server_id=favorite_server.server_id) }}">
                 <img src="{{ favorite_server.avatar or url_for('static', filename='icons/server.png') }}" data-fallback="{{ url_for('static', filename='icons/server.png') }}" alt="">
                 <span class="profile-vitrine-server-text">
                     <span class="profile-vitrine-server-name">{{ favorite_server.server_name }}</span>
-                    <span class="profile-vitrine-server-meta">#{{ favorite_server.rank }} {{ 'sur' if fr else 'of' }} {{ favorite_server.nb_user }} · {{ favorite_server.time_spent | num(1) }} h</span>
+                    <span class="profile-vitrine-server-meta">#{{ favorite_server.rank }} {{tr('sur', 'of')}} {{ favorite_server.nb_user }} · {{ favorite_server.time_spent | num(1) }} h</span>
                 </span>
             </a>
         </div>
@@ -161,7 +160,7 @@
 
     {% if show_records %}
     <div class="profile-vitrine-part">
-        <div class="profile-vitrine-label">{{ 'Records' }} {{ hidden_tag('records') }}</div>
+        <div class="profile-vitrine-label">{{ tr('Records', 'Records') }} {{ hidden_tag('records') }}</div>
         <div class="profile-records-grid">
             {% for record in records %}
             <div class="profile-record">
@@ -181,13 +180,13 @@
 <div class="home-stats-container stats-4" style="margin-bottom: 25px;">
     <div class="home-stats-box">
         <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/rank.png') }}" alt="Icon Rank">
+            {{ pixel_icon('trophy', 22) }}
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.global_rank_label') }}</span>
             <span class="home-stats-value">
                 {% if stats.rank and stats.rank is number %}
-                    #{{ stats.rank }} <span style="font-size: 0.85rem; color: #8b9bb0;">/ {{ stats.total_user }}</span>
+                    #{{ stats.rank }} <span style="font-size: 0.85rem; color: #9a9da7;">/ {{ stats.total_user }}</span>
                 {% else %}
                     {{ t('user_profile.unranked') }}
                 {% endif %}
@@ -197,7 +196,7 @@
 
     <div class="home-stats-box">
         <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/30day.png') }}" alt="Icon 30days">
+            {{ pixel_icon('calendar', 22) }}
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.activity_30d') }}</span>
@@ -207,7 +206,7 @@
 
     <div class="home-stats-box">
         <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/hourglass.png') }}" alt="Icon Hourglass">
+            {{ pixel_icon('hourglass', 22) }}
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.total_voice') }}</span>
@@ -217,7 +216,7 @@
 
     <div class="home-stats-box">
         <div class="home-stats-icon">
-            <img src="{{ url_for('static', filename='icons/messages.png') }}" alt="Icon messages">
+            {{ pixel_icon('chat', 22) }}
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('user_profile.total_messages') }}</span>
@@ -229,15 +228,15 @@
 
 {% if layout.private_view %}
 <div class="gray-box small-border-radius profile-private-notice">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <svg width="22" height="22" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg>
     <div>
-        <div class="profile-private-title">{{ 'Profil privé' if current_lang == 'fr' else 'Private profile' }}</div>
-        <div class="small-text gray">{{ (stats.username ~ ' a choisi de garder ses statistiques détaillées privées.') if current_lang == 'fr' else (stats.username ~ ' chose to keep their detailed statistics private.') }}</div>
+        <div class="profile-private-title">{{tr('Profil privé', 'Private profile')}}</div>
+        <div class="small-text gray">{{ tr('{name} a choisi de garder ses statistiques détaillées privées.', '{name} chose to keep their detailed statistics private.', name=stats.username) }}</div>
     </div>
 </div>
 {% else %}
 {% if layout.private %}
-<div class="profile-private-owner"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> {{ 'Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.' if current_lang == 'fr' else 'Your profile is private: visitors only see the header, level and totals.' }} <a href="{{ url_for('customize.customize_profile') }}">{{ 'Modifier' if current_lang == 'fr' else 'Change' }}</a></div>
+<div class="profile-private-owner"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg> {{tr('Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.', 'Your profile is private: visitors only see the header, level and totals.')}} <a href="{{ url_for('customize.customize_profile') }}">{{tr('Modifier', 'Change')}}</a></div>
 {% endif %}
 <!-- =================================================================== -->
 <!-- TAB NAVIGATION BAR                                                  -->
@@ -245,25 +244,25 @@
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs" role="tablist">
         <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchUserProfileTab" data-arg="tab-activity">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_activity') }}</span><small class="tab-desc">{{ 'Séries, calendrier, sessions' if fr else 'Streaks, calendar, sessions' }}</small></span>
+            <svg width="15" height="15" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="flame"><path d="M4 0h1v1h-1zM3 1h2v1h-2zM3 2h3v1h-3zM7 2h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM1 4h8v1h-8zM1 5h3v1h-3zM5 5h4v1h-4zM1 6h2v1h-2zM6 6h3v1h-3zM1 7h2v1h-2zM6 7h2v1h-2zM2 8h5v1h-5z"/></svg>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_activity') }}</span><small class="tab-desc">{{tr('Séries, calendrier, sessions', 'Streaks, calendar, sessions')}}</small></span>
         </button>
         {% if layout.visible.tab_charts %}
         <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchUserProfileTab" data-arg="tab-charts">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_graphs') }}</span><small class="tab-desc">{{ 'Évolution et répartition' if fr else 'Trends and breakdown' }}</small></span>
+            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_graphs') }}</span><small class="tab-desc">{{tr('Évolution et répartition', 'Trends and breakdown')}}</small></span>
         </button>
         {% endif %}
         {% if layout.visible.tab_servers %}
         <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchUserProfileTab" data-arg="tab-servers">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_servers') }}</span><small class="tab-desc">{{ 'Ses serveurs et classements' if fr else 'Servers and rankings' }}</small></span>
+            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_servers') }}</span><small class="tab-desc">{{tr('Ses serveurs et classements', 'Servers and rankings')}}</small></span>
         </button>
         {% endif %}
         {% if layout.visible.tab_badges %}
         <button class="graphs-tab-btn" data-tab="tab-badges" data-call="switchUserProfileTab" data-arg="tab-badges">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_badges') }}</span><small class="tab-desc">{{ 'Débloqués et à venir' if fr else 'Unlocked and upcoming' }}</small></span>
+            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="trophy"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h5v1h-5zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h5v1h-5zM8 2h1v1h-1zM1 3h7v1h-7zM2 4h5v1h-5zM3 5h3v1h-3zM4 6h1v1h-1zM3 7h3v1h-3zM1 8h7v1h-7z"/></svg>
+            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_badges') }}</span><small class="tab-desc">{{tr('Débloqués et à venir', 'Unlocked and upcoming')}}</small></span>
         </button>
         {% endif %}
     </div>
@@ -276,47 +275,46 @@
 
     {% set block_streaks %}
     <!-- Streaks & consistency: one compact strip instead of four large cards -->
-    {% set fr = current_lang == 'fr' %}
     {% set streak = heatmap_annual.current_streak %}
     <div class="gray-box small-border-radius profile-streaks">
         <div class="profile-streak">
             <span class="profile-streak-icon" style="color: #fb923c; background: rgba(251, 146, 60, 0.12);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                <svg width="18" height="18" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="flame"><path d="M4 0h1v1h-1zM3 1h2v1h-2zM3 2h3v1h-3zM7 2h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM1 4h8v1h-8zM1 5h3v1h-3zM5 5h4v1h-4zM1 6h2v1h-2zM6 6h3v1h-3zM1 7h2v1h-2zM6 7h2v1h-2zM2 8h5v1h-5z"/></svg>
             </span>
             <span class="profile-streak-text">
-                <span class="profile-streak-label">{{ 'Série actuelle' if fr else 'Current streak' }}</span>
-                <span class="profile-streak-value">{{ streak }} <small>{{ (('jour' if streak <= 1 else 'jours') if fr else ('day' if streak == 1 else 'days')) }}</small></span>
-                <span class="profile-streak-sub">{{ ('Série en cours' if streak > 0 else 'Inactif aujourd’hui') if fr else ('Active streak' if streak > 0 else 'Inactive today') }}</span>
+                <span class="profile-streak-label">{{tr('Série actuelle', 'Current streak')}}</span>
+                <span class="profile-streak-value">{{ streak }} <small>{{ tr('jour', 'day') if streak <= 1 else tr('jours', 'days') }}</small></span>
+                <span class="profile-streak-sub">{{ tr('Série en cours', 'Active streak') if streak > 0 else tr('Inactif aujourd’hui', 'Inactive today') }}</span>
             </span>
         </div>
         <div class="profile-streak">
             <span class="profile-streak-icon" style="color: #facc15; background: rgba(250, 204, 21, 0.12);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="zap"><path d="M4 0h3v1h-3zM3 1h3v1h-3zM2 2h3v1h-3zM1 3h7v1h-7zM4 4h3v1h-3zM3 5h3v1h-3zM2 6h2v1h-2zM1 7h2v1h-2zM1 8h1v1h-1z"/></svg>
             </span>
             <span class="profile-streak-text">
-                <span class="profile-streak-label">{{ 'Record de série' if fr else 'Best streak' }}</span>
-                <span class="profile-streak-value">{{ heatmap_annual.max_streak }} <small>{{ (('jour' if heatmap_annual.max_streak <= 1 else 'jours') if fr else ('day' if heatmap_annual.max_streak == 1 else 'days')) }}</small></span>
-                <span class="profile-streak-sub">{{ 'Record historique' if fr else 'All-time best' }}</span>
+                <span class="profile-streak-label">{{tr('Record de série', 'Best streak')}}</span>
+                <span class="profile-streak-value">{{ heatmap_annual.max_streak }} <small>{{ tr('jour', 'day') if heatmap_annual.max_streak <= 1 else tr('jours', 'days') }}</small></span>
+                <span class="profile-streak-sub">{{tr('Record historique', 'All-time best')}}</span>
             </span>
         </div>
         <div class="profile-streak">
             <span class="profile-streak-icon" style="color: #4ade80; background: rgba(74, 222, 128, 0.12);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="calendar"><path d="M1 0h1v1h-1zM7 0h1v1h-1zM0 1h9v1h-9zM0 2h1v1h-1zM8 2h1v1h-1zM0 3h9v1h-9zM0 4h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM0 7h1v1h-1zM8 7h1v1h-1zM0 8h9v1h-9z"/></svg>
             </span>
             <span class="profile-streak-text">
-                <span class="profile-streak-label">{{ 'Jours actifs (1 an)' if fr else 'Active days (1 yr)' }}</span>
+                <span class="profile-streak-label">{{tr('Jours actifs (1 an)', 'Active days (1 yr)')}}</span>
                 <span class="profile-streak-value">{{ heatmap_annual.total_active_days }} <small>/ 365</small></span>
-                <span class="profile-streak-sub">{{ (heatmap_annual.total_active_days / 365 * 100) | num(1) }} % {{ 'd’assiduité' if fr else 'active rate' }}</span>
+                <span class="profile-streak-sub">{{ (heatmap_annual.total_active_days / 365 * 100) | num(1) }} % {{tr('d’assiduité', 'active rate')}}</span>
             </span>
         </div>
         <div class="profile-streak">
-            <span class="profile-streak-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.12);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span class="profile-streak-icon" style="color: var(--accent); background: rgba(var(--accent-rgb), 0.12);">
+                <svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="star"><path d="M4 0h1v1h-1zM4 1h1v1h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v1h-5zM2 6h2v1h-2zM5 6h2v1h-2zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg>
             </span>
             <span class="profile-streak-text">
-                <span class="profile-streak-label">{{ 'Journée record' if fr else 'Peak day' }}</span>
+                <span class="profile-streak-label">{{tr('Journée record', 'Peak day')}}</span>
                 <span class="profile-streak-value">{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.hours | num(1) }} <small>h</small>{% else %}-{% endif %}</span>
-                <span class="profile-streak-sub">{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.label }}{% else %}{{ 'Aucune donnée' if fr else 'No data' }}{% endif %}</span>
+                <span class="profile-streak-sub">{% if heatmap_annual.best_day %}{{ heatmap_annual.best_day.label }}{% else %}{{tr('Aucune donnée', 'No data')}}{% endif %}</span>
             </span>
         </div>
     </div>
@@ -327,21 +325,21 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
             <div>
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                    <span>{{ 'Calendrier d’activité' if current_lang == 'fr' else 'Activity Calendar' }}</span>
+                    <svg width="18" height="18" style="color: var(--accent);" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="calendar"><path d="M1 0h1v1h-1zM7 0h1v1h-1zM0 1h9v1h-9zM0 2h1v1h-1zM8 2h1v1h-1zM0 3h9v1h-9zM0 4h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM0 7h1v1h-1zM8 7h1v1h-1zM0 8h9v1h-9z"/></svg>
+                    <span>{{tr('Calendrier d’activité', 'Activity Calendar')}}</span>
                 </div>
                 <div class="small-text gray" style="margin-top: 4px;">
-                    {{ 'Nuances basées sur le temps vocal et les messages envoyés.' if current_lang == 'fr' else 'Activity intensity based on voice time and message counts.' }}
+                    {{tr('Nuances basées sur le temps vocal et les messages envoyés.', 'Activity intensity based on voice time and message counts.')}}
                 </div>
             </div>
 
             <!-- Toggle Mensuel vs Annuel -->
             <div class="granularity-toggle-group">
                 <button type="button" class="granularity-btn active" id="btnHeatmapAnnual" data-call="toggleHeatmapView" data-arg="annual">
-                    {{ 'Annuel (12 mois)' if current_lang == 'fr' else 'Annual (12 mos)' }}
+                    {{tr('Annuel (12 mois)', 'Annual (12 mos)')}}
                 </button>
                 <button type="button" class="granularity-btn" id="btnHeatmapMonthly" data-call="toggleHeatmapView" data-arg="monthly">
-                    {{ 'Mensuel (30 jours)' if current_lang == 'fr' else 'Monthly (30 days)' }}
+                    {{tr('Mensuel (30 jours)', 'Monthly (30 days)')}}
                 </button>
             </div>
         </div>
@@ -352,7 +350,7 @@
                 <div class="heatmap-annual-layout">
                     <!-- Weekday labels (rows are Monday → Sunday) -->
                     <div class="heatmap-weekday-labels" aria-hidden="true">
-                        {% for label in (['Lun', '', 'Mer', '', 'Ven', '', ''] if current_lang == 'fr' else ['Mon', '', 'Wed', '', 'Fri', '', '']) %}
+                        {% for label in heatmap_weekdays %}
                         <span>{{ label }}</span>
                         {% endfor %}
                     </div>
@@ -369,9 +367,9 @@
                             {% endfor %}
                             {% for day in heatmap_annual.days %}
                             {% if day.level == 0 %}
-                            {% set tip = day.label ~ ' : ' ~ ('aucune activité' if current_lang == 'fr' else 'no activity') %}
+                            {% set tip = tr('{day} : aucune activité', '{day}: no activity', day=day.label) %}
                             {% else %}
-                            {% set tip = day.label ~ ' : ' ~ (day.voice_hours | num(1)) ~ ' h · ' ~ (day.messages | num) ~ ' messages' %}
+                            {% set tip = tr('{day} : {hours} h · {messages} messages', '{day}: {hours} h · {messages} messages', day=day.label, hours=day.voice_hours | num(1), messages=day.messages | num) %}
                             {% endif %}
                             <div class="heatmap-cell heatmap-level-{{ day.level }}" data-tip="{{ tip }}" aria-label="{{ tip }}"></div>
                             {% endfor %}
@@ -381,14 +379,14 @@
             </div>
 
             <!-- Légende -->
-            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 0.78rem; color: #8b9bb0;">
-                <span>{{ 'Moins' if current_lang == 'fr' else 'Less' }}</span>
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 0.78rem; color: #9a9da7;">
+                <span>{{tr('Moins', 'Less')}}</span>
                 <span class="heatmap-cell heatmap-level-0" style="width: 11px; height: 11px; cursor: default;"></span>
                 <span class="heatmap-cell heatmap-level-1" style="width: 11px; height: 11px; cursor: default;"></span>
                 <span class="heatmap-cell heatmap-level-2" style="width: 11px; height: 11px; cursor: default;"></span>
                 <span class="heatmap-cell heatmap-level-3" style="width: 11px; height: 11px; cursor: default;"></span>
                 <span class="heatmap-cell heatmap-level-4" style="width: 11px; height: 11px; cursor: default;"></span>
-                <span>{{ 'Plus' if current_lang == 'fr' else 'More' }}</span>
+                <span>{{tr('Plus', 'More')}}</span>
             </div>
         </div>
 
@@ -401,9 +399,9 @@
                         <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">{{ day.date[-5:] }}</span>
                         <span class="heatmap-cell heatmap-level-{{ day.level }}" style="width: 10px; height: 10px; cursor: default;"></span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #38bdf8; font-weight: 600;">
-                        <span>{{ day.voice_hours | num(1) }} h {{ 'vocal' if current_lang == 'fr' else 'voice' }}</span>
-                        <span style="color: #a78bfa;">{{ day.messages }} msgs</span>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--accent); font-weight: 600;">
+                        <span>{{ day.voice_hours | num(1) }} h {{tr('vocal', 'voice')}}</span>
+                        <span style="color: #a78bfa;">{{ day.messages }} {{ tr('msgs', 'msgs') }}</span>
                     </div>
                 </div>
                 {% endfor %}
@@ -416,16 +414,16 @@
     <div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
         <div style="margin-bottom: 18px;">
             <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>{{ 'Compagnons Vocaux Fréquents' if current_lang == 'fr' else 'Frequent Voice Companions' }}</span>
+                <svg width="20" height="20" style="color: var(--accent);" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
+                <span>{{tr('Compagnons Vocaux Fréquents', 'Frequent Voice Companions')}}</span>
             </div>
             <div class="small-text gray" style="margin-top: 4px;">
-                {{ 'Membres avec qui ' ~ stats.username ~ ' passe le plus de temps en vocal dans les mêmes salons.' if current_lang == 'fr' else 'Users who spent the most simultaneous voice time with ' ~ stats.username ~ '.' }}
+                {{ tr('Membres avec qui {name} passe le plus de temps en vocal dans les mêmes salons.', 'Users who spent the most simultaneous voice time with {name}.', name=stats.username) }}
             </div>
             {% if companions_since %}
-            <div class="companions-since" data-tip="{{ 'Les salons vocaux sont enregistrés depuis cette date : le temps passé ensemble avant n’est pas connu.' if current_lang == 'fr' else 'Voice channels are recorded since this date: time spent together before is unknown.' }}">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {{ ('Données depuis le ' if current_lang == 'fr' else 'Data since ') ~ companions_since }}
+            <div class="companions-since" data-tip="{{tr('Les salons vocaux sont enregistrés depuis cette date : le temps passé ensemble avant n’est pas connu.', 'Voice channels are recorded since this date: time spent together before is unknown.')}}">
+                <svg width="12" height="12" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
+                {{ tr('Données depuis le {date}', 'Data since {date}', date=companions_since) }}
             </div>
             {% endif %}
         </div>
@@ -440,11 +438,11 @@
                         {{ buddy.username }}
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; align-items: center;">
-                        <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 2px 8px; font-size: 0.78rem; font-weight: 700;">
-                            {{ buddy.shared_hours | num(1) }} h ensemble
+                        <span style="background: rgba(var(--accent-rgb), 0.15); color: var(--accent); border: 1px solid rgba(var(--accent-rgb), 0.3); border-radius: 2px; padding: 2px 8px; font-size: 0.78rem; font-weight: 700;">
+                            {{ tr('{h} h ensemble', '{h} h together', h=buddy.shared_hours | num(1)) }}
                         </span>
-                        <span style="font-size: 0.78rem; color: #94a3b8;">
-                            {{ buddy.session_count }} {{ 'sessions' if current_lang == 'fr' else 'sessions' }}
+                        <span style="font-size: 0.78rem; color: #a3a6b0;">
+                            {{ buddy.session_count }} {{tr('sessions', 'sessions')}}
                         </span>
                     </div>
                 </div>
@@ -452,8 +450,8 @@
             {% endfor %}
         </div>
         {% else %}
-        <div style="padding: 30px; text-align: center; color: #8b9bb0;">
-            {{ 'Aucun compagnon vocal identifié pour le moment. Rejoignez des salons vocaux avec d\'autres membres !' if current_lang == 'fr' else 'No voice companions recorded yet. Join voice channels with other members!' }}
+        <div style="padding: 30px; text-align: center; color: #9a9da7;">
+            {{tr('Aucun compagnon vocal identifié pour le moment. Rejoignez des salons vocaux avec d\'autres membres !', 'No voice companions recorded yet. Join voice channels with other members!')}}
         </div>
         {% endif %}
     </div>
@@ -470,14 +468,14 @@
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div>
                 <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg width="18" height="18" style="color: var(--accent);" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
                     <span>{{ t('channels.recent_sessions_title') }}</span>
                 </div>
                 <div class="small-text gray" style="margin-top: 4px;">{{ t('channels.recent_sessions_desc') }}</div>
             </div>
             {% if charts.can_view_sessions %}
-            <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 4px 12px; border-radius: 2px; font-size: 0.82rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="11" height="11" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg>
                 <span>{{ t('privacy.visible_only_by_you') }}</span>
             </span>
             {% endif %}
@@ -488,7 +486,7 @@
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                     <thead>
-                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #8b9bb0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #9a9da7; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
                             <th style="padding: 10px 14px;">{{ t('channels.th_server') }}</th>
                             <th style="padding: 10px 14px;">{{ t('channels.th_channel') }}</th>
                             <th style="padding: 10px 14px;">{{ t('channels.th_date') }}</th>
@@ -504,30 +502,30 @@
                                     <span>{{ session.servername }}</span>
                                 </a>
                             </td>
-                            <td style="padding: 12px 14px; color: #cbd5e1; font-weight: 500;">
+                            <td style="padding: 12px 14px; color: #d0d2d8; font-weight: 500;">
                                 {{ session.channel_name }}
                             </td>
-                            <td style="padding: 12px 14px; color: #94a3b8; font-size: 0.85rem;">
-                                <span style="font-weight: 600; color: #e2e8f0;">{{ session.joined_at_str }}</span>
+                            <td style="padding: 12px 14px; color: #a3a6b0; font-size: 0.85rem;">
+                                <span style="font-weight: 600; color: #e3e5e8;">{{ session.joined_at_str }}</span>
                                 {% if session.is_legacy %}
-                                <div style="font-size: 0.72rem; color: #8b9bb0; margin-top: 2px;">{{ t('channels.legacy_date_note') }}</div>
+                                <div style="font-size: 0.72rem; color: #9a9da7; margin-top: 2px;">{{ t('channels.legacy_date_note') }}</div>
                                 {% endif %}
                             </td>
-                            <td style="padding: 12px 14px; color: #38bdf8; font-weight: 700;">
+                            <td style="padding: 12px 14px; color: var(--accent); font-weight: 700;">
                                 {{ session.duration_str }}
                             </td>
                             <td style="padding: 12px 14px; text-align: right;">
                                 {% if session.is_active %}
-                                <span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                <span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; border-radius: 2px; padding: 3px 9px; font-size: 0.76rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
                                     <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
                                     {{ t('channels.status_live') }}
                                 </span>
                                 {% elif session.is_legacy %}
-                                <span style="background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
+                                <span style="background: rgba(163, 166, 176, 0.12); color: #a3a6b0; border: 1px solid rgba(163, 166, 176, 0.25); border-radius: 2px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
                                     {{ t('channels.status_legacy') }}
                                 </span>
                                 {% else %}
-                                <span style="background: rgba(255, 255, 255, 0.06); color: #94a3b8; border-radius: 12px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
+                                <span style="background: rgba(255, 255, 255, 0.06); color: #a3a6b0; border-radius: 2px; padding: 3px 9px; font-size: 0.76rem; font-weight: 600;">
                                     {{ t('channels.status_ended') }}
                                 </span>
                                 {% endif %}
@@ -538,33 +536,29 @@
                 </table>
             </div>
             {% else %}
-            <div style="padding: 30px; text-align: center; color: #8b9bb0;">
+            <div style="padding: 30px; text-align: center; color: #9a9da7;">
                 {{ t('channels.no_sessions') }}
             </div>
             {% endif %}
         {% else %}
             <!-- Privacy Lock Card for unauthorized visitors -->
-            <div style="padding: 34px 20px; text-align: center; background: rgba(15, 23, 42, 0.5); border: 1px dashed rgba(255, 255, 255, 0.12); border-radius: 12px; margin: 10px 0;">
-                <div style="width: 46px; height: 46px; border-radius: 50%; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; color: #38bdf8;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
+            <div style="padding: 34px 20px; text-align: center; background: rgba(24, 25, 29, 0.5); border: 1px dashed rgba(255, 255, 255, 0.12); border-radius: 2px; margin: 10px 0;">
+                <div style="width: 46px; height: 46px; border-radius: 50%; background: rgba(var(--accent-rgb), 0.1); border: 1px solid rgba(var(--accent-rgb), 0.25); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--accent);">
+                    <svg width="22" height="22" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg>
                 </div>
                 {% if not is_authenticated %}
-                <div style="font-size: 1.15rem; font-weight: 700; color: #f1f5f9; margin-bottom: 6px;">
+                <div style="font-size: 1.15rem; font-weight: 700; color: #f2f3f5; margin-bottom: 6px;">
                     {{ t('privacy.user_sessions_locked_title') }}
                 </div>
                 <div class="small-text gray" style="max-width: 520px; margin: 0 auto 18px; line-height: 1.5;">
                     {{ t('privacy.user_sessions_locked_desc') }}
                 </div>
-                <a href="{{ url_for('auth.login', next=request.path) }}" class="btn-versus-action" style="background: #5865F2; color: #ffffff; border: none; padding: 9px 20px; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.177 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                    </svg>
+                <a href="{{ url_for('auth.login', next=request.path) }}" class="btn-versus-action" style="background: #5865F2; color: #ffffff; border: none; padding: 9px 20px; font-weight: 700; border-radius: 2px; display: inline-flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="discord"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h9v1h-9zM0 2h9v1h-9zM0 3h2v1h-2zM3 3h3v1h-3zM7 3h2v1h-2zM0 4h2v1h-2zM3 4h3v1h-3zM7 4h2v1h-2zM0 5h9v1h-9zM0 6h3v1h-3zM6 6h3v1h-3zM1 7h1v1h-1zM7 7h1v1h-1z"/></svg>
                     <span>{{ t('auth.login') }}</span>
                 </a>
                 {% else %}
-                <div style="font-size: 1.15rem; font-weight: 700; color: #f1f5f9; margin-bottom: 6px;">
+                <div style="font-size: 1.15rem; font-weight: 700; color: #f2f3f5; margin-bottom: 6px;">
                     {{ t('privacy.user_sessions_other_title') }}
                 </div>
                 <div class="small-text gray" style="max-width: 520px; margin: 0 auto; line-height: 1.5;">
@@ -586,21 +580,21 @@
     <section class="gray-box small-border-radius hg-card" id="userTrendCard">
         <div class="hg-card-head">
             <div>
-                <h2 class="hg-card-title">{{ 'Évolution de l’activité' if fr else 'Activity over time' }}</h2>
+                <h2 class="hg-card-title">{{tr('Évolution de l’activité', 'Activity over time')}}</h2>
                 <p class="hg-card-desc" data-trend-summary>&nbsp;</p>
             </div>
             <div class="hg-controls">
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Mesure' if fr else 'Metric' }}">
-                    <button type="button" class="granularity-btn active" data-trend-metric="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
-                    <button type="button" class="granularity-btn" data-trend-metric="messages">Messages</button>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Mesure', 'Metric')}}">
+                    <button type="button" class="granularity-btn active" data-trend-metric="hours">{{tr('Vocal', 'Voice')}}</button>
+                    <button type="button" class="granularity-btn" data-trend-metric="messages">{{ tr('Messages', 'Messages') }}</button>
                 </div>
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Période' if fr else 'Period' }}">
-                    <button type="button" class="granularity-btn" data-trend-period="month">{{ 'Par mois' if fr else 'Monthly' }}</button>
-                    <button type="button" class="granularity-btn" data-trend-period="day">{{ '30 jours' if fr else '30 days' }}</button>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Période', 'Period')}}">
+                    <button type="button" class="granularity-btn" data-trend-period="month">{{tr('Par mois', 'Monthly')}}</button>
+                    <button type="button" class="granularity-btn" data-trend-period="day">{{tr('30 jours', '30 days')}}</button>
                 </div>
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Affichage' if fr else 'Display' }}">
-                    <button type="button" class="granularity-btn active" data-trend-mode="period">{{ 'Par période' if fr else 'Per period' }}</button>
-                    <button type="button" class="granularity-btn" data-trend-mode="cumul">{{ 'Cumulé' if fr else 'Cumulative' }}</button>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Affichage', 'Display')}}">
+                    <button type="button" class="granularity-btn active" data-trend-mode="period">{{tr('Par période', 'Per period')}}</button>
+                    <button type="button" class="granularity-btn" data-trend-mode="cumul">{{tr('Cumulé', 'Cumulative')}}</button>
                 </div>
             </div>
         </div>
@@ -610,13 +604,13 @@
     <section class="gray-box small-border-radius hg-card" id="userSplitCard">
         <div class="hg-card-head">
             <div>
-                <h2 class="hg-card-title">{{ 'Où ' ~ stats.username ~ ' passe son temps en vocal' if fr else 'Where ' ~ stats.username ~ ' spends voice time' }}</h2>
+                <h2 class="hg-card-title">{{ tr('Où {name} passe son temps en vocal', 'Where {name} spends voice time', name=stats.username) }}</h2>
                 <p class="hg-card-desc" data-split-desc>&nbsp;</p>
             </div>
             <div class="hg-controls">
                 <div class="granularity-toggle-group" role="group">
-                    <button type="button" class="granularity-btn active" data-split="servers">{{ 'Serveurs' if fr else 'Servers' }}</button>
-                    <button type="button" class="granularity-btn" data-split="channels">{{ 'Salons' if fr else 'Channels' }}</button>
+                    <button type="button" class="granularity-btn active" data-split="servers">{{tr('Serveurs', 'Servers')}}</button>
+                    <button type="button" class="granularity-btn" data-split="channels">{{tr('Salons', 'Channels')}}</button>
                 </div>
             </div>
         </div>
@@ -624,7 +618,7 @@
             <div class="hg-chart"><canvas data-split-canvas></canvas></div>
             <ul class="hg-split-list" data-split-list></ul>
         </div>
-        <p class="hg-empty" data-split-empty hidden>{{ 'Pas encore de temps en vocal enregistré.' if fr else 'No voice time recorded yet.' }}</p>
+        <p class="hg-empty" data-split-empty hidden>{{tr('Pas encore de temps en vocal enregistré.', 'No voice time recorded yet.')}}</p>
     </section>
 </div>
 {% endif %}
@@ -645,12 +639,12 @@
     {% if stats.user_servers_stats %}
         <div style="display: flex; flex-direction: column; gap: 10px;">
             {% for server in stats.user_servers_stats %}
-            <div class="gray-box small-border-radius dynamic link" style="padding: 16px 20px; margin: 0;">
-                <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" style="width: 100%;">
+            <div class="gray-box small-border-radius dynamic link" style="padding: 0; margin: 0;">
+                <a class="link" href="{{ url_for('server_profile.server', server_id=server['server_id']) }}" data-hover="server:{{ server['server_id'] }}" style="width: 100%; padding: 16px 20px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
                         
                         <!-- Server info & icon -->
-                        <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1 1 220px;">
                             <img src="{{ server.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
                                  class="small-pp border-server" alt="avatar">
                             <div style="min-width: 0;">
@@ -663,14 +657,14 @@
 
                         <!-- Server metrics badges -->
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 4px 12px; font-weight: 700; font-size: 0.85rem;">
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 2px; padding: 4px 12px; font-weight: 700; font-size: 0.85rem;">
                                 {{ t('user_profile.server_rank', rank=server.rank, total=server.nb_user) }}
                             </span>
                             <span class="hours-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ server.time_spent | num(1) }} {{ t('top.hours_unit') }}
+                                <svg width="13" height="13" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>{{ server.time_spent | num(1) }} {{ t('top.hours_unit') }}
                             </span>
                             <span class="messages-fixed" style="font-size: 0.85rem; padding: 4px 12px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ server.messages_count | thousands_fr }} {{ t('top.msgs_unit') }}
+                                <svg width="13" height="13" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>{{ server.messages_count | thousands_fr }} {{ t('top.msgs_unit') }}
                             </span>
                         </div>
 
@@ -694,18 +688,17 @@
 <div id="tab-badges" class="graphs-tab-pane">
     {% if layout.hidden.tab_badges %}<div class="layout-pane-tag">{{ hidden_tag('tab_badges') }}</div>{% endif %}
     {% set ov = gamification.overview %}
-    {% set fr = current_lang == 'fr' %}
     <!-- Summary: overall progress and per-rarity counts -->
     <section class="gray-box small-border-radius bd-summary">
         <div class="bd-summary-main">
             <div>
                 <h2 class="bd-summary-title">{{ t('profile.badges_section_title') }}</h2>
-                <div class="bd-summary-count"><strong>{{ ov.unlocked }}</strong> / {{ ov.total }} {{ 'badges débloqués' if fr else 'badges unlocked' }} · {{ ov.percent }} %</div>
+                <div class="bd-summary-count"><strong>{{ ov.tiers_done }}</strong> / {{ ov.tiers_total }} {{tr('paliers atteints', 'tiers reached')}} · {{ ov.unlocked }} / {{ ov.total }} {{ tr('badges', 'badges') }} · {{ ov.percent }} %</div>
             </div>
-            <div class="granularity-toggle-group bd-filter" role="group" aria-label="{{ 'Filtrer les badges' if fr else 'Filter badges' }}">
-                <button type="button" class="granularity-btn active" data-badge-filter="all">{{ 'Tous' if fr else 'All' }}</button>
-                <button type="button" class="granularity-btn" data-badge-filter="unlocked">{{ 'Débloqués' if fr else 'Unlocked' }}</button>
-                <button type="button" class="granularity-btn" data-badge-filter="locked">{{ 'À débloquer' if fr else 'To unlock' }}</button>
+            <div class="granularity-toggle-group bd-filter" role="group" aria-label="{{tr('Filtrer les badges', 'Filter badges')}}">
+                <button type="button" class="granularity-btn active" data-badge-filter="all">{{tr('Tous', 'All')}}</button>
+                <button type="button" class="granularity-btn" data-badge-filter="unlocked">{{tr('Débloqués', 'Unlocked')}}</button>
+                <button type="button" class="granularity-btn" data-badge-filter="locked">{{tr('À débloquer', 'To unlock')}}</button>
             </div>
         </div>
         <div class="user-xp-bar-bg bd-summary-bar"><div class="user-xp-bar-fill" style="width: {{ ov.percent }}%;"></div></div>
@@ -724,14 +717,14 @@
                 <span class="bd-family-icon">{{ fam.icon | safe }}</span>
                 <h3 class="bd-family-name">{{ fam.label }}</h3>
                 <span class="bd-family-count">{{ fam.unlocked }}/{{ fam.total }}</span>
-                {% if fam.complete %}<span class="bd-complete">{{ 'Complet' if fr else 'Complete' }}</span>{% endif %}
+                <span class="bd-family-tier rarity-{{ fam.tier_key }}">{{ fam.tier_label }}</span>
             </header>
             <ol class="bd-track">
                 {% for tier in fam.tiers %}
                 <li class="bd-tier is-{{ tier.state }} rarity-{{ tier.rarity }}" data-state="{{ tier.state }}" data-tip="{{ tier.description }}" tabindex="0">
                     <span class="bd-tier-icon">
                         {{ tier.icon | safe }}
-                        {% if tier.state == 'unlocked' %}<span class="bd-tier-check" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>{% endif %}
+                        {% if tier.state == 'unlocked' %}<span class="bd-tier-check" aria-hidden="true"><svg width="10" height="10" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="check"><path d="M8 1h1v1h-1zM7 2h2v1h-2zM6 3h2v1h-2zM0 4h1v1h-1zM5 4h2v1h-2zM0 5h2v1h-2zM4 5h2v1h-2zM1 6h4v1h-4zM2 7h2v1h-2z"/></svg></span>{% endif %}
                     </span>
                     <span class="bd-tier-name">{{ tier.name }}</span>
                     <span class="bd-tier-threshold">{{ tier.threshold }}</span>
@@ -739,14 +732,14 @@
                     <span class="bd-tier-progress"><i style="width: {{ tier.progress_percent }}%;"></i></span>
                     <span class="bd-tier-progress-text">{{ tier.progress_text }}</span>
                     {% endif %}
-                    <span class="sr-only">{{ ('Débloqué' if fr else 'Unlocked') if tier.state == 'unlocked' else ('En cours' if fr else 'In progress') if tier.state == 'next' else ('Verrouillé' if fr else 'Locked') }}</span>
+                    <span class="sr-only">{{ tr('Débloqué', 'Unlocked') if tier.state == 'unlocked' else tr('En cours', 'In progress') if tier.state == 'next' else tr('Verrouillé', 'Locked') }}</span>
                 </li>
                 {% endfor %}
             </ol>
         </section>
         {% endfor %}
     </div>
-    <p class="bd-empty" id="badgesEmpty" hidden>{{ 'Aucun badge dans ce filtre.' if fr else 'No badge in this filter.' }}</p>
+    <p class="bd-empty" id="badgesEmpty" hidden>{{tr('Aucun badge dans ce filtre.', 'No badge in this filter.')}}</p>
 </div>
 {% endif %}
 

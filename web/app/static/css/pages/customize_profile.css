@@ -15,7 +15,7 @@
 }
 .cz-sub {
     margin: 6px 0 0;
-    color: #94a3b8;
+    color: #a3a6b0;
 }
 .cz-notice {
     padding: 12px 16px;
@@ -35,7 +35,7 @@
 }
 .cz-empty {
     padding: 28px;
-    color: #cbd5e1;
+    color: #d0d2d8;
     text-align: center;
 }
 
@@ -68,7 +68,7 @@
 .cz-tab {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: #a3a6b0;
     padding: 8px 16px;
     border-radius: 9px;
     font-weight: 700;
@@ -80,8 +80,8 @@
     color: #ffffff;
 }
 .cz-tab.active {
-    background: #38bdf8;
-    color: #0b1120;
+    background: #717cf8;
+    color: #15161a;
 }
 .cz-js .cz-panel:not(.active) {
     display: none;
@@ -108,11 +108,11 @@
 }
 .cz-row-desc {
     margin: 3px 0 0;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.86rem;
 }
 .cz-counter {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.82rem;
     font-weight: 600;
     margin-left: 4px;
@@ -147,7 +147,7 @@
     box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22);
 }
 .swatch-none {
-    background: linear-gradient(135deg, transparent 45%, rgba(248, 113, 113, 0.85) 45%, rgba(248, 113, 113, 0.85) 55%, transparent 55%), #121a24;
+    background: linear-gradient(135deg, transparent 45%, rgba(248, 113, 113, 0.85) 45%, rgba(248, 113, 113, 0.85) 55%, transparent 55%), #1c1d22;
     box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22);
 }
 .swatch-discord {
@@ -161,7 +161,7 @@
     border-color: #ffffff;
 }
 .swatch input:focus-visible + .swatch-dot {
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.8);
+    box-shadow: 0 0 0 3px rgba(113, 124, 248, 0.8);
 }
 
 /* Segmented control (banner) */
@@ -186,16 +186,16 @@
     display: block;
     padding: 7px 16px;
     border-radius: 8px;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-weight: 700;
     font-size: 0.88rem;
 }
 .cz-segmented input:checked + span {
-    background: rgba(56, 189, 248, 0.18);
-    color: #38bdf8;
+    background: rgba(113, 124, 248, 0.18);
+    color: #717cf8;
 }
 .cz-segmented input:focus-visible + span {
-    outline: 2px solid #38bdf8;
+    outline: 2px solid #717cf8;
 }
 
 .cz-select {
@@ -203,8 +203,8 @@
     max-width: 420px;
     padding: 10px 12px;
     border-radius: 10px;
-    background: #0f1722;
-    color: #f1f5f9;
+    background: #18191d;
+    color: #f2f3f5;
     border: 1px solid rgba(255, 255, 255, 0.14);
     font-size: 0.95rem;
 }
@@ -223,7 +223,7 @@
     position: relative;
     cursor: pointer;
 }
-.cz-chip.rarity-rare { --rarity: 56, 189, 248; }
+.cz-chip.rarity-rare { --rarity: 79, 163, 255; }
 .cz-chip.rarity-epic { --rarity: 192, 132, 252; }
 .cz-chip.rarity-legendary { --rarity: 251, 191, 36; }
 .cz-chip input {
@@ -251,7 +251,7 @@
     height: 18px;
 }
 .cz-chip-name {
-    color: #e2e8f0;
+    color: #e3e5e8;
     font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
@@ -266,7 +266,7 @@
     border-color: rgb(var(--rarity));
 }
 .cz-chip input:focus-visible + .cz-chip-body {
-    outline: 2px solid #38bdf8;
+    outline: 2px solid #717cf8;
 }
 .cz-chip input:disabled + .cz-chip-body {
     opacity: 0.4;
@@ -290,32 +290,32 @@
     cursor: pointer;
 }
 .cz-list-item:has(input:checked) {
-    border-color: rgba(56, 189, 248, 0.6);
-    background: rgba(56, 189, 248, 0.07);
+    border-color: rgba(113, 124, 248, 0.6);
+    background: rgba(113, 124, 248, 0.07);
 }
 .cz-list-item:has(input:disabled) {
     opacity: 0.45;
     cursor: not-allowed;
 }
 .cz-list-item input {
-    accent-color: #38bdf8;
+    accent-color: #717cf8;
     width: 16px;
     height: 16px;
     flex-shrink: 0;
 }
 .cz-list-icon {
-    color: #38bdf8;
+    color: #717cf8;
     display: inline-flex;
 }
 .cz-list-label {
     flex: 1;
-    color: #e2e8f0;
+    color: #e3e5e8;
     font-weight: 600;
     font-size: 0.9rem;
     min-width: 0;
 }
 .cz-list-value {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.85rem;
     white-space: nowrap;
     overflow: hidden;
@@ -328,7 +328,7 @@
     margin-top: 14px;
 }
 .cz-group-title {
-    color: #cbd5e1;
+    color: #d0d2d8;
     font-size: 0.78rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -353,7 +353,7 @@
     min-width: 0;
 }
 .cz-switch-label {
-    color: #e2e8f0;
+    color: #e3e5e8;
     font-weight: 600;
 }
 .cz-switch-main .cz-switch-label {
@@ -362,7 +362,7 @@
     font-weight: 800;
 }
 .cz-switch-desc {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.86rem;
 }
 .cz-switch {
@@ -374,7 +374,7 @@
     height: 24px;
     margin: 0;
     border-radius: 999px;
-    background: rgba(148, 163, 184, 0.3);
+    background: rgba(163, 166, 176, 0.3);
     cursor: pointer;
     transition: background 0.2s ease;
 }
@@ -390,13 +390,13 @@
     transition: transform 0.2s ease;
 }
 .cz-switch:checked {
-    background: #38bdf8;
+    background: #717cf8;
 }
 .cz-switch:checked::after {
     transform: translateX(18px);
 }
 .cz-switch:focus-visible {
-    outline: 2px solid #38bdf8;
+    outline: 2px solid #717cf8;
     outline-offset: 2px;
 }
 .cz-row.is-disabled {
@@ -415,7 +415,7 @@
     z-index: 2;
     padding: 10px 12px;
     border-radius: 14px;
-    background: rgba(15, 23, 34, 0.88);
+    background: rgba(24, 25, 29, 0.88);
     border: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -426,24 +426,24 @@
     font-weight: 700;
     padding: 6px 12px;
     border-radius: 999px;
-    background: rgba(15, 23, 34, 0.9);
+    background: rgba(24, 25, 29, 0.9);
     border: 1px solid rgba(251, 191, 36, 0.35);
 }
 .btn-customize-save {
-    background: #38bdf8;
-    color: #0b1120;
+    background: #717cf8;
+    color: #15161a;
     border: none;
     padding: 12px 28px;
     border-radius: 12px;
     font-weight: 800;
     font-size: 0.95rem;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+    box-shadow: 0 6px 20px rgba(113, 124, 248, 0.35);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .btn-customize-save:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 26px rgba(56, 189, 248, 0.5);
+    box-shadow: 0 8px 26px rgba(113, 124, 248, 0.5);
 }
 
 /* Preview */
@@ -452,7 +452,7 @@
     top: 90px;
 }
 .cz-preview-label {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -559,9 +559,9 @@
     margin: 16px 0 0;
     padding: 10px 14px;
     border-radius: 10px;
-    background: rgba(56, 189, 248, 0.07);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    color: #cbd5e1;
+    background: rgba(113, 124, 248, 0.07);
+    border: 1px solid rgba(113, 124, 248, 0.2);
+    color: #d0d2d8;
     font-size: 0.86rem;
 }
 .cz-preview-vitrine {
@@ -600,7 +600,7 @@
     overflow: hidden;
     cursor: pointer;
     border: 2px solid transparent;
-    background: #0f1722;
+    background: #18191d;
     transition: border-color 0.15s ease, transform 0.15s ease;
 }
 .cz-gallery-item input {
@@ -622,8 +622,8 @@
     border-color: rgba(255, 255, 255, 0.3);
 }
 .cz-gallery-item:has(input:checked) {
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    border-color: #717cf8;
+    box-shadow: 0 0 0 3px rgba(113, 124, 248, 0.25);
 }
 .cz-gallery-item:has(input:focus-visible) {
     outline: 2px solid #ffffff;
@@ -674,8 +674,8 @@
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: rgba(56, 189, 248, 0.12);
-    color: #38bdf8;
+    background: rgba(113, 124, 248, 0.12);
+    color: #717cf8;
 }
 .cz-row-text {
     flex: 1;
@@ -691,7 +691,7 @@
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #e2e8f0;
+    color: #e3e5e8;
     font-size: 0.8rem;
     font-weight: 700;
 }
@@ -714,7 +714,7 @@
 .cz-gallery-name {
     display: block;
     padding: 6px 8px;
-    color: #cbd5e1;
+    color: #d0d2d8;
     font-size: 0.78rem;
     font-weight: 600;
     white-space: nowrap;
@@ -722,7 +722,7 @@
     text-overflow: ellipsis;
 }
 .cz-gallery-item:has(input:checked) .cz-gallery-name {
-    color: #38bdf8;
+    color: #717cf8;
 }
 @media (max-width: 640px) {
     [data-panel="appearance"] .swatch-grid,

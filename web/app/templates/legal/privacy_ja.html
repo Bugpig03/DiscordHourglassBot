@@ -1,0 +1,156 @@
+    <!-- 1. Introduction -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">1</span>
+            <span>はじめに・データ管理者</span>
+        </h2>
+        <p class="legal-text">
+            <strong>Hourglass</strong> プロジェクト (以下「当方」「ボット」「本サービス」) は、Discord コミュニティ向けの独立した分析・ゲーミフィケーションサービスです。Discord ボットと、<code>hourglassbot.net</code> で公開しているインタラクティブなウェブダッシュボードで構成されています。
+        </p>
+        <p class="legal-text">
+            当方はユーザーのプライバシーと関連法規の遵守を何より重視しており、特に<strong>一般データ保護規則 (GDPR - EU 規則 2016/679)</strong> と <strong>Discord の Developer Terms of Service</strong> に従っています。
+        </p>
+        <p class="legal-text">
+            <strong>データ管理者:</strong> SnoutLabs<br>
+            <strong>公式の連絡先・サポート:</strong> <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="legal-link">Hourglass 公式 Discord サーバー</a>
+        </p>
+    </div>
+
+    <!-- 2. Collected data -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">2</span>
+            <span>収集する個人データとデータの最小化</span>
+        </h2>
+        <p class="legal-text">
+            <em>データ最小化</em>の原則 (GDPR 第 5 条 1 項 c) に従い、ゲーミフィケーション、ランキング、統計に必要なデータだけを扱います:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Discord の一意の ID (<code>user_id</code>):</strong> Discord が発行する技術的な識別子。カウンターをあなたのプロフィールに結び付けるために必要です。</li>
+            <li><strong>Discord のユーザー名とアバター:</strong> プロフィール、サーバーのランキング、エクスポートした統計カードに表示されます。</li>
+            <li><strong>ボイスセッションとチャンネル (<code>voice_sessions</code>):</strong> チャンネルへの参加・退出時刻 (開始、終了、計算した時間)、チャンネルの ID と名前、技術的な状態 (画面共有やカメラのオン/オフのみ)。</li>
+            <li><strong>メッセージイベント (<code>message_events</code>):</strong> アクティビティのグラフと時間帯ヒートマップのため、メッセージ送信時の日時とチャンネル ID。</li>
+            <li><strong>リアルタイムのオンライン状況とサーバー状態:</strong> <code>live_server_status</code> によるメンバーの状態 (オンライン、退席中、取り込み中、ボイス中) の集計数。</li>
+            <li><strong>サーバーのメタデータ (<code>server_id</code>):</strong> ローカルランキングとコミュニティプロフィールのためのサーバー名、識別子、アイコン。</li>
+        </ul>
+
+        <div class="legal-highlight-box positive">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('shield_check', 20, 'style="color: #34d399;"') }}
+                <span>当方が決して収集・保存しないもの</span>
+            </div>
+            <ul class="legal-sublist">
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>メッセージの内容:</strong> メッセージの内容を読んだり、解析したり、保存したりすることはありません。扱うのはイベントの日時とチャンネルの識別子だけです。</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>音声や録音:</strong> 音声を録音・配信・視聴することはありません。計算するのは接続時間だけです。</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>映像や画面録画:</strong> カメラと画面共有は、技術的なオン/オフの状態としてのみ記録します。</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>機微な個人データ:</strong> 本名、メールアドレス、パスワード、IP アドレス、支払い情報は扱いません。</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>ダイレクトメッセージ (DM):</strong> ボットは許可された Discord サーバー内でのみ動作します。</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. Purposes & legal basis -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">3</span>
+            <span>利用目的と法的根拠</span>
+        </h2>
+        <p class="legal-text">
+            データは次の目的にのみ収集・利用します:
+        </p>
+        <ul class="legal-list">
+            <li>経験値 (XP)、レベル、バッジ、メンバーのランキングを計算するため。</li>
+            <li>コミュニティの活動をたたえる公開ダッシュボードを、サーバー管理者とメンバーに提供するため。</li>
+            <li>SVG の統計カードを動的に生成するため (<code>/stats</code>、<code>/allstats</code>、<code>/top</code> など)。</li>
+        </ul>
+        <p class="legal-text">
+            <strong>法的根拠:</strong> サーバー管理者が求めるゲーミフィケーションとエンゲージメントのツールを提供するという<strong>正当な利益</strong> (GDPR 第 6 条 1 項 f) に基づきます。
+        </p>
+    </div>
+
+    <!-- 4. Retention -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">4</span>
+            <span>保存期間</span>
+        </h2>
+        <p class="legal-text">
+            統計は、Hourglass が該当する Discord サーバーにいる間保存されます。ボットがサーバーから退出したとき、またはユーザーから明示的な依頼があったときは、関連する記録を削除します。
+        </p>
+    </div>
+
+    <!-- 5. Rights & deletion -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">5</span>
+            <span>GDPR に基づく権利とデータ削除 (忘れられる権利)</span>
+        </h2>
+        <p class="legal-text">
+            GDPR 第 15 条から第 22 条により、あなたには次の権利があります:
+        </p>
+        <ul class="legal-list">
+            <li><strong>アクセス権とデータポータビリティ:</strong> アカウントに関連する統計を閲覧・エクスポートできます。</li>
+            <li><strong>削除権 (「忘れられる権利」):</strong> プロフィールと統計の完全かつ永久的な削除を依頼できます。</li>
+            <li><strong>異議を唱える権利:</strong> 今後のボイス時間やメッセージ数の記録を止めるよう依頼できます。</li>
+        </ul>
+
+        <div class="legal-highlight-box primary">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('alert', 20, 'style="color: #717cf8;"') }}
+                <span>データの削除を依頼するには?</span>
+            </div>
+            <p class="legal-text" style="margin-bottom: 12px;">
+                あなたのアカウントを守り、第三者による無断の削除を防ぐため、すべての削除依頼は Discord で本人確認を行います:
+            </p>
+            <div class="legal-steps">
+                <div class="legal-step-item">
+                    <div class="legal-step-num">1</div>
+                    <div class="legal-step-content">
+                        <strong>Hourglass の公式サポートサーバーに参加:</strong>
+                        <p><a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="btn-discord" style="display: inline-flex; margin: 8px 0;"><span>Discord サポートに参加</span></a></p>
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">2</div>
+                    <div class="legal-step-content">
+                        <strong>サポートチケットを作成:</strong> <code>#support</code> チャンネルに行くか、管理チームに依頼内容を伝えてください (例: <em>「GDPR に基づくアカウントとデータの削除依頼」</em>)。
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">3</div>
+                    <div class="legal-step-content">
+                        <strong>迅速な対応:</strong> 依頼は <strong>72 時間以内</strong>に対応します (GDPR の法定期限 30 日よりはるかに早く)。ユーザーと統計のテーブルにある関連データはすべて完全に削除されます。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Cookies -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">6</span>
+            <span>Cookie とトラッカー</span>
+        </h2>
+        <p class="legal-text">
+            Hourglass のダッシュボードはあなたのプライバシーを尊重します:
+        </p>
+        <ul class="legal-list">
+            <li><strong>広告やプロファイリングのための Cookie は使いません。</strong></li>
+            <li><strong>第三者のトラッカーは読み込みません</strong> (Google Analytics や SNS のピクセルなど)。</li>
+            <li><strong>技術的な Cookie は 1 つだけ:</strong> <code>lang</code> Cookie (選んだ言語のコード。例: <code>fr</code>、<code>en</code>) が、ページを移動しても言語を覚えておきます。言語を選ぶまでは、何も保存せずにブラウザの言語を使います。欧州のガイドライン (ePrivacy / GDPR) により、この必須 Cookie は同意が不要です。</li>
+            <li><strong>匿名のアクセス解析 (Cookie なし):</strong> サイトの使われ方 (ページビュー、1 日あたりの訪問者、参照元、端末の種類、言語、検索語) を知るため、IP アドレスとブラウザから、毎日変わり翌日に削除されるランダムな鍵と組み合わせたフィンガープリントを計算します。IP アドレスは一切保存せず、日をまたいであなたを識別することはできません。フィンガープリントは 30 日後、集計した統計は 400 日後に削除します。</li>
+            <li><strong>Discord でのログイン:</strong> ログインすると、サービスの利用状況を把握するため、初回と最終ログインの日時、ログイン回数、ログインした状態でサイトを使った日を記録します。このデータは Discord ID に紐づき、依頼があればほかのデータと一緒に削除します。</li>
+        </ul>
+    </div>
+
+    <!-- 7. Security -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">7</span>
+            <span>セキュリティとインフラ</span>
+        </h2>
+        <p class="legal-text">
+            データは欧州連合内の、厳格なアクセス制御、ファイアウォール、強固な認証で保護された PostgreSQL インフラに保存されます。ウェブ通信は HTTPS / SSL でエンドツーエンドに暗号化されています。
+        </p>
+    </div>

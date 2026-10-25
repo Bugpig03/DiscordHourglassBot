@@ -1,0 +1,156 @@
+    <!-- 1. Introduction -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">1</span>
+            <span>Introdução e controlador dos dados</span>
+        </h2>
+        <p class="legal-text">
+            O projeto <strong>Hourglass</strong> (“nós”, “o bot”, “o serviço”) é um serviço independente de análise e gamificação para comunidades do Discord. Ele é composto por um bot do Discord e por um painel web interativo disponível em <code>hourglassbot.net</code>.
+        </p>
+        <p class="legal-text">
+            Damos a máxima importância à privacidade dos nossos usuários e ao respeito à regulamentação em vigor, em especial o <strong>Regulamento Geral sobre a Proteção de Dados (RGPD - Regulamento UE 2016/679)</strong> e os <strong>Developer Terms of Service do Discord</strong>.
+        </p>
+        <p class="legal-text">
+            <strong>Controlador dos dados:</strong> SnoutLabs.<br>
+            <strong>Contato e suporte oficial:</strong> <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="legal-link">Servidor oficial do Hourglass no Discord</a>.
+        </p>
+    </div>
+
+    <!-- 2. Collected data -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">2</span>
+            <span>Dados pessoais coletados e minimização</span>
+        </h2>
+        <p class="legal-text">
+            De acordo com o princípio da <em>minimização dos dados</em> (artigo 5.1.c do RGPD), tratamos apenas os dados estritamente necessários para a gamificação, os rankings e as estatísticas:
+        </p>
+        <ul class="legal-list">
+            <li><strong>ID único do Discord (<code>user_id</code>):</strong> identificador técnico fornecido pelo Discord, necessário para associar os contadores ao seu perfil.</li>
+            <li><strong>Nome de usuário e avatar do Discord:</strong> exibidos nos perfis, nos rankings dos servidores e nos cartões de estatísticas exportados.</li>
+            <li><strong>Sessões e canais de voz (<code>voice_sessions</code>):</strong> horários de entrada e saída dos canais (início, fim, duração calculada), IDs e nomes dos canais, e indicadores técnicos de presença (compartilhamento de tela ou câmera ligada, apenas como sim/não).</li>
+            <li><strong>Eventos de mensagens (<code>message_events</code>):</strong> data e hora e ID do canal no envio de uma mensagem, para as curvas de atividade e os mapas de horários.</li>
+            <li><strong>Presença ao vivo e status do servidor:</strong> contagem agregada dos status dos membros (online, ausente, não perturbe, em voz) via <code>live_server_status</code>.</li>
+            <li><strong>Metadados do servidor (<code>server_id</code>):</strong> nome, identificador e ícone do servidor para os rankings locais e os perfis da comunidade.</li>
+        </ul>
+
+        <div class="legal-highlight-box positive">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('shield_check', 20, 'style="color: #34d399;"') }}
+                <span>O que NUNCA coletamos nem armazenamos</span>
+            </div>
+            <ul class="legal-sublist">
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Nenhum conteúdo de mensagens:</strong> nunca lemos, analisamos nem armazenamos o conteúdo das mensagens. Só tratamos a data e hora do evento e o identificador do canal.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Nenhum áudio ou gravação de voz:</strong> nunca gravamos, transmitimos ou ouvimos o áudio. Só os horários de conexão são calculados.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Nenhum vídeo ou gravação de tela:</strong> a câmera e o compartilhamento de tela só são registrados como estados técnicos sim/não.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Nenhum dado sensível:</strong> nada de nomes reais, e-mails, senhas, endereços IP ou dados de pagamento.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Nenhuma mensagem direta (DM):</strong> o bot só funciona dentro dos servidores do Discord autorizados.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. Purposes & legal basis -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">3</span>
+            <span>Finalidades e base legal do tratamento</span>
+        </h2>
+        <p class="legal-text">
+            Os dados são coletados e tratados exclusivamente para:
+        </p>
+        <ul class="legal-list">
+            <li>Calcular os pontos de experiência (XP), os níveis, os emblemas e os rankings de membros.</li>
+            <li>Oferecer o painel público aos administradores e membros dos servidores para celebrar a atividade da comunidade.</li>
+            <li>Gerar dinamicamente os cartões de estatísticas em SVG (<code>/stats</code>, <code>/allstats</code>, <code>/top</code> etc.).</li>
+        </ul>
+        <p class="legal-text">
+            <strong>Base legal:</strong> o tratamento se baseia no <strong>interesse legítimo</strong> (artigo 6.1.f do RGPD) de oferecer as ferramentas de gamificação e engajamento pedidas pelos administradores dos servidores.
+        </p>
+    </div>
+
+    <!-- 4. Retention -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">4</span>
+            <span>Prazo de conservação</span>
+        </h2>
+        <p class="legal-text">
+            As estatísticas são mantidas enquanto o Hourglass estiver nos servidores do Discord correspondentes. Quando o bot sai de um servidor, ou a pedido expresso de um usuário, os registros associados são apagados.
+        </p>
+    </div>
+
+    <!-- 5. Rights & deletion -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">5</span>
+            <span>Seus direitos RGPD e exclusão dos dados (direito ao esquecimento)</span>
+        </h2>
+        <p class="legal-text">
+            Segundo os artigos 15 a 22 do RGPD, você tem direito a:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Acesso e portabilidade:</strong> consultar e exportar as estatísticas ligadas à sua conta.</li>
+            <li><strong>Exclusão (“direito ao esquecimento”):</strong> pedir a exclusão completa e definitiva do seu perfil e das suas estatísticas.</li>
+            <li><strong>Oposição:</strong> pedir que o bot pare de registrar suas próximas horas em voz ou sua contagem de mensagens.</li>
+        </ul>
+
+        <div class="legal-highlight-box primary">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('alert', 20, 'style="color: #717cf8;"') }}
+                <span>Como pedir a exclusão dos seus dados?</span>
+            </div>
+            <p class="legal-text" style="margin-bottom: 12px;">
+                Para proteger a sua conta e impedir que terceiros apaguem as suas estatísticas sem permissão, verificamos todos os pedidos de exclusão pelo Discord:
+            </p>
+            <div class="legal-steps">
+                <div class="legal-step-item">
+                    <div class="legal-step-num">1</div>
+                    <div class="legal-step-content">
+                        <strong>Entre no servidor oficial de suporte do Hourglass:</strong>
+                        <p><a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="btn-discord" style="display: inline-flex; margin: 8px 0;"><span>Entrar no suporte do Discord</span></a></p>
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">2</div>
+                    <div class="legal-step-content">
+                        <strong>Abra um ticket de suporte:</strong> vá ao canal <code>#support</code> ou fale com a equipe de administração explicando o seu pedido (por exemplo, <em>“Pedido RGPD de exclusão de conta e dados”</em>).
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">3</div>
+                    <div class="legal-step-content">
+                        <strong>Atendimento rápido:</strong> o seu pedido será atendido em até <strong>72 horas</strong> (bem menos que o prazo legal de 30 dias do RGPD). Todas as linhas relacionadas nas tabelas de usuários e estatísticas serão apagadas definitivamente.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Cookies -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">6</span>
+            <span>Cookies e rastreadores</span>
+        </h2>
+        <p class="legal-text">
+            O painel do Hourglass respeita a sua privacidade:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Nenhum cookie de publicidade ou de perfilamento.</strong></li>
+            <li><strong>Nenhum rastreador de terceiros</strong> (como Google Analytics ou pixels de redes sociais).</li>
+            <li><strong>Um único cookie técnico funcional:</strong> o cookie <code>lang</code> (o código do idioma escolhido, por exemplo <code>fr</code> ou <code>en</code>) guarda o seu idioma de uma página para outra. Enquanto você não escolher um idioma, o site usa o do seu navegador, sem armazenar nada. Conforme as diretrizes europeias (ePrivacy / RGPD), esse cookie essencial dispensa consentimento.</li>
+            <li><strong>Medição de audiência anônima (sem cookie):</strong> para saber como o site é usado (páginas vistas, visitantes por dia, páginas de origem, tipo de aparelho, idioma, termos buscados), calculamos uma impressão a partir do seu endereço IP e do seu navegador, misturada com uma chave aleatória que muda todo dia e é apagada no dia seguinte. O seu endereço IP nunca é armazenado e é impossível reconhecer você de um dia para o outro. As impressões são apagadas após 30 dias e as estatísticas agregadas após 400 dias.</li>
+            <li><strong>Login com o Discord:</strong> quando você entra, registramos as datas do seu primeiro e último login, o número de logins e os dias em que você usa o site conectado, para acompanhar o uso do serviço. Esses dados estão ligados ao seu ID do Discord e são apagados junto com o resto dos seus dados quando você pedir.</li>
+        </ul>
+    </div>
+
+    <!-- 7. Security -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">7</span>
+            <span>Segurança e infraestrutura</span>
+        </h2>
+        <p class="legal-text">
+            Os dados ficam hospedados na União Europeia, em uma infraestrutura PostgreSQL protegida com controles de acesso rígidos, firewalls e autenticação forte. O tráfego web é criptografado de ponta a ponta com HTTPS / SSL.
+        </p>
+    </div>

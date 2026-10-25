@@ -1,29 +1,35 @@
 <!DOCTYPE html>
-<html lang="{{ current_lang }}">
+<html lang="{{ current_language.html }}" data-lang="{{ current_lang }}" data-locale="{{ current_language.intl }}">
 {% set fallback_avatar = url_for('static', filename='images/base_avatar_big.png') %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hourglass Bot{% endblock %}</title>
-    {% set page_description %}{% block meta_description %}{{ 'Statistiques vocales et textuelles de vos serveurs Discord : temps en vocal, messages, classements, badges et graphiques.' if current_lang == 'fr' else 'Voice and text statistics for your Discord servers: voice time, messages, leaderboards, badges and charts.' }}{% endblock %}{% endset %}
+    {% set page_description %}{% block meta_description %}{{tr('Statistiques vocales et textuelles de vos serveurs Discord : temps en vocal, messages, classements, badges et graphiques.', 'Voice and text statistics for your Discord servers: voice time, messages, leaderboards, badges and charts.')}}{% endblock %}{% endset %}
     <meta name="description" content="{{ page_description | trim }}">
     <meta property="og:site_name" content="Hourglass">
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="{{ current_language.intl | replace('-', '_') }}">
     <meta property="og:title" content="{{ self.title() | striptags | trim }}">
     <meta property="og:description" content="{{ page_description | trim }}">
     <meta property="og:url" content="{{ request.base_url }}">
     <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{% endblock %}">
-    <meta name="theme-color" content="#5865f2">
+    <meta name="theme-color" content="#15161a">
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg', v=asset_version('icons/favicon.svg')) }}" type="image/svg+xml">
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon-32.png', v=asset_version('icons/favicon-32.png')) }}" type="image/png" sizes="32x32">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png', v=asset_version('icons/apple-touch-icon.png')) }}">
     <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    {# Translations of the phrases used by the scripts (languages other than French and English), read by HG.tr() #}
+    {% if js_i18n %}<script type="application/json" id="hgI18n">{{ js_i18n | tojson }}</script>{% endif %}
     <script src="{{ url_for('static', filename='js/ui.js', v=asset_version('js/ui.js')) }}" defer></script>
     <script src="{{ url_for('static', filename='js/live-list.js', v=asset_version('js/live-list.js')) }}" defer></script>
     <link
     rel="stylesheet"
     href="{{ url_for('static', filename='styles.css', v=asset_version('styles.css')) }}"
     >
+    {# Arène theme: its selectors start with "html body" so they win over the page stylesheets loaded later #}
+    <link rel="preload" href="{{ url_for('static', filename='fonts/chakra-petch-700-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/arene.css', v=asset_version('css/arene.css')) }}">
     <script nonce="{{ csp_nonce() }}">
         // Broken images (expired Discord avatar, deleted server icon): swap to data-fallback or the default avatar,
         // or hide the image when data-fallback="hide". Replaces the per-image inline onerror handlers.
@@ -63,13 +69,9 @@
                 </a>
 
                 <!-- Mobile Menu Hamburger Button -->
-                <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Menu" aria-expanded="false">
-                    <svg class="icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
-                    </svg>
-                    <svg class="icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/>
-                    </svg>
+                <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="{{ tr('Menu', 'Menu') }}" aria-expanded="false">
+                    <svg class="icon-open" width="22" height="22" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="menu"><path d="M0 1h9v1h-9zM0 4h9v1h-9zM0 7h9v1h-9z"/></svg>
+                    <svg class="icon-close" width="22" height="22" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="close"><path d="M0 0h1v1h-1zM8 0h1v1h-1zM0 1h2v1h-2zM7 1h2v1h-2zM1 2h2v1h-2zM6 2h2v1h-2zM2 3h2v1h-2zM5 3h2v1h-2zM3 4h3v1h-3zM2 5h2v1h-2zM5 5h2v1h-2zM1 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
                 </button>
 
                 <!-- Navigation Menu -->
@@ -78,31 +80,31 @@
                         {# Flat navigation: one click to each section #}
                         <li class="app-nav-item">
                             <a href="{{ url_for('home.home') }}" class="app-nav-link {% if request.endpoint == 'home.home' %}active{% endif %}">
-                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                <svg class="nav-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="home"><path d="M4 0h1v1h-1zM3 1h3v1h-3zM2 2h5v1h-5zM1 3h7v1h-7zM0 4h9v1h-9zM1 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM4 6h1v1h-1zM6 6h2v1h-2zM1 7h2v1h-2zM4 7h1v1h-1zM6 7h2v1h-2zM1 8h7v1h-7z"/></svg>
                                 <span>{{ t('nav.home') }}</span>
                             </a>
                         </li>
                         <li class="app-nav-item">
                             <a href="{{ url_for('top.top_users') }}" class="app-nav-link {% if request.endpoint in ['top.top_users', 'user_profile.profile'] %}active{% endif %}">
-                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <svg class="nav-icon" width="16" height="16" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
                                 <span>{{ t('nav.members') }}</span>
                             </a>
                         </li>
                         <li class="app-nav-item">
                             <a href="{{ url_for('top.top_servers') }}" class="app-nav-link {% if request.endpoint in ['top.top_servers', 'server_profile.server'] %}active{% endif %}">
-                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                                <svg class="nav-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
                                 <span>{{ t('nav.servers_short') }}</span>
                             </a>
                         </li>
                         <li class="app-nav-item">
                             <a href="{{ url_for('graphs.graphs') }}" class="app-nav-link {% if request.endpoint == 'graphs.graphs' %}active{% endif %}">
-                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                <svg class="nav-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
                                 <span>{{ t('nav.analytics') }}</span>
                             </a>
                         </li>
                         <li class="app-nav-item">
                             <a href="{{ url_for('versus.versus') }}" class="app-nav-link {% if request.endpoint == 'versus.versus' %}active{% endif %}">
-                                <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                                <svg class="nav-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="swords"><path d="M0 0h2v1h-2zM7 0h2v1h-2zM0 1h3v1h-3zM6 1h3v1h-3zM1 2h3v1h-3zM5 2h3v1h-3zM2 3h5v1h-5zM3 4h3v1h-3zM2 5h5v1h-5zM1 6h3v1h-3zM5 6h3v1h-3zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>
                                 <span>{{ t('nav.versus_short') }}</span>
                             </a>
                         </li>
@@ -112,46 +114,33 @@
                     <div class="app-nav-actions">
                         <!-- Quick Search Button (Ctrl+K) -->
                         <button type="button" class="btn-quick-search" id="quickSearchBtn" data-call="openGlobalSearch" title="{{ t('nav.search_placeholder') }}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-                            <span class="search-btn-text">{{ 'Rechercher' if current_lang == 'fr' else 'Search' }}</span>
+                            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
+                            <span class="search-btn-text">{{tr('Rechercher', 'Search')}}</span>
                             <kbd class="search-btn-kbd">Ctrl+K</kbd>
                         </button>
-                        <!-- Language Switcher -->
-                        <div class="lang-switch" role="group" aria-label="Language selector">
-                            <a href="{{ url_for('set_language', lang='fr') }}" 
-                               class="lang-btn {% if current_lang == 'fr' %}active{% endif %}" 
-                               title="Passer en français">
-                                <svg class="lang-flag" viewBox="0 0 3 2" width="15" height="10" aria-hidden="true">
-                                    <rect width="1" height="2" fill="#002654"/>
-                                    <rect width="1" height="2" x="1" fill="#FFFFFF"/>
-                                    <rect width="1" height="2" x="2" fill="#CE1126"/>
-                                </svg>
-                                <span class="lang-code">FR</span>
-                            </a>
-                            <a href="{{ url_for('set_language', lang='en') }}" 
-                               class="lang-btn {% if current_lang == 'en' %}active{% endif %}" 
-                               title="Switch to English">
-                                <svg class="lang-flag" viewBox="0 0 60 40" width="15" height="10" aria-hidden="true">
-                                    <path d="M0 0h60v40H0z" fill="#012169"/>
-                                    <path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/>
-                                    <path d="M0 0L60 40M60 0L0 40" stroke="#C8102E" stroke-width="4.8"/>
-                                    <path d="M30 0v40M0 20h60" stroke="#fff" stroke-width="12"/>
-                                    <path d="M30 0v40M0 20h60" stroke="#C8102E" stroke-width="7.2"/>
-                                </svg>
-                                <span class="lang-code">EN</span>
-                            </a>
+                        <!-- Language menu: current flag, then every site language written in itself -->
+                        <div class="nav-dropdown lang-menu">
+                            <button type="button" class="nav-dropdown-toggle lang-menu-btn" aria-haspopup="true" aria-expanded="false"
+                                    title="{{ tr('Langue', 'Language') }} : {{ current_language.name }}">
+                                {{ flag_svg(current_lang) }}
+                                <span class="lang-code">{{ current_lang | upper }}</span>
+                                <span class="lang-menu-name">{{ current_language.name }}</span>
+                                {{ pixel_icon('chevron_down', 10, 'class="chevron-icon"') }}
+                            </button>
+                            <div class="nav-dropdown-menu lang-menu-list" role="menu" aria-label="{{ tr('Langue', 'Language') }}">
+                                {% for language in languages %}
+                                <a href="{{ url_for('set_language', lang=language.code) }}" role="menuitem" lang="{{ language.html }}" hreflang="{{ language.html }}"
+                                   class="nav-dropdown-item lang-menu-item{% if language.code == current_lang %} active{% endif %}"{% if language.code == current_lang %} aria-current="true"{% endif %}>
+                                    {{ flag_svg(language.code) }}
+                                    <span>{{ language.name }}</span>
+                                </a>
+                                {% endfor %}
+                            </div>
                         </div>
 
                         <a href="https://discord.com/oauth2/authorize?client_id=1210665993328926750" 
                            target="_blank" rel="noopener noreferrer" class="btn-discord-nav" title="{{ t('nav.invite_title') }}">
-                            <svg class="discord-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 8V4H8"/>
-                                <rect width="16" height="12" x="4" y="8" rx="2"/>
-                                <path d="M2 14h2"/>
-                                <path d="M20 14h2"/>
-                                <path d="M15 13v2"/>
-                                <path d="M9 13v2"/>
-                            </svg>
+                            <svg class="discord-svg-icon" width="16" height="16" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="bot"><path d="M4 0h1v1h-1zM1 1h7v1h-7zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h2v1h-2zM3 3h1v1h-1zM5 3h1v1h-1zM7 3h2v1h-2zM1 4h1v1h-1zM7 4h1v1h-1zM1 5h1v1h-1zM3 5h3v1h-3zM7 5h1v1h-1zM1 6h7v1h-7zM2 7h1v1h-1zM6 7h1v1h-1z"/></svg>
                             <span class="discord-btn-text">{{ t('nav.invite') }}</span>
                         </a>
 
@@ -161,18 +150,18 @@
                             <button type="button" class="nav-dropdown-toggle auth-user-btn" aria-expanded="false">
                                 <img src="{{ current_user.avatar }}" class="auth-user-avatar" alt="avatar">
                                 <span class="auth-user-name">{{ current_user.username }}</span>
-                                <svg class="chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                                <svg class="chevron-icon" width="10" height="10" aria-hidden="true" viewBox="0 0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chevron_down"><path d="M0 2h1v1h-1zM8 2h1v1h-1zM0 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM6 4h2v1h-2zM2 5h2v1h-2zM5 5h2v1h-2zM3 6h3v1h-3zM4 7h1v1h-1z"/></svg>
                             </button>
                             <div class="nav-dropdown-menu" style="right: 0; left: auto; min-width: 180px;">
                                 <a href="{{ url_for('user_profile.profile', username=(current_user.username or current_user.id)) }}" class="nav-dropdown-item">
-                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    <svg class="dropdown-item-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="user"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM3 3h3v1h-3zM2 5h5v1h-5zM1 6h7v1h-7zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg>
                                     <div class="nav-dropdown-text">
                                         <span class="nav-dropdown-title">{{ t('auth.my_profile') }}</span>
                                     </div>
                                 </a>
                                 {% if is_admin %}
                                 <a href="{{ url_for('admin.admin_page') }}" class="nav-dropdown-item">
-                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+                                    <svg class="dropdown-item-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
                                     <div class="nav-dropdown-text">
                                         <span class="nav-dropdown-title">Admin</span>
                                     </div>
@@ -182,7 +171,7 @@
                                 <form method="post" action="{{ url_for('auth.logout') }}" class="nav-logout-form">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="nav-dropdown-item" style="color: #f87171;">
-                                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                                    <svg class="dropdown-item-icon" width="16" height="16" style="color: #f87171;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="logout"><path d="M0 0h5v1h-5zM0 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h2v1h-2zM0 4h1v1h-1zM2 4h7v1h-7zM0 5h1v1h-1zM6 5h2v1h-2zM0 6h1v1h-1zM6 6h1v1h-1zM0 7h1v1h-1zM0 8h5v1h-5z"/></svg>
                                     <div class="nav-dropdown-text">
                                         <span class="nav-dropdown-title" style="color: #f87171;">{{ t('auth.logout') }}</span>
                                     </div>
@@ -192,9 +181,7 @@
                         </div>
                         {% else %}
                         <a href="{{ url_for('auth.oauth_start', next=request.path, popup=1) }}" class="btn-discord-login" data-call="startDiscordLogin" title="{{ t('auth.login') }}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.177 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                            </svg>
+                            <svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="discord"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h9v1h-9zM0 2h9v1h-9zM0 3h2v1h-2zM3 3h3v1h-3zM7 3h2v1h-2zM0 4h2v1h-2zM3 4h3v1h-3zM7 4h2v1h-2zM0 5h9v1h-9zM0 6h3v1h-3zM6 6h3v1h-3zM1 7h1v1h-1zM7 7h1v1h-1z"/></svg>
                             <span>{{ t('auth.login_short') }}</span>
                         </a>
                         {% endif %}
@@ -217,9 +204,7 @@
             <a href="{{ url_for('home.terms') }}" class="footer-link">{{ t('footer.terms') }}</a>
             <span class="footer-sep">•</span>
             <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="footer-link">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 3px; opacity: 0.85;">
-                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                </svg>
+                <svg width="14" height="14" style="vertical-align: -2px; margin-right: 3px; opacity: 0.85;" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="discord"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h9v1h-9zM0 2h9v1h-9zM0 3h2v1h-2zM3 3h3v1h-3zM7 3h2v1h-2zM0 4h2v1h-2zM3 4h3v1h-3zM7 4h2v1h-2zM0 5h9v1h-9zM0 6h3v1h-3zM6 6h3v1h-3zM1 7h1v1h-1zM7 7h1v1h-1z"/></svg>
                 <span>{{ t('footer.support') }}</span>
             </a>
         </div>
@@ -227,8 +212,15 @@
         <div class="micro-text gray">{{ t('footer.version') }}</div>
     </footer>
 
+<div class="ar-loader" id="arLoader" aria-hidden="true">
+    <span class="ar-loader-glass"><img src="{{ url_for('static', filename='images/hourglass_logo_white.png') }}" alt=""></span>
+    <span class="ar-loader-text">Hourglass</span>
+</div>
 <script type="application/json" id="hgBaseConfig">{{ {"oauth_popup_url": url_for('auth.oauth_start', popup=1), "current_lang": current_lang}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/base.js', v=asset_version('js/base.js')) }}" defer></script>
+<script src="{{ url_for('static', filename='js/hovercard.js', v=asset_version('js/hovercard.js')) }}" defer></script>
+<script src="{{ url_for('static', filename='js/corners.js', v=asset_version('js/corners.js')) }}" defer></script>
+<script src="{{ url_for('static', filename='js/countup.js', v=asset_version('js/countup.js')) }}" defer></script>
 
     <!-- =================================================================== -->
     <!-- GLOBAL SEARCH MODAL                                                 -->
@@ -237,7 +229,7 @@
         <div class="global-search-dialog">
             <!-- Input Header -->
             <div class="global-search-header">
-                <svg class="search-icon-input" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                <svg class="search-icon-input" width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
                 <input type="text" id="globalSearchInput" class="global-search-input" placeholder="{{ t('search.placeholder') }}" autocomplete="off" spellcheck="false">
                 <kbd class="search-esc-key" data-call="closeGlobalSearch">ESC</kbd>
             </div>
@@ -245,8 +237,8 @@
             <!-- Results List -->
             <div id="globalSearchResults" class="global-search-results">
                 <div class="search-initial-hint">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7;"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-                    <span>{{ 'Tapez le nom d\'un membre ou d\'un serveur...' if current_lang == 'fr' else 'Type a member or server name to search...' }}</span>
+                    <svg width="18" height="18" style="opacity: 0.7;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
+                    <span>{{tr('Tapez le nom d\'un membre ou d\'un serveur...', 'Type a member or server name to search...')}}</span>
                 </div>
             </div>
 

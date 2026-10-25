@@ -143,8 +143,8 @@ def init_security(app) -> None:
         allowed, retry_after = limiter.check()
         if allowed:
             return None
-        message = "Trop de requêtes, réessayez dans quelques secondes." if request.cookies.get("lang", "fr") == "fr" \
-            else "Too many requests, please retry in a few seconds."
+        from app.i18n import tr
+        message = tr("Trop de requêtes, réessayez dans quelques secondes.", "Too many requests, please retry in a few seconds.")
         response = jsonify({"error": "rate_limited", "message": message}) if request.path.startswith("/api/") \
             else app.response_class(message, mimetype="text/plain")
         response.status_code = 429

@@ -32,16 +32,15 @@ function switchServerProfileTab(tabId) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.color = '#a3a6b0';
     Chart.defaults.font.family = "Arial, sans-serif";
 
-    const isEn = PAGE_CFG.current_lang === 'en';
-    const langLocale = isEn ? 'en-US' : 'fr-FR';
+    const langLocale = HG.locale;
     const hoursUnit = 'h';
 
     const modernPalette = [
         '#5865F2', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6',
-        '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#64748b'
+        '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#72767d'
     ];
     const readJson = id => {
         const el = document.getElementById(id);
@@ -60,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             day: { labels: hd.labels, hours: hd.hours, messages: md.messages, partial: hd.partial },
             month_cumul: { labels: hc.labels, hours: hc.hours, messages: mc.messages },
             day_cumul: { labels: hcd.labels, hours: hcd.hours, messages: mcd.messages },
-        }, { colors: { hours: '#38bdf8', messages: '#818cf8' }, period: PAGE_CFG.charts_default_granularity });
+        }, { colors: { hours: '#717cf8', messages: '#3fd1a0' }, period: PAGE_CFG.charts_default_granularity });
     }
 
     // 5. Server Top Members Donut
@@ -76,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     data: pieData.hours,
                     backgroundColor: modernPalette.slice(0, pieData.labels.length),
-                    borderColor: '#15202e',
+                    borderColor: '#212329',
                     borderWidth: 2,
                     hoverOffset: 12
                 }]
@@ -90,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: {
                         position: window.innerWidth < 768 ? 'bottom' : 'right',
                         labels: {
-                            color: '#cbd5e1',
+                            color: '#d0d2d8',
                             padding: 12,
                             font: { size: 11, weight: '500' },
                             usePointStyle: true,
@@ -98,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        backgroundColor: 'rgba(24, 25, 29, 0.95)',
                         callbacks: {
                             label: function(ctx) {
                                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
@@ -121,8 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const voice = readJson('serverVoiceChannelsData') || { labels: [], hours: [] };
     const text = readJson('serverTextChannelsData') || { labels: [], messages: [] };
     HG.splitCard(document.getElementById('serverChannelsCard'), {
-        voice: { labels: voice.labels, values: voice.hours, metric: 'hours', desc: isEn ? 'Voice hours per voice channel.' : 'Heures en vocal par salon vocal.' },
-        text: { labels: text.labels, values: text.messages, metric: 'messages', desc: isEn ? 'Messages per text channel.' : 'Messages par salon textuel.' },
+        voice: { labels: voice.labels, values: voice.hours, metric: 'hours', desc:HG.tr('Heures en vocal par salon vocal.', 'Voice hours per voice channel.')},
+        text: { labels: text.labels, values: text.messages, metric: 'messages', desc:HG.tr('Messages par salon textuel.', 'Messages per text channel.')},
     }, 'voice');
 
     // Check URL Hash

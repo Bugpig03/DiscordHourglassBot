@@ -26,7 +26,6 @@ from app.functions import (
     get_daily_messages_progression,
     get_daily_hours_diff,
     get_daily_messages_diff,
-    get_month_abbr,
     get_partial_period,
     get_user_presence,
     get_user_active_voice,
@@ -42,6 +41,7 @@ from app.cache import cache
 from app.auth import can_view_user_sessions, can_view_user_presence
 from app.profile_settings import get_profile_settings, resolve_profile_theme, resolve_layout
 from app.profile_records import query_record_sources, build_records, pinned_records, featured_badges
+from app.i18n import current_lang, tr, day_month, month_year
 
 user_profile_bp = Blueprint("user_profile", __name__)
 
@@ -104,7 +104,7 @@ def profile(username: str):
 
         # If multiple users share this exact username, render the disambiguation page!
         if len(matching_users) > 1 and not request.args.get("user_id"):
-            lang = request.cookies.get("lang", "fr")
+            lang = current_lang()
             users_list = []
             for u in matching_users:
                 xp_info = calculate_user_xp_and_level(u.total_seconds, u.total_messages)
@@ -116,7 +116,7 @@ def profile(username: str):
                     "total_seconds": u.total_seconds or 0,
                     "total_hours": round((u.total_seconds or 0) / 3600, 1),
                     "level": xp_info["level"],
-                    "title": xp_info["title_fr"] if lang == "fr" else xp_info["title_en"]
+                    "title": tr(xp_info["title_fr"], xp_info["title_en"], lang)
                 })
             return render_template(
                 "user_disambiguation.html",
@@ -132,7 +132,7 @@ def profile(username: str):
     g.tracked_entity = ("profile", str(user_id))  # audience stats count the member, whether reached by name or id
     display_username = target_user.username or f"User {user_id}"
 
-    lang = request.cookies.get("lang", "fr")
+    lang = current_lang()
     can_view_presence = can_view_user_presence(user_id)
     stats = load_user_profile_stats(user_id, display_username, can_view_presence=can_view_presence)
     charts = load_user_charts_data(user_id, stats["user_servers_stats"], lang=lang)
@@ -200,7 +200,7 @@ def load_profile_extras(user_id: int, stats: dict, charts: dict, lang: str = "fr
     tz = get_user_timezone()
     heatmap_annual = cache.get_or_set(("heatmap", user_id, 365, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=365))
     heatmap_monthly = cache.get_or_set(("heatmap", user_id, 30, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=30))
-    voice_companions = cache.get_or_set(("companions", user_id), PROFILE_CACHE_SECONDS, lambda: get_user_voice_companions(user_id, limit=6))
+    voice_companions = cache.get_or_set(("companions", user_id, lang), PROFILE_CACHE_SECONDS, lambda: get_user_voice_companions(user_id, limit=6))
     companions_since = cache.get_or_set(("companions_since", user_id), PROFILE_CACHE_SECONDS, lambda: get_user_companions_since(user_id))
     sources = cache.get_or_set(("record_sources", user_id), PROFILE_CACHE_SECONDS, lambda: query_record_sources(user_id))
     records = build_records(sources, stats, heatmap_annual, voice_companions, charts.get("peak_voice_hour"), lang)
@@ -300,7 +300,7 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
     monthly_diff_data = get_monthly_hours_diff(user_id=user_id)
     monthly_chart_data_json = json.dumps({
         "labels": [
-            f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} {datetime.strptime(row['month'], '%Y-%m-%d').year}"
+            month_year(datetime.strptime(row['month'], '%Y-%m-%d').month, datetime.strptime(row['month'], '%Y-%m-%d').year, lang)
             for row in monthly_diff_data
         ],
         "hours": [row["hours_this_month"] for row in monthly_diff_data],
@@ -311,7 +311,7 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
     daily_hours_diff_data = get_daily_hours_diff(user_id=user_id, days=30)
     daily_hours_chart_data_json = json.dumps({
         "labels": [
-            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            day_month(datetime.strptime(row['date'], '%Y-%m-%d').day, datetime.strptime(row['date'], '%Y-%m-%d').month, lang)
             for row in daily_hours_diff_data
         ],
         "hours": [row["hours_this_day"] for row in daily_hours_diff_data],
@@ -322,7 +322,7 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
     monthly_messages_diff_data = get_monthly_messages_diff(user_id=user_id)
     monthly_messages_chart_data_json = json.dumps({
         "labels": [
-            f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} {datetime.strptime(row['month'], '%Y-%m-%d').year}"
+            month_year(datetime.strptime(row['month'], '%Y-%m-%d').month, datetime.strptime(row['month'], '%Y-%m-%d').year, lang)
             for row in monthly_messages_diff_data
         ],
         "messages": [row["messages_this_month"] for row in monthly_messages_diff_data],
@@ -333,7 +333,7 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
     daily_messages_diff_data = get_daily_messages_diff(user_id=user_id, days=30)
     daily_messages_chart_diff_data_json = json.dumps({
         "labels": [
-            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            day_month(datetime.strptime(row['date'], '%Y-%m-%d').day, datetime.strptime(row['date'], '%Y-%m-%d').month, lang)
             for row in daily_messages_diff_data
         ],
         "messages": [row["messages_this_day"] for row in daily_messages_diff_data],
@@ -348,7 +348,7 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
     server_hours = [s["time_spent"] for s in top_servers]
     if remaining_servers:
         other_hours = round(sum(s["time_spent"] for s in remaining_servers), 1)
-        other_text = f"Others ({len(remaining_servers)} servers)" if lang == "en" else f"Autres ({len(remaining_servers)} serveurs)"
+        other_text = tr("Autres ({n} serveurs)", "Others ({n} servers)", lang, n=len(remaining_servers))
         server_labels.append(other_text)
         server_hours.append(other_hours)
 

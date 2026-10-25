@@ -1,0 +1,156 @@
+    <!-- 1. Introduction -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">1</span>
+            <span>Introducción y responsable del tratamiento</span>
+        </h2>
+        <p class="legal-text">
+            El proyecto <strong>Hourglass</strong> («nosotros», «el bot», «el servicio») es un servicio independiente de análisis y gamificación para comunidades de Discord. Está formado por un bot de Discord y un panel web interactivo disponible en <code>hourglassbot.net</code>.
+        </p>
+        <p class="legal-text">
+            Damos la máxima importancia a la privacidad de nuestros usuarios y al cumplimiento de la normativa vigente, en particular el <strong>Reglamento General de Protección de Datos (RGPD - Reglamento UE 2016/679)</strong> y los <strong>Developer Terms of Service de Discord</strong>.
+        </p>
+        <p class="legal-text">
+            <strong>Responsable del tratamiento:</strong> SnoutLabs.<br>
+            <strong>Contacto y soporte oficial:</strong> <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="legal-link">Servidor oficial de Discord de Hourglass</a>.
+        </p>
+    </div>
+
+    <!-- 2. Collected data -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">2</span>
+            <span>Datos personales recogidos y minimización</span>
+        </h2>
+        <p class="legal-text">
+            Conforme al principio de <em>minimización de datos</em> (artículo 5.1.c del RGPD), solo tratamos los datos estrictamente necesarios para la gamificación, las clasificaciones y las estadísticas:
+        </p>
+        <ul class="legal-list">
+            <li><strong>ID único de Discord (<code>user_id</code>):</strong> identificador técnico proporcionado por Discord, necesario para asociar los contadores a tu perfil.</li>
+            <li><strong>Nombre de usuario y avatar de Discord:</strong> se muestran en los perfiles, las clasificaciones de servidor y las tarjetas de estadísticas exportadas.</li>
+            <li><strong>Sesiones y canales de voz (<code>voice_sessions</code>):</strong> horas de entrada y salida de los canales (inicio, fin, duración calculada), ID y nombres de los canales, e indicadores técnicos de presencia (pantalla compartida o cámara activada, como simples valores sí/no).</li>
+            <li><strong>Eventos de mensajes (<code>message_events</code>):</strong> fecha y hora e ID del canal al enviar un mensaje, para las curvas de actividad y los mapas de horas.</li>
+            <li><strong>Presencia en directo y estado del servidor:</strong> recuento agregado de estados de los miembros (en línea, ausente, no molestar, en voz) mediante <code>live_server_status</code>.</li>
+            <li><strong>Metadatos del servidor (<code>server_id</code>):</strong> nombre, identificador e icono del servidor para las clasificaciones locales y los perfiles de comunidad.</li>
+        </ul>
+
+        <div class="legal-highlight-box positive">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('shield_check', 20, 'style="color: #34d399;"') }}
+                <span>Lo que NUNCA recogemos ni guardamos</span>
+            </div>
+            <ul class="legal-sublist">
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Ningún contenido de mensajes:</strong> nunca leemos, analizamos ni guardamos el contenido de los mensajes. Solo se tratan la fecha y hora del evento y el identificador del canal.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Ningún audio ni grabación de voz:</strong> nunca grabamos, retransmitimos ni escuchamos el audio. Solo se calculan las horas de conexión.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Ningún vídeo ni grabación de pantalla:</strong> la cámara y la pantalla compartida solo se registran como estados técnicos sí/no.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Ningún dato sensible:</strong> ni nombres reales, ni correos electrónicos, ni contraseñas, ni direcciones IP, ni datos de pago.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Ningún mensaje privado (MD):</strong> el bot solo funciona dentro de los servidores de Discord autorizados.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. Purposes & legal basis -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">3</span>
+            <span>Finalidades y base legal del tratamiento</span>
+        </h2>
+        <p class="legal-text">
+            Los datos se recogen y tratan exclusivamente para:
+        </p>
+        <ul class="legal-list">
+            <li>Calcular los puntos de experiencia (XP), los niveles, las insignias y las clasificaciones de miembros.</li>
+            <li>Ofrecer el panel público a los administradores y miembros de los servidores para celebrar la actividad de la comunidad.</li>
+            <li>Generar dinámicamente las tarjetas de estadísticas en SVG (<code>/stats</code>, <code>/allstats</code>, <code>/top</code>, etc.).</li>
+        </ul>
+        <p class="legal-text">
+            <strong>Base legal:</strong> el tratamiento se basa en el <strong>interés legítimo</strong> (artículo 6.1.f del RGPD) de ofrecer las herramientas de gamificación y participación que solicitan los administradores de los servidores.
+        </p>
+    </div>
+
+    <!-- 4. Retention -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">4</span>
+            <span>Plazo de conservación</span>
+        </h2>
+        <p class="legal-text">
+            Las estadísticas se conservan mientras Hourglass esté presente en los servidores de Discord correspondientes. Cuando el bot sale de un servidor, o a petición expresa de un usuario, se eliminan los registros asociados.
+        </p>
+    </div>
+
+    <!-- 5. Rights & deletion -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">5</span>
+            <span>Tus derechos RGPD y eliminación de datos (derecho al olvido)</span>
+        </h2>
+        <p class="legal-text">
+            Según los artículos 15 a 22 del RGPD, tienes derecho a:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Acceso y portabilidad:</strong> consultar y exportar las estadísticas vinculadas a tu cuenta.</li>
+            <li><strong>Supresión («derecho al olvido»):</strong> pedir la eliminación completa y definitiva de tu perfil y tus estadísticas.</li>
+            <li><strong>Oposición:</strong> pedir que el bot deje de registrar tus futuras horas en voz o tu número de mensajes.</li>
+        </ul>
+
+        <div class="legal-highlight-box primary">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('alert', 20, 'style="color: #717cf8;"') }}
+                <span>¿Cómo pedir la eliminación de tus datos?</span>
+            </div>
+            <p class="legal-text" style="margin-bottom: 12px;">
+                Para proteger tu cuenta y evitar que un tercero borre tus estadísticas sin permiso, verificamos todas las solicitudes de eliminación a través de Discord:
+            </p>
+            <div class="legal-steps">
+                <div class="legal-step-item">
+                    <div class="legal-step-num">1</div>
+                    <div class="legal-step-content">
+                        <strong>Únete al servidor oficial de soporte de Hourglass:</strong>
+                        <p><a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="btn-discord" style="display: inline-flex; margin: 8px 0;"><span>Unirse al soporte de Discord</span></a></p>
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">2</div>
+                    <div class="legal-step-content">
+                        <strong>Abre un ticket de soporte:</strong> ve al canal <code>#support</code> o contacta con el equipo de administración indicando tu solicitud (por ejemplo, <em>«Solicitud RGPD de eliminación de cuenta y datos»</em>).
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">3</div>
+                    <div class="legal-step-content">
+                        <strong>Tramitación rápida:</strong> tu solicitud se atenderá en un plazo de <strong>72 horas</strong> (mucho menos que el plazo legal de 30 días del RGPD). Todas las filas relacionadas en las tablas de usuarios y estadísticas se eliminarán definitivamente.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Cookies -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">6</span>
+            <span>Cookies y rastreadores web</span>
+        </h2>
+        <p class="legal-text">
+            El panel de Hourglass respeta tu privacidad:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Ninguna cookie publicitaria ni de perfilado.</strong></li>
+            <li><strong>Ningún rastreador de terceros</strong> (como Google Analytics o los píxeles de redes sociales).</li>
+            <li><strong>Una sola cookie técnica funcional:</strong> la cookie <code>lang</code> (el código del idioma elegido, por ejemplo <code>fr</code> o <code>en</code>) recuerda tu idioma de una página a otra. Mientras no elijas un idioma, el sitio usa el de tu navegador, sin guardar nada. Conforme a las directrices europeas (ePrivacy / RGPD), esta cookie esencial está exenta de consentimiento.</li>
+            <li><strong>Medición de audiencia anónima (sin cookie):</strong> para conocer el uso del sitio (páginas vistas, visitantes por día, páginas de origen, tipo de dispositivo, idioma, términos buscados), calculamos una huella a partir de tu dirección IP y tu navegador, mezclada con una clave aleatoria que cambia cada día y se borra al día siguiente. Tu dirección IP nunca se guarda y es imposible reconocerte de un día a otro. Las huellas se borran a los 30 días y las estadísticas agregadas a los 400 días.</li>
+            <li><strong>Inicio de sesión con Discord:</strong> cuando inicias sesión, registramos las fechas de tu primer y último inicio de sesión, el número de inicios y los días en que usas el sitio conectado, para seguir el uso del servicio. Estos datos están vinculados a tu ID de Discord y se eliminan con el resto de tus datos cuando lo pidas.</li>
+        </ul>
+    </div>
+
+    <!-- 7. Security -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">7</span>
+            <span>Seguridad e infraestructura</span>
+        </h2>
+        <p class="legal-text">
+            Los datos se alojan en la Unión Europea, en una infraestructura PostgreSQL protegida con controles de acceso estrictos, cortafuegos y autenticación robusta. El tráfico web está cifrado de extremo a extremo con HTTPS / SSL.
+        </p>
+    </div>

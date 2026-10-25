@@ -43,7 +43,7 @@
         if (!input) return;
         preview.style.setProperty('--accent', input.dataset.hex);
         preview.style.setProperty('--accent-rgb', hexToRgb(input.dataset.hex));
-        preview.classList.toggle('accent-custom', input.value !== 'sky');
+        preview.classList.toggle('accent-custom', input.value !== 'blurple');
     }
 
     const bannerGallery = document.getElementById('bannerGallery');

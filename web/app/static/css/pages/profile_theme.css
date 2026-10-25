@@ -1,8 +1,8 @@
 /* Profile customization: accent color (--accent / --accent-rgb set on .profile-themed), banner, favorite server.
    Shared by the profile page and the live preview of the customization page. */
 .profile-themed {
-    --accent: #38bdf8;
-    --accent-rgb: 56, 189, 248;
+    --accent: #717cf8;
+    --accent-rgb: 113, 124, 248;
 }
 
 /* Header card with optional banner */
@@ -18,7 +18,7 @@
     background:
         radial-gradient(circle at 18% 120%, rgba(var(--accent-rgb), 0.55), transparent 55%),
         radial-gradient(circle at 85% -20%, rgba(var(--accent-rgb), 0.35), transparent 50%),
-        linear-gradient(135deg, rgba(var(--accent-rgb), 0.28) 0%, rgba(21, 32, 46, 0.6) 70%, #15202e 100%);
+        linear-gradient(135deg, rgba(var(--accent-rgb), 0.28) 0%, rgba(33, 35, 41, 0.6) 70%, #212329 100%);
 }
 .profile-banner img {
     width: 100%;
@@ -30,7 +30,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 45%, rgba(21, 32, 46, 0.9) 100%);
+    background: linear-gradient(180deg, transparent 45%, rgba(33, 35, 41, 0.9) 100%);
     pointer-events: none;
 }
 .profile-hero-body {
@@ -66,7 +66,7 @@
     align-items: center;
     gap: 4px 10px;
     margin-top: 8px;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.9rem;
 }
 .profile-hero-title {
@@ -74,12 +74,12 @@
     font-weight: 700;
 }
 .profile-hero-sep {
-    color: rgba(148, 163, 184, 0.5);
+    color: rgba(163, 166, 176, 0.5);
 }
 .profile-hero-id {
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
     font-size: 0.8rem;
-    color: #8b9bb0;
+    color: #9a9da7;
 }
 .profile-live-voice {
     display: inline-flex;
@@ -149,7 +149,7 @@
     font-size: 0.9rem;
 }
 .profile-level-line .gray {
-    color: #94a3b8;
+    color: #a3a6b0;
 }
 
 
@@ -168,7 +168,7 @@
     width: 116px;
     height: 116px;
     min-width: 116px;
-    box-shadow: 0 0 0 5px #15202e, 0 10px 28px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 0 0 5px #212329, 0 10px 28px rgba(0, 0, 0, 0.55);
 }
 
 /* Favorite server pill */
@@ -181,7 +181,7 @@
     border-radius: 999px;
     background: rgba(var(--accent-rgb), 0.1);
     border: 1px solid rgba(var(--accent-rgb), 0.3);
-    color: #e2e8f0;
+    color: #e3e5e8;
     text-decoration: none;
     font-size: 0.86rem;
     max-width: 100%;
@@ -215,7 +215,7 @@
     min-width: 0;
 }
 .profile-fav-server-meta {
-    color: #94a3b8;
+    color: #a3a6b0;
     white-space: nowrap;
 }
 
@@ -253,8 +253,7 @@
 .profile-themed .user-xp-bar-fill {
     background: linear-gradient(90deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, #ffffff) 100%);
 }
-.profile-themed .graphs-tabs,
-.profile-themed .tab-next {
+.profile-themed .graphs-tabs {
     --tab-accent: var(--accent);
     --tab-accent-rgb: var(--accent-rgb);
 }
@@ -264,9 +263,9 @@
 }
 
 /* Activity calendar in the member's color (the default look keeps the familiar green scale) */
-.profile-themed.accent-custom .heatmap-level-1 { background: color-mix(in srgb, var(--accent) 26%, #15202e); }
-.profile-themed.accent-custom .heatmap-level-2 { background: color-mix(in srgb, var(--accent) 48%, #15202e); }
-.profile-themed.accent-custom .heatmap-level-3 { background: color-mix(in srgb, var(--accent) 74%, #15202e); }
+.profile-themed.accent-custom .heatmap-level-1 { background: color-mix(in srgb, var(--accent) 26%, #212329); }
+.profile-themed.accent-custom .heatmap-level-2 { background: color-mix(in srgb, var(--accent) 48%, #212329); }
+.profile-themed.accent-custom .heatmap-level-3 { background: color-mix(in srgb, var(--accent) 74%, #212329); }
 .profile-themed.accent-custom .heatmap-level-4 { background: var(--accent); box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.5); }
 
 @media (max-width: 600px) {
@@ -312,7 +311,7 @@
     min-width: 0;
     cursor: default;
 }
-.profile-showcase-item.rarity-rare { --rarity: 56, 189, 248; }
+.profile-showcase-item.rarity-rare { --rarity: 79, 163, 255; }
 .profile-showcase-item.rarity-epic { --rarity: 192, 132, 252; }
 .profile-showcase-item.rarity-legendary { --rarity: 251, 191, 36; box-shadow: 0 0 18px rgba(251, 191, 36, 0.12); }
 .profile-showcase-icon {
@@ -372,7 +371,7 @@
     gap: 4px;
     padding: 16px 18px;
     border-radius: 16px;
-    background: #15202e;
+    background: #212329;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-top: 3px solid rgba(var(--accent-rgb), 0.85);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -384,7 +383,7 @@
     margin-bottom: 4px;
 }
 .profile-record-label {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.78rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -399,12 +398,12 @@
     text-overflow: ellipsis;
 }
 .profile-record-value small {
-    color: #cbd5e1;
+    color: #d0d2d8;
     font-size: 0.9rem;
     font-weight: 600;
 }
 .profile-record-sub {
-    color: #8b9bb0;
+    color: #9a9da7;
     font-size: 0.82rem;
     white-space: nowrap;
     overflow: hidden;
@@ -431,9 +430,9 @@
     gap: 6px;
     padding: 3px 10px;
     border-radius: 999px;
-    background: rgba(148, 163, 184, 0.12);
-    border: 1px dashed rgba(148, 163, 184, 0.45);
-    color: #cbd5e1;
+    background: rgba(163, 166, 176, 0.12);
+    border: 1px dashed rgba(163, 166, 176, 0.45);
+    color: #d0d2d8;
     font-size: 0.75rem;
     font-weight: 700;
     vertical-align: middle;
@@ -472,9 +471,9 @@
     padding: 12px 16px;
     margin-bottom: 20px;
     border-radius: 12px;
-    background: rgba(148, 163, 184, 0.08);
-    border: 1px dashed rgba(148, 163, 184, 0.4);
-    color: #cbd5e1;
+    background: rgba(163, 166, 176, 0.08);
+    border: 1px dashed rgba(163, 166, 176, 0.4);
+    color: #d0d2d8;
     font-size: 0.9rem;
 }
 .profile-private-owner a {
@@ -580,7 +579,7 @@
     min-width: 0;
 }
 .profile-streak-label {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.74rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -593,12 +592,12 @@
     line-height: 1.25;
 }
 .profile-streak-value small {
-    color: #cbd5e1;
+    color: #d0d2d8;
     font-size: 0.85rem;
     font-weight: 600;
 }
 .profile-streak-sub {
-    color: #8b9bb0;
+    color: #9a9da7;
     font-size: 0.8rem;
     white-space: nowrap;
     overflow: hidden;
@@ -646,8 +645,8 @@
     border-radius: 20px;
     background:
         radial-gradient(circle at 0% 0%, rgba(var(--accent-rgb), 0.16), transparent 45%),
-        linear-gradient(180deg, rgba(var(--accent-rgb), 0.06), rgba(21, 32, 46, 0.9) 60%),
-        #15202e;
+        linear-gradient(180deg, rgba(var(--accent-rgb), 0.06), rgba(33, 35, 41, 0.9) 60%),
+        #212329;
     border: 1px solid rgba(var(--accent-rgb), 0.45);
     box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.06), 0 10px 30px rgba(0, 0, 0, 0.35);
 }
@@ -701,7 +700,7 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.74rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -747,11 +746,11 @@
     text-overflow: ellipsis;
 }
 .profile-vitrine-server-meta {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.82rem;
 }
 .profile-vitrine .profile-record {
-    background: rgba(15, 23, 34, 0.55);
+    background: rgba(24, 25, 29, 0.55);
     box-shadow: none;
 }
 @media (max-width: 600px) {
@@ -798,7 +797,7 @@
 }
 .bd-summary-count {
     margin-top: 4px;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.92rem;
 }
 .bd-summary-count strong {
@@ -819,7 +818,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #cbd5e1;
+    color: #d0d2d8;
     font-size: 0.85rem;
 }
 .bd-rarity i {
@@ -872,7 +871,7 @@
     font-weight: 800;
 }
 .bd-family-count {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-weight: 700;
     font-size: 0.85rem;
 }
@@ -938,7 +937,7 @@
     justify-content: center;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #64748b;
+    color: #72767d;
     z-index: 1;
 }
 .bd-tier-icon svg {
@@ -951,7 +950,7 @@
     border-color: rgba(var(--rarity), 0.5);
 }
 .bd-tier.is-next .bd-tier-icon {
-    color: #e2e8f0;
+    color: #e3e5e8;
     border: 2px dashed rgba(var(--accent-rgb), 0.8);
     background: rgba(var(--accent-rgb), 0.1);
 }
@@ -966,17 +965,17 @@
     align-items: center;
     justify-content: center;
     background: rgb(var(--rarity));
-    color: #0b1120;
-    box-shadow: 0 0 0 2px #15202e;
+    color: #15161a;
+    box-shadow: 0 0 0 2px #212329;
 }
 .bd-tier-name {
-    color: #e2e8f0;
+    color: #e3e5e8;
     font-size: 0.78rem;
     font-weight: 700;
     line-height: 1.2;
 }
 .bd-tier-threshold {
-    color: #8b9bb0;
+    color: #9a9da7;
     font-size: 0.72rem;
     font-weight: 600;
 }
@@ -1006,7 +1005,7 @@
     font-weight: 700;
 }
 .bd-empty {
-    color: #94a3b8;
+    color: #a3a6b0;
     text-align: center;
     padding: 30px;
 }
@@ -1040,6 +1039,6 @@
 }
 
 /* Rarity colours of the badges tab (declared after .bd-tier / .bd-rarity so they win) */
-.bd-rarity.rarity-rare, .bd-tier.rarity-rare { --rarity: 56, 189, 248; }
+.bd-rarity.rarity-rare, .bd-tier.rarity-rare { --rarity: 79, 163, 255; }
 .bd-rarity.rarity-epic, .bd-tier.rarity-epic { --rarity: 192, 132, 252; }
 .bd-rarity.rarity-legendary, .bd-tier.rarity-legendary { --rarity: 251, 191, 36; }

@@ -1,9 +1,6 @@
 /* Shared Chart.js helpers for Hourglass pages (loaded right after chart.js). */
 (function () {
-    const isEn = document.documentElement.lang === 'en';
     const HG = (window.HG = window.HG || {});
-
-    HG.locale = isEn ? 'en-US' : 'fr-FR';
 
     // Locale-aware number formatting, consistent with the server-side `num` Jinja filter
     HG.fmt = function (value, decimals = 0) {
@@ -59,7 +56,7 @@
         return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
     }
 
-    // Bar dataset options: HG.partialBar('#38bdf8') -> { backgroundColor, borderColor, borderWidth }
+    // Bar dataset options: HG.partialBar('#717cf8') -> { backgroundColor, borderColor, borderWidth }
     HG.partialBar = function (color) {
         return {
             backgroundColor: (ctx) => (isPartialIndex(ctx.chart, ctx.dataIndex) ? fade(color, 0.3) : color),
@@ -78,9 +75,9 @@
         const item = items && items[0];
         if (!item || !isPartialIndex(item.chart, item.dataIndex)) return '';
         if (item.chart.$hgPartial === 'month') {
-            return isEn ? '⏳ Current month: data still coming in' : '⏳ Mois en cours : données partielles';
+            return HG.tr('Mois en cours : données partielles', 'Current month: data still coming in');
         }
-        return isEn ? '⏳ Today: day still in progress' : '⏳ Aujourd’hui : journée en cours';
+        return HG.tr('Aujourd’hui : journée en cours', 'Today: day still in progress');
     };
     Chart.defaults.plugins.tooltip.footerColor = '#fbbf24';
     Chart.defaults.plugins.tooltip.footerFont = { weight: 'normal', size: 11 };

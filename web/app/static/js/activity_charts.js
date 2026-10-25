@@ -5,24 +5,23 @@
    Each card is driven by data-* attributes inside its root element. Needs charts.js (HG). */
 (function () {
     const HG = window.HG = window.HG || {};
-    const isEn = () => document.documentElement.lang === 'en';
-    const T = (fr, en) => (isEn() ? en : fr);
+    const T = (fr, en, vars) => HG.tr(fr, en, vars);
     const TOOLTIP = {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        backgroundColor: 'rgba(24, 25, 29, 0.95)',
         titleColor: '#ffffff',
-        bodyColor: '#e2e8f0',
+        bodyColor: '#e3e5e8',
         borderColor: 'rgba(255, 255, 255, 0.12)',
         borderWidth: 1,
         padding: 12,
         boxPadding: 6,
     };
     const GRID = { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false };
-    const PALETTE = ['#5865F2', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#64748b'];
+    const PALETTE = ['#5865F2', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#72767d'];
 
     HG.cardCharts = HG.cardCharts || [];
 
     function fmtMetric(metric, v) {
-        return metric === 'hours' ? `${HG.fmt(v, 1)} h` : `${HG.fmt(v)} messages`;
+        return metric === 'hours' ? `${HG.fmt(v, 1)} h` : T('{n} messages', '{n} messages', { n: HG.fmt(v) });
     }
 
     function bindToggle(root, attr, onChange) {
@@ -127,12 +126,12 @@
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { display: !cumul, labels: { color: '#e2e8f0', font: { weight: 'bold' } } },
+                        legend: { display: !cumul, labels: { color: '#e3e5e8', font: { weight: 'bold' } } },
                         tooltip: { ...TOOLTIP, callbacks: { label: c => ` ${c.dataset.label.split(' (')[0]} : ${fmtMetric(metric, c.parsed.y)}` } },
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
-                        y: { beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8', callback: v => (metric === 'hours' ? `${HG.fmt(v)} h` : HG.fmt(v)) } },
+                        x: { grid: { display: false }, ticks: { color: '#a3a6b0', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
+                        y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', callback: v => (metric === 'hours' ? `${HG.fmt(v)} h` : HG.fmt(v)) } },
                     },
                 },
             }));
@@ -149,10 +148,10 @@
     };
 
     const PUNCH_SHADES = {
-        hours: ['rgba(56, 189, 248, 0.18)', 'rgba(56, 189, 248, 0.38)', 'rgba(56, 189, 248, 0.6)', 'rgba(56, 189, 248, 0.82)', '#38bdf8'],
-        messages: ['rgba(129, 140, 248, 0.18)', 'rgba(129, 140, 248, 0.38)', 'rgba(129, 140, 248, 0.6)', 'rgba(129, 140, 248, 0.82)', '#a5b4fc'],
+        hours: ['rgba(113, 124, 248, 0.18)', 'rgba(113, 124, 248, 0.38)', 'rgba(113, 124, 248, 0.6)', 'rgba(113, 124, 248, 0.82)', '#717cf8'],
+        messages: ['rgba(63, 209, 160, 0.18)', 'rgba(63, 209, 160, 0.38)', 'rgba(63, 209, 160, 0.6)', 'rgba(63, 209, 160, 0.82)', '#3fd1a0'],
     };
-    const hourLabel = h => (isEn() ? `${h}:00` : `${h}h`);
+    const hourLabel = h => (HG.lang === 'fr' ? `${h}h` : `${h}:00`);
 
     /* hourly: {voice_hours[24], messages_count[24]}; punchcard: {days: [{day_name, day_index, hours: [{hour, voice_hours, messages}]}]} */
     HG.peakCard = function (root, hourly, punchcard) {
@@ -162,7 +161,7 @@
         const desc = root.querySelector('[data-peak-desc]');
         const punch = root.querySelector('[data-punch]');
         const punchTitle = root.querySelector('[data-punch-title]');
-        const colors = { hours: '#38bdf8', messages: '#818cf8' };
+        const colors = { hours: '#717cf8', messages: '#3fd1a0' };
         let metric = 'hours';
         let chart = null;
 
@@ -176,18 +175,17 @@
                 : T('Détail par jour de la semaine (messages)', 'Detail per day of the week (messages)');
             const val = c => (isVoice ? c.voice_hours : c.messages) || 0;
             const max = Math.max(0, ...punchcard.days.flatMap(r => (r.hours || []).map(val)));
-            const dayNamesEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
             let html = '<div class="hg-punch-grid"><div></div>';
             for (let h = 0; h < 24; h++) html += `<div class="hg-punch-hour">${h % 3 === 0 ? (h < 10 ? '0' + h : h) + 'h' : ''}</div>`;
             punchcard.days.forEach(row => {
-                const day = isEn() ? (dayNamesEn[row.day_index] || row.day_name) : row.day_name;
+                const day = HG.lang === 'fr' ? row.day_name : HG.weekday(row.day_index);
                 html += `<div class="hg-punch-day">${HG.esc(day)}</div>`;
                 (row.hours || []).forEach(c => {
                     const ratio = max > 0 ? val(c) / max : 0;
                     const bg = ratio > 0 ? shades[Math.min(4, Math.floor(ratio * 5 - 1e-9))] : 'rgba(255, 255, 255, 0.04)';
                     const what = isVoice
-                        ? T(`${HG.fmt(c.voice_hours, 1)} h de vocal au total`, `${HG.fmt(c.voice_hours, 1)} h of voice in total`)
-                        : T(`${HG.fmt(c.messages)} messages au total`, `${HG.fmt(c.messages)} messages in total`);
+                        ? T('{n} h de vocal au total', '{n} h of voice in total', { n: HG.fmt(c.voice_hours, 1) })
+                        : T('{n} messages au total', '{n} messages in total', { n: HG.fmt(c.messages) });
                     const tip = `${day} ${hourLabel(c.hour)} · ${what}`;
                     html += `<div class="punch-cell" style="background: ${bg};" data-tip="${HG.esc(tip)}" aria-label="${HG.esc(tip)}"></div>`;
                 });
@@ -233,8 +231,8 @@
                         } },
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', autoSkip: true, maxTicksLimit: 12 } },
-                        y: { beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8', maxTicksLimit: 6, callback: v => HG.fmt(v, Number.isInteger(v) ? 0 : 1) } },
+                        x: { grid: { display: false }, ticks: { color: '#a3a6b0', autoSkip: true, maxTicksLimit: 12 } },
+                        y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', maxTicksLimit: 6, callback: v => HG.fmt(v, Number.isInteger(v) ? 0 : 1) } },
                     },
                 },
             }));
@@ -273,7 +271,7 @@
                 type: 'doughnut',
                 data: {
                     labels: set.labels,
-                    datasets: [{ data: set.values, backgroundColor: PALETTE.slice(0, set.labels.length), borderColor: '#15202e', borderWidth: 2, hoverOffset: 8 }],
+                    datasets: [{ data: set.values, backgroundColor: PALETTE.slice(0, set.labels.length), borderColor: '#212329', borderWidth: 2, hoverOffset: 8 }],
                 },
                 options: {
                     responsive: true,

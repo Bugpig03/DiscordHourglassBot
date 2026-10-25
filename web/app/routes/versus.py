@@ -30,6 +30,7 @@ from app.functions import (
 )
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges
 from app.routes.server_profile import load_users_from_server
+from app.i18n import current_lang, tr
 
 versus_bp = Blueprint("versus", __name__)
 
@@ -37,9 +38,7 @@ versus_bp = Blueprint("versus", __name__)
 @versus_bp.route("/versus", methods=["GET"])
 def versus():
     """Render the Head-to-Head Versus page comparing either two users or two servers."""
-    lang = request.cookies.get("lang", "fr")
-    if lang not in ("fr", "en"):
-        lang = "fr"
+    lang = current_lang()
 
     tab = request.args.get("tab", "users").strip().lower()
     if tab not in ("users", "servers"):
@@ -54,7 +53,7 @@ def versus():
         )
     ]
     all_servers = [
-        {"id": str(row.server_id), "name": row.servername or f"Serveur {row.server_id}"}
+        {"id": str(row.server_id), "name": row.servername or tr("Serveur {id}", "Server {id}", id=row.server_id)}
         for row in Servers.select().order_by(Servers.servername.asc())
     ]
 
@@ -81,7 +80,7 @@ def get_common_servers(user_id1: int, user_id2: int) -> list[dict]:
     return [
         {
             "id": str(srv.server_id),
-            "name": srv.servername or f"Serveur {srv.server_id}",
+            "name": srv.servername or tr("Serveur {id}", "Server {id}", id=srv.server_id),
             "avatar": srv.avatar,
         }
         for srv in servers
@@ -289,7 +288,7 @@ def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None =
     }
 
     badges = calculate_user_badges(stats_dict, lang=lang)
-    unlocked_badges = sum(1 for b in badges if b.get("unlocked"))
+    unlocked_badges = sum(b["tier"] for b in badges)  # tiers reached, 6 per badge
     xp_info = calculate_user_xp_and_level(tot_sec, tot_msg)
 
     return {
@@ -307,7 +306,7 @@ def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None =
         "activity_30d_hours": round(act_30d / 3600, 1),
         "level": xp_info["level"],
         "total_xp": xp_info["total_xp"],
-        "tier_name": xp_info.get("title_en") if lang == "en" else xp_info.get("title_fr", "Membre"),
+        "tier_name": tr(xp_info.get("title_fr", "Membre"), xp_info.get("title_en", "Member"), lang),
         "progress_percent": xp_info["progress_percent"],
         "unlocked_badges": unlocked_badges,
         "total_badges": len(badges),

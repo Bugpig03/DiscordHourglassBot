@@ -1,13 +1,13 @@
 import json
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template
 from peewee import fn, SQL
 from app.database import db, Users, Servers, Stats, VoiceSessions, MessageEvents, LiveServerStatus
 from app.functions import (
     format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta,
     get_daily_activity_last_30_days, get_partial_period, get_top_users_podium, get_top_servers_podium,
-    get_month_abbr
 )
+from app.i18n import current_lang, day_month, format_number
 
 home_bp = Blueprint("home", __name__)
 
@@ -44,7 +44,7 @@ def terms():
 
 def load_dashboard_stats() -> dict:
     """Collect global metrics: 30-day activity delta, all-time totals, database storage sizes, and last snapshot timestamp."""
-    lang = request.cookies.get("lang", "fr")
+    lang = current_lang()
 
     # All-time totals
     nb_users = Users.select().count()
@@ -59,7 +59,7 @@ def load_dashboard_stats() -> dict:
     )
     total_voice_secs = (Stats.select(fn.SUM(Stats.seconds)).scalar() or 0) + active_secs
     nb_time = ConvertSecondsToTime(total_voice_secs)
-    nb_voice_hours_str = f"{(total_voice_secs // 3600):,}".replace(",", " ") + " h"
+    nb_voice_hours_str = format_number(total_voice_secs // 3600) + " h"
 
     # 30-Day Activity Delta
     delta_30d = _get_activity_delta(30)
@@ -71,7 +71,7 @@ def load_dashboard_stats() -> dict:
     daily_activity_data = get_daily_activity_last_30_days()
     daily_chart_json = json.dumps({
         "labels": [
-            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            day_month(datetime.strptime(row['date'], '%Y-%m-%d').day, datetime.strptime(row['date'], '%Y-%m-%d').month, lang)
             for row in daily_activity_data
         ],
         "hours": [row["hours"] for row in daily_activity_data],

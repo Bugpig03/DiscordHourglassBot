@@ -1,14 +1,13 @@
 /* Admin page: cards, charts and ranked lists fed by /admin/data (cached 60 s server side). */
 const PAGE_CFG = JSON.parse(document.getElementById('hgPageConfig').textContent);
-const IS_EN = PAGE_CFG.current_lang === 'en';
-const T = (fr, en) => (IS_EN ? en : fr);
+const T = (fr, en, vars) => HG.tr(fr, en, vars);
 const charts = {};
 const initializedTabs = new Set();
 let data = null;
 let currentTab = 'tab-overview';
 let trafficRange = 30;
 
-const TOOLTIP = { backgroundColor: 'rgba(15, 23, 42, 0.95)', titleColor: '#fff', bodyColor: '#e2e8f0', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, padding: 10 };
+const TOOLTIP = { backgroundColor: 'rgba(24, 25, 29, 0.95)', titleColor: '#fff', bodyColor: '#e3e5e8', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, padding: 10 };
 const GRID = { color: 'rgba(255, 255, 255, 0.06)' };
 
 function switchGraphTab(tabId) {
@@ -31,12 +30,12 @@ function pct(value) {
 function dateText(iso) {
     if (!iso) return '—';
     const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'));
-    return d.toLocaleString(IS_EN ? 'en-GB' : 'fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString(HG.locale, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 function ago(minutes) {
     const text = minutes >= 1440 ? `${HG.fmt(Math.floor(minutes / 1440))} ${T('j', 'd')}` : minutes >= 60 ? `${HG.fmt(Math.floor(minutes / 60))} h` : `${HG.fmt(minutes)} min`;
-    return IS_EN ? `${text} ago` : `il y a ${text}`;
+    return T('il y a {t}', '{t} ago', { t: text });
 }
 
 function get(path) {
@@ -67,7 +66,7 @@ function enhanceLong(box, itemSelector) {
     if (items.length <= SEARCH_FROM || box.previousElementSibling?.classList.contains('adm-search')) return;
     const wrap = document.createElement('label');
     wrap.className = 'adm-search';
-    wrap.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    wrap.innerHTML = `<svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
         <input type="search" placeholder="${T('Rechercher', 'Search')}…" aria-label="${T('Rechercher dans la liste', 'Search the list')}">
         <span class="adm-search-count"></span>`;
     box.before(wrap);
@@ -112,10 +111,10 @@ function lineChart(id, labels, datasets, opts = {}) {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: datasets.length > 1, labels: { color: '#e2e8f0', usePointStyle: true } }, tooltip: TOOLTIP },
+            plugins: { legend: { display: datasets.length > 1, labels: { color: '#e3e5e8', usePointStyle: true } }, tooltip: TOOLTIP },
             scales: {
-                x: { stacked: !!opts.stacked, grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
-                y: { stacked: !!opts.stacked, beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8', precision: 0 } },
+                x: { stacked: !!opts.stacked, grid: { display: false }, ticks: { color: '#a3a6b0', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+                y: { stacked: !!opts.stacked, beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', precision: 0 } },
             },
         },
     });
@@ -141,7 +140,7 @@ function renderTraffic() {
     const t = data.traffic;
     const n = trafficRange;
     lineChart('trafficChart', t.labels.slice(-n), [
-        area(T('Pages vues', 'Page views'), t.views.slice(-n), '#38bdf8'),
+        area(T('Pages vues', 'Page views'), t.views.slice(-n), '#717cf8'),
         area(T('Visiteurs uniques', 'Unique visitors'), t.uniques.slice(-n), '#a78bfa'),
     ]);
     const total = t.views.slice(-n).reduce((a, b) => a + b, 0);
@@ -184,7 +183,7 @@ function sectionOverview() {
     box.querySelectorAll('[data-goto]').forEach(btn => btn.addEventListener('click', () => switchGraphTab(btn.dataset.goto)));
     const t = data.traffic;
     lineChart('overviewChart', t.labels.slice(-30), [
-        area(T('Pages vues', 'Page views'), t.views.slice(-30), '#38bdf8'),
+        area(T('Pages vues', 'Page views'), t.views.slice(-30), '#717cf8'),
         area(T('Visiteurs uniques', 'Unique visitors'), t.uniques.slice(-30), '#a78bfa'),
     ]);
     document.getElementById('overviewSummary').textContent =
@@ -195,11 +194,11 @@ function sectionTraffic() {
 
         renderTraffic();
         const t = data.traffic;
-        lineChart('hourlyChart', [...Array(24).keys()].map(h => `${h}h`), [bars(T('Pages vues', 'Page views'), t.hourly, '#38bdf8')], { type: 'bar' });
+        lineChart('hourlyChart', [...Array(24).keys()].map(h => `${h}h`), [bars(T('Pages vues', 'Page views'), t.hourly, '#717cf8')], { type: 'bar' });
         const dev = t.devices, totalDev = Math.max(1, dev.mobile + dev.desktop);
         const langs = t.langs, totalLang = Math.max(1, (langs.fr || 0) + (langs.en || 0));
         document.getElementById('trafficSplits').innerHTML =
-            `<span>📱 ${HG.fmt(dev.mobile / totalDev * 100)} %</span><span>💻 ${HG.fmt(dev.desktop / totalDev * 100)} %</span>` +
+            `<span><svg width="14" height="14" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" data-px="phone"><path d="M2 0h5v1h-5zM2 1h1v1h-1zM6 1h1v1h-1zM2 2h1v1h-1zM6 2h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM2 5h1v1h-1zM6 5h1v1h-1zM2 6h5v1h-5zM2 7h2v1h-2zM5 7h2v1h-2zM2 8h5v1h-5z"/></svg> ${HG.fmt(dev.mobile / totalDev * 100)} %</span><span><svg width="14" height="14" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" data-px="desktop"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM0 5h9v1h-9zM3 6h3v1h-3zM2 7h5v1h-5z"/></svg> ${HG.fmt(dev.desktop / totalDev * 100)} %</span>` +
             `<span>FR ${HG.fmt((langs.fr || 0) / totalLang * 100)} %</span><span>EN ${HG.fmt((langs.en || 0) / totalLang * 100)} %</span>`;
 }
 
@@ -240,7 +239,7 @@ function sectionCommands() {
             [T('En messages privés', 'In direct messages'), HG.fmt(c.dm)],
             [T('Erreurs', 'Errors'), HG.fmt(c.failed), `${HG.fmt(c.failed_percent, 1)} %`, c.failed ? 'warn' : 'ok'],
         ]);
-        lineChart('commandsChart', c.labels, [bars(T('Commandes', 'Commands'), c.daily, '#38bdf8')], { type: 'bar' });
+        lineChart('commandsChart', c.labels, [bars(T('Commandes', 'Commands'), c.daily, '#717cf8')], { type: 'bar' });
         document.querySelector('#commandPerf tbody').innerHTML = c.perf.map(r => `<tr><td><code>${HG.esc(r.name)}</code></td>
             <td>${HG.fmt(r.count)}</td><td>${T('moy.', 'avg')} ${HG.fmt(r.avg_ms)} ms</td><td class="adm-muted">p95 ${HG.fmt(r.p95_ms)} ms</td>
             <td class="${r.failed ? 'adm-bad' : 'adm-muted'}">${HG.fmt(r.failed)} ${T('erreur(s)', 'error(s)')}</td></tr>`).join('')
@@ -276,7 +275,7 @@ function sectionCommunity() {
                 [T('Serveurs par membre', 'Servers per member'), HG.fmt(a.per_member, 2), `${HG.fmt(a.memberships)} ${T('appartenances sur', 'memberships on')} ${HG.fmt(a.servers)} ${T('serveurs', 'servers')}`],
             ]);
             lineChart('audienceChart', a.labels, [
-                area(T('Membres uniques', 'Unique members'), a.unique_daily, '#38bdf8'),
+                area(T('Membres uniques', 'Unique members'), a.unique_daily, '#717cf8'),
                 area(T('Déjà actifs', 'Already active'), a.known_daily, '#34d399'),
             ]);
         }
@@ -323,7 +322,7 @@ function sectionHealth() {
         const tiles = document.getElementById('healthStats');
         tiles.insertAdjacentHTML('beforeend', `<div class="adm-stat is-${ks[2]}"><span class="adm-stat-label">${T('Clé de session', 'Session key')}</span>
             <span class="adm-stat-value" style="font-size:1.05rem">${HG.esc(ks[0])}</span><span class="adm-stat-sub">${HG.esc(ks[1])}</span></div>`);
-        lineChart('statusChart', h.labels, [bars('404', h.s404, '#94a3b8'), bars('429', h.s429, '#fbbf24'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
+        lineChart('statusChart', h.labels, [bars('404', h.s404, '#a3a6b0'), bars('429', h.s429, '#fbbf24'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
 }
 
 const TAB_SECTIONS = {
@@ -346,7 +345,7 @@ function initTab(tabId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.color = '#a3a6b0';
     Chart.defaults.font.family = 'Arial, sans-serif';
     document.querySelectorAll('[data-range]').forEach(btn => btn.addEventListener('click', () => {
         trafficRange = parseInt(btn.dataset.range, 10);

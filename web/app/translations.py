@@ -1,7 +1,7 @@
 """Internationalization (i18n) module for Hourglass Web Application.
 
-Provides full dictionary-based translations for French (fr) and English (en)
-with automatic fallback to French if a translation key is missing.
+The keys are written here in French (fr) and English (en). The other site languages translate them in
+app/locales/<code>.json (see app/i18n.py); a key missing there falls back to English, then French.
 """
 
 from app.config import Config
@@ -72,7 +72,7 @@ TRANSLATIONS = {
         "privacy.title": "Hourglass - Politique de Confidentialité & RGPD",
         "privacy.heading": "Politique de Confidentialité & Protection des Données (RGPD)",
         "privacy.subtitle": "Transparence totale sur la collecte, l'utilisation et la suppression de vos données personnelles sur Hourglass.",
-        "privacy.last_updated": "Dernière mise à jour : 18 octobre 2026",
+        "privacy.last_updated": "Dernière mise à jour : 25 octobre 2026",
         "terms.title": "Hourglass - Conditions Générales d'Utilisation",
         "terms.heading": "Conditions Générales d'Utilisation",
         "terms.subtitle": "Règles d'utilisation du bot Discord et du dashboard web Hourglass.",
@@ -160,6 +160,7 @@ TRANSLATIONS = {
         "top.period_all": "Toujours",
         "top.hours_unit": "h",
         "top.msgs_unit": "msgs",
+        "top.users_unit": "membres",
         "top.no_users": "Aucun utilisateur trouvé pour ces critères de filtre.",
         "top.no_servers": "Aucun serveur trouvé pour ces critères de filtre.",
         "top.page_prev": "← Précédent",
@@ -347,8 +348,8 @@ TRANSLATIONS = {
         "supports.xp_curve_rate": "Progression quadratique",
         "supports.xp_curve_desc": "La formule de niveau est progressive : Niveau = √(XP / 100) + 1. Plus le niveau est élevé, plus le palier d'XP suivant est exigeant.",
         "supports.xp_badges_title": "Succès & Badges",
-        "supports.xp_badges_rate": "17 Badges uniques",
-        "supports.xp_badges_desc": "Débloquez des succès répartis en 4 raretés (Commun, Rare, Épique, Légendaire) selon vos heures, vos messages, votre ancienneté et vos classements.",
+        "supports.xp_badges_rate": "8 badges · 7 paliers",
+        "supports.xp_badges_desc": "Chaque badge (vocal, messages, niveau, classement, serveurs, fidélité, activité, polyvalence) monte en 7 paliers, de Bronze à Mythique, selon vos heures, vos messages, votre ancienneté et vos classements.",
         "supports.xp_card_title": "Carte de Profil Exportable",
         "supports.xp_card_rate": "SVG Vectoriel",
         "supports.xp_card_desc": "Générez et exportez votre carte de statistiques en format SVG vectoriel haute définition depuis votre profil pour vos partages Discord et README GitHub.",
@@ -428,10 +429,6 @@ TRANSLATIONS = {
         "profile.next_level_label": "Prochain niveau à {target} XP",
         "profile.badges_section_title": "Succès & Badges Débloqués",
         "profile.badges_unlocked_summary": "{unlocked} / {total} débloqués",
-        "profile.rarity_common": "Commun",
-        "profile.rarity_rare": "Rare",
-        "profile.rarity_epic": "Épique",
-        "profile.rarity_legendary": "Légendaire",
         "profile.locked_badge": "Verrouillé",
         "profile.export_card_btn": "Exporter ma Carte de Profil",
         "profile.export_modal_title": "Carte de Profil Hourglass",
@@ -484,7 +481,7 @@ TRANSLATIONS = {
         "versus.stat_level": "Niveau & Expérience",
         "versus.stat_activity_30d": "Activité (30 derniers jours)",
         "versus.stat_rank": "Classement global",
-        "versus.stat_badges": "Badges débloqués",
+        "versus.stat_badges": "Paliers de badges",
         "versus.stat_servers": "Nombre de serveurs",
         "versus.stat_members": "Membres actifs",
         "versus.stat_bot_since": "Suivi depuis",
@@ -497,7 +494,7 @@ TRANSLATIONS = {
         "versus.view_server": "Voir le serveur",
         "versus.no_data": "Sélectionnez deux adversaires valides pour lancer la comparaison.",
         "versus.common_servers_heading": "Serveurs en commun :",
-        "versus.all_servers_option": "🌐 Global (Tous les serveurs)",
+        "versus.all_servers_option": "Global (Tous les serveurs)",
         "versus.no_common_servers": "Aucun serveur en commun (statistiques globales)",
         "versus.server_duel_scope": "Duel sur le serveur : {server_name}",
         "versus.victory_singular": "victoire",
@@ -570,7 +567,7 @@ TRANSLATIONS = {
         "privacy.title": "Hourglass - Privacy Policy & GDPR",
         "privacy.heading": "Privacy Policy & Data Protection (GDPR)",
         "privacy.subtitle": "Full transparency on personal data collection, usage, and deletion on Hourglass.",
-        "privacy.last_updated": "Last updated: October 18, 2026",
+        "privacy.last_updated": "Last updated: October 25, 2026",
         "terms.title": "Hourglass - Terms of Service",
         "terms.heading": "Terms of Service",
         "terms.subtitle": "Rules and conditions for using Hourglass Discord Bot and Web Dashboard.",
@@ -658,6 +655,7 @@ TRANSLATIONS = {
         "top.period_all": "All time",
         "top.hours_unit": "h",
         "top.msgs_unit": "msgs",
+        "top.users_unit": "members",
         "top.no_users": "No users found matching these filter criteria.",
         "top.no_servers": "No servers found matching these filter criteria.",
         "top.page_prev": "← Previous",
@@ -845,8 +843,8 @@ TRANSLATIONS = {
         "supports.xp_curve_rate": "Quadratic Curve",
         "supports.xp_curve_desc": "The leveling formula is progressive: Level = √(XP / 100) + 1. Higher levels require progressively more XP to level up.",
         "supports.xp_badges_title": "Achievements & Badges",
-        "supports.xp_badges_rate": "17 Unique Badges",
-        "supports.xp_badges_desc": "Unlock badges across 4 rarities (Common, Rare, Epic, Legendary) based on your voice hours, messages, tenure, and leaderboard ranks.",
+        "supports.xp_badges_rate": "8 badges · 7 tiers",
+        "supports.xp_badges_desc": "Each badge (voice, messages, level, ranking, servers, loyalty, activity, versatility) levels up through 7 tiers, from Bronze to Mythic, based on your voice hours, messages, tenure and leaderboard ranks.",
         "supports.xp_card_title": "Exportable Profile Card",
         "supports.xp_card_rate": "Vector SVG",
         "supports.xp_card_desc": "Generate and export your personalized high-definition vector SVG stat card from your profile to share on Discord or embed in GitHub READMEs.",
@@ -926,10 +924,6 @@ TRANSLATIONS = {
         "profile.next_level_label": "Next level at {target} XP",
         "profile.badges_section_title": "Achievements & Badges",
         "profile.badges_unlocked_summary": "{unlocked} / {total} unlocked",
-        "profile.rarity_common": "Common",
-        "profile.rarity_rare": "Rare",
-        "profile.rarity_epic": "Epic",
-        "profile.rarity_legendary": "Legendary",
         "profile.locked_badge": "Locked",
         "profile.export_card_btn": "Export Stat Card",
         "profile.export_modal_title": "Hourglass Stat Card",
@@ -982,7 +976,7 @@ TRANSLATIONS = {
         "versus.stat_level": "Level & Experience",
         "versus.stat_activity_30d": "Activity (last 30 days)",
         "versus.stat_rank": "Global Rank",
-        "versus.stat_badges": "Unlocked Badges",
+        "versus.stat_badges": "Badge tiers",
         "versus.stat_servers": "Tracked Servers",
         "versus.stat_members": "Active Members",
         "versus.stat_bot_since": "Tracked Since",
@@ -995,7 +989,7 @@ TRANSLATIONS = {
         "versus.view_server": "View server",
         "versus.no_data": "Select two valid opponents to start the comparison.",
         "versus.common_servers_heading": "Shared servers:",
-        "versus.all_servers_option": "🌐 Global (All servers)",
+        "versus.all_servers_option": "Global (All servers)",
         "versus.no_common_servers": "No shared servers (global stats)",
         "versus.server_duel_scope": "Duel on server: {server_name}",
         "versus.victory_singular": "win",
@@ -1010,7 +1004,7 @@ TRANSLATIONS = {
 def get_text(key: str, lang: str = "fr", **kwargs) -> str:
     """Retrieve a localized string for the specified key and language.
 
-    Falls back to French if key is not found in the selected language,
+    Falls back to English (other languages), then French, if the key is not found in the selected language,
     and formats placeholders using kwargs.
     """
     if key == "footer.version":
@@ -1018,8 +1012,11 @@ def get_text(key: str, lang: str = "fr", **kwargs) -> str:
         ver, date = load_app_version()
         return f"version {ver} - {date}"
 
-    lang = lang if lang in TRANSLATIONS else "fr"
-    text = TRANSLATIONS.get(lang, {}).get(key)
+    if lang in TRANSLATIONS:
+        text = TRANSLATIONS[lang].get(key)
+    else:
+        from app.i18n import catalog
+        text = catalog(lang).get(key) or TRANSLATIONS["en"].get(key)
     if text is None:
         # Fallback to French
         text = TRANSLATIONS.get("fr", {}).get(key, key)

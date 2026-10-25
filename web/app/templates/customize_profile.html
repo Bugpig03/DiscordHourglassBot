@@ -1,7 +1,6 @@
 {% extends "base.html" %}
-{% set fr = current_lang == 'fr' %}
 
-{% block title %}{{ 'Personnaliser mon profil' if fr else 'Customize my profile' }} - Hourglass{% endblock %}
+{% block title %}{{tr('Personnaliser mon profil', 'Customize my profile')}} - Hourglass{% endblock %}
 
 {% macro switch(name, value, checked, label, desc=None) %}
 <label class="cz-switch-row">
@@ -20,23 +19,23 @@
 
 <div class="cz-head">
     <div>
-        <h1 class="cz-title">{{ 'Personnaliser mon profil' if fr else 'Customize my profile' }}</h1>
-        <p class="cz-sub">{{ 'Les changements apparaissent dans l’aperçu, puis sur ta page une fois enregistrés.' if fr else 'Changes show in the preview, then on your page once saved.' }}</p>
+        <h1 class="cz-title">{{tr('Personnaliser mon profil', 'Customize my profile')}}</h1>
+        <p class="cz-sub">{{tr('Les changements apparaissent dans l’aperçu, puis sur ta page une fois enregistrés.', 'Changes show in the preview, then on your page once saved.')}}</p>
     </div>
     {% if member %}
-    <a class="btn-hero-secondary" href="{{ url_for('user_profile.profile', username=current_user.id) }}">{{ 'Voir mon profil' if fr else 'View my profile' }}</a>
+    <a class="btn-hero-secondary" href="{{ url_for('user_profile.profile', username=current_user.id) }}">{{tr('Voir mon profil', 'View my profile')}}</a>
     {% endif %}
 </div>
 
 {% if saved == '1' %}
-<div class="cz-notice success" role="status">{{ 'Profil enregistré.' if fr else 'Profile saved.' }}</div>
+<div class="cz-notice success" role="status">{{tr('Profil enregistré.', 'Profile saved.')}}</div>
 {% elif saved == '0' %}
-<div class="cz-notice error" role="alert">{{ 'L’enregistrement a échoué, réessaie dans quelques instants.' if fr else 'Saving failed, please try again in a moment.' }}</div>
+<div class="cz-notice error" role="alert">{{tr('L’enregistrement a échoué, réessaie dans quelques instants.', 'Saving failed, please try again in a moment.')}}</div>
 {% endif %}
 
 {% if not member %}
 <div class="gray-box small-border-radius cz-empty">
-    {{ 'Hourglass ne t’a pas encore vu sur un serveur : ton profil apparaîtra dès que tu auras passé du temps en vocal ou envoyé des messages là où le bot est présent.' if fr else 'Hourglass has not seen you on a server yet: your profile will appear once you spend time in voice or send messages where the bot is present.' }}
+    {{tr('Hourglass ne t’a pas encore vu sur un serveur : ton profil apparaîtra dès que tu auras passé du temps en vocal ou envoyé des messages là où le bot est présent.', 'Hourglass has not seen you on a server yet: your profile will appear once you spend time in voice or send messages where the bot is present.')}}
 </div>
 {% else %}
 <div class="cz-layout">
@@ -44,21 +43,21 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div class="cz-tabs" role="tablist">
-            <button type="button" class="cz-tab active" role="tab" data-panel="appearance">{{ 'Apparence' if fr else 'Appearance' }}</button>
-            <button type="button" class="cz-tab" role="tab" data-panel="highlights">{{ 'Vitrine' if fr else 'Showcase' }}</button>
-            <button type="button" class="cz-tab" role="tab" data-panel="privacy">{{ 'Confidentialité' if fr else 'Privacy' }}</button>
+            <button type="button" class="cz-tab active" role="tab" data-panel="appearance">{{tr('Apparence', 'Appearance')}}</button>
+            <button type="button" class="cz-tab" role="tab" data-panel="highlights">{{tr('Vitrine', 'Showcase')}}</button>
+            <button type="button" class="cz-tab" role="tab" data-panel="privacy">{{tr('Confidentialité', 'Privacy')}}</button>
         </div>
 
         <!-- ============================ Apparence ============================ -->
         <section class="gray-box small-border-radius cz-panel" data-panel="appearance">
-            <p class="cz-panel-intro">{{ 'Trois réglages, visibles sur tout ton profil. L’aperçu à droite change en direct ; pense à enregistrer.' if fr else 'Three settings, visible across your whole profile. The preview on the right updates live; remember to save.' }}</p>
+            <p class="cz-panel-intro">{{tr('Trois réglages, visibles sur tout ton profil. L’aperçu à droite change en direct ; pense à enregistrer.', 'Three settings, visible across your whole profile. The preview on the right updates live; remember to save.')}}</p>
 
             <div class="cz-row">
                 <div class="cz-row-head cz-row-head-icon">
-                    <span class="cz-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>
+                    <span class="cz-row-icon"><svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="palette"><path d="M2 0h4v1h-4zM1 1h1v1h-1zM6 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM6 4h3v1h-3zM0 5h1v1h-1zM4 5h2v1h-2zM8 5h1v1h-1zM1 6h1v1h-1zM4 6h1v1h-1zM8 6h1v1h-1zM2 7h3v1h-3zM7 7h1v1h-1zM5 8h2v1h-2z"/></svg></span>
                     <div class="cz-row-text">
-                        <h2 class="cz-row-title">{{ 'Couleur du profil' if fr else 'Profile color' }}</h2>
-                        <p class="cz-row-desc">{{ 'Avatar, niveau, onglets, calendrier et graphiques.' if fr else 'Avatar, level, tabs, calendar and charts.' }}</p>
+                        <h2 class="cz-row-title">{{tr('Couleur du profil', 'Profile color')}}</h2>
+                        <p class="cz-row-desc">{{tr('Avatar, niveau, onglets, calendrier et graphiques.', 'Avatar, level, tabs, calendar and charts.')}}</p>
                     </div>
                     <span class="cz-current" data-current="accent_color">{{ current_accent }}</span>
                 </div>
@@ -71,8 +70,8 @@
                     </label>
                     {% endfor %}
                     {% if discord_accent %}
-                    <label class="swatch" data-tip="{{ 'Couleur de mon profil Discord' if fr else 'My Discord profile color' }}">
-                        <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" data-label="{{ 'Couleur Discord' if fr else 'Discord color' }}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
+                    <label class="swatch" data-tip="{{tr('Couleur de mon profil Discord', 'My Discord profile color')}}">
+                        <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" data-label="{{tr('Couleur Discord', 'Discord color')}}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
                         <span class="swatch-dot swatch-discord" style="background: {{ discord_accent }};"></span>
                         <span class="sr-only">Discord</span>
                     </label>
@@ -82,16 +81,16 @@
 
             <div class="cz-row">
                 <div class="cz-row-head cz-row-head-icon">
-                    <span class="cz-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></span>
+                    <span class="cz-row-icon"><svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="image"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h2v1h-2zM8 2h1v1h-1zM0 3h1v1h-1zM2 3h2v1h-2zM6 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM5 4h4v1h-4zM0 5h1v1h-1zM3 5h1v1h-1zM5 5h4v1h-4zM0 6h1v1h-1zM2 6h7v1h-7zM0 7h9v1h-9z"/></svg></span>
                     <div class="cz-row-text">
-                        <h2 class="cz-row-title">{{ 'Bannière' if fr else 'Banner' }}</h2>
-                        <p class="cz-row-desc">{{ 'Image affichée en haut de ton profil. Aucune par défaut.' if fr else 'Picture shown at the top of your profile. None by default.' }}</p>
+                        <h2 class="cz-row-title">{{tr('Bannière', 'Banner')}}</h2>
+                        <p class="cz-row-desc">{{tr('Image affichée en haut de ton profil. Aucune par défaut.', 'Picture shown at the top of your profile. None by default.')}}</p>
                     </div>
                     <span class="cz-current" data-current="banner">{{ current_banner }}</span>
                 </div>
                 <div class="cz-segmented">
-                    <label><input type="radio" name="banner_mode" value="none" data-label="{{ 'Aucune' if fr else 'None' }}" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{ 'Aucune' if fr else 'None' }}</span></label>
-                    <label><input type="radio" name="banner_mode" value="image" {% if theme.banner_mode == 'image' %}checked{% endif %}><span>{{ 'Image de la galerie' if fr else 'Gallery picture' }}</span></label>
+                    <label><input type="radio" name="banner_mode" value="none" data-label="{{tr('Aucune', 'None')}}" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{tr('Aucune', 'None')}}</span></label>
+                    <label><input type="radio" name="banner_mode" value="image" {% if theme.banner_mode == 'image' %}checked{% endif %}><span>{{tr('Image de la galerie', 'Gallery picture')}}</span></label>
                 </div>
                 <div class="cz-gallery cz-gallery-banners {% if theme.banner_mode == 'image' %}open{% endif %}" id="bannerGallery">
                     {% for item in banner_gallery %}
@@ -106,18 +105,18 @@
 
             <div class="cz-row">
                 <div class="cz-row-head cz-row-head-icon">
-                    <span class="cz-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/></svg></span>
+                    <span class="cz-row-icon"><svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="panel"><path d="M0 0h9v1h-9zM0 1h9v1h-9zM0 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM0 7h9v1h-9z"/></svg></span>
                     <div class="cz-row-text">
-                        <h2 class="cz-row-title">{{ 'Fond de la page' if fr else 'Page background' }}</h2>
-                        <p class="cz-row-desc">{{ 'Couleur unie derrière toute ta page de profil.' if fr else 'Solid color behind your whole profile page.' }}</p>
+                        <h2 class="cz-row-title">{{tr('Fond de la page', 'Page background')}}</h2>
+                        <p class="cz-row-desc">{{tr('Couleur unie derrière toute ta page de profil.', 'Solid color behind your whole profile page.')}}</p>
                     </div>
                     <span class="cz-current" data-current="background_color">{{ current_background }}</span>
                 </div>
                 <div class="swatch-grid">
-                    <label class="swatch" data-tip="{{ 'Par défaut' if fr else 'Default' }}">
-                        <input type="radio" name="background_color" value="" data-hex="" data-label="{{ 'Par défaut' if fr else 'Default' }}" {% if not theme.background_color %}checked{% endif %}>
+                    <label class="swatch" data-tip="{{tr('Par défaut', 'Default')}}">
+                        <input type="radio" name="background_color" value="" data-hex="" data-label="{{tr('Par défaut', 'Default')}}" {% if not theme.background_color %}checked{% endif %}>
                         <span class="swatch-dot swatch-none"></span>
-                        <span class="sr-only">{{ 'Par défaut' if fr else 'Default' }}</span>
+                        <span class="sr-only">{{tr('Par défaut', 'Default')}}</span>
                     </label>
                     {% for color in background_colors %}
                     <label class="swatch" data-tip="{{ color.label }}">
@@ -132,14 +131,14 @@
 
         <!-- ============================= Vitrine ============================= -->
         <section class="gray-box small-border-radius cz-panel" data-panel="highlights">
-            <p class="cz-panel-intro">{{ 'Ta vitrine apparaît sous ton en-tête : c’est ta sélection personnelle.' if fr else 'Your showcase appears under your header: it is your personal selection.' }}</p>
+            <p class="cz-panel-intro">{{tr('Ta vitrine apparaît sous ton en-tête : c’est ta sélection personnelle.', 'Your showcase appears under your header: it is your personal selection.')}}</p>
             <div class="cz-row">
                 <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Serveur favori' if fr else 'Favorite server' }}</h2>
-                    <p class="cz-row-desc">{{ 'Affiché dans ta vitrine avec ton rang et ton temps vocal.' if fr else 'Shown in your showcase with your rank and voice time.' }}</p>
+                    <h2 class="cz-row-title">{{tr('Serveur favori', 'Favorite server')}}</h2>
+                    <p class="cz-row-desc">{{tr('Affiché dans ta vitrine avec ton rang et ton temps vocal.', 'Shown in your showcase with your rank and voice time.')}}</p>
                 </div>
                 <select name="favorite_server_id" id="favoriteServer" class="cz-select">
-                    <option value="" data-name="">{{ 'Aucun' if fr else 'None' }}</option>
+                    <option value="" data-name="">{{tr('Aucun', 'None')}}</option>
                     {% for srv in servers %}
                     <option value="{{ srv.server_id }}" data-name="{{ srv.server_name }}" data-avatar="{{ srv.avatar or url_for('static', filename='icons/server.png') }}" data-meta="#{{ srv.rank }} · {{ srv.time_spent | num(1) }} h" {% if settings.favorite_server_id == srv.server_id %}selected{% endif %}>{{ srv.server_name }} ({{ srv.time_spent | num(1) }} h)</option>
                     {% endfor %}
@@ -148,8 +147,8 @@
 
             <div class="cz-row" id="badgePicker" data-max="{{ max_badges }}">
                 <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Badges' }} <span class="cz-counter" data-counter></span></h2>
-                    <p class="cz-row-desc">{{ 'Choisis jusqu’à 3 badges. Sans choix, tes 3 plus rares sont affichés.' if fr else 'Pick up to 3 badges. Without a choice, your 3 rarest are shown.' }}</p>
+                    <h2 class="cz-row-title">{{ tr('Badges', 'Badges') }} <span class="cz-counter" data-counter></span></h2>
+                    <p class="cz-row-desc">{{tr('Choisis jusqu’à 3 badges. Sans choix, tes 3 plus hauts paliers sont affichés.', 'Pick up to 3 badges. Without a choice, your 3 highest tiers are shown.')}}</p>
                 </div>
                 {% if badges %}
                 <div class="cz-chips">
@@ -158,7 +157,7 @@
                         <input type="checkbox" name="featured_badges" value="{{ badge.id }}" {% if badge.id in settings.featured_badges %}checked{% endif %}>
                         <span class="cz-chip-body">
                             <span class="cz-chip-icon">{{ badge.icon | safe }}</span>
-                            <span class="cz-chip-name">{{ badge.name }}</span>
+                            <span class="cz-chip-name">{{ badge.name }} · {{ badge.tier_label }}</span>
                         </span>
                         {# Markup copied into the preview showcase #}
                         <template data-showcase>
@@ -166,7 +165,7 @@
                                 <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
                                 <span class="profile-showcase-text">
                                     <span class="profile-showcase-name">{{ badge.name }}</span>
-                                    <span class="profile-showcase-rarity">{{ t('profile.rarity_' ~ badge.rarity) }}</span>
+                                    <span class="profile-showcase-rarity">{{ badge.tier_label }}</span>
                                 </span>
                             </div>
                         </template>
@@ -174,14 +173,14 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="cz-row-desc">{{ 'Tu n’as pas encore débloqué de badge.' if fr else 'You have not unlocked any badge yet.' }}</p>
+                <p class="cz-row-desc">{{tr('Tu n’as pas encore débloqué de badge.', 'You have not unlocked any badge yet.')}}</p>
                 {% endif %}
             </div>
 
             <div class="cz-row" id="recordPicker" data-max="{{ max_records }}">
                 <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Records' }} <span class="cz-counter" data-counter></span></h2>
-                    <p class="cz-row-desc">{{ 'Jusqu’à 4 records. Sans choix, une sélection par défaut est affichée.' if fr else 'Up to 4 records. Without a choice, a default selection is shown.' }}</p>
+                    <h2 class="cz-row-title">{{ tr('Records', 'Records') }} <span class="cz-counter" data-counter></span></h2>
+                    <p class="cz-row-desc">{{tr('Jusqu’à 4 records. Sans choix, une sélection par défaut est affichée.', 'Up to 4 records. Without a choice, a default selection is shown.')}}</p>
                 </div>
                 {% if records %}
                 <div class="cz-list">
@@ -195,7 +194,7 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="cz-row-desc">{{ 'Pas encore assez d’activité pour établir des records.' if fr else 'Not enough activity yet to set records.' }}</p>
+                <p class="cz-row-desc">{{tr('Pas encore assez d’activité pour établir des records.', 'Not enough activity yet to set records.')}}</p>
                 {% endif %}
             </div>
         </section>
@@ -205,8 +204,8 @@
             <div class="cz-row">
                 <label class="cz-switch-row cz-switch-main">
                     <span class="cz-switch-text">
-                        <span class="cz-switch-label">{{ 'Profil privé' if fr else 'Private profile' }}</span>
-                        <span class="cz-switch-desc">{{ 'Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.' if fr else 'Visitors only see your header, level and totals. You stay visible in leaderboards, Versus and server pages.' }}</span>
+                        <span class="cz-switch-label">{{tr('Profil privé', 'Private profile')}}</span>
+                        <span class="cz-switch-desc">{{tr('Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.', 'Visitors only see your header, level and totals. You stay visible in leaderboards, Versus and server pages.')}}</span>
                     </span>
                     <input type="checkbox" class="cz-switch" name="layout_private" value="1" id="layoutPrivate" {% if layout.private %}checked{% endif %}>
                 </label>
@@ -214,14 +213,14 @@
 
             <div class="cz-row {% if layout.private %}is-disabled{% endif %}" id="layoutVisibility">
                 <div class="cz-row-head">
-                    <h2 class="cz-row-title">{{ 'Blocs visibles par les visiteurs' if fr else 'Blocks visible to visitors' }}</h2>
-                    <p class="cz-row-desc">{{ 'Tu vois toujours tous tes blocs ; les blocs masqués portent la mention « Masqué aux visiteurs ».' if fr else 'You always see all your blocks; hidden ones are tagged "Hidden from visitors".' }}</p>
+                    <h2 class="cz-row-title">{{tr('Blocs visibles par les visiteurs', 'Blocks visible to visitors')}}</h2>
+                    <p class="cz-row-desc">{{tr('Tu vois toujours tous tes blocs ; les blocs masqués portent la mention « Masqué aux visiteurs ».', 'You always see all your blocks; hidden ones are tagged "Hidden from visitors".')}}</p>
                 </div>
                 {% set hidden = settings.layout.hidden or [] %}
                 {% for group_label, keys in [
-                    ('En-tête et résumé' if fr else 'Header and summary', ['showcase', 'records']),
-                    ('Onglet Activité' if fr else 'Activity tab', ['streaks', 'heatmap', 'companions']),
-                    ('Autres onglets' if fr else 'Other tabs', ['tab_charts', 'tab_servers', 'tab_badges']),
+                    (tr('En-tête et résumé', 'Header and summary'), ['showcase', 'records']),
+                    (tr('Onglet Activité', 'Activity tab'), ['streaks', 'heatmap', 'companions']),
+                    (tr('Autres onglets', 'Other tabs'), ['tab_charts', 'tab_servers', 'tab_badges']),
                 ] %}
                 <div class="cz-group">
                     <div class="cz-group-title">{{ group_label }}</div>
@@ -232,14 +231,14 @@
         </section>
 
         <div class="cz-savebar">
-            <span class="cz-dirty" id="dirtyHint" hidden>{{ 'Modifications non enregistrées' if fr else 'Unsaved changes' }}</span>
-            <button type="submit" class="btn-customize-save">{{ 'Enregistrer' if fr else 'Save' }}</button>
+            <span class="cz-dirty" id="dirtyHint" hidden>{{tr('Modifications non enregistrées', 'Unsaved changes')}}</span>
+            <button type="submit" class="btn-customize-save">{{tr('Enregistrer', 'Save')}}</button>
         </div>
     </form>
 
     <!-- Live preview (same header as the profile page) -->
-    <aside class="cz-preview" aria-label="{{ 'Aperçu' if fr else 'Preview' }}">
-        <div class="cz-preview-label">{{ 'Aperçu' if fr else 'Preview' }}</div>
+    <aside class="cz-preview" aria-label="{{tr('Aperçu', 'Preview')}}">
+        <div class="cz-preview-label">{{tr('Aperçu', 'Preview')}}</div>
         <div id="profilePreview" class="profile-themed cz-preview-frame {% if theme.is_custom %}accent-custom{% endif %} {% if theme.background_hex %}has-backdrop{% endif %}"
              style="--accent: {{ theme.accent_hex }}; --accent-rgb: {{ theme.accent_rgb }};{% if theme.background_hex %} --backdrop-color: {{ theme.background_hex }};{% endif %}">
             <div class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}" style="margin: 0;">
@@ -253,7 +252,7 @@
                         </div>
                         <div class="profile-hero-info">
                             <div class="profile-hero-name cz-preview-name">{{ member.username or current_user.username }}</div>
-                            <div class="profile-hero-meta"><span class="profile-hero-title">{{ xp.title_fr if fr else xp.title_en }}</span></div>
+                            <div class="profile-hero-meta"><span class="profile-hero-title">{{ tr(xp.title_fr, xp.title_en) }}</span></div>
                         </div>
                     </div>
                     <div class="profile-level">
@@ -274,8 +273,8 @@
             <div class="profile-vitrine cz-preview-vitrine">
                 <div class="profile-vitrine-head">
                     <div class="profile-vitrine-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
-                        {{ 'Vitrine' if fr else 'Showcase' }}
+                        <svg width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="pin"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM2 3h5v1h-5zM1 4h7v1h-7zM0 5h9v1h-9zM4 6h1v1h-1zM4 7h1v1h-1zM4 8h1v1h-1z"/></svg>
+                        {{tr('Vitrine', 'Showcase')}}
                     </div>
                 </div>
                 <div class="profile-showcase" id="previewShowcase" data-auto="{{ showcase | map(attribute='id') | join(',') }}"></div>

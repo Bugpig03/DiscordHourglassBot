@@ -202,18 +202,18 @@ def _member_card(user_id: int, server_id: int | None) -> str:
         body += _tile(x, tiles_y, tw, 150, key, caption, value, color, vsize)
         x += tw + 20
 
-    # Showcase: the badges the member chose (or the rarest ones), large and rarity-colored
+    # Showcase: the badges the member chose (or the highest tiers), large and in their tier color
     if showcase:
         bw = (INNER - 2 * 20) / 3
         for i, badge in enumerate(showcase[:3]):
             x = M + i * (bw + 20)
-            color = d.RARITY.get(badge.get("rarity"), d.MUTED)
+            color = badge.get("color") or d.MUTED
             body += d.rect(x, badges_y, bw, 112, 24, color, 0.09, stroke=color, stroke_opacity=0.4)
             body += f'<circle cx="{x + 60}" cy="{badges_y + 56}" r="38" fill="{color}" fill-opacity="0.16"/>'
             body += d.icon(badge.get("svg_path", ""), x + 38, badges_y + 34, 44, color, 2.2)
             title, tsize = d.fit_text(badge.get("name", ""), bw - 130, 30, 800, 22)
             body += d.text(x + 114, badges_y + 52, title, tsize, 800, d.TEXT)
-            body += d.text(x + 114, badges_y + 86, (badge.get("rarity") or "").upper(), 22, 800, color, spacing=1.5)
+            body += d.text(x + 114, badges_y + 86, (badge.get("tier_label") or "").upper(), 22, 800, color, spacing=1.5)
 
     body += _footer(h)
     return d.document(W, h, body, theme["bg"], glow=None if banner else accent)

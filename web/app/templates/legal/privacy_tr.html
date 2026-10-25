@@ -1,0 +1,156 @@
+    <!-- 1. Introduction -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">1</span>
+            <span>Giriş ve veri sorumlusu</span>
+        </h2>
+        <p class="legal-text">
+            <strong>Hourglass</strong> projesi (“biz”, “bot”, “hizmet”), Discord toplulukları için bağımsız bir analiz ve oyunlaştırma hizmetidir. Bir Discord botu ve <code>hourglassbot.net</code> adresindeki etkileşimli bir web panelinden oluşur.
+        </p>
+        <p class="legal-text">
+            Kullanıcılarımızın gizliliğine ve yürürlükteki kurallara, özellikle <strong>Genel Veri Koruma Tüzüğü'ne (GDPR - AB Tüzüğü 2016/679)</strong> ve <strong>Discord Developer Terms of Service</strong> belgesine büyük önem veriyoruz.
+        </p>
+        <p class="legal-text">
+            <strong>Veri sorumlusu:</strong> SnoutLabs.<br>
+            <strong>Resmi iletişim ve destek:</strong> <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="legal-link">Hourglass resmi Discord sunucusu</a>.
+        </p>
+    </div>
+
+    <!-- 2. Collected data -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">2</span>
+            <span>Toplanan kişisel veriler ve veri en aza indirme</span>
+        </h2>
+        <p class="legal-text">
+            <em>Veri en aza indirme</em> ilkesine (GDPR madde 5.1.c) uygun olarak yalnızca oyunlaştırma, sıralamalar ve istatistikler için kesinlikle gerekli olan verileri işleriz:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Benzersiz Discord ID (<code>user_id</code>):</strong> Discord'un verdiği teknik kimlik; sayaçları profiline bağlamak için gereklidir.</li>
+            <li><strong>Discord kullanıcı adı ve avatarı:</strong> profillerde, sunucu sıralamalarında ve dışa aktarılan istatistik kartlarında gösterilir.</li>
+            <li><strong>Ses oturumları ve kanallar (<code>voice_sessions</code>):</strong> kanallara giriş ve çıkış saatleri (başlangıç, bitiş, hesaplanan süre), kanal ID'leri ve adları, ayrıca teknik varlık göstergeleri (ekran paylaşımı veya kamera açık, yalnızca evet/hayır olarak).</li>
+            <li><strong>Mesaj olayları (<code>message_events</code>):</strong> mesaj gönderildiğinde tarih, saat ve kanal ID'si; etkinlik eğrileri ve saat haritaları için.</li>
+            <li><strong>Canlı durum ve sunucu durumu:</strong> üye durumlarının toplu sayımı (çevrimiçi, boşta, rahatsız etmeyin, seste) <code>live_server_status</code> üzerinden.</li>
+            <li><strong>Sunucu meta verileri (<code>server_id</code>):</strong> yerel sıralamalar ve topluluk profilleri için sunucunun adı, kimliği ve simgesi.</li>
+        </ul>
+
+        <div class="legal-highlight-box positive">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('shield_check', 20, 'style="color: #34d399;"') }}
+                <span>ASLA toplamadığımız ve saklamadığımız veriler</span>
+            </div>
+            <ul class="legal-sublist">
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Mesaj içeriği yok:</strong> mesajların içeriğini asla okumaz, incelemez veya saklamayız. Yalnızca olayın zamanı ve kanal kimliği işlenir.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Ses kaydı yok:</strong> sesi asla kaydetmez, yayınlamaz veya dinlemeyiz. Yalnızca bağlantı saatleri hesaplanır.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Video veya ekran kaydı yok:</strong> kamera ve ekran paylaşımı yalnızca teknik evet/hayır durumu olarak kaydedilir.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Hassas veri yok:</strong> gerçek ad, e-posta adresi, şifre, IP adresi veya ödeme bilgisi yok.</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>Özel mesaj (DM) yok:</strong> bot yalnızca yetki verilen Discord sunucularında çalışır.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. Purposes & legal basis -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">3</span>
+            <span>İşlemenin amaçları ve hukuki dayanağı</span>
+        </h2>
+        <p class="legal-text">
+            Veriler yalnızca şu amaçlarla toplanır ve işlenir:
+        </p>
+        <ul class="legal-list">
+            <li>Deneyim puanlarını (XP), seviyeleri, rozetleri ve üye sıralamalarını hesaplamak.</li>
+            <li>Topluluğun etkinliğini kutlamak için sunucu yöneticilerine ve üyelerine herkese açık paneli sunmak.</li>
+            <li>SVG istatistik kartlarını dinamik olarak oluşturmak (<code>/stats</code>, <code>/allstats</code>, <code>/top</code> vb.).</li>
+        </ul>
+        <p class="legal-text">
+            <strong>Hukuki dayanak:</strong> işleme, sunucu yöneticilerinin istediği oyunlaştırma ve katılım araçlarını sunmaya yönelik <strong>meşru menfaate</strong> (GDPR madde 6.1.f) dayanır.
+        </p>
+    </div>
+
+    <!-- 4. Retention -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">4</span>
+            <span>Saklama süresi</span>
+        </h2>
+        <p class="legal-text">
+            İstatistikler, Hourglass ilgili Discord sunucularında bulunduğu sürece saklanır. Bot bir sunucudan ayrıldığında veya bir kullanıcı açıkça talep ettiğinde, ilgili kayıtlar silinir.
+        </p>
+    </div>
+
+    <!-- 5. Rights & deletion -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">5</span>
+            <span>GDPR hakların ve verilerin silinmesi (unutulma hakkı)</span>
+        </h2>
+        <p class="legal-text">
+            GDPR'ın 15 ila 22. maddelerine göre şu haklara sahipsin:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Erişim ve taşınabilirlik:</strong> hesabına bağlı istatistikleri görme ve dışa aktarma.</li>
+            <li><strong>Silme (“unutulma hakkı”):</strong> profilinin ve istatistiklerinin tamamen ve kalıcı olarak silinmesini isteme.</li>
+            <li><strong>İtiraz:</strong> botun gelecekteki ses saatlerini veya mesaj sayını kaydetmeyi bırakmasını isteme.</li>
+        </ul>
+
+        <div class="legal-highlight-box primary">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('alert', 20, 'style="color: #717cf8;"') }}
+                <span>Verilerinin silinmesini nasıl istersin?</span>
+            </div>
+            <p class="legal-text" style="margin-bottom: 12px;">
+                Hesabını korumak ve istatistiklerinin izinsiz kişilerce silinmesini önlemek için tüm silme taleplerini Discord üzerinden doğrularız:
+            </p>
+            <div class="legal-steps">
+                <div class="legal-step-item">
+                    <div class="legal-step-num">1</div>
+                    <div class="legal-step-content">
+                        <strong>Hourglass'ın resmi destek sunucusuna katıl:</strong>
+                        <p><a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="btn-discord" style="display: inline-flex; margin: 8px 0;"><span>Discord desteğine katıl</span></a></p>
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">2</div>
+                    <div class="legal-step-content">
+                        <strong>Destek talebi aç:</strong> <code>#support</code> kanalına git veya yönetim ekibine talebini belirterek yaz (örneğin <em>“GDPR hesap ve veri silme talebi”</em>).
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">3</div>
+                    <div class="legal-step-content">
+                        <strong>Hızlı işlem:</strong> talebin <strong>72 saat</strong> içinde yerine getirilir (GDPR'ın 30 günlük yasal süresinden çok daha hızlı). Kullanıcı ve istatistik tablolarındaki tüm ilgili satırlar kalıcı olarak silinir.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Cookies -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">6</span>
+            <span>Çerezler ve izleyiciler</span>
+        </h2>
+        <p class="legal-text">
+            Hourglass paneli gizliliğine saygı duyar:
+        </p>
+        <ul class="legal-list">
+            <li><strong>Reklam veya profil çıkarma çerezi yok.</strong></li>
+            <li><strong>Üçüncü taraf izleyici yok</strong> (Google Analytics veya sosyal ağ pikselleri gibi).</li>
+            <li><strong>Tek bir teknik çerez:</strong> <code>lang</code> çerezi (seçilen dilin kodu, örneğin <code>fr</code> veya <code>en</code>) dilini sayfadan sayfaya hatırlar. Bir dil seçmediğin sürece site, hiçbir şey kaydetmeden tarayıcının dilini kullanır. Avrupa yönergelerine (ePrivacy / GDPR) göre bu zorunlu çerez onay gerektirmez.</li>
+            <li><strong>Anonim ziyaret ölçümü (çerezsiz):</strong> sitenin nasıl kullanıldığını bilmek için (sayfa görüntülemeleri, günlük ziyaretçiler, gelinen sayfalar, cihaz türü, dil, aranan terimler) IP adresin ve tarayıcından, her gün değişen ve ertesi gün silinen rastgele bir anahtarla karıştırılmış bir parmak izi hesaplarız. IP adresin asla saklanmaz ve bir günden diğerine tanınman imkânsızdır. Parmak izleri 30 gün, toplu istatistikler 400 gün sonra silinir.</li>
+            <li><strong>Discord ile giriş:</strong> giriş yaptığında, hizmetin kullanımını takip etmek için ilk ve son giriş tarihlerini, giriş sayısını ve siteyi girişli kullandığın günleri kaydederiz. Bu veriler Discord ID'ne bağlıdır ve istediğinde diğer verilerinle birlikte silinir.</li>
+        </ul>
+    </div>
+
+    <!-- 7. Security -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">7</span>
+            <span>Güvenlik ve altyapı</span>
+        </h2>
+        <p class="legal-text">
+            Veriler Avrupa Birliği'nde, sıkı erişim denetimleri, güvenlik duvarları ve güçlü kimlik doğrulamayla korunan bir PostgreSQL altyapısında barındırılır. Web trafiği HTTPS / SSL ile uçtan uca şifrelenir.
+        </p>
+    </div>

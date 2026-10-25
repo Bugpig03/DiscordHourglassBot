@@ -25,7 +25,6 @@ function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, gro
     let searchTimer = null;
     let selectedIndex = -1;
     let currentResults = [];
-    const isEn = document.documentElement.lang === 'en' || PAGE_CFG.current_lang === 'en';
 
     function updateClearBtn() {
         if (clearBtn) {
@@ -107,12 +106,12 @@ function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, gro
                 openDropdown();
 
                 if (currentResults.length === 0) {
-                    const emptyLabel = isEn
-                        ? `No ${type} found for "${HG.esc(q)}"`
-                        : `Aucun ${type === 'users' ? 'utilisateur' : 'serveur'} trouvé pour « ${HG.esc(q)} »`;
+                    const emptyLabel = type === 'users'
+                        ? HG.tr('Aucun utilisateur trouvé pour « {q} »', 'No user found for "{q}"', { q: HG.esc(q) })
+                        : HG.tr('Aucun serveur trouvé pour « {q} »', 'No server found for "{q}"', { q: HG.esc(q) });
                     resultsContainer.innerHTML = `
                         <div class="search-empty-state" style="padding: 22px 14px;">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+                            <svg width="22" height="22" style="color: #72767d;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
                             <span>${emptyLabel}</span>
                         </div>
                     `;
@@ -120,19 +119,19 @@ function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, gro
                 }
 
                 const groupTitle = type === 'users'
-                    ? (isEn ? `Users (${currentResults.length})` : `Utilisateurs (${currentResults.length})`)
-                    : (isEn ? `Servers (${currentResults.length})` : `Serveurs (${currentResults.length})`);
+                    ? HG.tr('Utilisateurs ({n})', 'Users ({n})', { n: currentResults.length })
+                    : HG.tr('Serveurs ({n})', 'Servers ({n})', { n: currentResults.length });
 
                 let html = `<div class="search-group-title">${groupTitle}</div>`;
                 currentResults.forEach((item, i) => {
                     const avatar = item.avatar || (type === 'users' ? '/static/images/base_avatar_big.png' : '/static/icons/server.png');
                     const name = type === 'users' ? item.username : item.servername;
                     const sub = type === 'users'
-                        ? (isEn ? 'User Profile' : 'Profil Utilisateur')
+                        ? HG.tr('Profil Utilisateur', 'User Profile')
                         : `ID: ${HG.esc(item.server_id)}`;
-                    const badge = isEn ? 'Select' : 'Choisir';
+                    const badge = HG.tr('Choisir', 'Select');
                     const lvl = (type === 'users' && item.level)
-                        ? `<span class="user-level-tag">${isEn ? 'Lv.' : 'Nv.'} ${HG.esc(item.level)}</span>`
+                        ? `<span class="user-level-tag">${HG.tr('Nv.', 'Lv.')} ${HG.esc(item.level)}</span>`
                         : '';
 
                     html += `
@@ -253,11 +252,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     label: chartData.name1,
                     data: chartData.data1,
-                    borderColor: '#38bdf8',
-                    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                    borderColor: '#717cf8',
+                    backgroundColor: 'rgba(113, 124, 248, 0.12)',
                     fill: true,
                     tension: 0.32,
-                    pointBackgroundColor: '#38bdf8',
+                    pointBackgroundColor: '#717cf8',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointRadius: 4,
@@ -291,16 +290,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 legend: {
                     position: 'top',
                     labels: {
-                        color: '#cbd5e1',
+                        color: '#d0d2d8',
                         font: { size: 13, weight: 'bold' },
                         usePointStyle: true,
                         padding: 16
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.94)',
+                    backgroundColor: 'rgba(24, 25, 29, 0.94)',
                     titleColor: '#ffffff',
-                    bodyColor: '#e2e8f0',
+                    bodyColor: '#e3e5e8',
                     borderColor: 'rgba(255, 255, 255, 0.12)',
                     borderWidth: 1,
                     padding: 12,
@@ -317,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     time: { unit: 'month' },
                     grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
                     ticks: {
-                        color: '#94a3b8',
+                        color: '#a3a6b0',
                         maxRotation: 0,
                         maxTicksLimit: 6,
                         autoSkip: true
@@ -327,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     beginAtZero: true,
                     grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
                     ticks: {
-                        color: '#94a3b8',
+                        color: '#a3a6b0',
                         maxTicksLimit: 6,
                         callback: function(val) { return val + ' ' + hoursUnit; }
                     }

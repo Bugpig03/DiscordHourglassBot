@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% set fr = current_lang == 'fr' %}
 
 {% block title %}{{ t('graphs.title') }}{% endblock %}
 
@@ -25,31 +24,31 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
 
 <div class="an-head">
-    <h1 class="an-title">{{ 'Analyses' if fr else 'Analytics' }}</h1>
-    <p class="an-sub">{{ 'L’activité de toute la communauté Hourglass, tous serveurs confondus.' if fr else 'Activity of the whole Hourglass community, across all servers.' }}</p>
+    <h1 class="an-title" data-ghost="30J">{{tr('Analyses', 'Analytics')}}</h1>
+    <p class="an-sub">{{tr('L’activité de toute la communauté Hourglass, tous serveurs confondus.', 'Activity of the whole Hourglass community, across all servers.')}}</p>
 </div>
 
 <!-- Last 30 days at a glance, compared with the 30 days before -->
 <div class="dashboard-kpi-grid an-kpis">
-    {{ kpi('hours', 'Vocal · 30 jours' if fr else 'Voice · 30 days', 'blue', 'icon-voice', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>') }}
-    {{ kpi('messages', 'Messages · 30 jours' if fr else 'Messages · 30 days', 'emerald', 'icon-messages', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>') }}
-    {{ kpi('members', 'Membres actifs · 30 jours' if fr else 'Active members · 30 days', 'violet', 'icon-users', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>') }}
-    {{ kpi('servers', 'Serveurs actifs · 30 jours' if fr else 'Active servers · 30 days', 'amber', 'icon-servers', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>') }}
+    {{ kpi('hours',tr('Vocal · 30 jours', 'Voice · 30 days'), 'blue', 'icon-voice', '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="mic"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM2 3h5v1h-5zM0 4h1v1h-1zM2 4h5v1h-5zM8 4h1v1h-1zM0 5h1v1h-1zM3 5h3v1h-3zM8 5h1v1h-1zM1 6h2v1h-2zM6 6h2v1h-2zM3 7h3v1h-3zM2 8h5v1h-5z"/></svg>') }}
+    {{ kpi('messages',tr('Messages · 30 jours', 'Messages · 30 days'), 'emerald', 'icon-messages', '<svg width="18" height="18" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>') }}
+    {{ kpi('members',tr('Membres actifs · 30 jours', 'Active members · 30 days'), 'violet', 'icon-users', '<svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>') }}
+    {{ kpi('servers',tr('Serveurs actifs · 30 jours', 'Active servers · 30 days'), 'amber', 'icon-servers', '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>') }}
 </div>
 
 <div class="graphs-tabs-wrapper">
     <div class="graphs-tabs" role="tablist">
         <button class="graphs-tab-btn active" data-tab="tab-trends" data-call="switchGraphTab" data-arg="tab-trends">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ 'Évolution' if fr else 'Over time' }}</span><small class="tab-desc">{{ 'Vocal et messages dans le temps' if fr else 'Voice and messages over time' }}</small></span>
+            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
+            <span class="tab-text"><span class="tab-title">{{tr('Évolution', 'Over time')}}</span><small class="tab-desc">{{tr('Vocal et messages dans le temps', 'Voice and messages over time')}}</small></span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-rhythm" data-call="switchGraphTab" data-arg="tab-rhythm">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ 'Horaires' if fr else 'Hours' }}</span><small class="tab-desc">{{ 'Présence et heures de pointe' if fr else 'Presence and peak hours' }}</small></span>
+            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
+            <span class="tab-text"><span class="tab-title">{{tr('Horaires', 'Hours')}}</span><small class="tab-desc">{{tr('Présence et heures de pointe', 'Presence and peak hours')}}</small></span>
         </button>
         <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ 'Communauté' if fr else 'Community' }}</span><small class="tab-desc">{{ 'Nouveaux membres et classements' if fr else 'New members and rankings' }}</small></span>
+            <svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
+            <span class="tab-text"><span class="tab-title">{{tr('Communauté', 'Community')}}</span><small class="tab-desc">{{tr('Nouveaux membres et classements', 'New members and rankings')}}</small></span>
         </button>
     </div>
 </div>
@@ -59,21 +58,21 @@
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
-                <h2 class="an-card-title">{{ 'Évolution de l’activité' if fr else 'Activity over time' }}</h2>
+                <h2 class="an-card-title">{{tr('Évolution de l’activité', 'Activity over time')}}</h2>
                 <p class="an-card-desc" id="trendsSummary">&nbsp;</p>
             </div>
             <div class="an-controls">
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Mesure' if fr else 'Metric' }}">
-                    <button type="button" class="granularity-btn active" data-trend="metric" data-value="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
-                    <button type="button" class="granularity-btn" data-trend="metric" data-value="messages">Messages</button>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Mesure', 'Metric')}}">
+                    <button type="button" class="granularity-btn active" data-trend="metric" data-value="hours">{{tr('Vocal', 'Voice')}}</button>
+                    <button type="button" class="granularity-btn" data-trend="metric" data-value="messages">{{ tr('Messages', 'Messages') }}</button>
                 </div>
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Période' if fr else 'Period' }}">
-                    <button type="button" class="granularity-btn active" data-trend="period" data-value="month">{{ 'Par mois' if fr else 'Monthly' }}</button>
-                    <button type="button" class="granularity-btn" data-trend="period" data-value="day">{{ '30 jours' if fr else '30 days' }}</button>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Période', 'Period')}}">
+                    <button type="button" class="granularity-btn active" data-trend="period" data-value="month">{{tr('Par mois', 'Monthly')}}</button>
+                    <button type="button" class="granularity-btn" data-trend="period" data-value="day">{{tr('30 jours', '30 days')}}</button>
                 </div>
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Affichage' if fr else 'Display' }}">
-                    <button type="button" class="granularity-btn active" data-trend="mode" data-value="period">{{ 'Par période' if fr else 'Per period' }}</button>
-                    <button type="button" class="granularity-btn" data-trend="mode" data-value="cumul">{{ 'Cumulé' if fr else 'Cumulative' }}</button>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Affichage', 'Display')}}">
+                    <button type="button" class="granularity-btn active" data-trend="mode" data-value="period">{{tr('Par période', 'Per period')}}</button>
+                    <button type="button" class="granularity-btn" data-trend="mode" data-value="cumul">{{tr('Cumulé', 'Cumulative')}}</button>
                 </div>
             </div>
         </div>
@@ -86,47 +85,47 @@
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
-                <h2 class="an-card-title">{{ 'Présence des membres' if fr else 'Member presence' }}</h2>
-                <p class="an-card-desc">{{ 'Combien de membres sont connectés à Discord, heure par heure.' if fr else 'How many members are connected to Discord, hour by hour.' }}</p>
+                <h2 class="an-card-title">{{tr('Présence des membres', 'Member presence')}}</h2>
+                <p class="an-card-desc">{{tr('Combien de membres sont connectés à Discord, heure par heure.', 'How many members are connected to Discord, hour by hour.')}}</p>
             </div>
             <div class="an-controls">
-                <span class="an-badge an-badge-green" id="badgePresence">{{ 'Connectés' if fr else 'Online' }} : --</span>
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Période' if fr else 'Period' }}">
+                <span class="an-badge an-badge-green" id="badgePresence">{{tr('Connectés', 'Online')}} : --</span>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Période', 'Period')}}">
                     <button type="button" class="granularity-btn" data-presence="48h">48 h</button>
-                    <button type="button" class="granularity-btn active" data-presence="7d">{{ '7 jours' if fr else '7 days' }}</button>
+                    <button type="button" class="granularity-btn active" data-presence="7d">{{tr('7 jours', '7 days')}}</button>
                 </div>
             </div>
         </div>
         <div class="an-chart an-chart-md">{{ loading() }}<canvas id="presenceChart"></canvas>
-            <p class="an-empty" id="presenceEmpty" hidden>{{ 'Pas de données de présence sur cette période (le bot n’a pas enregistré de relevé).' if fr else 'No presence data for this period (the bot recorded no snapshot).' }}</p>
+            <p class="an-empty" id="presenceEmpty" hidden>{{tr('Pas de données de présence sur cette période (le bot n’a pas enregistré de relevé).', 'No presence data for this period (the bot recorded no snapshot).')}}</p>
         </div>
     </section>
 
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
-                <h2 class="an-card-title">{{ 'Heures de pointe' if fr else 'Peak hours' }}</h2>
-                <p class="an-card-desc" id="peakDesc">{{ 'Nombre moyen de membres en vocal à chaque heure de la journée.' if fr else 'Average number of members in voice at each hour of the day.' }}</p>
+                <h2 class="an-card-title">{{tr('Heures de pointe', 'Peak hours')}}</h2>
+                <p class="an-card-desc" id="peakDesc">{{tr('Nombre moyen de membres en vocal à chaque heure de la journée.', 'Average number of members in voice at each hour of the day.')}}</p>
             </div>
             <div class="an-controls">
-                <span class="an-badge an-badge-blue" id="badgePeak">{{ 'Pic' if fr else 'Peak' }} : --</span>
-                <div class="granularity-toggle-group" role="group" aria-label="{{ 'Mesure' if fr else 'Metric' }}">
-                    <button type="button" class="granularity-btn active" data-peak="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
-                    <button type="button" class="granularity-btn" data-peak="messages">Messages</button>
+                <span class="an-badge an-badge-blue" id="badgePeak">{{tr('Pic', 'Peak')}} : --</span>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Mesure', 'Metric')}}">
+                    <button type="button" class="granularity-btn active" data-peak="hours">{{tr('Vocal', 'Voice')}}</button>
+                    <button type="button" class="granularity-btn" data-peak="messages">{{ tr('Messages', 'Messages') }}</button>
                 </div>
             </div>
         </div>
         <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
         <div class="an-punch-head">
-            <span class="an-subtitle" id="punchTitle">{{ 'Détail par jour de la semaine (vocal)' if fr else 'Detail per day of the week (voice)' }}</span>
+            <span class="an-subtitle" id="punchTitle">{{tr('Détail par jour de la semaine (vocal)', 'Detail per day of the week (voice)')}}</span>
             <span class="an-legend">
-                <span>{{ 'Calme' if fr else 'Quiet' }}</span>
+                <span>{{tr('Calme', 'Quiet')}}</span>
                 <i data-punch-legend="1"></i>
                 <i data-punch-legend="2"></i>
                 <i data-punch-legend="3"></i>
                 <i data-punch-legend="4"></i>
                 <i data-punch-legend="5"></i>
-                <span>{{ 'Très actif' if fr else 'Busiest' }}</span>
+                <span>{{tr('Très actif', 'Busiest')}}</span>
             </span>
         </div>
         <div class="an-punch">{{ loading() }}<div id="punchcardContent"></div></div>
@@ -138,8 +137,8 @@
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
-                <h2 class="an-card-title">{{ 'Nouveaux membres par mois' if fr else 'New members per month' }}</h2>
-                <p class="an-card-desc">{{ 'Membres vus pour la première fois par le bot.' if fr else 'Members seen by the bot for the first time.' }}</p>
+                <h2 class="an-card-title">{{tr('Nouveaux membres par mois', 'New members per month')}}</h2>
+                <p class="an-card-desc">{{tr('Membres vus pour la première fois par le bot.', 'Members seen by the bot for the first time.')}}</p>
             </div>
         </div>
         <div class="an-chart an-chart-md">{{ loading() }}<canvas id="growthChart"></canvas></div>
@@ -148,26 +147,26 @@
     <div class="an-grid-2">
         <section class="gray-box small-border-radius an-card" data-ranking="servers">
             <div class="an-card-head">
-                <h2 class="an-card-title">{{ 'Serveurs les plus actifs' if fr else 'Most active servers' }}</h2>
+                <h2 class="an-card-title">{{tr('Serveurs les plus actifs', 'Most active servers')}}</h2>
                 <div class="granularity-toggle-group" role="group">
-                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
-                    <button type="button" class="granularity-btn" data-rank-metric="messages">Messages</button>
+                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{tr('Vocal', 'Voice')}}</button>
+                    <button type="button" class="granularity-btn" data-rank-metric="messages">{{ tr('Messages', 'Messages') }}</button>
                 </div>
             </div>
             <ol class="an-rank" data-rank-list>{{ loading() }}</ol>
-            <a class="an-more" href="{{ url_for('top.top_servers') }}">{{ 'Voir tous les serveurs' if fr else 'See all servers' }} →</a>
+            <a class="an-more" href="{{ url_for('top.top_servers') }}">{{tr('Voir tous les serveurs', 'See all servers')}} →</a>
         </section>
 
         <section class="gray-box small-border-radius an-card" data-ranking="members">
             <div class="an-card-head">
-                <h2 class="an-card-title">{{ 'Membres les plus actifs' if fr else 'Most active members' }}</h2>
+                <h2 class="an-card-title">{{tr('Membres les plus actifs', 'Most active members')}}</h2>
                 <div class="granularity-toggle-group" role="group">
-                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{ 'Vocal' if fr else 'Voice' }}</button>
-                    <button type="button" class="granularity-btn" data-rank-metric="messages">Messages</button>
+                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{tr('Vocal', 'Voice')}}</button>
+                    <button type="button" class="granularity-btn" data-rank-metric="messages">{{ tr('Messages', 'Messages') }}</button>
                 </div>
             </div>
             <ol class="an-rank" data-rank-list>{{ loading() }}</ol>
-            <a class="an-more" href="{{ url_for('top.top_users') }}">{{ 'Voir le classement complet' if fr else 'See the full leaderboard' }} →</a>
+            <a class="an-more" href="{{ url_for('top.top_users') }}">{{tr('Voir le classement complet', 'See the full leaderboard')}} →</a>
         </section>
     </div>
 </div>

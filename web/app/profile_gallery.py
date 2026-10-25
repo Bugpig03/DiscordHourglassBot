@@ -5,6 +5,8 @@ Members can only pick from these keys: no upload, so nothing to moderate or stor
 
 from flask import url_for
 
+from app.i18n import tr
+
 # key: (label fr, label en)
 BANNERS = {
     "aurora": ("Aurore boréale", "Northern lights"),
@@ -57,6 +59,6 @@ def banner_url(key: str | None, thumb: bool = False) -> str | None:
 def gallery(items: dict, url_fn, lang: str) -> list[dict]:
     """Picker entries: key, label, thumbnail and full image URL."""
     return [
-        {"key": key, "label": fr if lang == "fr" else en, "thumb": url_fn(key, thumb=True), "url": url_fn(key)}
+        {"key": key, "label": tr(fr, en, lang), "thumb": url_fn(key, thumb=True), "url": url_fn(key)}
         for key, (fr, en) in items.items()
     ]

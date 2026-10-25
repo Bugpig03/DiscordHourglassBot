@@ -37,7 +37,6 @@ GOLD = "#fbbf24"
 SILVER = "#cbd5e1"
 BRONZE = "#f59e0b"
 WIN = "#34d399"
-RARITY = {"common": "#94a3b8", "rare": "#38bdf8", "epic": "#c084fc", "legendary": "#fbbf24"}
 SITE = "hourglassbot.net"
 
 

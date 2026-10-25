@@ -2,18 +2,17 @@
 {% macro pagination(current_page, total_pages) %}
 {% if total_pages > 1 %}
 {% set current_page = [[current_page, 1]|max, total_pages]|min %}
-{% set is_fr = current_lang == 'fr' %}
-<nav class="pager" aria-label="{{ 'Pagination' if is_fr else 'Pagination' }}"
+<nav class="pager" aria-label="{{tr('Pagination', 'Pagination')}}"
      {% if current_page > 1 %}data-prev="{{ page_url(current_page - 1) }}"{% endif %}
      {% if current_page < total_pages %}data-next="{{ page_url(current_page + 1) }}"{% endif %}>
     <div class="pager-pages">
         {% if current_page > 1 %}
-        <a class="pager-btn pager-arrow" href="{{ page_url(current_page - 1) }}" rel="prev" aria-label="{{ 'Page précédente' if is_fr else 'Previous page' }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        <a class="pager-btn pager-arrow" href="{{ page_url(current_page - 1) }}" rel="prev" aria-label="{{tr('Page précédente', 'Previous page')}}">
+            <svg width="16" height="16" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chevron_left"><path d="M6 0h2v1h-2zM5 1h2v1h-2zM4 2h2v1h-2zM3 3h2v1h-2zM2 4h2v1h-2zM3 5h2v1h-2zM4 6h2v1h-2zM5 7h2v1h-2zM6 8h2v1h-2z"/></svg>
         </a>
         {% else %}
         <span class="pager-btn pager-arrow is-disabled" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <svg width="16" height="16" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chevron_left"><path d="M6 0h2v1h-2zM5 1h2v1h-2zM4 2h2v1h-2zM3 3h2v1h-2zM2 4h2v1h-2zM3 5h2v1h-2zM4 6h2v1h-2zM5 7h2v1h-2zM6 8h2v1h-2z"/></svg>
         </span>
         {% endif %}
 
@@ -24,17 +23,17 @@
             <span class="pager-btn is-current" aria-current="page">{{ item }}</span>
             {% else %}
             <a class="pager-btn{% if (item - current_page)|abs > 1 and item != 1 and item != total_pages %} pager-far{% endif %}" href="{{ page_url(item) }}"
-               aria-label="{{ 'Page ' ~ item }}">{{ item }}</a>
+               aria-label="{{ tr('Page {n}', 'Page {n}', n=item) }}">{{ item }}</a>
             {% endif %}
         {% endfor %}
 
         {% if current_page < total_pages %}
-        <a class="pager-btn pager-arrow" href="{{ page_url(current_page + 1) }}" rel="next" aria-label="{{ 'Page suivante' if is_fr else 'Next page' }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        <a class="pager-btn pager-arrow" href="{{ page_url(current_page + 1) }}" rel="next" aria-label="{{tr('Page suivante', 'Next page')}}">
+            <svg width="16" height="16" aria-hidden="true" viewBox="-0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chevron_right"><path d="M1 0h2v1h-2zM2 1h2v1h-2zM3 2h2v1h-2zM4 3h2v1h-2zM5 4h2v1h-2zM4 5h2v1h-2zM3 6h2v1h-2zM2 7h2v1h-2zM1 8h2v1h-2z"/></svg>
         </a>
         {% else %}
         <span class="pager-btn pager-arrow is-disabled" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg width="16" height="16" aria-hidden="true" viewBox="-0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chevron_right"><path d="M1 0h2v1h-2zM2 1h2v1h-2zM3 2h2v1h-2zM4 3h2v1h-2zM5 4h2v1h-2zM4 5h2v1h-2zM3 6h2v1h-2zM2 7h2v1h-2zM1 8h2v1h-2z"/></svg>
         </span>
         {% endif %}
     </div>
@@ -45,7 +44,7 @@
         {% for key, value in request.args.items() if key != 'page' %}
         <input type="hidden" name="{{ key }}" value="{{ value }}">
         {% endfor %}
-        <label for="pagerJump">{{ 'Aller à' if is_fr else 'Go to' }}</label>
+        <label for="pagerJump">{{tr('Aller à', 'Go to')}}</label>
         <input id="pagerJump" type="number" name="page" min="1" max="{{ total_pages }}" inputmode="numeric" placeholder="{{ current_page }}">
         <span class="pager-total">/ {{ total_pages }}</span>
     </form>

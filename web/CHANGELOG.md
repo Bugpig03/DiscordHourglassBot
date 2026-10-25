@@ -1,5 +1,104 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.25.0 - Site en 12 Langues - 25/10/2026
+### Langues
+- **12 langues** : français, anglais, espagnol, portugais (Brésil), italien, allemand, polonais, turc, russe, hindi, japonais et coréen.
+  - Toutes les pages, onglets, graphiques, info-bulles, cartes au survol, badges, records, galerie de bannières et couleurs de profil sont traduits.
+  - La page Admin reste en français et en anglais (elle s'affiche en anglais dans les autres langues).
+- **Menu des langues** dans la barre de navigation : le drapeau de la langue actuelle ouvre la liste des 12 langues, chacune écrite dans sa propre langue, avec son drapeau en pixel art. Sur téléphone, c'est une ligne du menu qui s'ouvre sur place.
+- **Langue du navigateur** : un nouveau visiteur arrive dans la langue de son navigateur. Sans indication (moteurs de recherche, aperçus de liens), le site reste en français ; un navigateur qui ne demande que des langues absentes reçoit l'anglais. Un choix fait dans le menu est gardé comme avant (cookie `lang`).
+- **Nombres et dates dans le format de chaque langue** : 1.234,5 en allemand, 1,23,456 en hindi, « 25. Oktober 2026 », « 25 октября 2026 г. », « 2026年10月25日 »… Les jours de la semaine des grilles horaires et du calendrier d'activité suivent aussi la langue.
+- **Polices** : le russe, le hindi, le japonais et le coréen, que les polices Arène ne dessinent pas, utilisent la meilleure police système de chaque appareil ; pas d'espacement des lettres dans ces écritures.
+- **Pages Confidentialité et Conditions d'utilisation traduites** dans les 12 langues, avec la mention « en cas de différence, la version française fait foi ». La page Confidentialité explique maintenant la détection de la langue du navigateur (rien n'est enregistré).
+
+### Corrections
+- **Page Aide** : la carte des badges décrivait encore l'ancien système (17 badges, 4 raretés) ; elle présente les 8 badges et leurs 7 paliers.
+- **Page 404** et plusieurs infobulles (« Effacer », « Tous les serveurs »…) n'existaient qu'en français.
+- **Temps vocal total de l'accueil** : le séparateur des milliers était toujours celui du français.
+- **Date d'arrivée sur un profil** : elle restait en français dans les autres langues.
+- **Badges, onglet Badges** : un nom de badge long (allemand, russe…) poussait le palier hors de la carte sur téléphone ; le palier passe à la ligne.
+- Barre de navigation : en russe, les icônes des liens se masquent jusqu'à 1 420 px pour que tout tienne.
+
+### Technique
+- `app/i18n.py` : liste des langues, langue du visiteur, traductions `tr('Français', 'English')` et formats de nombres et de dates.
+- `app/locales/<langue>.json` : une traduction par langue ; `app/locales/_phrases.json` liste les phrases du site.
+- `scripts/i18n_extract.py` : repère les nouvelles phrases, indique ce qui manque à chaque langue (`todo <langue>`) et vérifie que chaque traduction garde ses `{valeurs}`.
+- `app/flags.py` : les 12 drapeaux en pixel art, dessinés sur une grille de 15 × 10.
+
+## Version 3.24.0 - Nouveau Thème « Arène », Progression au Classement & Cartes au Survol - 25/10/2026
+### Design
+- **Nouveau thème « Arène » sur tout le site**, choisi parmi les 3 pistes de la démo.
+  - Gris Discord à la place du bleu marine, accent blurple à la place du bleu ciel, sur les pages, les graphiques et les badges du site.
+  - Coins coupés et formes en biseau à la place des cartes arrondies en verre dépoli. Les avatars restent ronds.
+  - Polices Chakra Petch (titres, chiffres, onglets) et IBM Plex Sans (texte), hébergées sur le site : aucun appel à Google, accents français complets.
+  - Barre de navigation plate collée en haut, lien actif souligné.
+  - Classements : rangs en chiffres italiques or, argent et bronze, heures en étiquette blurple.
+- **Icônes en pixel art** sur tout le site, dessinées sur une grille de 9 × 9 comme le logo sablier : navigation (les icônes reviennent à côté des liens), onglets, boutons, tuiles, recherche, records et badges. Elles prennent la couleur du texte autour (et la couleur du membre sur son profil). Seuls le logo Discord et les drapeaux restent tels quels ; les cartes images du bot gardent leurs icônes.
+- **Logo Discord, drapeaux et image de serveur par défaut en pixel art** : le logo Discord (boutons de connexion et d'invitation, pied de page, page Aide), les drapeaux FR / EN et l'image affichée pour un serveur sans icône suivent le style des autres icônes.
+- **Plus d'emoji sur le site** : ceux du Versus (trophée, couronne, catégories du comparatif, graphique, épées), les croix de la page Confidentialité, mobile / ordinateur dans l'admin et les croix « retirer le filtre » deviennent des icônes pixel. Dans les graphiques, les noms de salons et la liste des serveurs du Versus, où une icône ne peut pas s'afficher, l'emoji est simplement retiré.
+- **Un peu moins uniforme** : sur l'accueil, la tuile du temps total en vocal est plus large que les trois autres, avec un chiffre plus grand.
+- **Plus de peps**
+  - **Une couleur par type de chiffre**, partout : vocal en blurple, messages en vert menthe (tuiles, étiquettes, courbes et calendriers), membres en violet, serveurs en corail, niveaux et XP en ambre, rang en or. Les icônes des tuiles passent sur un fond plein de leur couleur. Sur un profil, tout garde la couleur du membre.
+  - **Boutons « arcade »** : ombre dure sous les boutons principaux, le bouton s'enfonce quand on clique.
+  - **Grands chiffres en filigrane** derrière les titres (#1 sur Membres et Serveurs, 30J sur Analyses, 1V1 sur Versus, le rang d'un serveur, le niveau d'un membre), « 24/7 » dans l'accueil et 1, 2, 3 derrière les podiums.
+  - **Halos de couleur** très doux dans le fond de toutes les pages.
+  - **Podium dans les classements** : les lignes 1, 2 et 3 en or, argent et bronze, avatar du n°1 cerclé d'or avec un reflet.
+  - **Animations** : les chiffres clés défilent jusqu'à leur valeur à l'ouverture, les panneaux s'allument de leur couleur au survol, le point « en ligne » pulse. Coupé si l'appareil demande moins de mouvement.
+- **Petites touches**
+  - Le sablier du logo se retourne toutes les 6 secondes.
+  - Un reflet passe sur les badges Légende et Mythique de la vitrine et sur la 1re place des podiums.
+  - Écran de chargement en sablier, seulement quand une page met plus de 0,4 s à arriver.
+  - Les animations sont coupées si l'appareil demande moins de mouvement.
+- Les couleurs choisies par les membres pour leur profil ne changent pas.
+- Aucune déconnexion : la session n'est pas touchée.
+
+### Badges : nouveau système
+- **8 badges au lieu de 37.** Les anciens badges n'étaient que des paliers d'une même famille (Premiers Échos 1 h, Habitué du Micro 10 h… Maître de la Voix 1 000 h) : chaque famille devient un seul badge qui monte de niveau.
+  - Vocal, Messages, Niveau, Classement, Serveurs, Fidélité, Activité (vocal sur 30 jours) et Polyvalence (vocal + messages).
+- **7 paliers, reconnaissables à leur couleur** : Bronze, Argent, Or, Platine, Diamant, **Légende** (violet lumineux) et **Mythique**, holographique (reflets arc-en-ciel qui défilent sur le cadre, l'icône et le nom) et volontairement très difficile. Tous les badges ont les mêmes 7 paliers, donc une couleur veut dire la même difficulté partout.
+  - Vocal : 1, 10, 100, 500, 1 000, 2 500, 5 000 h · Messages : 25, 250, 1 000, 5 000, 10 000, 25 000, 50 000 · Niveau : 5, 10, 20, 30, 50, 70, 90 · Classement : Top 100, 50, 25, 10, 3, n°1, n°1 avec 5 000 h · Serveurs : 2, 3, 4, 6, 8, 12, 20 · Fidélité : 30, 60, 120, 250, 365, 730, 1 095 jours · Activité : 5, 15, 40, 80, 120, 200, 300 h sur 30 jours · Polyvalence : de 10 h + 100 messages à 2 500 h + 25 000 messages.
+- **Onglet Badges** : une échelle de 7 paliers par badge, le palier actuel affiché en couleur, la progression vers le suivant ; en haut, les paliers atteints sur 56 et combien de badges ont atteint chaque palier.
+- **Vitrine, Personnaliser, carte au survol, cartes du bot** : chaque badge s'affiche avec son palier (« Vocal · Diamant ») dans sa couleur. Sans choix, la vitrine montre les 3 plus hauts paliers.
+- **Versus** : la ligne « Badges débloqués » devient « Paliers de badges » (sur 56).
+- Les badges déjà mis en vitrine sont conservés : un ancien palier (par exemple « Voix d'Or ») devient automatiquement le badge de sa famille.
+
+### Classements
+- **Progression au classement** sur les pages Membres et Serveurs : ▲ places gagnées, ▼ places perdues, « = » même place, « NOUV. » pour une entrée dans le classement.
+  - Comparaison avec le même classement il y a 7 jours (la veille pour la période 24 h), calculée à partir des sessions vocales et des messages déjà enregistrés : aucune nouvelle table.
+  - Suit le tri choisi (vocal, messages, XP). Le rang affiché est maintenant le vrai rang, même pendant une recherche.
+- **Carte au survol** (souris uniquement) sur les membres et serveurs des classements et des podiums de l'accueil.
+  - Membre : niveau et titre, progression, rang global, vocal total et 30 jours, messages, badges de la vitrine (seulement si le membre ne l'a pas masquée), date de suivi. La carte prend la couleur de profil du membre.
+  - Serveur : rang, membres suivis, vocal total et 30 jours, messages, état du bot, membres en vocal, date de suivi.
+  - Données chargées à la demande (`/api/hover/user/<id>`, `/api/hover/server/<id>`), en cache 2 minutes.
+
+### Profil
+- **La couleur du membre s'applique à tout son profil** : onglets, boutons, interrupteurs de période, tuiles de statistiques, étiquettes d'heures, icônes et pastilles qui restaient en blurple.
+- **Nouvelle couleur par défaut : Blurple**, celle du site. Les profils jamais personnalisés passent automatiquement au blurple au premier démarrage (une seule fois). « Ciel », l'ancien défaut, reste disponible.
+- **Badges** : cadres d'icônes carrés (ils étaient encore arrondis).
+
+### Responsive
+- Revue de toutes les pages et de tous les onglets, connecté et déconnecté, de 320 px (petit téléphone) à 1920 px (grand écran) : 320, 375, 414, 600, 768, 1024, 1280, 1440 et 1920 px, plus le menu mobile, la recherche et les duels du Versus.
+  - Classements : colonne de rang compacte, avatars qui ne se déforment plus.
+  - Tuiles de statistiques : 2 par ligne sur téléphone au lieu d'une.
+  - Onglets et boutons de période : plus de lettres coupées par le biseau.
+  - Profil, onglet Serveurs fréquentés : le nom du serveur n'est plus écrasé.
+  - Analyses, Horaires : l'étiquette des connectés ne dépasse plus de l'écran.
+  - Versus : le choix Joueur / Serveur tient sur la largeur.
+  - Admin : les listes (membres et serveurs arrivés…) passent sur deux lignes au lieu de défiler de côté.
+  - Barre de navigation : elle n'est plus décalée de quelques pixels quand une barre de défilement est présente.
+  - Membres : la liste du filtre serveur passait sous les lignes du classement, qui apparaissaient à travers.
+  - Membres : le champ du filtre serveur dépassait du cadre des filtres sur ordinateur (il prenait toute la largeur en plus de son libellé). Quand la ligne est trop courte, il passe maintenant sur une deuxième ligne.
+  - Accueil sur petit téléphone (320 px) : les podiums dépassaient de l'écran ; le bouton « Voir tout » passe sous le titre quand la carte est étroite.
+  - Fiche serveur, salons les plus actifs : le graphique et la liste ne poussent plus la carte hors de l'écran sur téléphone.
+  - Barre de navigation entre 1025 et 1360 px : le bouton de compte, et surtout « Se connecter » pour un visiteur déconnecté, sortait de l'écran. Les liens se resserrent, puis les icônes des liens et le raccourci « Ctrl+K » se masquent, jusqu'à ce que tout tienne.
+  - Plus aucun texte sous 10 px, et sur téléphone les champs de recherche, liens de classement et boutons « voir plus » ont une zone de toucher d'au moins 36 px.
+  - Versus, duel de serveurs : le nombre de membres affichait « top.users_unit » au lieu de « membres » (traduction manquante, déjà présente avant cette version).
+
+### Finitions
+- **Fin des boutons « Autres sections »** en bas de chaque onglet (Analyses, profil, fiche serveur) : la barre d'onglets suffit.
+- **Contour continu sur les coins coupés** : la ligne de couleur d'une boîte (bordure, trait du haut des tuiles et des records) suit maintenant aussi la diagonale des coins, au lieu de s'arrêter net. Même couleur, même épaisseur, y compris au survol.
+- **Listes (membres, serveurs, membres d'un serveur, serveurs d'un profil)** : toute la ligne devient grise au survol (plus de petit cadre gris à l'intérieur), toute la ligne est cliquable et ouvre la carte d'aperçu.
+
 ## Version 3.23.1 - Connexion Stable entre les Pages & Onglets sans Texte Coupé - 24/10/2026
 ### Corrections
 - **Déconnexions aléatoires d'une page à l'autre** (apparues avec la v3.23.0).

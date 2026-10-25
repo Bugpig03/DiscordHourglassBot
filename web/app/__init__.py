@@ -10,6 +10,8 @@ from app.config import Config
 from app.database import init_app
 from app.security import init_security
 from app.translations import get_text
+from app.i18n import LANGUAGES, BY_CODE, WEEKDAYS_SHORT, current_lang, normalize_lang, tr, js_catalog, format_number as i18n_format_number
+from app.flags import flag_svg
 from app.routes.home import home_bp
 from app.routes.top import top_bp
 from app.routes.users import users_bp
@@ -17,6 +19,7 @@ from app.routes.user_profile import user_profile_bp
 from app.routes.server_profile import server_profile_bp
 from app.routes.graphs import graphs_bp
 from app.routes.api import api_bp
+from app.routes.hovercard import hovercard_bp
 from app.routes.cards import cards_bp
 from app.routes.versus import versus_bp
 from app.routes.customize import customize_bp
@@ -24,6 +27,7 @@ from app.routes.admin import admin_bp
 from app.analytics_tracking import init_tracking
 from app.admin import is_admin
 from app.profile_settings import ensure_table as ensure_profile_settings_table
+from app.pixel_icons import pixel_svg
 from app.auth import (
     auth_bp,
     get_current_user,
@@ -92,6 +96,14 @@ def create_app():
             session.permanent = True
 
     @app.after_request
+    def vary_on_language(response):
+        """Without a saved choice the language comes from the browser: caches must keep one copy per language."""
+        if response.mimetype == "text/html":
+            response.vary.add("Accept-Language")
+            response.vary.add("Cookie")
+        return response
+
+    @app.after_request
     def optimize_images(response):
         """Apply avatar downsizing and lazy-loading to HTML pages and JSON API payloads."""
         if response.direct_passthrough or response.status_code != 200:
@@ -129,6 +141,8 @@ def create_app():
         items.append(total)
         return items
 
+    app.jinja_env.globals['pixel_icon'] = pixel_svg  # {{ pixel_icon('mic', 18) }}: pixel-art icon
+
     def asset_version(filename: str) -> int:
         """Cache-busting token for a static file: changes whenever the file changes on disk."""
         try:
@@ -140,11 +154,16 @@ def create_app():
     def inject_i18n():
         """Inject current language, detected timezone, and translation helper into all templates."""
         from app.functions import get_user_timezone
-        lang = request.cookies.get("lang", "fr")
-        if lang not in ("fr", "en"):
-            lang = "fr"
+        lang = current_lang()
         return {
             "current_lang": lang,
+            "current_language": BY_CODE[lang],
+            "languages": LANGUAGES,
+            "flag_svg": flag_svg,
+            "tr": lambda fr, en, **kwargs: tr(fr, en, lang, **kwargs),
+            "js_i18n": js_catalog(lang),
+            # Activity calendar rows (Monday first): only Monday, Wednesday and Friday are labelled
+            "heatmap_weekdays": [day if i in (0, 2, 4) else "" for i, day in enumerate(WEEKDAYS_SHORT[lang])],
             "user_tz": get_user_timezone(),
             "app_version": Config.APP_VERSION,
             "asset_version": asset_version,
@@ -169,9 +188,8 @@ def create_app():
 
     @app.route("/set_language/<lang>")
     def set_language(lang):
-        """Set user language cookie (fr or en) and redirect back to previous page."""
-        if lang not in ("fr", "en"):
-            lang = "fr"
+        """Save the chosen language in a cookie and go back to the previous page."""
+        lang = normalize_lang(lang) or "fr"
         referrer = request.referrer or "/"
         response = redirect(referrer)
         response.set_cookie("lang", lang, max_age=365 * 24 * 3600, samesite="Lax")
@@ -196,16 +214,13 @@ def create_app():
 
     @app.template_filter("num")
     def format_number(value, decimals: int = 0):
-        """Locale-aware number: '1 826,8' in French, '1,826.8' in English (same output as HG.fmt in JS)."""
+        """Locale-aware number: '1 826,8' in French, '1,826.8' in English, '1.826,8' in German (same output as HG.fmt in JS)."""
         try:
             number = float(value or 0)
         except (ValueError, TypeError):
             return str(value)
-        formatted = f"{number:,.{decimals}f}"
-        if request.cookies.get("lang", "fr") == "en":
-            return formatted
-        # Narrow no-break space for thousands and comma for decimals, as Intl.NumberFormat('fr-FR') does
-        return formatted.replace(",", " ").replace(".", ",")
+        # Same separators as Intl.NumberFormat in the browser, for every site language
+        return i18n_format_number(number, decimals)
 
     @app.template_filter("thousands_fr")
     def thousands_fr(value):
@@ -225,28 +240,28 @@ def create_app():
     def filter_date_localized(dt):
         """Format a datetime into localized date based on current language cookie and user timezone."""
         from app.functions import format_date_localized
-        lang = request.cookies.get("lang", "fr")
+        lang = current_lang()
         return format_date_localized(dt, lang=lang)
 
     @app.template_filter("date_heure_localized")
     def filter_date_heure_localized(dt):
         """Format a datetime into localized date and time based on current language cookie and user timezone."""
         from app.functions import format_date_heure_localized
-        lang = request.cookies.get("lang", "fr")
+        lang = current_lang()
         return format_date_heure_localized(dt, lang=lang)
 
     @app.template_filter("date_fr")
     def filter_date_fr(dt):
         """Legacy filter alias redirecting to localized date formatter."""
         from app.functions import format_date_localized
-        lang = request.cookies.get("lang", "fr")
+        lang = current_lang()
         return format_date_localized(dt, lang=lang)
 
     @app.template_filter("date_heure_fr")
     def filter_date_heure_fr(dt):
         """Legacy filter alias redirecting to localized datetime formatter."""
         from app.functions import format_date_heure_localized
-        lang = request.cookies.get("lang", "fr")
+        lang = current_lang()
         return format_date_heure_localized(dt, lang=lang)
 
     @app.errorhandler(404)
@@ -262,6 +277,7 @@ def create_app():
     app.register_blueprint(server_profile_bp)
     app.register_blueprint(graphs_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(hovercard_bp)
     app.register_blueprint(cards_bp)
     app.register_blueprint(versus_bp)
     app.register_blueprint(customize_bp)

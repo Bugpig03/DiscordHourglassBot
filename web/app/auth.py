@@ -19,6 +19,7 @@ from app.database import Users, Stats
 from app.security import valid_csrf
 from app.profile_settings import remember_discord_identity
 from app.analytics_tracking import record_login
+from app.i18n import tr
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -272,13 +273,13 @@ def login():
     error_code = request.args.get("error")
     error_message = None
     if error_code in ("access_denied", "access-denied"):
-        error_message = "Connexion annulée : vous avez refusé l'autorisation sur Discord."
+        error_message = tr("Connexion annulée : vous avez refusé l'autorisation sur Discord.", "Login cancelled: you declined the authorization on Discord.")
     elif error_code == "invalid_state":
-        error_message = "La session de sécurité a expiré. Veuillez cliquer à nouveau pour vous connecter."
+        error_message = tr("La session de sécurité a expiré. Veuillez cliquer à nouveau pour vous connecter.", "The security session has expired. Please click again to log in.")
     elif error_code == "token_failed":
-        error_message = "Impossible de valider la session auprès de Discord. Veuillez réessayer."
+        error_message = tr("Impossible de valider la session auprès de Discord. Veuillez réessayer.", "Could not validate the session with Discord. Please try again.")
     elif error_code:
-        error_message = f"Erreur d'authentification Discord ({error_code})."
+        error_message = tr("Erreur d'authentification Discord ({code}).", "Discord authentication error ({code}).", code=error_code)
 
     return render_template(
         "login.html",

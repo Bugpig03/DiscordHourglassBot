@@ -3,6 +3,8 @@
 from datetime import datetime
 
 from app.database import Servers, VoiceSessions
+from app.pixel_icons import name_for_lucide, pixel_svg
+from app.i18n import day_month_year, format_number, month_year, tr
 from app.functions import (
     get_month_abbr,
     get_monthly_hours_diff,
@@ -13,7 +15,6 @@ from app.functions import (
 MAX_PINNED_RECORDS = 4
 DEFAULT_PINNED_RECORDS = ["longest_session", "best_month_voice", "best_month_messages", "top_companion"]
 MAX_FEATURED_BADGES = 3
-RARITY_ORDER = {"legendary": 4, "epic": 3, "rare": 2, "common": 1}
 
 _ICONS = {
     "clock": '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
@@ -42,6 +43,10 @@ RECORD_CATALOG = {
 
 
 def _svg(name: str) -> str:
+    """Record icon on the website: the pixel-art version of the drawing."""
+    pixel = name_for_lucide(_ICONS[name])
+    if pixel:
+        return str(pixel_svg(pixel, 18))
     return (
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" '
         f'stroke-linecap="round" stroke-linejoin="round">{_ICONS[name]}</svg>'
@@ -50,7 +55,7 @@ def _svg(name: str) -> str:
 
 def _month_label(month: str, lang: str) -> str:
     dt = datetime.strptime(month, "%Y-%m-%d")
-    return f"{get_month_abbr(dt.month, lang)} {dt.year}"
+    return month_year(dt.month, dt.year, lang)
 
 
 def _duration(seconds: int, lang: str) -> str:
@@ -89,13 +94,17 @@ def query_record_sources(user_id: int) -> dict:
 
 def build_records(sources: dict, stats: dict, heatmap: dict, companions: list, peak_voice_hour: str, lang: str) -> dict:
     """Every record the member has data for, keyed like RECORD_CATALOG (records without data are left out)."""
-    fr = lang == "fr"
     values: dict[str, dict] = {}
 
     longest = sources.get("longest")
     if longest:
         joined = to_user_timezone(longest["joined_at"])
-        sub = f"{joined.day} {get_month_abbr(joined.month, lang).lower()} {joined.year}" if joined else ""
+        if not joined:
+            sub = ""
+        elif lang == "fr":
+            sub = f"{joined.day} {get_month_abbr(joined.month, lang).lower()} {joined.year}"
+        else:
+            sub = day_month_year(joined.day, joined.month, joined.year, lang)
         if longest["server"]:
             sub = f"{sub} · {longest['server']}" if sub else longest["server"]
         values["longest_session"] = {"value": _duration(longest["seconds"], lang), "sub": sub}
@@ -107,8 +116,8 @@ def build_records(sources: dict, stats: dict, heatmap: dict, companions: list, p
     if heatmap and heatmap.get("max_streak"):
         streak = heatmap["max_streak"]
         values["max_streak"] = {
-            "value": streak, "unit": ("jour" if streak <= 1 else "jours") if fr else ("day" if streak == 1 else "days"),
-            "sub": "jours actifs d’affilée" if fr else "active days in a row",
+            "value": streak, "unit": tr("jour", "day", lang) if streak <= 1 else tr("jours", "days", lang),
+            "sub": tr("jours actifs d’affilée", "active days in a row", lang),
         }
 
     month = sources.get("best_month_voice")
@@ -117,28 +126,28 @@ def build_records(sources: dict, stats: dict, heatmap: dict, companions: list, p
 
     month = sources.get("best_month_messages")
     if month:
-        values["best_month_messages"] = {"value": month["messages_this_month"], "unit": "messages", "sub": _month_label(month["month"], lang)}
+        values["best_month_messages"] = {"value": month["messages_this_month"], "unit": tr("messages", "messages", lang), "sub": _month_label(month["month"], lang)}
 
     servers = stats.get("user_servers_stats") or []
     if servers and servers[0]["time_spent"] > 0:
         top = servers[0]
-        values["top_server"] = {"value": top["server_name"], "sub": f"{top['time_spent']} h · #{top['rank']}".replace(".", "," if fr else ".")}
+        values["top_server"] = {"value": top["server_name"], "sub": f"{format_number(top['time_spent'], 1, lang)} h · #{top['rank']}"}
 
     if companions:
         buddy = companions[0]
-        hours = f"{buddy['shared_hours']}".replace(".", "," if fr else ".")
-        values["top_companion"] = {"value": buddy["username"], "sub": f"{hours} h {'ensemble' if fr else 'together'}"}
+        hours = format_number(buddy["shared_hours"], 1, lang)
+        values["top_companion"] = {"value": buddy["username"], "sub": tr("{h} h ensemble", "{h} h together", lang, h=hours)}
 
     if peak_voice_hour and peak_voice_hour != "-":
-        values["peak_hour"] = {"value": peak_voice_hour, "sub": "créneau le plus actif" if fr else "most active time slot"}
+        values["peak_hour"] = {"value": peak_voice_hour, "sub": tr("créneau le plus actif", "most active time slot", lang)}
 
     if heatmap and heatmap.get("total_active_days"):
-        values["active_days"] = {"value": heatmap["total_active_days"], "unit": "/ 365", "sub": "jours avec de l’activité" if fr else "days with activity"}
+        values["active_days"] = {"value": heatmap["total_active_days"], "unit": "/ 365", "sub": tr("jours avec de l’activité", "days with activity", lang)}
 
     records = {}
     for key, (icon, label_fr, label_en) in RECORD_CATALOG.items():
         if key in values:
-            records[key] = {"key": key, "icon": _svg(icon), "label": label_fr if fr else label_en, "decimals": 0, "unit": "", **values[key]}
+            records[key] = {"key": key, "icon": _svg(icon), "label": tr(label_fr, label_en, lang), "decimals": 0, "unit": "", **values[key]}
     return records
 
 
@@ -149,11 +158,9 @@ def pinned_records(records: dict, chosen: list[str]) -> list[dict]:
 
 
 def featured_badges(badges: list[dict], chosen: list[str]) -> list[dict]:
-    """Badges of the showcase: the member's choice (still unlocked), or the rarest unlocked ones by default."""
+    """Badges of the showcase: the member's choice (still unlocked), or the highest tiers by default."""
     unlocked = [b for b in badges if b["unlocked"]]
     if chosen:
         by_id = {b["id"]: b for b in unlocked}
         return [by_id[i] for i in chosen if i in by_id][:MAX_FEATURED_BADGES]
-    # Later badges of a family are the harder ones: on equal rarity keep the last unlocked
-    ranked = sorted(enumerate(unlocked), key=lambda item: (RARITY_ORDER.get(item[1]["rarity"], 0), item[0]), reverse=True)
-    return [b for _, b in ranked[:MAX_FEATURED_BADGES]]
+    return sorted(unlocked, key=lambda b: b["tier"], reverse=True)[:MAX_FEATURED_BADGES]

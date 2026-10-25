@@ -12,12 +12,15 @@ from datetime import datetime, timezone
 from peewee import DatabaseError
 
 from app.database import db, UserProfileSettings
+from app.gamification import normalize_badge_ids
 from app.profile_gallery import BANNERS, banner_url as gallery_banner_url
 
 log = logging.getLogger(__name__)
 
-# Accent palette tuned for the dark theme (every color stays readable on #0f1722 cards)
+# Accent palette tuned for the dark theme (every color stays readable on #212329 cards).
+# Blurple, the accent of the site itself (Arène theme, v3.24.0), is the default.
 PALETTE = [
+    ("blurple", "#717cf8", "Blurple", "Blurple"),
     ("sky", "#38bdf8", "Ciel", "Sky"),
     ("indigo", "#818cf8", "Indigo", "Indigo"),
     ("violet", "#a78bfa", "Violet", "Violet"),
@@ -40,7 +43,8 @@ PALETTE = [
     ("silver", "#cbd5e1", "Argent", "Silver"),
 ]
 PALETTE_HEX = {key: hex_ for key, hex_, _, _ in PALETTE}
-DEFAULT_ACCENT = "sky"
+DEFAULT_ACCENT = "blurple"
+OLD_DEFAULT_ACCENT = "sky"  # default until v3.23
 DISCORD_ACCENT = "discord"  # the accent color of the member's Discord profile
 
 # image = picture from the gallery; none = no banner (the default). A banner is only shown when the member
@@ -111,6 +115,40 @@ def ensure_table() -> None:
                 db.execute_sql(f"ALTER TABLE user_profile_settings ADD COLUMN IF NOT EXISTS {column} {sql_type}")
     except DatabaseError as e:
         log.warning("user_profile_settings table unavailable or outdated, run the web migrations: %s", e)
+        return
+    _move_default_accent()
+
+
+def _move_default_accent() -> None:
+    """One-time switch of the untouched profiles from the old default color (sky) to blurple (v3.24.0).
+
+    A row is created for every member at their first Discord login, with the database default color, so
+    "sky" mostly means "never chose". Only rows where nothing else was customized either are moved; a member
+    who really picked sky keeps it in practice, and can pick it again anyway. The web_settings marker makes
+    it run once, by a single Gunicorn worker.
+    """
+    try:
+        with db.connection_context():
+            with db.atomic():
+                db.execute_sql("CREATE TABLE IF NOT EXISTS web_settings (key VARCHAR(64) PRIMARY KEY, value TEXT NOT NULL)")
+                db.execute_sql(f"ALTER TABLE user_profile_settings ALTER COLUMN accent_color SET DEFAULT '{DEFAULT_ACCENT}'")
+                first = db.execute_sql(
+                    "INSERT INTO web_settings (key, value) VALUES ('default_accent_blurple', NOW()::TEXT) "
+                    "ON CONFLICT (key) DO NOTHING RETURNING key"
+                ).fetchone()
+                if not first:
+                    return
+                cursor = db.execute_sql(
+                    "UPDATE user_profile_settings SET accent_color = %s "
+                    "WHERE accent_color = %s AND COALESCE(banner_mode, 'none') <> 'image' AND background_color IS NULL "
+                    "AND favorite_server_id IS NULL AND COALESCE(featured_badges, '[]') = '[]' "
+                    "AND COALESCE(pinned_records, '[]') = '[]' AND COALESCE(layout, '{}') IN ('{}', '')",
+                    (DEFAULT_ACCENT, OLD_DEFAULT_ACCENT),
+                )
+                log.info("Default profile color moved to %s on %s untouched profiles", DEFAULT_ACCENT, cursor.rowcount)
+    except DatabaseError as e:
+        _rollback()
+        log.warning("Could not move the untouched profiles to the new default color: %s", e)
 
 
 def get_profile_settings(user_id: int | str) -> dict:
@@ -131,7 +169,7 @@ def get_profile_settings(user_id: int | str) -> dict:
             "favorite_server_id": row.favorite_server_id,
             "banner_image": row.banner_image if row.banner_image in BANNERS else None,
             "background_color": row.background_color if row.background_color in BACKGROUND_HEX else None,
-            "featured_badges": _json_list(row.featured_badges),
+            "featured_badges": normalize_badge_ids(_json_list(row.featured_badges)),
             "pinned_records": _json_list(row.pinned_records),
             "layout": _json_dict(row.layout),
         })

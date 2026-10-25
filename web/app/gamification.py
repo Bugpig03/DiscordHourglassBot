@@ -3,6 +3,9 @@
 from datetime import datetime, timezone
 from typing import Any
 
+from app.i18n import format_number, tr
+from app.pixel_icons import pixel_svg
+
 
 def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict[str, Any]:
     """Calculate user XP, level, title, and progress percentage based on voice time and messages.
@@ -71,26 +74,14 @@ def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict
     }
 
 
-def _make_badge_svg(inner_svg: str) -> str:
-    """Wrap inner SVG paths into a normalized SVG icon string."""
-    return f'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{inner_svg}</svg>'
-
-
 def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[str, Any]]:
-    """Compute live user badges based on current statistics without modifying the database.
-    
-    Each badge contains:
-      - id: unique slug
-      - svg_path: inner SVG elements (paths, circles, polylines)
-      - icon: full standalone SVG string for HTML rendering
-      - name: localized name
-      - description: localized criteria
-      - rarity: 'common', 'rare', 'epic', 'legendary'
-      - unlocked: boolean
-      - current: current progression value
-      - target: required threshold
-      - progress_percent: completion percentage (0 to 100)
+    """The member's 8 badges, computed live from their statistics (nothing is stored).
+
+    One badge per family (voice, messages, level, ranking, servers, loyalty, monthly activity, versatility),
+    levelled up through 7 tiers: Bronze, Silver, Gold, Platinum, Diamond, Legend, Mythic. tier is 0 until the
+    first one is reached; the tier color is the badge color everywhere (see TIERS).
     """
+
     try:
         total_seconds = float(stats.get("total_seconds") or 0)
     except (ValueError, TypeError):
@@ -138,572 +129,234 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
             except Exception:
                 days_since_join = 0
 
-    is_fr = (lang == "fr")
-
-    raw_badges = [
-        # ===================================================================
-        # 1. Progression Vocale
-        # ===================================================================
-        {
-            "id": "voice_bronze",
-            "svg_path": '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
-            "rarity": "common",
-            "name": "Premiers Échos" if is_fr else "First Echoes",
-            "description": "Passer au moins 1 heure en vocal" if is_fr else "Spend at least 1 hour in voice",
-            "unlocked": total_hours >= 1.0,
-            "current": round(total_hours, 1),
-            "target": 1.0,
-            "unit": "h",
-        },
-        {
-            "id": "voice_silver",
-            "svg_path": '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
-            "rarity": "common",
-            "name": "Habitué du Micro" if is_fr else "Mic Regular",
-            "description": "Passer au moins 10 heures en vocal" if is_fr else "Spend at least 10 hours in voice",
-            "unlocked": total_hours >= 10.0,
-            "current": round(total_hours, 1),
-            "target": 10.0,
-            "unit": "h",
-        },
-        {
-            "id": "voice_gold",
-            "svg_path": '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19.1"/>',
-            "rarity": "rare",
-            "name": "Voix d'Or" if is_fr else "Golden Voice",
-            "description": "Passer au moins 50 heures en vocal" if is_fr else "Spend at least 50 hours in voice",
-            "unlocked": total_hours >= 50.0,
-            "current": round(total_hours, 1),
-            "target": 50.0,
-            "unit": "h",
-        },
-        {
-            "id": "voice_centurion",
-            "svg_path": '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 11v2"/><path d="M12 9v6"/><path d="M15 11v2"/>',
-            "rarity": "rare",
-            "name": "Centurion Vocal" if is_fr else "Vocal Centurion",
-            "description": "Atteindre 100 heures cumulées en salon vocal" if is_fr else "Accumulate 100 hours in voice channels",
-            "unlocked": total_hours >= 100.0,
-            "current": round(total_hours, 1),
-            "target": 100.0,
-            "unit": "h",
-        },
-        {
-            "id": "voice_diamond",
-            "svg_path": '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M11 3 8 9l4 12 4-12-3-6"/><path d="M2 9h20"/>',
-            "rarity": "epic",
-            "name": "Pilier Vocal" if is_fr else "Vocal Pillar",
-            "description": "Accumuler plus de 200 heures en vocal" if is_fr else "Accumulate over 200 hours in voice",
-            "unlocked": total_hours >= 200.0,
-            "current": round(total_hours, 1),
-            "target": 200.0,
-            "unit": "h",
-        },
-        {
-            "id": "voice_titan",
-            "svg_path": '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="m4.14 15 .76-1.55L8 10l3.86 7.72"/>',
-            "rarity": "epic",
-            "name": "Titan Vocal" if is_fr else "Voice Titan",
-            "description": "Dépasser le seuil titanesque des 500 heures en vocal" if is_fr else "Exceed 500 hours in voice channels",
-            "unlocked": total_hours >= 500.0,
-            "current": round(total_hours, 1),
-            "target": 500.0,
-            "unit": "h",
-        },
-        {
-            "id": "voice_legend",
-            "svg_path": '<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>',
-            "rarity": "legendary",
-            "name": "Maître de la Voix" if is_fr else "Voice Master",
-            "description": "Atteindre 1 000 heures en vocal" if is_fr else "Reach 1,000 hours in voice",
-            "unlocked": total_hours >= 1000.0,
-            "current": round(total_hours, 1),
-            "target": 1000.0,
-            "unit": "h",
-        },
-
-        # ===================================================================
-        # 2. Progression Messages & Textes
-        # ===================================================================
-        {
-            "id": "msg_novice",
-            "svg_path": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-            "rarity": "common",
-            "name": "Premiers Mots" if is_fr else "First Words",
-            "description": "Envoyer au moins 25 messages" if is_fr else "Send at least 25 messages",
-            "unlocked": total_messages >= 25,
-            "current": total_messages,
-            "target": 25,
-            "unit": "msgs",
-        },
-        {
-            "id": "msg_talkative",
-            "svg_path": '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
-            "rarity": "common",
-            "name": "Bavard" if is_fr else "Chatterbox",
-            "description": "Envoyer au moins 250 messages" if is_fr else "Send at least 250 messages",
-            "unlocked": total_messages >= 250,
-            "current": total_messages,
-            "target": 250,
-            "unit": "msgs",
-        },
-        {
-            "id": "msg_chronicler",
-            "svg_path": '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/>',
-            "rarity": "common",
-            "name": "Chroniqueur" if is_fr else "Chronicler",
-            "description": "Partager au moins 500 messages écrits" if is_fr else "Share at least 500 text messages",
-            "unlocked": total_messages >= 500,
-            "current": total_messages,
-            "target": 500,
-            "unit": "msgs",
-        },
-        {
-            "id": "msg_eloquent",
-            "svg_path": '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/>',
-            "rarity": "rare",
-            "name": "Éloquent" if is_fr else "Eloquent",
-            "description": "Envoyer au moins 1 000 messages" if is_fr else "Send at least 1,000 messages",
-            "unlocked": total_messages >= 1000,
-            "current": total_messages,
-            "target": 1000,
-            "unit": "msgs",
-        },
-        {
-            "id": "msg_typist",
-            "svg_path": '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"/>',
-            "rarity": "rare",
-            "name": "Dactylo d'Élite" if is_fr else "Elite Typist",
-            "description": "Écrire plus de 2 500 messages sur Discord" if is_fr else "Write over 2,500 messages on Discord",
-            "unlocked": total_messages >= 2500,
-            "current": total_messages,
-            "target": 2500,
-            "unit": "msgs",
-        },
-        {
-            "id": "msg_legend",
-            "svg_path": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="m13 7-3 4h4l-2 4"/>',
-            "rarity": "epic",
-            "name": "Légende du Clavier" if is_fr else "Keyboard Legend",
-            "description": "Envoyer au moins 5 000 messages" if is_fr else "Send at least 5,000 messages",
-            "unlocked": total_messages >= 5000,
-            "current": total_messages,
-            "target": 5000,
-            "unit": "msgs",
-        },
-        {
-            "id": "msg_overlord",
-            "svg_path": '<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/>',
-            "rarity": "legendary",
-            "name": "Seigneur des Textes" if is_fr else "Text Overlord",
-            "description": "Franchir le cap titanesque des 10 000 messages" if is_fr else "Surpass the colossal mark of 10,000 messages",
-            "unlocked": total_messages >= 10000,
-            "current": total_messages,
-            "target": 10000,
-            "unit": "msgs",
-        },
-
-        # ===================================================================
-        # 3. Paliers de Niveau & Expérience (XP)
-        # ===================================================================
-        {
-            "id": "level_5",
-            "svg_path": '<path d="M12 2v8"/><path d="m4.93 10.93 5.66-5.66"/><path d="M2 18h8"/><path d="M20 18c0-4.4-3.6-8-8-8s-8 3.6-8 8h16Z"/>',
-            "rarity": "common",
-            "name": "Initié" if is_fr else "Initiate",
-            "description": "Atteindre le niveau 5 Hourglass" if is_fr else "Reach Hourglass Level 5",
-            "unlocked": user_level >= 5,
-            "current": user_level,
-            "target": 5,
-            "unit": "lvl",
-        },
-        {
-            "id": "level_10",
-            "svg_path": '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-            "rarity": "rare",
-            "name": "Explorateur Émérite" if is_fr else "Proven Explorer",
-            "description": "Atteindre le niveau 10 Hourglass" if is_fr else "Reach Hourglass Level 10",
-            "unlocked": user_level >= 10,
-            "current": user_level,
-            "target": 10,
-            "unit": "lvl",
-        },
-        {
-            "id": "level_15",
-            "svg_path": '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
-            "rarity": "rare",
-            "name": "Aventurier Confirmé" if is_fr else "Seasoned Adventurer",
-            "description": "Atteindre le niveau 15 Hourglass" if is_fr else "Reach Hourglass Level 15",
-            "unlocked": user_level >= 15,
-            "current": user_level,
-            "target": 15,
-            "unit": "lvl",
-        },
-        {
-            "id": "level_20",
-            "svg_path": '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/>',
-            "rarity": "epic",
-            "name": "Vétéran Aguerri" if is_fr else "Seasoned Veteran",
-            "description": "Atteindre le niveau 20 Hourglass" if is_fr else "Reach Hourglass Level 20",
-            "unlocked": user_level >= 20,
-            "current": user_level,
-            "target": 20,
-            "unit": "lvl",
-        },
-        {
-            "id": "level_30",
-            "svg_path": '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-            "rarity": "epic",
-            "name": "Grand Maître" if is_fr else "Grandmaster",
-            "description": "Atteindre le niveau 30 Hourglass" if is_fr else "Reach Hourglass Level 30",
-            "unlocked": user_level >= 30,
-            "current": user_level,
-            "target": 30,
-            "unit": "lvl",
-        },
-        {
-            "id": "level_50",
-            "svg_path": '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 17v4"/><path d="M17 19h4"/>',
-            "rarity": "legendary",
-            "name": "Divinité d'Hourglass" if is_fr else "Hourglass Divinity",
-            "description": "Atteindre le niveau légendaire 50" if is_fr else "Reach the legendary Level 50",
-            "unlocked": user_level >= 50,
-            "current": user_level,
-            "target": 50,
-            "unit": "lvl",
-        },
-
-        # ===================================================================
-        # 4. Classement & Compétitivité
-        # ===================================================================
-        {
-            "id": "rank_podium",
-            "svg_path": '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8v4h8v-4h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
-            "rarity": "legendary",
-            "name": "Sur le Podium" if is_fr else "On the Podium",
-            "description": "Faire partie du Top 3 global Hourglass" if is_fr else "Rank in the global Top 3 of Hourglass",
-            "unlocked": (rank is not None and 1 <= rank <= 3),
-            "current": f"#{rank}" if rank else "-",
-            "target": "Top 3",
-            "unit": "",
-        },
-        {
-            "id": "rank_top10",
-            "svg_path": '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-            "rarity": "epic",
-            "name": "Élite du Top 10" if is_fr else "Top 10 Elite",
-            "description": "Atteindre le Top 10 des membres les plus actifs" if is_fr else "Reach the Top 10 of most active members",
-            "unlocked": (rank is not None and 1 <= rank <= 10),
-            "current": f"#{rank}" if rank else "-",
-            "target": "Top 10",
-            "unit": "",
-        },
-        {
-            "id": "rank_top50",
-            "svg_path": '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
-            "rarity": "rare",
-            "name": "Membre d'Élite" if is_fr else "Elite Member",
-            "description": "Faire partie du Top 50 global" if is_fr else "Rank in the global Top 50",
-            "unlocked": (rank is not None and 1 <= rank <= 50),
-            "current": f"#{rank}" if rank else "-",
-            "target": "Top 50",
-            "unit": "",
-        },
-
-        # ===================================================================
-        # 5. Serveurs & Exploration Sociale
-        # ===================================================================
-        {
-            "id": "social_explorer",
-            "svg_path": '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
-            "rarity": "common",
-            "name": "Explorateur" if is_fr else "Explorer",
-            "description": "Être actif sur au moins 2 serveurs différents" if is_fr else "Be active on at least 2 different servers",
-            "unlocked": server_count >= 2,
-            "current": server_count,
-            "target": 2,
-            "unit": "serveurs" if is_fr else "servers",
-        },
-        {
-            "id": "social_nomad",
-            "svg_path": '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
-            "rarity": "rare",
-            "name": "Nomade Discord" if is_fr else "Discord Nomad",
-            "description": "Voyager et participer sur au moins 3 serveurs" if is_fr else "Travel and participate on at least 3 servers",
-            "unlocked": server_count >= 3,
-            "current": server_count,
-            "target": 3,
-            "unit": "serveurs" if is_fr else "servers",
-        },
-        {
-            "id": "social_globetrotter",
-            "svg_path": '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
-            "rarity": "rare",
-            "name": "Citoyen du Monde" if is_fr else "Globetrotter",
-            "description": "Être présent et actif sur 4 serveurs ou plus" if is_fr else "Be active on 4 or more servers",
-            "unlocked": server_count >= 4,
-            "current": server_count,
-            "target": 4,
-            "unit": "serveurs" if is_fr else "servers",
-        },
-        {
-            "id": "social_ambassador",
-            "svg_path": '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
-            "rarity": "epic",
-            "name": "Ambassadeur" if is_fr else "Ambassador",
-            "description": "Tisser des liens sur 6 serveurs différents ou plus" if is_fr else "Connect across 6 or more different servers",
-            "unlocked": server_count >= 6,
-            "current": server_count,
-            "target": 6,
-            "unit": "serveurs" if is_fr else "servers",
-        },
-
-        # ===================================================================
-        # 6. Attachement & Fidélité
-        # ===================================================================
-        {
-            "id": "loyalty_member",
-            "svg_path": '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-            "rarity": "common",
-            "name": "Membre Titulaire" if is_fr else "Established Member",
-            "description": "Inscrit et suivi par Hourglass depuis plus de 30 jours" if is_fr else "Tracked by Hourglass for more than 30 days",
-            "unlocked": days_since_join >= 30,
-            "current": days_since_join,
-            "target": 30,
-            "unit": "j" if is_fr else "d",
-        },
-        {
-            "id": "loyalty_veteran",
-            "svg_path": '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
-            "rarity": "rare",
-            "name": "Fidèle Compagnon" if is_fr else "Faithful Companion",
-            "description": "Inscrit et suivi par Hourglass depuis plus de 60 jours" if is_fr else "Tracked by Hourglass for more than 60 days",
-            "unlocked": days_since_join >= 60,
-            "current": days_since_join,
-            "target": 60,
-            "unit": "j" if is_fr else "d",
-        },
-        {
-            "id": "loyalty_pioneer",
-            "svg_path": '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
-            "rarity": "epic",
-            "name": "Pionnier Hourglass" if is_fr else "Hourglass Pioneer",
-            "description": "Présent aux côtés d'Hourglass depuis plus de 120 jours" if is_fr else "Standing with Hourglass for over 120 days",
-            "unlocked": days_since_join >= 120,
-            "current": days_since_join,
-            "target": 120,
-            "unit": "j" if is_fr else "d",
-        },
-        {
-            "id": "loyalty_ancestor",
-            "svg_path": '<path d="M12 2a10 10 0 0 0-7.07 17.07l2.83-2.83a6 6 0 0 1 0-8.48l1.41-1.42"/><path d="M12 2a10 10 0 0 1 7.07 17.07l-2.83-2.83a6 6 0 0 0 0-8.48l-1.41-1.42"/><path d="M12 8v8"/><path d="m9 13 3 3 3-3"/>',
-            "rarity": "legendary",
-            "name": "Doyen de la Communauté" if is_fr else "Community Elder",
-            "description": "Membre légendaire suivi depuis plus de 250 jours" if is_fr else "Legendary member tracked for over 250 days",
-            "unlocked": days_since_join >= 250,
-            "current": days_since_join,
-            "target": 250,
-            "unit": "j" if is_fr else "d",
-        },
-
-        # ===================================================================
-        # 7. Dynamisme, Régularité & Polyvalence
-        # ===================================================================
-        {
-            "id": "activity_warmup",
-            "svg_path": '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-            "rarity": "common",
-            "name": "En Plein Échauffement" if is_fr else "Warming Up",
-            "description": "Passer au moins 5 heures en vocal ce mois-ci" if is_fr else "Spend at least 5 voice hours in the last 30 days",
-            "unlocked": last_30d_hours >= 5.0,
-            "current": round(last_30d_hours, 1),
-            "target": 5.0,
-            "unit": "h",
-        },
-        {
-            "id": "activity_hyperactive",
-            "svg_path": '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
-            "rarity": "rare",
-            "name": "Hyperactif" if is_fr else "Hyperactive",
-            "description": "Cumuler plus de 15 heures en vocal ce mois-ci" if is_fr else "Over 15 voice hours in the last 30 days",
-            "unlocked": last_30d_hours >= 15.0,
-            "current": round(last_30d_hours, 1),
-            "target": 15.0,
-            "unit": "h",
-        },
-        {
-            "id": "activity_monthly_champ",
-            "svg_path": '<circle cx="12" cy="8" r="6"/><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-4.182-3.137-4.182 3.137a.5.5 0 0 1-.81-.47l1.515-8.526"/>',
-            "rarity": "epic",
-            "name": "Champion du Mois" if is_fr else "Monthly Champion",
-            "description": "Totaliser plus de 40 heures de vocal au cours des 30 derniers jours" if is_fr else "Over 40 voice hours accumulated in the last 30 days",
-            "unlocked": last_30d_hours >= 40.0,
-            "current": round(last_30d_hours, 1),
-            "target": 40.0,
-            "unit": "h",
-        },
-        {
-            "id": "versatile",
-            "svg_path": '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
-            "rarity": "rare",
-            "name": "Polyvalent" if is_fr else "Versatile",
-            "description": "Au moins 10 heures en vocal ET 100 messages" if is_fr else "At least 10 hours in voice AND 100 messages",
-            "unlocked": (total_hours >= 10.0 and total_messages >= 100),
-            "current": f"{round(total_hours, 1)}h / {total_messages}m",
-            "target": "10h / 100m",
-            "unit": "",
-        },
-        {
-            "id": "hybrid_master",
-            "svg_path": '<path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/>',
-            "rarity": "epic",
-            "name": "Maître Hybride" if is_fr else "Hybrid Master",
-            "description": "Cumuler plus de 50 heures en vocal ET plus de 500 messages" if is_fr else "Accumulate over 50 voice hours AND over 500 messages",
-            "unlocked": (total_hours >= 50.0 and total_messages >= 500),
-            "current": f"{round(total_hours, 1)}h / {total_messages}m",
-            "target": "50h / 500m",
-            "unit": "",
-        },
-        {
-            "id": "all_rounder",
-            "svg_path": '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
-            "rarity": "legendary",
-            "name": "Virtuose Global" if is_fr else "All-Round Virtuoso",
-            "description": "Cumuler au total plus de 100 heures en vocal ET plus de 1 000 messages" if is_fr else "Accumulate over 100 voice hours AND over 1,000 messages",
-            "unlocked": (total_hours >= 100.0 and total_messages >= 1000),
-            "current": f"{round(total_hours, 1)}h / {total_messages}m",
-            "target": "100h / 1000m",
-            "unit": "",
-        },
-    ]
-
-    # Calculate completion percentage for progress bars and build SVG icons
-    for b in raw_badges:
-        b["icon"] = _make_badge_svg(b.get("svg_path", ""))
-        if b["unlocked"]:
-            b["progress_percent"] = 100.0
-        elif isinstance(b["current"], (int, float)) and isinstance(b["target"], (int, float)) and b["target"] > 0:
-            b["progress_percent"] = min(99.0, max(0.0, round((b["current"] / b["target"]) * 100, 1)))
-        else:
-            b["progress_percent"] = 0.0
-
-    return raw_badges
+    values = {
+        "voice": total_hours,
+        "messages": total_messages,
+        "level": user_level,
+        "rank": (rank, total_hours),
+        "servers": server_count,
+        "loyalty": days_since_join,
+        "activity": last_30d_hours,
+        "hybrid": (total_hours, total_messages),
+    }
+    return [_family_badge(definition, values[definition[0]], lang) for definition in BADGE_DEFS]
 
 
 # ------------------------------------------------------------------------------
-# Badges tab: families shown as ladders of tiers
+# Badges (v3.24.0): one badge per family, levelled up through 7 tiers shown by color
 # ------------------------------------------------------------------------------
-# (key, label fr, label en, badge ids in the order of the ladder: easiest first)
-BADGE_FAMILIES = [
-    ("voice", "Vocal", "Voice", ["voice_bronze", "voice_silver", "voice_gold", "voice_centurion", "voice_diamond", "voice_titan", "voice_legend"]),
-    ("messages", "Messages", "Messages", ["msg_novice", "msg_talkative", "msg_chronicler", "msg_eloquent", "msg_typist", "msg_legend", "msg_overlord"]),
-    ("level", "Niveau", "Level", ["level_5", "level_10", "level_15", "level_20", "level_30", "level_50"]),
-    ("rank", "Classement", "Ranking", ["rank_top50", "rank_top10", "rank_podium"]),
-    ("social", "Serveurs", "Servers", ["social_explorer", "social_nomad", "social_globetrotter", "social_ambassador"]),
-    ("loyalty", "Fidélité", "Loyalty", ["loyalty_member", "loyalty_veteran", "loyalty_pioneer", "loyalty_ancestor"]),
-    ("activity", "Activité du mois", "Monthly activity", ["activity_warmup", "activity_hyperactive", "activity_monthly_champ"]),
-    ("hybrid", "Polyvalence", "Versatility", ["versatile", "hybrid_master", "all_rounder"]),
+# (key, label fr, label en, color)
+TIERS = [
+    ("bronze", "Bronze", "Bronze", "#d08a4f"),
+    ("silver", "Argent", "Silver", "#c9ced6"),
+    ("gold", "Or", "Gold", "#f5c542"),
+    ("platinum", "Platine", "Platinum", "#4fd8c4"),
+    ("diamond", "Diamant", "Diamond", "#6fb6ff"),
+    ("legend", "Légende", "Legend", "#b07cff"),
+    ("mythic", "Mythique", "Mythic", "#ff8ad8"),  # holographic on the website (arene.css)
 ]
-RARITY_LABELS = {
-    "common": ("Commun", "Common"),
-    "rare": ("Rare", "Rare"),
-    "epic": ("Épique", "Epic"),
-    "legendary": ("Légendaire", "Legendary"),
+
+# Line drawings of the family icons, used by the bot cards (the website shows the pixel versions)
+_SVG = {
+    "headphones": '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+    "chat": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    "star": '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    "trophy": '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8v4h8v-4h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+    "globe": '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    "hourglass": '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+    "flame": '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+    "infinity": '<path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/>',
 }
+
+# (key, name fr, name en, what it measures fr, en, icon, kind, thresholds from Bronze to Mythic)
+BADGE_DEFS = [
+    ("voice", "Vocal", "Voice", "Temps passé en vocal", "Time spent in voice", "headphones", "hours", [1, 10, 100, 500, 1000, 2500, 5000]),
+    ("messages", "Messages", "Messages", "Messages envoyés", "Messages sent", "chat", "messages", [25, 250, 1000, 5000, 10000, 25000, 50000]),
+    ("level", "Niveau", "Level", "Niveau atteint", "Level reached", "star", "level", [5, 10, 20, 30, 50, 70, 90]),
+    ("rank", "Classement", "Ranking", "Place au classement vocal global", "Spot in the global voice ranking", "trophy", "rank", [100, 50, 25, 10, 3, 1, (1, 5000)]),
+    ("servers", "Serveurs", "Servers", "Serveurs fréquentés", "Servers joined", "globe", "servers", [2, 3, 4, 6, 8, 12, 20]),
+    ("loyalty", "Fidélité", "Loyalty", "Ancienneté depuis la première activité", "Time since the first activity", "hourglass", "days", [30, 60, 120, 250, 365, 730, 1095]),
+    ("activity", "Activité", "Activity", "Heures en vocal sur les 30 derniers jours", "Voice hours over the last 30 days", "flame", "hours30", [5, 15, 40, 80, 120, 200, 300]),
+    ("hybrid", "Polyvalence", "Versatility", "Vocal et messages à la fois", "Voice and messages together", "infinity", "hybrid",
+     [(10, 100), (50, 500), (100, 1000), (250, 2500), (500, 5000), (1000, 10000), (2500, 25000)]),
+]
+BADGE_IDS = [d[0] for d in BADGE_DEFS]
+
+# Badges saved in a showcase before v3.24.0 were single tiers: they now point to their family's badge
+_OLD_PREFIXES = (("voice_", "voice"), ("msg_", "messages"), ("level_", "level"), ("rank_", "rank"), ("social_", "servers"),
+                 ("loyalty_", "loyalty"), ("activity_", "activity"))
+_OLD_HYBRID = {"versatile", "hybrid_master", "all_rounder"}
+
+
+def normalize_badge_ids(ids: list[str]) -> list[str]:
+    """Current badge ids of a saved list (former tier ids mapped to their family), duplicates removed."""
+    out = []
+    for badge_id in ids or []:
+        if badge_id in BADGE_IDS:
+            key = badge_id
+        elif badge_id in _OLD_HYBRID:
+            key = "hybrid"
+        else:
+            key = next((fam for prefix, fam in _OLD_PREFIXES if badge_id.startswith(prefix)), None)
+        if key and key not in out:
+            out.append(key)
+    return out
 
 
 def _fmt_number(value, lang: str) -> str:
-    """1234.5 -> '1 234,5' (fr) / '1,234.5' (en); whole numbers lose their decimals."""
+    """1234.5 -> '1 234,5' (fr) / '1,234.5' (en) / '1.234,5' (de); whole numbers lose their decimals."""
     if isinstance(value, float) and value.is_integer():
         value = int(value)
-    if isinstance(value, int):
-        text = f"{value:,}"
+    return format_number(value, 0 if isinstance(value, int) else 1, lang)
+
+
+def _met(kind: str, value, threshold) -> bool:
+    if kind == "rank":
+        place, hours = threshold if isinstance(threshold, tuple) else (threshold, 0)
+        return isinstance(value[0], int) and value[0] <= place and value[1] >= hours
+    if kind == "hybrid":
+        return value[0] >= threshold[0] and value[1] >= threshold[1]
+    return (value or 0) >= threshold
+
+
+def _ratio(kind: str, value, threshold) -> float:
+    """How far the value is toward a threshold, 0 to 1."""
+    if kind == "rank":
+        place, hours = threshold if isinstance(threshold, tuple) else (threshold, 0)
+        if not isinstance(value[0], int) or value[0] <= 0:
+            return 0.0
+        return min(1.0, place / value[0], value[1] / hours if hours else 1.0)
+    if kind == "hybrid":
+        return min(value[0] / threshold[0], value[1] / threshold[1], 1.0)
+    return min(1.0, (value or 0) / threshold) if threshold else 0.0
+
+
+def _threshold_text(kind: str, threshold, lang: str) -> str:
+    """What a tier asks for, written for people: '500 h', 'Niveau 30', 'Top 10', '50 h + 500 messages'."""
+    if kind == "hours":
+        return f"{_fmt_number(threshold, lang)} h"
+    if kind == "hours30":
+        return tr("{n} h sur 30 j", "{n} h in 30 d", lang, n=_fmt_number(threshold, lang))
+    if kind == "messages":
+        return tr("{n} messages", "{n} messages", lang, n=_fmt_number(threshold, lang))
+    if kind == "level":
+        return tr("Niveau {n}", "Level {n}", lang, n=threshold)
+    if kind == "rank":
+        if isinstance(threshold, tuple):
+            return tr("N°1 + {n} h", "No. 1 + {n} h", lang, n=_fmt_number(threshold[1], lang))
+        return tr("N°1", "No. 1", lang) if threshold == 1 else tr("Top {n}", "Top {n}", lang, n=threshold)
+    if kind == "servers":
+        return tr("{n} serveurs", "{n} servers", lang, n=threshold)
+    if kind == "days":
+        return tr("{n} jours", "{n} days", lang, n=_fmt_number(threshold, lang))
+    return tr("{h} h + {m} messages", "{h} h + {m} messages", lang, h=_fmt_number(threshold[0], lang), m=_fmt_number(threshold[1], lang))
+
+
+def _current_text(kind: str, value, lang: str) -> str:
+    if kind in ("hours", "hours30"):
+        return f"{_fmt_number(round(value or 0, 1), lang)} h"
+    if kind == "messages":
+        return tr("{n} messages", "{n} messages", lang, n=_fmt_number(value or 0, lang))
+    if kind == "level":
+        return tr("Niveau {n}", "Level {n}", lang, n=value)
+    if kind == "rank":
+        return f"#{value[0]}" if isinstance(value[0], int) else tr("non classé", "unranked", lang)
+    if kind == "servers":
+        return tr("{n} serveurs", "{n} servers", lang, n=value)
+    if kind == "days":
+        return tr("{n} jours", "{n} days", lang, n=_fmt_number(value or 0, lang))
+    return tr("{h} h + {m} messages", "{h} h + {m} messages", lang, h=_fmt_number(round(value[0], 1), lang), m=_fmt_number(value[1], lang))
+
+
+def _family_badge(definition: tuple, value, lang: str) -> dict[str, Any]:
+    key, name_fr, name_en, what_fr, what_en, icon, kind, thresholds = definition
+    tier = 0
+    for threshold in thresholds:
+        if not _met(kind, value, threshold):
+            break
+        tier += 1
+    tiers = []
+    for i, threshold in enumerate(thresholds):
+        t_key, t_fr, t_en, color = TIERS[i]
+        state = "unlocked" if i < tier else "next" if i == tier else "locked"
+        tiers.append({
+            "key": t_key,
+            "label": tr(t_fr, t_en, lang),
+            "color": color,
+            "threshold": _threshold_text(kind, threshold, lang),
+            "state": state,
+            "progress_percent": 100.0 if state == "unlocked" else round(min(99.0, _ratio(kind, value, threshold) * 100), 1) if state == "next" else 0.0,
+        })
+    current = _current_text(kind, value, lang)
+    reached = tiers[tier - 1] if tier else None
+    nxt = tiers[tier] if tier < len(tiers) else None
+    if nxt:
+        goal = tr("Prochain palier : {tier} ({goal}).", "Next tier: {tier} ({goal}).", lang, tier=nxt["label"], goal=nxt["threshold"])
     else:
-        text = f"{value:,.1f}"
-    if lang == "fr":
-        text = text.replace(",", "\u202f").replace(".", ",")
-    return text
-
-
-def _badge_threshold(badge: dict, family: str, lang: str) -> str:
-    """What the tier asks for, written for people: '500 h', 'Niveau 30', 'Top 10', '50 h + 500 messages'."""
-    target, unit = badge["target"], badge.get("unit") or ""
-    if family == "level":
-        return f"{'Niveau' if lang == 'fr' else 'Level'} {target}"
-    if family == "hybrid" and isinstance(target, str):
-        hours, msgs = (part.strip() for part in target.split("/"))
-        return f"{hours[:-1]} h + {_fmt_number(int(msgs[:-1]), lang)} messages"
-    if isinstance(target, (int, float)):
-        unit = {"msgs": "messages", "j": "jours", "d": "days"}.get(unit, unit)
-        return f"{_fmt_number(target, lang)} {unit}".strip()
-    return str(target)
-
-
-def _badge_progress(badge: dict, family: str, lang: str) -> str:
-    """Progress line of the tier being worked on: '412 / 500 h', '#75 (Top 10 requis)'."""
-    current, target = badge["current"], badge["target"]
-    if family == "rank":
-        return f"{current} · {'objectif' if lang == 'fr' else 'goal'} {target}"
-    if family == "hybrid":
-        return str(current).replace("h /", " h ·").replace("m", " messages")
-    if family == "level":
-        return f"{'Niveau' if lang == 'fr' else 'Level'} {current} / {target}"
-    if isinstance(current, (int, float)) and isinstance(target, (int, float)):
-        unit = badge.get("unit") or ""
-        unit = "" if family == "level" else {"msgs": "messages", "j": "jours", "d": "days"}.get(unit, unit)
-        return f"{_fmt_number(current, lang)} / {_fmt_number(target, lang)} {unit}".strip()
-    return f"{current} / {target}"
+        goal = tr("Palier maximum atteint.", "Highest tier reached.", lang)
+    what = tr(what_fr, what_en, lang)
+    return {
+        "id": key,
+        "name": tr(name_fr, name_en, lang),
+        "what": what,
+        "description": tr("{what} : {current}. {goal}", "{what}: {current}. {goal}", lang, what=what, current=current, goal=goal),
+        "icon": str(pixel_svg(icon, 24)),
+        "svg_path": _SVG[icon],
+        "kind": kind,
+        "tier": tier,
+        "tier_count": len(tiers),
+        "tier_key": reached["key"] if reached else "locked",
+        "tier_label": reached["label"] if reached else tr("Verrouillé", "Locked", lang),
+        "color": reached["color"] if reached else "#72767d",
+        # rarity is the tier key, so the existing rarity-* classes and the bot cards color the badge
+        "rarity": reached["key"] if reached else "locked",
+        "unlocked": tier > 0,
+        "current": current,
+        "next_label": nxt["label"] if nxt else None,
+        "next_threshold": nxt["threshold"] if nxt else None,
+        "progress_percent": 100.0 if not nxt else nxt["progress_percent"],
+        "tiers": tiers,
+    }
 
 
 def build_badge_overview(badges: list[dict], lang: str = "fr") -> dict:
-    """Group badges into ladders: each tier is unlocked, next (the one being worked on) or locked."""
-    by_id = {b["id"]: b for b in badges}
-    fr = lang == "fr"
+    """Badges tab: one ladder of 7 tiers per badge, a summary and how many badges reached each tier."""
     families = []
-    for key, label_fr, label_en, ids in BADGE_FAMILIES:
-        tiers, next_found = [], False
-        for badge_id in ids:
-            badge = by_id.get(badge_id)
-            if not badge:
-                continue
-            if badge["unlocked"]:
-                state = "unlocked"
-            elif not next_found:
-                state, next_found = "next", True
-            else:
-                state = "locked"
-            tiers.append({
-                **badge,
-                "state": state,
-                "threshold": _badge_threshold(badge, key, lang),
-                "progress_text": _badge_progress(badge, key, lang) if state == "next" else "",
-            })
-        if tiers:
-            unlocked = sum(1 for t in tiers if t["state"] == "unlocked")
-            families.append({
-                "key": key,
-                "label": label_fr if fr else label_en,
-                "tiers": tiers,
-                "unlocked": unlocked,
-                "total": len(tiers),
-                "complete": unlocked == len(tiers),
-                "icon": tiers[-1]["icon"],
-            })
-
-    rarity = []
-    for r, (label_fr, label_en) in RARITY_LABELS.items():
-        of_rarity = [b for b in badges if b["rarity"] == r]
-        rarity.append({
-            "rarity": r,
-            "label": label_fr if fr else label_en,
-            "unlocked": sum(1 for b in of_rarity if b["unlocked"]),
-            "total": len(of_rarity),
+    for b in badges:
+        tiers = [{
+            **t,
+            "name": t["label"],
+            "rarity": t["key"],
+            "icon": b["icon"],
+            "description": tr("{badge} · {tier} : {goal}", "{badge} · {tier}: {goal}", lang, badge=b["name"], tier=t["label"], goal=t["threshold"]),
+            "progress_text": b["current"] if t["state"] == "next" else "",
+        } for t in b["tiers"]]
+        families.append({
+            "key": b["id"],
+            "label": b["name"],
+            "what": b["what"],
+            "tiers": tiers,
+            "unlocked": b["tier"],
+            "total": b["tier_count"],
+            "complete": b["tier"] == b["tier_count"],
+            "icon": b["icon"],
+            "tier_key": b["tier_key"],
+            "tier_label": b["tier_label"],
         })
-    unlocked = sum(1 for b in badges if b["unlocked"])
+    done = sum(b["tier"] for b in badges)
+    total = sum(b["tier_count"] for b in badges)
+    rarity = [{
+        "rarity": t_key,
+        "label": tr(t_fr, t_en, lang),
+        "unlocked": sum(1 for b in badges if b["tier"] > i),
+        "total": len(badges),
+    } for i, (t_key, t_fr, t_en, _) in enumerate(TIERS)]
     return {
         "families": families,
         "rarity": rarity,
-        "unlocked": unlocked,
+        "unlocked": sum(1 for b in badges if b["unlocked"]),
         "total": len(badges),
-        "percent": round(unlocked / len(badges) * 100) if badges else 0,
+        "tiers_done": done,
+        "tiers_total": total,
+        "percent": round(done / total * 100) if total else 0,
     }

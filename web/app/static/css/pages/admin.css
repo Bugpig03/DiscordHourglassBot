@@ -38,14 +38,14 @@
     gap: 3px;
     padding: 14px 16px;
     border-radius: 14px;
-    background: #15202e;
+    background: #212329;
     border: 1px solid rgba(255, 255, 255, 0.07);
 }
 .adm-stat.is-ok { border-color: rgba(34, 197, 94, 0.35); }
 .adm-stat.is-ko { border-color: rgba(239, 68, 68, 0.45); }
 .adm-stat.is-warn { border-color: rgba(251, 191, 36, 0.45); }
 .adm-stat-label {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -57,7 +57,7 @@
     font-weight: 800;
 }
 .adm-stat-sub {
-    color: #8b9bb0;
+    color: #9a9da7;
     font-size: 0.8rem;
 }
 
@@ -65,7 +65,7 @@
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    color: #cbd5e1;
+    color: #d0d2d8;
     font-size: 0.82rem;
     font-weight: 700;
 }
@@ -88,25 +88,25 @@
 .adm-table td {
     padding: 8px 10px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    color: #e2e8f0;
+    color: #e3e5e8;
     white-space: nowrap;
 }
 .adm-table tr:first-child td {
     border-top: none;
 }
 .adm-muted {
-    color: #8b9bb0 !important;
+    color: #9a9da7 !important;
 }
 .adm-user {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #f1f5f9;
+    color: #f2f3f5;
     font-weight: 600;
     text-decoration: none;
 }
 .adm-user:hover {
-    color: #38bdf8;
+    color: #717cf8;
 }
 .adm-user img {
     width: 24px;
@@ -122,9 +122,9 @@
     margin: 0 0 16px;
     padding: 12px 16px;
     border-radius: 12px;
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    color: #cbd5e1;
+    background: rgba(113, 124, 248, 0.08);
+    border: 1px solid rgba(113, 124, 248, 0.25);
+    color: #d0d2d8;
 }
 .adm-notice[hidden] {
     display: none;
@@ -158,10 +158,10 @@
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #8b9bb0;
+    color: #9a9da7;
 }
 .adm-search:focus-within {
-    border-color: rgba(56, 189, 248, 0.5);
+    border-color: rgba(113, 124, 248, 0.5);
 }
 .adm-search input {
     flex: 1;
@@ -169,7 +169,7 @@
     background: none;
     border: none;
     outline: none;
-    color: #e2e8f0;
+    color: #e3e5e8;
     font: inherit;
     font-size: 0.88rem;
 }
@@ -180,7 +180,7 @@
 }
 .adm-search-empty {
     margin: 6px 0 0;
-    color: #8b9bb0;
+    color: #9a9da7;
     font-size: 0.85rem;
     text-align: center;
 }
@@ -194,7 +194,7 @@
     text-decoration: none;
 }
 .adm-link:hover {
-    color: #38bdf8;
+    color: #717cf8;
     text-decoration: underline;
 }
 
@@ -204,7 +204,7 @@
     align-items: center;
     gap: 12px;
     margin: 30px 0 14px;
-    color: #e2e8f0;
+    color: #e3e5e8;
     font-size: 1.05rem;
     font-weight: 800;
 }
@@ -231,7 +231,7 @@
     gap: 4px;
     padding: 16px 18px;
     border-radius: 16px;
-    background: #15202e;
+    background: #212329;
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: inherit;
     font: inherit;
@@ -240,8 +240,8 @@
     transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
 }
 .adm-tile:hover {
-    border-color: rgba(56, 189, 248, 0.45);
-    background: #182536;
+    border-color: rgba(113, 124, 248, 0.45);
+    background: #222429;
     transform: translateY(-1px);
 }
 .adm-tile.is-ok { border-color: rgba(34, 197, 94, 0.35); }
@@ -255,7 +255,7 @@
 }
 .adm-tile-go {
     margin-top: 6px;
-    color: #38bdf8;
+    color: #717cf8;
     font-size: 0.78rem;
     font-weight: 700;
 }

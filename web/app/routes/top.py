@@ -25,6 +25,86 @@ PERIOD_MAP = {
     "1y": 365
 }
 
+# Rank movement (▲ / ▼ next to each row): the same ranking computed as it stood N days ago.
+# A period window is shifted back by N days; the all-time totals lose the activity of the last N days.
+MOVE_DAYS = {"24h": 1}
+DEFAULT_MOVE_DAYS = 7
+
+# Sort keys of each ranking, current and previous figures (the first value decides who is ranked at all)
+USER_SORT_KEYS = {
+    "hours": (("seconds", "messages"), ("prev_seconds", "prev_messages")),
+    "messages": (("messages", "seconds"), ("prev_messages", "prev_seconds")),
+    "xp": (("xp", "seconds", "messages"), ("prev_xp", "prev_seconds", "prev_messages")),
+}
+USER_SORT_KEYS["level"] = USER_SORT_KEYS["xp"]
+SERVER_SORT_KEYS = {
+    "hours": (("seconds",), ("prev_seconds",)),
+    "messages": (("messages",), ("prev_messages",)),
+}
+
+
+def move_days(period: str) -> int:
+    return MOVE_DAYS.get(period, DEFAULT_MOVE_DAYS)
+
+
+def _activity_maps(group_by: str, start: datetime, end: datetime | None, server_id: str = "all") -> tuple[dict, dict]:
+    """Voice seconds and messages per user or server (group_by "user_id" / "server_id") between start and end."""
+    v_key, m_key = getattr(VoiceSessions, group_by), getattr(MessageEvents, group_by)
+    voice_q = VoiceSessions.select(v_key, fn.COALESCE(fn.SUM(VoiceSessions.duration_seconds), 0).alias("sec")).where(VoiceSessions.joined_at >= start)
+    msg_q = MessageEvents.select(m_key, fn.COALESCE(fn.SUM(MessageEvents.count), 0).alias("msg")).where(MessageEvents.created_at >= start)
+    if end is not None:
+        voice_q = voice_q.where(VoiceSessions.joined_at < end)
+        msg_q = msg_q.where(MessageEvents.created_at < end)
+    if server_id != "all":
+        voice_q = voice_q.where(VoiceSessions.server_id == int(server_id))
+        msg_q = msg_q.where(MessageEvents.server_id == int(server_id))
+    voice = {getattr(r, group_by): int(r.sec or 0) for r in voice_q.group_by(v_key)}
+    msgs = {getattr(r, group_by): int(r.msg or 0) for r in msg_q.group_by(m_key)}
+    return voice, msgs
+
+
+def _add_previous(results: list[dict], key: str, period: str, server_id: str = "all") -> None:
+    """Fill prev_seconds / prev_messages: the figures of each row move_days() ago."""
+    search_day = PERIOD_MAP.get(period)
+    shift = move_days(period)
+    now = datetime.utcnow()
+    group_by = "user_id" if key == "user_id" else "server_id"
+    if search_day:
+        voice, msgs = _activity_maps(group_by, now - timedelta(days=search_day + shift), now - timedelta(days=shift), server_id)
+        for r in results:
+            rid = int(r[key])
+            r["prev_seconds"], r["prev_messages"] = voice.get(rid, 0), msgs.get(rid, 0)
+    else:
+        voice, msgs = _activity_maps(group_by, now - timedelta(days=shift), None, server_id)
+        for r in results:
+            rid = int(r[key])
+            r["prev_seconds"] = max(0, (r["seconds"] or 0) - voice.get(rid, 0))
+            r["prev_messages"] = max(0, (r["messages"] or 0) - msgs.get(rid, 0))
+
+
+def rank_with_moves(results: list[dict], sort_keys: tuple) -> list[dict]:
+    """Copies of the rows sorted by the current figures, with rank, move (places gained) and is_new.
+
+    The cached rows are shared between requests, so they are never modified here.
+    """
+    cur_keys, prev_keys = sort_keys
+    rows = sorted((dict(r) for r in results), key=lambda r: tuple(r.get(k) or 0 for k in cur_keys), reverse=True)
+    prev_order = sorted(
+        (r for r in rows if (r.get(prev_keys[0]) or 0) > 0),
+        key=lambda r: tuple(r.get(k) or 0 for k in prev_keys), reverse=True,
+    )
+    prev_rank = {id(r): i for i, r in enumerate(prev_order, 1)}
+    for i, r in enumerate(rows, 1):
+        r["rank"] = i
+        r["move"], r["is_new"] = 0, False
+        if (r.get(cur_keys[0]) or 0) <= 0:
+            continue
+        if id(r) in prev_rank:
+            r["move"] = prev_rank[id(r)] - i
+        else:
+            r["is_new"] = True
+    return rows
+
 
 @top_bp.route("/members", methods=["GET"])
 def top_users():
@@ -169,10 +249,12 @@ def _compute_user_ranking(period: str, server_id: str) -> list[dict]:
         ]
 
     # Compute XP and level for all users
+    _add_previous(results, "user_id", period, server_id)
     for r in results:
         xp_info = calculate_user_xp_and_level(r["seconds"], r["messages"])
         r["xp"] = xp_info["total_xp"]
         r["level"] = xp_info["level"]
+        r["prev_xp"] = calculate_user_xp_and_level(r["prev_seconds"], r["prev_messages"])["total_xp"]
 
     return results
 
@@ -192,21 +274,14 @@ def load_users() -> tuple[list[dict], int]:
     results = cache.get_or_set(
         ("members", period, server_id), RANKING_CACHE_SECONDS, lambda: _compute_user_ranking(period, server_id)
     )
+    # Rank the whole list first, so a search still shows each member's real rank and movement
+    if sort_by == "name":
+        results = sorted(results, key=lambda x: (x["username"] or "").lower())
+    else:
+        results = rank_with_moves(results, USER_SORT_KEYS.get(sort_by, USER_SORT_KEYS["hours"]))
     if search_query:
         needle = search_query.lower()
         results = [r for r in results if needle in (r["username"] or "").lower()]
-    else:
-        results = list(results)
-
-    # Sort results
-    if sort_by == "name":
-        results.sort(key=lambda x: (x["username"] or "").lower())
-    elif sort_by in ("xp", "level"):
-        results.sort(key=lambda x: (x["xp"], x["seconds"], x["messages"]), reverse=True)
-    elif sort_by == "messages":
-        results.sort(key=lambda x: (x["messages"], x["seconds"]), reverse=True)
-    else:
-        results.sort(key=lambda x: (x["seconds"], x["messages"]), reverse=True)
 
     # Compute pagination
     total_items = len(results)
@@ -307,6 +382,7 @@ def _compute_server_ranking(period: str) -> list[dict]:
             for server in query
         ]
 
+    _add_previous(results, "server_id", period)
     return results
 
 
@@ -320,19 +396,14 @@ def load_servers() -> tuple[list[dict], int]:
     search_query = request.args.get("q", "").strip()
 
     results = cache.get_or_set(("servers", period), RANKING_CACHE_SECONDS, lambda: _compute_server_ranking(period))
+    # Rank the whole list first, so a search still shows each server's real rank and movement
+    if sort_by == "name":
+        results = sorted(results, key=lambda x: (x["servername"] or "").lower())
+    else:
+        results = rank_with_moves(results, SERVER_SORT_KEYS.get(sort_by, SERVER_SORT_KEYS["hours"]))
     if search_query:
         needle = search_query.lower()
         results = [r for r in results if needle in (r["servername"] or "").lower()]
-    else:
-        results = list(results)
-
-    # Sort results
-    if sort_by == "name":
-        results.sort(key=lambda x: (x["servername"] or "").lower())
-    elif sort_by == "messages":
-        results.sort(key=lambda x: x["messages"], reverse=True)
-    else:
-        results.sort(key=lambda x: x["seconds"], reverse=True)
 
     # Compute pagination
     total_items = len(results)

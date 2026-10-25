@@ -1,10 +1,10 @@
 {# Empty state shown in place of a chart when there is not enough activity yet #}
 <div class="chart-empty-state">
     <span class="chart-empty-state-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>
+        <svg width="20" height="20" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
     </span>
-    <div class="chart-empty-state-title">{{ 'Pas encore assez d’activité' if current_lang == 'fr' else 'Not enough activity yet' }}</div>
+    <div class="chart-empty-state-title">{{tr('Pas encore assez d’activité', 'Not enough activity yet')}}</div>
     <div class="chart-empty-state-text">
-        {{ 'Ce graphique se remplira automatiquement au fil des sessions vocales et des messages suivis par Hourglass.' if current_lang == 'fr' else 'This chart will fill up automatically as Hourglass tracks voice sessions and messages.' }}
+        {{tr('Ce graphique se remplira automatiquement au fil des sessions vocales et des messages suivis par Hourglass.', 'This chart will fill up automatically as Hourglass tracks voice sessions and messages.')}}
     </div>
 </div>

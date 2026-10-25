@@ -10,7 +10,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(15, 23, 42, 0.78);
+    background: rgba(24, 25, 29, 0.78);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     border-radius: 12px;
@@ -25,8 +25,8 @@
 .chart-spinner-ring {
     width: 44px;
     height: 44px;
-    border: 3.5px solid rgba(56, 189, 248, 0.15);
-    border-top: 3.5px solid #38bdf8;
+    border: 3.5px solid rgba(113, 124, 248, 0.15);
+    border-top: 3.5px solid #717cf8;
     border-right: 3.5px solid #818cf8;
     border-radius: 50%;
     animation: chartSpin 0.85s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
@@ -38,7 +38,7 @@
 .chart-spinner-text {
     margin-top: 12px;
     font-size: 0.88rem;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-weight: 600;
     letter-spacing: 0.02em;
 }
@@ -71,7 +71,7 @@
 .granularity-btn {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: #a3a6b0;
     padding: 6px 14px;
     border-radius: 8px;
     font-size: 0.85rem;
@@ -88,10 +88,10 @@
     background: rgba(255, 255, 255, 0.06);
 }
 .granularity-btn.active {
-    background: #38bdf8;
-    color: #0b1120;
+    background: #717cf8;
+    color: #15161a;
     font-weight: 700;
-    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+    box-shadow: 0 2px 10px rgba(113, 124, 248, 0.35);
 }
 
 .graphs-tab-pane {
@@ -123,7 +123,7 @@
 .chart-toggle-btn {
     background: transparent;
     border: 1px solid transparent;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.8rem;
     font-weight: 600;
     padding: 5px 12px;
@@ -137,9 +137,9 @@
     background: rgba(255, 255, 255, 0.07);
 }
 .chart-toggle-btn.active {
-    background: rgba(56, 189, 248, 0.18);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(113, 124, 248, 0.18);
+    color: #717cf8;
+    border: 1px solid rgba(113, 124, 248, 0.35);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 .chart-toggle-btn.active-teal {
@@ -172,7 +172,7 @@
 }
 .an-sub {
     margin: 6px 0 0;
-    color: #94a3b8;
+    color: #a3a6b0;
 }
 .an-kpis {
     margin-bottom: 10px;
@@ -180,7 +180,7 @@
 .an-delta {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: #a3a6b0;
 }
 .an-delta.up {
     color: #4ade80;
@@ -209,7 +209,7 @@
 }
 .an-card-desc {
     margin: 4px 0 0;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.88rem;
 }
 .an-controls {
@@ -237,7 +237,7 @@
     font-weight: 700;
     white-space: nowrap;
 }
-.an-badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+.an-badge-blue { background: rgba(113, 124, 248, 0.15); color: #717cf8; border: 1px solid rgba(113, 124, 248, 0.4); }
 .an-badge-indigo { background: rgba(129, 140, 248, 0.15); color: #a5b4fc; border: 1px solid rgba(129, 140, 248, 0.4); }
 .an-badge-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
 
@@ -253,14 +253,14 @@
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .an-subtitle {
-    color: #e2e8f0;
+    color: #e3e5e8;
     font-weight: 700;
 }
 .an-legend {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: #8b9bb0;
+    color: #9a9da7;
     font-size: 0.78rem;
 }
 .an-legend i {
@@ -287,13 +287,13 @@
 .an-punch-hour {
     text-align: left;
     font-size: 0.72rem;
-    color: #8b9bb0;
+    color: #9a9da7;
     font-weight: 600;
 }
 .an-punch-day {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: #a3a6b0;
     text-align: right;
     padding-right: 10px;
 }
@@ -331,12 +331,12 @@
     grid-template-columns: 26px minmax(0, 1fr) minmax(60px, 32%) 78px;
 }
 .an-rank-pos {
-    color: #94a3b8;
+    color: #a3a6b0;
     font-weight: 800;
     text-align: center;
 }
 .podium-1 .an-rank-pos { color: #fbbf24; }
-.podium-2 .an-rank-pos { color: #cbd5e1; }
+.podium-2 .an-rank-pos { color: #d0d2d8; }
 .podium-3 .an-rank-pos { color: #f97316; }
 .an-rank-item img {
     width: 26px;
@@ -345,7 +345,7 @@
     object-fit: cover;
 }
 .an-rank-name {
-    color: #f1f5f9;
+    color: #f2f3f5;
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
@@ -353,7 +353,7 @@
     text-overflow: ellipsis;
 }
 .an-rank-name:hover {
-    color: #38bdf8;
+    color: #717cf8;
 }
 .an-rank-bar {
     height: 6px;
@@ -365,25 +365,25 @@
     display: block;
     height: 100%;
     border-radius: 3px;
-    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    background: linear-gradient(90deg, #717cf8, #818cf8);
 }
 .an-rank-value {
     text-align: right;
-    color: #cbd5e1;
+    color: #d0d2d8;
     font-size: 0.85rem;
     font-weight: 700;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
 .an-rank-empty {
-    color: #94a3b8;
+    color: #a3a6b0;
     padding: 20px;
     text-align: center;
 }
 .an-more {
     display: inline-block;
     margin-top: 14px;
-    color: #38bdf8;
+    color: #717cf8;
     font-weight: 700;
     font-size: 0.88rem;
     text-decoration: none;
@@ -464,7 +464,7 @@
     margin: 0;
     padding: 20px;
     text-align: center;
-    color: #94a3b8;
+    color: #a3a6b0;
     font-size: 0.92rem;
 }
 .an-empty[hidden] {

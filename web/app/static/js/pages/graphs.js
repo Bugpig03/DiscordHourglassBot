@@ -1,7 +1,6 @@
 /* Analytics page: three tabs (Évolution, Horaires, Communauté) fed by /api/graphs/data (cached 5 min server side). */
 const PAGE_CFG = JSON.parse(document.getElementById('hgPageConfig').textContent);
-const IS_EN = PAGE_CFG.current_lang === 'en';
-const T = (fr, en) => (IS_EN ? en : fr);
+const T = (fr, en, vars) => HG.tr(fr, en, vars);
 
 const charts = {};
 const initializedTabs = new Set();
@@ -19,19 +18,19 @@ function switchGraphTab(tabId) {
 }
 
 const TOOLTIP = {
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    backgroundColor: 'rgba(24, 25, 29, 0.95)',
     titleColor: '#ffffff',
-    bodyColor: '#e2e8f0',
+    bodyColor: '#e3e5e8',
     borderColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1,
     padding: 12,
     boxPadding: 6,
 };
 const GRID = { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false };
-const COLORS = { hours: '#38bdf8', messages: '#818cf8' };
+const COLORS = { hours: '#717cf8', messages: '#3fd1a0' };
 
 function unit(metric) {
-    return metric === 'hours' ? 'h' : (IS_EN ? 'msgs' : 'msgs');
+    return metric === 'hours' ? 'h' : HG.tr('msgs', 'msgs');
 }
 
 function fmtValue(metric, v) {
@@ -135,15 +134,15 @@ function renderTrends() {
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { display: trendState.mode !== 'cumul', labels: { color: '#e2e8f0', font: { weight: 'bold' } } },
+                legend: { display: trendState.mode !== 'cumul', labels: { color: '#e3e5e8', font: { weight: 'bold' } } },
                 tooltip: {
                     ...TOOLTIP,
                     callbacks: { label: c => ` ${c.dataset.label.split(' (')[0]} : ${fmtValue(metric, c.parsed.y)}` },
                 },
             },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8', callback: v => `${HG.fmt(v)} ${unit(metric)}` } },
+                x: { grid: { display: false }, ticks: { color: '#a3a6b0', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
+                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', callback: v => `${HG.fmt(v)} ${unit(metric)}` } },
             },
         },
     });
@@ -169,12 +168,12 @@ function bindTrendControls() {
 // ---------------------------------------------------------------------------
 let peakMetric = 'hours';
 const PUNCH_SHADES = {
-    hours: ['rgba(56, 189, 248, 0.18)', 'rgba(56, 189, 248, 0.38)', 'rgba(56, 189, 248, 0.6)', 'rgba(56, 189, 248, 0.82)', '#38bdf8'],
-    messages: ['rgba(129, 140, 248, 0.18)', 'rgba(129, 140, 248, 0.38)', 'rgba(129, 140, 248, 0.6)', 'rgba(129, 140, 248, 0.82)', '#a5b4fc'],
+    hours: ['rgba(113, 124, 248, 0.18)', 'rgba(113, 124, 248, 0.38)', 'rgba(113, 124, 248, 0.6)', 'rgba(113, 124, 248, 0.82)', '#717cf8'],
+    messages: ['rgba(63, 209, 160, 0.18)', 'rgba(63, 209, 160, 0.38)', 'rgba(63, 209, 160, 0.6)', 'rgba(63, 209, 160, 0.82)', '#3fd1a0'],
 };
 
 function hourLabel(h) {
-    return IS_EN ? `${h}:00` : `${h}h`;
+    return HG.lang === 'fr' ? `${h}h` : `${h}:00`;
 }
 
 function renderHourly() {
@@ -217,8 +216,8 @@ function renderHourly() {
                 } },
             },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#94a3b8', autoSkip: true, maxTicksLimit: 12 } },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8', maxTicksLimit: 6, callback: v => HG.fmt(v, Number.isInteger(v) ? 0 : 1) } },
+                x: { grid: { display: false }, ticks: { color: '#a3a6b0', autoSkip: true, maxTicksLimit: 12 } },
+                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', maxTicksLimit: 6, callback: v => HG.fmt(v, Number.isInteger(v) ? 0 : 1) } },
             },
         },
     });
@@ -236,19 +235,18 @@ function renderPunchcard(data) {
         : T('Détail par jour de la semaine (messages)', 'Detail per day of the week (messages)');
     const val = c => (isVoice ? c.voice_hours : c.messages) || 0;
     const max = Math.max(0, ...data.days.flatMap(r => (r.hours || []).map(val)));
-    const dayNamesEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     let html = '<div class="an-punch-grid"><div></div>';
     for (let h = 0; h < 24; h++) html += `<div class="an-punch-hour">${h % 3 === 0 ? (h < 10 ? '0' + h : h) + 'h' : ''}</div>`;
     data.days.forEach(row => {
-        const day = IS_EN ? (dayNamesEn[row.day_index] || row.day_name) : row.day_name;
+        const day = HG.lang === 'fr' ? row.day_name : HG.weekday(row.day_index);
         html += `<div class="an-punch-day">${HG.esc(day)}</div>`;
         (row.hours || []).forEach(c => {
             const v = val(c);
             const ratio = max > 0 ? v / max : 0;
             const bg = ratio > 0 ? shades[Math.min(4, Math.floor(ratio * 5 - 1e-9))] : 'rgba(255, 255, 255, 0.04)';
             const what = isVoice
-                ? T(`${HG.fmt(c.voice_hours, 1)} h de vocal au total`, `${HG.fmt(c.voice_hours, 1)} h of voice in total`)
-                : T(`${HG.fmt(c.messages)} messages au total`, `${HG.fmt(c.messages)} messages in total`);
+                ? T('{n} h de vocal au total', '{n} h of voice in total', { n: HG.fmt(c.voice_hours, 1) })
+                : T('{n} messages au total', '{n} messages in total', { n: HG.fmt(c.messages) });
             const tip = `${day} ${hourLabel(c.hour)} · ${what}`;
             html += `<div class="punch-cell" style="background: ${bg};" data-tip="${HG.esc(tip)}" aria-label="${HG.esc(tip)}"></div>`;
         });
@@ -269,7 +267,7 @@ function bindPeakControls() {
 let presenceRange = '7d';
 
 function dayTick(labels, i) {
-    const day = l => (l || '').split(' ').slice(0, IS_EN ? 2 : 1).join(' ');
+    const day = l => (l || '').split(' ').slice(0, ['fr', 'ja'].includes(HG.lang) ? 1 : 2).join(' ');
     return i > 0 && day(labels[i]) !== day(labels[i - 1]) ? day(labels[i]) : '';
 }
 
@@ -298,7 +296,7 @@ function renderPresence() {
                 area(T('Absent', 'Idle'), p.idle, '#f59e0b'),
                 area(T('Ne pas déranger', 'Do not disturb'), p.dnd, '#ef4444'),
                 // Offline members dwarf the other curves: hidden by default, one click on the legend shows it
-                { ...area(T('Hors ligne', 'Offline'), p.offline, '#64748b'), hidden: true },
+                { ...area(T('Hors ligne', 'Offline'), p.offline, '#72767d'), hidden: true },
             ],
         },
         options: {
@@ -306,7 +304,7 @@ function renderPresence() {
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { labels: { color: '#e2e8f0', usePointStyle: true, pointStyle: 'circle' } },
+                legend: { labels: { color: '#e3e5e8', usePointStyle: true, pointStyle: 'circle' } },
                 tooltip: { ...TOOLTIP, callbacks: { label: c => ` ${c.dataset.label} : ${HG.fmt(c.parsed.y)} ${T('membres', 'members')}` } },
             },
             scales: {
@@ -315,10 +313,10 @@ function renderPresence() {
                 x: {
                     grid: { display: false },
                     ticks: presenceRange === '7d'
-                        ? { color: '#94a3b8', autoSkip: false, maxRotation: 0, callback: (v, i) => dayTick(p.labels, i) }
-                        : { color: '#94a3b8', maxTicksLimit: 12, maxRotation: 0 },
+                        ? { color: '#a3a6b0', autoSkip: false, maxRotation: 0, callback: (v, i) => dayTick(p.labels, i) }
+                        : { color: '#a3a6b0', maxTicksLimit: 12, maxRotation: 0 },
                 },
-                y: { stacked: true, beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8' } },
+                y: { stacked: true, beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0' } },
             },
         },
     });
@@ -350,8 +348,8 @@ function renderGrowth() {
             maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: { ...TOOLTIP, callbacks: { label: c => ` ${HG.fmt(c.parsed.y)} ${T('nouveaux membres', 'new members')}` } } },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: '#94a3b8', precision: 0 } },
+                x: { grid: { display: false }, ticks: { color: '#a3a6b0', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
+                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', precision: 0 } },
             },
         },
     });
@@ -403,7 +401,7 @@ function initTab(tabId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.color = '#a3a6b0';
     Chart.defaults.font.family = 'Arial, sans-serif';
     bindTrendControls();
     bindRankings();

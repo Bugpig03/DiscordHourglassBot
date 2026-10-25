@@ -1,0 +1,156 @@
+    <!-- 1. Introduction -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">1</span>
+            <span>परिचय और डेटा नियंत्रक</span>
+        </h2>
+        <p class="legal-text">
+            <strong>Hourglass</strong> प्रोजेक्ट (“हम”, “बॉट”, “सेवा”) Discord समुदायों के लिए एक स्वतंत्र विश्लेषण और गेमिफ़िकेशन सेवा है। इसमें एक Discord बॉट और <code>hourglassbot.net</code> पर एक इंटरैक्टिव वेब डैशबोर्ड शामिल है।
+        </p>
+        <p class="legal-text">
+            हम अपने यूज़रों की निजता और लागू नियमों के पालन को बहुत गंभीरता से लेते हैं, ख़ासकर <strong>सामान्य डेटा संरक्षण विनियमन (GDPR - EU विनियमन 2016/679)</strong> और <strong>Discord Developer Terms of Service</strong>।
+        </p>
+        <p class="legal-text">
+            <strong>डेटा नियंत्रक:</strong> SnoutLabs.<br>
+            <strong>आधिकारिक संपर्क और सहायता:</strong> <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="legal-link">Hourglass का आधिकारिक Discord सर्वर</a>।
+        </p>
+    </div>
+
+    <!-- 2. Collected data -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">2</span>
+            <span>इकट्ठा किया जाने वाला निजी डेटा और न्यूनतम डेटा</span>
+        </h2>
+        <p class="legal-text">
+            <em>न्यूनतम डेटा</em> के सिद्धांत (GDPR अनुच्छेद 5.1.c) के अनुसार, हम सिर्फ़ वही डेटा प्रोसेस करते हैं जो गेमिफ़िकेशन, रैंकिंग और आँकड़ों के लिए बिल्कुल ज़रूरी है:
+        </p>
+        <ul class="legal-list">
+            <li><strong>यूनिक Discord ID (<code>user_id</code>):</strong> Discord द्वारा दी गई तकनीकी पहचान, जो काउंटरों को आपकी प्रोफ़ाइल से जोड़ने के लिए ज़रूरी है।</li>
+            <li><strong>Discord यूज़रनेम और अवतार:</strong> प्रोफ़ाइल, सर्वर रैंकिंग और एक्सपोर्ट किए गए आँकड़ों के कार्ड में दिखाए जाते हैं।</li>
+            <li><strong>वॉइस सेशन और चैनल (<code>voice_sessions</code>):</strong> चैनल में आने और जाने का समय (शुरुआत, अंत, गिनी गई अवधि), चैनल की ID और नाम, और उपस्थिति के तकनीकी संकेत (स्क्रीन शेयर या कैमरा चालू, सिर्फ़ हाँ/ना के रूप में)।</li>
+            <li><strong>मैसेज इवेंट (<code>message_events</code>):</strong> मैसेज भेजते समय तारीख़, समय और चैनल ID, गतिविधि ग्राफ़ और घंटेवार नक्शों के लिए।</li>
+            <li><strong>लाइव उपस्थिति और सर्वर स्थिति:</strong> <code>live_server_status</code> के ज़रिए सदस्यों की स्थिति की कुल गिनती (ऑनलाइन, निष्क्रिय, परेशान न करें, वॉइस में)।</li>
+            <li><strong>सर्वर मेटाडेटा (<code>server_id</code>):</strong> स्थानीय रैंकिंग और समुदाय प्रोफ़ाइल के लिए सर्वर का नाम, पहचान और आइकन।</li>
+        </ul>
+
+        <div class="legal-highlight-box positive">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('shield_check', 20, 'style="color: #34d399;"') }}
+                <span>हम कभी क्या इकट्ठा या स्टोर नहीं करते</span>
+            </div>
+            <ul class="legal-sublist">
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>मैसेज की सामग्री नहीं:</strong> हम मैसेज की सामग्री कभी नहीं पढ़ते, जाँचते या स्टोर करते। सिर्फ़ इवेंट का समय और चैनल की पहचान प्रोसेस होती है।</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>कोई ऑडियो या वॉइस रिकॉर्डिंग नहीं:</strong> हम ऑडियो कभी रिकॉर्ड, स्ट्रीम या सुनते नहीं। सिर्फ़ कनेक्शन का समय गिना जाता है।</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>कोई वीडियो या स्क्रीन रिकॉर्डिंग नहीं:</strong> कैमरा और स्क्रीन शेयर सिर्फ़ तकनीकी हाँ/ना स्थिति के रूप में दर्ज होते हैं।</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>कोई संवेदनशील डेटा नहीं:</strong> न असली नाम, न ईमेल, न पासवर्ड, न IP पता, न भुगतान की जानकारी।</li>
+                <li>{{ pixel_icon('close', 12, 'class="legal-no" style="color: #ed4245;"') }} <strong>कोई निजी मैसेज (DM) नहीं:</strong> बॉट सिर्फ़ अनुमति वाले Discord सर्वरों के अंदर काम करता है।</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. Purposes & legal basis -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">3</span>
+            <span>प्रोसेसिंग के उद्देश्य और कानूनी आधार</span>
+        </h2>
+        <p class="legal-text">
+            डेटा सिर्फ़ इन उद्देश्यों के लिए इकट्ठा और प्रोसेस किया जाता है:
+        </p>
+        <ul class="legal-list">
+            <li>अनुभव अंक (XP), लेवल, बैज और सदस्यों की रैंकिंग गिनना।</li>
+            <li>समुदाय की गतिविधि का जश्न मनाने के लिए सर्वर के एडमिन और सदस्यों को सार्वजनिक डैशबोर्ड देना।</li>
+            <li>SVG आँकड़ा कार्ड अपने आप बनाना (<code>/stats</code>, <code>/allstats</code>, <code>/top</code> आदि)।</li>
+        </ul>
+        <p class="legal-text">
+            <strong>कानूनी आधार:</strong> प्रोसेसिंग <strong>वैध हित</strong> (GDPR अनुच्छेद 6.1.f) पर आधारित है, यानी सर्वर एडमिन द्वारा माँगे गए गेमिफ़िकेशन और जुड़ाव के टूल देना।
+        </p>
+    </div>
+
+    <!-- 4. Retention -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">4</span>
+            <span>डेटा रखने की अवधि</span>
+        </h2>
+        <p class="legal-text">
+            आँकड़े तब तक रखे जाते हैं जब तक Hourglass संबंधित Discord सर्वरों पर है। जब बॉट किसी सर्वर से हटता है, या यूज़र साफ़ तौर पर माँगता है, तो जुड़े रिकॉर्ड मिटा दिए जाते हैं।
+        </p>
+    </div>
+
+    <!-- 5. Rights & deletion -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">5</span>
+            <span>आपके GDPR अधिकार और डेटा हटाना (भुलाए जाने का अधिकार)</span>
+        </h2>
+        <p class="legal-text">
+            GDPR के अनुच्छेद 15 से 22 के तहत आपको ये अधिकार हैं:
+        </p>
+        <ul class="legal-list">
+            <li><strong>पहुँच और पोर्टेबिलिटी:</strong> अपने अकाउंट से जुड़े आँकड़े देखना और एक्सपोर्ट करना।</li>
+            <li><strong>मिटाना (“भुलाए जाने का अधिकार”):</strong> अपनी प्रोफ़ाइल और आँकड़ों को पूरी तरह और हमेशा के लिए हटाने का अनुरोध।</li>
+            <li><strong>आपत्ति:</strong> बॉट से आगे के वॉइस घंटे या मैसेज की गिनती दर्ज करना बंद करने का अनुरोध।</li>
+        </ul>
+
+        <div class="legal-highlight-box primary">
+            <div class="legal-highlight-title">
+                {{ pixel_icon('alert', 20, 'style="color: #717cf8;"') }}
+                <span>अपना डेटा हटाने का अनुरोध कैसे करें?</span>
+            </div>
+            <p class="legal-text" style="margin-bottom: 12px;">
+                आपके अकाउंट की सुरक्षा के लिए और किसी और को बिना अनुमति आपके आँकड़े मिटाने से रोकने के लिए, हम हर अनुरोध की पुष्टि Discord से करते हैं:
+            </p>
+            <div class="legal-steps">
+                <div class="legal-step-item">
+                    <div class="legal-step-num">1</div>
+                    <div class="legal-step-content">
+                        <strong>Hourglass के आधिकारिक सहायता सर्वर से जुड़ें:</strong>
+                        <p><a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="btn-discord" style="display: inline-flex; margin: 8px 0;"><span>Discord सहायता से जुड़ें</span></a></p>
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">2</div>
+                    <div class="legal-step-content">
+                        <strong>सहायता टिकट खोलें:</strong> <code>#support</code> चैनल पर जाएँ या एडमिन टीम को अपना अनुरोध बताएँ (जैसे <em>“GDPR अकाउंट और डेटा हटाने का अनुरोध”</em>)।
+                    </div>
+                </div>
+                <div class="legal-step-item">
+                    <div class="legal-step-num">3</div>
+                    <div class="legal-step-content">
+                        <strong>तेज़ कार्रवाई:</strong> आपका अनुरोध <strong>72 घंटे</strong> के अंदर पूरा होगा (GDPR की 30 दिन की कानूनी सीमा से कहीं तेज़)। यूज़र और आँकड़ों की तालिकाओं की सभी जुड़ी पंक्तियाँ हमेशा के लिए हटा दी जाएँगी।
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Cookies -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">6</span>
+            <span>कुकीज़ और ट्रैकर</span>
+        </h2>
+        <p class="legal-text">
+            Hourglass डैशबोर्ड आपकी निजता का सम्मान करता है:
+        </p>
+        <ul class="legal-list">
+            <li><strong>कोई विज्ञापन या प्रोफ़ाइलिंग कुकी नहीं।</strong></li>
+            <li><strong>कोई थर्ड-पार्टी ट्रैकर नहीं</strong> (जैसे Google Analytics या सोशल नेटवर्क पिक्सेल)।</li>
+            <li><strong>सिर्फ़ एक तकनीकी कुकी:</strong> <code>lang</code> कुकी (चुनी गई भाषा का कोड, जैसे <code>fr</code> या <code>en</code>) एक पेज से दूसरे पेज तक आपकी भाषा याद रखती है। जब तक आप भाषा नहीं चुनते, साइट कुछ भी स्टोर किए बिना आपके ब्राउज़र की भाषा इस्तेमाल करती है। यूरोपीय दिशानिर्देशों (ePrivacy / GDPR) के अनुसार इस ज़रूरी कुकी के लिए सहमति नहीं चाहिए।</li>
+            <li><strong>गुमनाम विज़िटर गिनती (बिना कुकी):</strong> साइट के इस्तेमाल को समझने के लिए (पेज व्यू, रोज़ाना विज़िटर, किस पेज से आए, डिवाइस का प्रकार, भाषा, खोजे गए शब्द), हम आपके IP पते और ब्राउज़र से एक फ़िंगरप्रिंट बनाते हैं, जिसे रोज़ बदलने वाली और अगले दिन मिटा दी जाने वाली एक रैंडम कुंजी से मिलाया जाता है। आपका IP पता कभी स्टोर नहीं होता और आपको एक दिन से दूसरे दिन पहचाना नहीं जा सकता। फ़िंगरप्रिंट 30 दिन बाद और कुल आँकड़े 400 दिन बाद मिटा दिए जाते हैं।</li>
+            <li><strong>Discord से लॉग इन:</strong> लॉग इन करने पर हम सेवा के इस्तेमाल को समझने के लिए आपके पहले और आख़िरी लॉग इन की तारीख़, लॉग इन की संख्या और लॉग इन रहकर साइट इस्तेमाल करने के दिन दर्ज करते हैं। यह डेटा आपकी Discord ID से जुड़ा है और आपके अनुरोध पर बाकी डेटा के साथ हटा दिया जाता है।</li>
+        </ul>
+    </div>
+
+    <!-- 7. Security -->
+    <div class="gray-box small-border-radius legal-card">
+        <h2 class="legal-card-title">
+            <span class="legal-num">7</span>
+            <span>सुरक्षा और इन्फ़्रास्ट्रक्चर</span>
+        </h2>
+        <p class="legal-text">
+            डेटा यूरोपीय संघ में एक सुरक्षित PostgreSQL इन्फ़्रास्ट्रक्चर पर होस्ट होता है, जिसमें सख़्त एक्सेस कंट्रोल, फ़ायरवॉल और मज़बूत ऑथेंटिकेशन है। वेब ट्रैफ़िक HTTPS / SSL से पूरी तरह एन्क्रिप्टेड है।
+        </p>
+    </div>

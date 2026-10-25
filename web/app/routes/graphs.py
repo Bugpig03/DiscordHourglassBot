@@ -24,12 +24,12 @@ from app.functions import (
     get_hourly_activity_distribution,
     get_presence_history_48h,
     get_monthly_new_users_growth,
-    get_month_abbr,
     get_partial_period,
     get_hourly_punchcard_data,
     get_user_timezone,
     shared_month_totals,
 )
+from app.i18n import current_lang, tr, day_month, month_year, day_month_year
 
 graphs_bp = Blueprint("graphs", __name__)
 
@@ -232,14 +232,14 @@ graphs_bp.record_once(lambda state: warm_graphs_cache(state.app))
 
 def _day_label(date_str: str, lang: str) -> str:
     d = datetime.strptime(date_str, "%Y-%m-%d")
-    return f"{d.day} {get_month_abbr(d.month, lang)}"
+    return day_month(d.day, d.month, lang)
 
 
 def _month_label(date_str: str, lang: str) -> str:
     d = datetime.strptime(date_str, "%Y-%m-%d")
     if d.day != 1:  # first/last point of a cumulative series (bot start date, today)
-        return f"{d.day} {get_month_abbr(d.month, lang)} {d.year}"
-    return f"{get_month_abbr(d.month, lang)} {d.year}"
+        return day_month_year(d.day, d.month, d.year, lang)
+    return month_year(d.month, d.year, lang)
 
 
 def _aligned(rows_a: list[dict], key_a: str, rows_b: list[dict], key_b: str, date_key: str, carry: bool) -> tuple[list, list, list]:
@@ -287,7 +287,7 @@ def _top_servers(field, lang: str) -> list[dict]:
         .limit(10)
         .dicts()
     )
-    default = "Server" if lang == "en" else "Serveur"
+    default = tr("Serveur", "Server", lang)
     is_voice = field is Stats.seconds
     return [
         {
@@ -362,8 +362,7 @@ def compute_graphs_data(lang: str = "fr") -> dict:
 
 
 def _visitor_lang() -> str:
-    lang = request.cookies.get("lang", "fr")
-    return lang if lang in ("fr", "en") else "fr"
+    return current_lang()
 
 
 @graphs_bp.route("/graphs", methods=["GET"])

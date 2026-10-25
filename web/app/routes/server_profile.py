@@ -25,7 +25,6 @@ from app.functions import (
     get_daily_messages_progression,
     get_daily_hours_diff,
     get_daily_messages_diff,
-    get_month_abbr,
     get_partial_period,
     get_server_live_status,
     format_presence,
@@ -37,6 +36,7 @@ from app.functions import (
 )
 from app.cache import cache
 from app.auth import can_view_server_private_data
+from app.i18n import current_lang, tr, day_month, month_year
 
 server_profile_bp = Blueprint("server_profile", __name__)
 
@@ -59,7 +59,7 @@ def server(server_id: str):
         return redirect(url_for("home.home"))
 
     g.tracked_entity = ("server", str(int(server_id)))
-    lang = request.cookies.get("lang", "fr")
+    lang = current_lang()
     search_query = request.args.get("q", "").strip()
     has_server_access = can_view_server_private_data(server_id)
 
@@ -91,7 +91,7 @@ def server_members_page(server_id: str):
 
     offset = max(0, request.args.get("offset", 0, type=int))
     search_query = request.args.get("q", "").strip()
-    lang = request.cookies.get("lang", "fr")
+    lang = current_lang()
     members = load_users_from_server(
         server_id, search_query, lang=lang, has_server_access=can_view_server_private_data(server_id)
     )
@@ -251,7 +251,7 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
 
     result = []
     for rank, row in enumerate(filtered, start=1):
-        default_username = f"Member {row['user_id']}" if lang == "en" else f"Membre {row['user_id']}"
+        default_username = tr("Membre {id}", "Member {id}", lang, id=row['user_id'])
         username = row["username"] if row["username"] else default_username
         seconds = row["seconds"] or 0
         messages = row["messages"] or 0
@@ -323,7 +323,7 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
     monthly_diff_data = get_monthly_hours_diff(server_id=int_server_id)
     monthly_chart_data_json = json.dumps({
         "labels": [
-            f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} {datetime.strptime(row['month'], '%Y-%m-%d').year}"
+            month_year(datetime.strptime(row['month'], '%Y-%m-%d').month, datetime.strptime(row['month'], '%Y-%m-%d').year, lang)
             for row in monthly_diff_data
         ],
         "hours": [row["hours_this_month"] for row in monthly_diff_data],
@@ -334,7 +334,7 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
     daily_hours_diff_data = get_daily_hours_diff(server_id=int_server_id, days=30)
     daily_hours_chart_data_json = json.dumps({
         "labels": [
-            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            day_month(datetime.strptime(row['date'], '%Y-%m-%d').day, datetime.strptime(row['date'], '%Y-%m-%d').month, lang)
             for row in daily_hours_diff_data
         ],
         "hours": [row["hours_this_day"] for row in daily_hours_diff_data],
@@ -345,7 +345,7 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
     monthly_messages_diff_data = get_monthly_messages_diff(server_id=int_server_id)
     monthly_messages_chart_data_json = json.dumps({
         "labels": [
-            f"{get_month_abbr(datetime.strptime(row['month'], '%Y-%m-%d').month, lang)} {datetime.strptime(row['month'], '%Y-%m-%d').year}"
+            month_year(datetime.strptime(row['month'], '%Y-%m-%d').month, datetime.strptime(row['month'], '%Y-%m-%d').year, lang)
             for row in monthly_messages_diff_data
         ],
         "messages": [row["messages_this_month"] for row in monthly_messages_diff_data],
@@ -356,7 +356,7 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
     daily_messages_diff_data = get_daily_messages_diff(server_id=int_server_id, days=30)
     daily_messages_chart_diff_data_json = json.dumps({
         "labels": [
-            f"{datetime.strptime(row['date'], '%Y-%m-%d').day} {get_month_abbr(datetime.strptime(row['date'], '%Y-%m-%d').month, lang)}"
+            day_month(datetime.strptime(row['date'], '%Y-%m-%d').day, datetime.strptime(row['date'], '%Y-%m-%d').month, lang)
             for row in daily_messages_diff_data
         ],
         "messages": [row["messages_this_day"] for row in daily_messages_diff_data],
@@ -373,7 +373,7 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
     member_hours = [m["time_spent"] for m in top_10]
     if remaining:
         other_hours = round(sum(m["time_spent"] for m in remaining), 1)
-        other_text = f"Others ({len(remaining)} members)" if lang == "en" else f"Autres ({len(remaining)} membres)"
+        other_text = tr("Autres ({n} membres)", "Others ({n} members)", lang, n=len(remaining))
         member_labels.append(other_text)
         member_hours.append(other_hours)
 

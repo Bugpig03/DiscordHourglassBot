@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearBtn = document.getElementById('topServerClearBtn');
     const dropdown = document.getElementById('topServerDropdown');
     const resultsContainer = document.getElementById('topServerDropdownResults');
-    const isEn = document.documentElement.lang === 'en' || PAGE_CFG.current_lang === 'en';
 
     if (!input || !hiddenId || !dropdown || !resultsContainer) return;
 
@@ -79,22 +78,20 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '';
 
         // "All Servers" option (always present if query is empty or matches)
-        const allLabel = isEn ? 'All servers' : 'Tous les serveurs';
-        const allSub = isEn ? 'Global leaderboard across all servers' : 'Classement global tous serveurs';
+        const allLabel = HG.tr('Tous les serveurs', 'All servers');
+        const allSub = HG.tr('Classement global tous serveurs', 'Global leaderboard across all servers');
         if (!query || allLabel.toLowerCase().includes(query) || 'global'.includes(query)) {
             currentList.push({ id: 'all', name: allLabel });
             html += `
                 <div class="search-result-item" data-index="0" style="cursor: pointer;">
                     <div class="all-servers-icon-wrap">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
+                        <svg width="18" height="18" style="color: #717cf8;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="globe"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM8 2h1v1h-1zM0 3h9v1h-9zM0 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM8 4h1v1h-1zM0 5h9v1h-9zM0 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
                     </div>
                     <div class="search-item-info">
                         <span class="search-item-name">${allLabel}</span>
                         <span class="search-item-sub">${allSub}</span>
                     </div>
-                    <span class="search-item-badge">${isEn ? 'Select' : 'Choisir'}</span>
+                    <span class="search-item-badge">${HG.tr('Choisir', 'Select')}</span>
                 </div>
             `;
         }
@@ -111,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (matched.length > 0) {
-            const groupTitle = isEn ? `Servers (${matched.length})` : `Serveurs (${matched.length})`;
+            const groupTitle = HG.tr('Serveurs ({n})', 'Servers ({n})', { n: matched.length });
             html += `<div class="search-group-title">${groupTitle}</div>`;
 
             matched.forEach(s => {
@@ -124,19 +121,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="search-item-name">${HG.esc(s.name)}</span>
                             <span class="search-item-sub">ID: ${HG.esc(s.id)}</span>
                         </div>
-                        <span class="search-item-badge">${isEn ? 'Select' : 'Choisir'}</span>
+                        <span class="search-item-badge">${HG.tr('Choisir', 'Select')}</span>
                     </div>
                 `;
             });
         }
 
         if (currentList.length === 0) {
-            const emptyLabel = isEn
-                ? `No server found for "${HG.esc(q)}"`
-                : `Aucun serveur trouvé pour « ${HG.esc(q)} »`;
+            const emptyLabel = HG.tr('Aucun serveur trouvé pour « {q} »', 'No server found for "{q}"', { q: HG.esc(q) });
             html = `
                 <div class="search-empty-state" style="padding: 22px 14px;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+                    <svg width="22" height="22" style="color: #72767d;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
                     <span>${emptyLabel}</span>
                 </div>
             `;

@@ -25,6 +25,7 @@ from flask import g, request
 from peewee import DatabaseError
 
 from app.database import db
+from app.i18n import current_lang
 
 log = logging.getLogger(__name__)
 
@@ -198,7 +199,7 @@ def record_response(response) -> None:
     page_key = PAGE_KEYS.get(request.endpoint, "other")
     ua = request.headers.get("User-Agent", "")
     is_mobile = bool(re.search(r"Mobi|Android|iPhone|iPad", ua))
-    lang = request.cookies.get("lang", "fr") if request.cookies.get("lang") in ("fr", "en") else "fr"
+    lang = current_lang()
     try:
         vhash = visitor_hash(day)
     except Exception:

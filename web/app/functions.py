@@ -7,49 +7,26 @@ from types import SimpleNamespace
 from zoneinfo import ZoneInfo, available_timezones
 from flask import has_request_context, request
 from peewee import fn, SQL, JOIN
+from app.i18n import current_lang, tr, format_number, month_abbr, format_date, format_datetime, day_month, day_month_year
 from app.database import (
     Users, Stats, Servers,
     VoiceSessions, Channels, MessageEvents, LiveServerStatus, UserPresence,
     PresenceHistory
 )
 
-FRENCH_MONTHS = [
-    "janvier", "février", "mars", "avril", "mai", "juin",
-    "juillet", "août", "septembre", "octobre", "novembre", "décembre"
-]
 
-ENGLISH_MONTHS = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-]
-
-FR_MONTH_ABBR = {
-    1: "Janv", 2: "Fév", 3: "Mars", 4: "Avr",
-    5: "Mai", 6: "Juin", 7: "Juil", 8: "Août",
-    9: "Sept", 10: "Oct", 11: "Nov", 12: "Déc"
-}
-
-EN_MONTH_ABBR = {
-    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr",
-    5: "May", 6: "Jun", 7: "Jul", 8: "Aug",
-    9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"
-}
-
-
-def get_month_abbr(month: int, lang: str = "fr") -> str:
-    """Return 3-4 letter localized month abbreviation."""
-    if lang == "en":
-        return EN_MONTH_ABBR.get(month, "")
-    return FR_MONTH_ABBR.get(month, "")
+def get_month_abbr(month: int, lang: str | None = None) -> str:
+    """Return the short localized month name ('Oct', 'Okt', '10月')."""
+    return month_abbr(month, lang) if 1 <= month <= 12 else ""
 
 
 def ConvertSecondsToTime(seconds: int) -> str:
-    """Format an integer number of seconds into human-readable hours, minutes, and seconds with space separators."""
+    """Format an integer number of seconds into hours, minutes and seconds, hours grouped like the visitor's language."""
     seconds = int(seconds or 0)
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
     secs = seconds % 60
-    formatted_hours = f"{hours:,}".replace(",", " ")
+    formatted_hours = format_number(hours)
     return f"{formatted_hours} h {minutes} min {secs} s"
 
 
@@ -101,24 +78,18 @@ def ConvertSecondsToHours(seconds: int) -> str:
     return f"{hours} h"
 
 
-def format_date_heure_localized(dt: datetime | None, lang: str = "fr", tz_name: str | None = None) -> str:
+def format_date_heure_localized(dt: datetime | None, lang: str | None = None, tz_name: str | None = None) -> str:
     """Format a datetime object into a localized French or English date and time string in the user's timezone."""
     if dt is None:
         return " "
-    local_dt = to_user_timezone(dt, tz_name)
-    if lang == "en":
-        return f"{ENGLISH_MONTHS[local_dt.month - 1]} {local_dt.day}, {local_dt.year} at {local_dt.strftime('%H:%M:%S')}"
-    return f"{local_dt.day} {FRENCH_MONTHS[local_dt.month - 1]} {local_dt.year} à {local_dt.strftime('%H:%M:%S')}"
+    return format_datetime(to_user_timezone(dt, tz_name), lang)
 
 
-def format_date_localized(dt: datetime | None, lang: str = "fr", tz_name: str | None = None) -> str:
+def format_date_localized(dt: datetime | None, lang: str | None = None, tz_name: str | None = None) -> str:
     """Format a datetime object into a localized French or English date string in the user's timezone."""
     if dt is None:
         return " "
-    local_dt = to_user_timezone(dt, tz_name)
-    if lang == "en":
-        return f"{ENGLISH_MONTHS[local_dt.month - 1]} {local_dt.day}, {local_dt.year}"
-    return f"{local_dt.day} {FRENCH_MONTHS[local_dt.month - 1]} {local_dt.year}"
+    return format_date(to_user_timezone(dt, tz_name), lang)
 
 
 def format_date_heure_fr(dt: datetime | None) -> str:
@@ -350,7 +321,7 @@ def get_user_servers_stats(user_id: int) -> list[dict]:
             "time_spent": round((stat.seconds or 0) / 3600, 1),
             "messages_count": stat.messages,
             "rank": get_user_rank_in_server(user_id, stat.server_id),
-            "joined_at": format_date_fr(stat.date_creation)
+            "joined_at": format_date_localized(stat.date_creation)
         }
         for stat in query
     ]
@@ -909,7 +880,7 @@ def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = N
     return sorted(result, key=lambda x: x["month"])
 
 
-def get_user_join_date(user_id: int, server_id: int | None = None, lang: str = "fr") -> str:
+def get_user_join_date(user_id: int, server_id: int | None = None, lang: str | None = None) -> str:
     """Return the earliest recorded activity date for a user (overall or on a specific server)."""
     min_date = get_user_raw_join_date(user_id, server_id)
     return format_date_localized(min_date, lang=lang)
@@ -950,7 +921,7 @@ def get_server_raw_join_date(server_id: int | str):
     return min(known) if known else None
 
 
-def get_server_join_date(server_id: int | str, lang: str = "fr") -> str:
+def get_server_join_date(server_id: int | str, lang: str | None = None) -> str:
     """Return the formatted localized earliest activity date for a server."""
     min_date = get_server_raw_join_date(server_id)
     if not min_date:
@@ -1045,7 +1016,7 @@ def get_top_users_podium(limit: int = 3) -> list[dict]:
     for r in query:
         res.append({
             "user_id": r["user_id"],
-            "username": r["username"] or f"Membre {r['user_id']}",
+            "username": r["username"] or tr("Membre {id}", "Member {id}", id=r['user_id']),
             "avatar": r["avatar"],
             "hours": round((r["total_seconds"] or 0) / 3600.0, 1),
             "messages": int(r["total_messages"] or 0)
@@ -1074,7 +1045,7 @@ def get_top_servers_podium(limit: int = 3) -> list[dict]:
     for r in query:
         res.append({
             "server_id": r["server_id"],
-            "servername": r["servername"] or f"Serveur {r['server_id']}",
+            "servername": r["servername"] or tr("Serveur {id}", "Server {id}", id=r['server_id']),
             "avatar": r["avatar"],
             "hours": round((r["total_seconds"] or 0) / 3600.0, 1),
             "messages": int(r["total_messages"] or 0)
@@ -1103,7 +1074,7 @@ def get_top_10_users_by_hours() -> list[dict]:
 
     top_users = []
     for row in query:
-        name = row["username"] if row["username"] else f"Membre {row['user_id']}"
+        name = row["username"] if row["username"] else tr("Membre {id}", "Member {id}", id=row['user_id'])
         top_users.append({
             "user_id": row["user_id"],
             "username": name,
@@ -1134,7 +1105,7 @@ def get_top_10_users_by_messages() -> list[dict]:
 
     top_users = []
     for row in query:
-        name = row["username"] if row["username"] else f"Membre {row['user_id']}"
+        name = row["username"] if row["username"] else tr("Membre {id}", "Member {id}", id=row['user_id'])
         top_users.append({
             "user_id": row["user_id"],
             "username": name,
@@ -1165,7 +1136,7 @@ def get_vocal_vs_messages_scatter(limit: int = 40) -> list[dict]:
 
     scatter_data = []
     for row in query:
-        name = row["username"] if row["username"] else f"Membre {row['user_id']}"
+        name = row["username"] if row["username"] else tr("Membre {id}", "Member {id}", id=row['user_id'])
         hours = round((row["total_seconds"] or 0) / 3600, 1)
         msgs = int(row["total_messages"] or 0)
 
@@ -1350,9 +1321,9 @@ def get_server_channels_voice_breakdown(server_id: int, limit: int = 8, lang: st
     for r in rows[:limit]:
         raw_name = r.get("channel_name")
         if not raw_name:
-            name = "Historique / Non classé" if lang == "fr" else "Legacy / Uncategorized"
+            name = tr("Historique / Non classé", "Legacy / Uncategorized", lang)
         else:
-            name = f"🔊 {raw_name}"
+            name = raw_name
         sec = r["total_seconds"] or 0
         h = round(sec / 3600, 1)
         cnt = int(r["session_count"] or 0)
@@ -1374,7 +1345,7 @@ def get_server_channels_voice_breakdown(server_id: int, limit: int = 8, lang: st
         rem_h = round(rem_sec / 3600, 1)
         rem_cnt = sum(int(r["session_count"] or 0) for r in remaining)
         rem_pct = round((rem_sec / total_seconds_sum) * 100, 1)
-        other_label = f"Autres ({len(remaining)} salons)" if lang == "fr" else f"Others ({len(remaining)} channels)"
+        other_label = tr("Autres ({n} salons)", "Others ({n} channels)", lang, n=len(remaining))
         labels.append(other_label)
         hours.append(rem_h)
         channels_data.append({
@@ -1418,7 +1389,7 @@ def get_server_channels_messages_breakdown(server_id: int, limit: int = 8, lang:
     for r in rows[:limit]:
         raw_name = r.get("channel_name")
         if not raw_name:
-            name = "#général (historique)" if lang == "fr" else "#general (legacy)"
+            name = tr("#général (historique)", "#general (legacy)", lang)
         else:
             name = f"#{raw_name}" if not raw_name.startswith("#") else raw_name
         m_count = int(r["total_messages"] or 0)
@@ -1437,7 +1408,7 @@ def get_server_channels_messages_breakdown(server_id: int, limit: int = 8, lang:
     if remaining:
         rem_count = sum(int(r["total_messages"] or 0) for r in remaining)
         rem_pct = round((rem_count / total_msgs_sum) * 100, 1)
-        other_label = f"Autres ({len(remaining)} salons)" if lang == "fr" else f"Others ({len(remaining)} channels)"
+        other_label = tr("Autres ({n} salons)", "Others ({n} channels)", lang, n=len(remaining))
         labels.append(other_label)
         msgs.append(rem_count)
         channels_data.append({
@@ -1606,17 +1577,17 @@ def get_recent_voice_sessions(server_id: int | None = None, user_id: int | None 
         local_joined_dt = to_user_timezone(raw_joined, tz_name)
 
         if is_legacy:
-            channel_display = "🗄️ " + ("Historique (Non classé)" if lang == "fr" else "Legacy (Unclassified)")
+            channel_display = tr("Historique (Non classé)", "Legacy (Unclassified)", lang)
             # Only display calendar date for legacy snapshot delta to avoid fake 03:00 hours
             joined_str = local_joined_dt.strftime("%d/%m/%Y") if local_joined_dt else "-"
         else:
-            channel_display = f"🔊 {row['channel_name']}" if row.get("channel_name") else ("Salon Vocal" if lang == "fr" else "Voice Channel")
+            channel_display = row["channel_name"] if row.get("channel_name") else tr("Salon Vocal", "Voice Channel", lang)
             joined_str = local_joined_dt.strftime("%d/%m/%Y %H:%M") if local_joined_dt else "-"
 
         results.append({
             "session_id": row["session_id"],
             "user_id": row["user_id"],
-            "username": row.get("username") or f"Membre {row['user_id']}",
+            "username": row.get("username") or tr("Membre {id}", "Member {id}", id=row['user_id']),
             "avatar": row.get("user_avatar"),
             "server_id": row["server_id"],
             "servername": row.get("servername") or str(row["server_id"]),
@@ -1660,7 +1631,7 @@ def get_user_favorite_voice_channels(user_id: int, limit: int = 6, lang: str = "
     for r in rows[:limit]:
         raw_name = r.get("channel_name")
         srv = r.get("servername") or ""
-        base_name = raw_name if raw_name else ("Vocal" if lang == "fr" else "Voice")
+        base_name = raw_name if raw_name else tr("Vocal", "Voice", lang)
         display_name = f"{base_name} ({srv})" if srv else base_name
         sec = r["total_seconds"] or 0
         h = round(sec / 3600, 1)
@@ -1727,7 +1698,7 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
 
     for hour_key in sorted(hourly_dict.keys()):
         r, local_dt = hourly_dict[hour_key]
-        lbl = local_dt.strftime("%d/%m %Hh") if lang == "fr" else local_dt.strftime("%b %d %I%p")
+        lbl = local_dt.strftime("%d/%m %Hh") if lang == "fr" else local_dt.strftime("%b %d %I%p") if lang == "en" else f"{day_month(local_dt.day, local_dt.month, lang)} {local_dt.hour}:00"
         labels.append(lbl)
         on = int(r.get("online_count") or 0)
         id_cnt = int(r.get("idle_count") or 0)
@@ -1762,7 +1733,7 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
     Retourne les données pour les X derniers jours avec calcul de streak (flammes).
     """
     import re
-    lang = request.cookies.get("lang", "fr") if has_request_context() else "fr"
+    lang = current_lang()
     user_tz = get_user_timezone()
     clean_tz = sql_timezone(user_tz)
 
@@ -1861,14 +1832,14 @@ def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:
             max_day_seconds = v_sec
             best_day = {
                 "date": date_str,
-                "label": f"{curr.day} {get_month_abbr(curr.month, lang) if lang == 'en' else get_month_abbr(curr.month, lang).lower()} {curr.year}",
+                "label": (f"{curr.day} {get_month_abbr(curr.month, lang).lower()} {curr.year}" if lang == "fr" else day_month_year(curr.day, curr.month, curr.year, lang)),
                 "hours": v_hrs,
                 "messages": m_cnt,
             }
 
         day_list.append({
             "date": date_str,
-            "label": f"{curr.day} {get_month_abbr(curr.month, lang) if lang == 'en' else get_month_abbr(curr.month, lang).lower()} {curr.year}",
+            "label": (f"{curr.day} {get_month_abbr(curr.month, lang).lower()} {curr.year}" if lang == "fr" else day_month_year(curr.day, curr.month, curr.year, lang)),
             "day_name": curr.strftime("%a"),
             "voice_seconds": v_sec,
             "voice_hours": v_hrs,

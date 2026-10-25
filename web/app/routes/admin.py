@@ -4,17 +4,17 @@ import json
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 
-from flask import Blueprint, jsonify, render_template, request, url_for
+from flask import Blueprint, jsonify, render_template, url_for
 
 from app.admin import admin_required
 from app.analytics_tracking import flush as flush_audience
 from app.cache import cache
 from app.database import db
-from app.functions import get_month_abbr
-from app.gamification import calculate_user_badges
+from app.gamification import calculate_user_badges, normalize_badge_ids
 from app.profile_gallery import BANNERS
 from app.profile_records import RECORD_CATALOG
-from app.profile_settings import BACKGROUND_COLORS, HIDEABLE_BLOCKS, PALETTE, effective_banner_mode
+from app.profile_settings import BACKGROUND_COLORS, DEFAULT_ACCENT, HIDEABLE_BLOCKS, PALETTE, effective_banner_mode
+from app.i18n import current_lang, day_month, month_year
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -38,7 +38,7 @@ def admin_page():
 @admin_bp.route("/admin/data", methods=["GET"])
 @admin_required
 def admin_data():
-    lang = "en" if request.cookies.get("lang") == "en" else "fr"
+    lang = current_lang()
     flush_audience(settle_all=False)  # include the last minute of this worker
     return jsonify(cache.get_or_set(("admin", lang), ADMIN_CACHE_SECONDS, lambda: compute_admin_data(lang)))
 
@@ -66,7 +66,7 @@ def _days(n: int) -> list[date]:
 
 
 def _day_label(d: date, lang: str) -> str:
-    return f"{d.day} {get_month_abbr(d.month, lang)}"
+    return day_month(d.day, d.month, lang)
 
 
 def _series(rows: list[tuple], days: list[date]) -> list[int]:
@@ -194,17 +194,17 @@ def compute_admin_data(lang: str = "fr") -> dict:
         hidden = layout.get("hidden") or []
         is_private = bool(layout.get("private"))
         mode = effective_banner_mode(mode, banner)  # no banner unless a gallery picture was picked
-        changed = (accent not in (None, "sky") or mode == "image" or bg or fav or featured or pinned or hidden or is_private)
+        changed = (accent not in (None, DEFAULT_ACCENT) or mode == "image" or bg or fav or featured or pinned or hidden or is_private)
         customized += bool(changed)
         private += is_private
         favorite += bool(fav)
-        accent_c[accent or "sky"] += 1
+        accent_c[accent or DEFAULT_ACCENT] += 1
         banner_mode_c[mode] += 1
         if mode == "image":
             banner_c[banner] += 1
         if bg:
             bg_c[bg] += 1
-        badge_c.update(featured)
+        badge_c.update(normalize_badge_ids(featured))
         record_c.update(pinned)
         hidden_c.update(hidden)
     palette = {k: (h, f, e) for k, h, f, e in PALETTE}
@@ -306,7 +306,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
         "presence_age_min": presence_age,
         "bot_online": presence_age is not None and presence_age <= 30,
         "last_heartbeat": last_heartbeat.isoformat(timespec="minutes") if last_heartbeat else None,
-        "months": {"labels": [f"{get_month_abbr(m.month, lang)} {m.year}" for m in months],
+        "months": {"labels": [month_year(m.month, m.year, lang) for m in months],
                    "joins": [int(joins.get(m, 0)) for m in months], "leaves": [int(leaves.get(m, 0)) for m in months]},
         "tables": [{"name": n, "rows": int(r), "mb": round(b / 1048576, 1)} for n, r, b in sizes],
         "db_mb": round(int(_one("SELECT pg_database_size(current_database())")) / 1048576, 1),

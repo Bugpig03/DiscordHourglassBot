@@ -6,23 +6,23 @@
 <div style="max-width: 900px; margin: 0 auto; padding: 10px 0 40px;">
     <!-- Breadcrumb & Back button -->
     <div style="margin-bottom: 20px;">
-        <a href="{{ url_for('top.top_users') }}" class="link-clean" style="color: #94a3b8; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <a href="{{ url_for('top.top_users') }}" class="link-clean" style="color: #a3a6b0; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;">
+            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="arrow_left"><path d="M3 1h1v1h-1zM2 2h2v1h-2zM1 3h2v1h-2zM0 4h9v1h-9zM1 5h2v1h-2zM2 6h2v1h-2zM3 7h1v1h-1z"/></svg>
             <span>{{ t('profile.disambiguation_back') }}</span>
         </a>
     </div>
 
     <!-- Header Section -->
-    <div class="gray-box small-border-radius" style="padding: 26px 30px; margin-bottom: 25px; border-left: 4px solid #38bdf8;">
+    <div class="gray-box small-border-radius" style="padding: 26px 30px; margin-bottom: 25px; border-left: 4px solid #717cf8;">
         <div style="display: flex; align-items: flex-start; gap: 16px;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div style="width: 44px; height: 44px; border-radius: 2px; background: rgba(113, 124, 248, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="24" height="24" style="color: #717cf8;" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
             </div>
             <div>
                 <h1 style="color: #ffffff; font-size: 1.5rem; font-weight: 700; margin: 0 0 6px 0;">
                     {{ t('profile.disambiguation_title', username=username) }}
                 </h1>
-                <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin: 0;">
+                <p style="color: #a3a6b0; font-size: 0.95rem; line-height: 1.5; margin: 0;">
                     {{ t('profile.disambiguation_desc') }}
                 </p>
             </div>
@@ -37,7 +37,7 @@
                 
                 <!-- User Identity & Badges -->
                 <div style="display: flex; align-items: center; gap: 18px; min-width: 240px; flex: 1;">
-                    <img src="{{ u.avatar }}" class="big-pp" style="width: 58px; height: 58px; border-radius: 50%; border: 2px solid rgba(56, 189, 248, 0.35); flex-shrink: 0;"
+                    <img src="{{ u.avatar }}" class="big-pp" style="width: 58px; height: 58px; border-radius: 50%; border: 2px solid rgba(113, 124, 248, 0.35); flex-shrink: 0;"
                          alt="{{ u.username }}">
                     
                     <div style="min-width: 0;">
@@ -48,7 +48,7 @@
                             </span>
                         </div>
                         <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-family: 'Consolas', monospace; font-size: 0.8rem; color: #8b9bb0; background: rgba(255, 255, 255, 0.04); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                            <span style="font-family: 'Consolas', monospace; font-size: 0.8rem; color: #9a9da7; background: rgba(255, 255, 255, 0.04); padding: 2px 8px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.06);">
                                 ID : {{ u.user_id }}
                             </span>
                         </div>
@@ -59,11 +59,11 @@
                 <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                     <div style="display: flex; gap: 16px; align-items: center;">
                         <div style="text-align: right;">
-                            <div style="font-size: 0.78rem; text-transform: uppercase; color: #8b9bb0; font-weight: 700; letter-spacing: 0.5px;">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <div style="font-size: 0.78rem; text-transform: uppercase; color: #9a9da7; font-weight: 700; letter-spacing: 0.5px;">
+                                <svg width="12" height="12" style="vertical-align: -1px; margin-right: 3px;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
                                 {{ t('top.hours_unit') }}
                             </div>
-                            <div style="font-size: 1.15rem; font-weight: 800; color: #38bdf8;">
+                            <div style="font-size: 1.15rem; font-weight: 800; color: #717cf8;">
                                 {{ u.total_hours | thousands_fr }} h
                             </div>
                         </div>
@@ -71,11 +71,11 @@
                         <div style="width: 1px; height: 32px; background: rgba(255, 255, 255, 0.08);"></div>
 
                         <div style="text-align: right;">
-                            <div style="font-size: 0.78rem; text-transform: uppercase; color: #8b9bb0; font-weight: 700; letter-spacing: 0.5px;">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 3px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <div style="font-size: 0.78rem; text-transform: uppercase; color: #9a9da7; font-weight: 700; letter-spacing: 0.5px;">
+                                <svg width="12" height="12" style="vertical-align: -1px; margin-right: 3px;" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>
                                 {{ t('top.msgs_unit') }}
                             </div>
-                            <div style="font-size: 1.15rem; font-weight: 800; color: #e2e8f0;">
+                            <div style="font-size: 1.15rem; font-weight: 800; color: #e3e5e8;">
                                 {{ u.total_messages | thousands_fr }}
                             </div>
                         </div>
@@ -83,7 +83,7 @@
 
                     <a href="{{ url_for('user_profile.profile', username=u.user_id) }}" class="btn-versus-action" style="padding: 10px 20px; font-size: 0.92rem; text-decoration: none;">
                         <span>{{ t('profile.disambiguation_view_btn') }}</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        <svg width="14" height="14" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="arrow_right"><path d="M5 1h1v1h-1zM5 2h2v1h-2zM6 3h2v1h-2zM0 4h9v1h-9zM6 5h2v1h-2zM5 6h2v1h-2zM5 7h1v1h-1z"/></svg>
                     </a>
                 </div>
 

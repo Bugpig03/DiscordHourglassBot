@@ -184,7 +184,7 @@ class UserProfileSettings(BaseModel):
     """Profile customization chosen by a member on the website (owned by the web app, unused by the bot)."""
 
     user_id = BigIntegerField(primary_key=True)
-    accent_color = CharField(max_length=16, default="sky")
+    accent_color = CharField(max_length=16, default="blurple")
     banner_mode = CharField(max_length=16, default="none")
     discord_banner = CharField(max_length=64, null=True)
     discord_accent = IntegerField(null=True)

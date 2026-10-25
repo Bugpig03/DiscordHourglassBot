@@ -216,11 +216,10 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
         function renderInitialSearchHint() {
             const container = document.getElementById('globalSearchResults');
             if (!container) return;
-            const isEn = BASE_CFG.current_lang === 'en';
             container.innerHTML = `
                 <div class="search-initial-hint">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7;"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-                    <span>${isEn ? 'Type a member or server name to search...' : 'Tapez le nom d\'un membre ou d\'un serveur...'}</span>
+                    <svg width="18" height="18" style="opacity: 0.7;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
+                    <span>${HG.tr('Tapez le nom d\'un membre ou d\'un serveur...', 'Type a member or server name to search...')}</span>
                 </div>
             `;
         }
@@ -228,8 +227,6 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
         function performGlobalSearch(q) {
             const container = document.getElementById('globalSearchResults');
             if (!container) return;
-            const isEn = BASE_CFG.current_lang === 'en';
-
             fetch(`/api/search?q=${encodeURIComponent(q)}`)
                 .then(res => res.json())
                 .then(data => {
@@ -240,8 +237,8 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                     if (users.length === 0 && servers.length === 0) {
                         container.innerHTML = `
                             <div class="search-empty-state">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
-                                <span>${isEn ? `No results found for "${HG.esc(q)}"` : `Aucun résultat trouvé pour « ${HG.esc(q)} »`}</span>
+                                <svg width="22" height="22" style="color: #72767d;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
+                                <span>${HG.tr('Aucun résultat trouvé pour « {q} »', 'No results found for "{q}"', { q: HG.esc(q) })}</span>
                             </div>
                         `;
                         return;
@@ -249,7 +246,7 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
 
                     let html = '';
                     if (users.length > 0) {
-                        html += `<div class="search-group-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${isEn ? 'Users' : 'Utilisateurs'} (${users.length})</div>`;
+                        html += `<div class="search-group-title"><svg width="14" height="14" style="vertical-align: -2px; margin-right: 6px;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="user"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM3 3h3v1h-3zM2 5h5v1h-5zM1 6h7v1h-7zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg>${HG.tr('Utilisateurs', 'Users')} (${users.length})</div>`;
                         users.forEach(u => {
                             html += `
                                 <a href="${HG.esc(u.url)}" class="search-result-item">
@@ -257,9 +254,9 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                                     <div class="search-item-info">
                                         <span class="search-item-name" style="display: inline-flex; align-items: center; gap: 6px;">
                                             <span>${HG.esc(u.username)}</span>
-                                            ${u.level ? `<span class="user-level-tag">${isEn ? 'Lv.' : 'Nv.'} ${HG.esc(u.level)}</span>` : ''}
+                                            ${u.level ? `<span class="user-level-tag">${HG.tr('Nv.', 'Lv.')} ${HG.esc(u.level)}</span>` : ''}
                                         </span>
-                                        <span class="search-item-sub">${isEn ? 'User Profile' : 'Profil Utilisateur'}</span>
+                                        <span class="search-item-sub">${HG.tr('Profil Utilisateur', 'User Profile')}</span>
                                     </div>
                                     <span class="search-item-badge">Voir</span>
                                 </a>
@@ -268,7 +265,7 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                     }
 
                     if (servers.length > 0) {
-                        html += `<div class="search-group-title" style="margin-top: 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${isEn ? 'Servers' : 'Serveurs'} (${servers.length})</div>`;
+                        html += `<div class="search-group-title" style="margin-top: 14px;"><svg width="14" height="14" style="vertical-align: -2px; margin-right: 6px;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="globe"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM8 2h1v1h-1zM0 3h9v1h-9zM0 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM8 4h1v1h-1zM0 5h9v1h-9zM0 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>${HG.tr('Serveurs', 'Servers')} (${servers.length})</div>`;
                         servers.forEach(s => {
                             html += `
                                 <a href="${HG.esc(s.url)}" class="search-result-item">
@@ -300,4 +297,23 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                 }
             });
         }
-    
+
+// Hourglass loader: shown only when a page takes more than 400 ms to arrive, hidden again on back/forward cache restores
+(() => {
+    const loader = document.getElementById('arLoader');
+    if (!loader) return;
+    let timer = null;
+    const hide = () => { clearTimeout(timer); loader.classList.remove('show'); };
+    document.addEventListener('click', (e) => {
+        const a = e.target.closest('a[href]');
+        if (!a || e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+        if (a.target === '_blank' || a.hasAttribute('download') || a.dataset.call) return;
+        const url = new URL(a.href, location.href);
+        if (url.origin !== location.origin || (url.pathname === location.pathname && url.hash)) return;
+        clearTimeout(timer);
+        // a script that handled the click itself (tabs, pagers) cancels it: no navigation, no loader
+        timer = setTimeout(() => { if (!e.defaultPrevented) loader.classList.add('show'); }, 400);
+    });
+    window.addEventListener('pageshow', hide);
+    window.addEventListener('pagehide', () => clearTimeout(timer));
+})();

@@ -1,8 +1,8 @@
 /* Page script extracted from templates/user_profile.html; values rendered by Jinja come from #hgPageConfig. */
 const PAGE_CFG = JSON.parse(document.getElementById('hgPageConfig').textContent);
-// Voice series follow the member's profile color (sky blue by default)
-const ACCENT = PAGE_CFG.accent_hex || '#38bdf8';
-const ACCENT_RGB = PAGE_CFG.accent_rgb || '56, 189, 248';
+// Voice series follow the member's profile color (blurple by default, like the site)
+const ACCENT = PAGE_CFG.accent_hex || '#717cf8';
+const ACCENT_RGB = PAGE_CFG.accent_rgb || '113, 124, 248';
 
 const userChartInstances = HG.cardCharts || [];
 
@@ -34,10 +34,9 @@ function switchUserProfileTab(tabId) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.color = '#a3a6b0';
     Chart.defaults.font.family = "Arial, sans-serif";
 
-    const isEn = PAGE_CFG.current_lang === 'en';
 
     const readJson = id => {
         const el = document.getElementById(id);
@@ -56,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             day: { labels: hd.labels, hours: hd.hours, messages: md.messages, partial: hd.partial },
             month_cumul: { labels: hc.labels, hours: hc.hours, messages: mc.messages },
             day_cumul: { labels: hcd.labels, hours: hcd.hours, messages: mcd.messages },
-        }, { colors: { hours: ACCENT, messages: '#818cf8' }, period: PAGE_CFG.charts_default_granularity });
+        }, { colors: { hours: ACCENT, messages: '#3fd1a0' }, period: PAGE_CFG.charts_default_granularity });
     }
 
     // Voice time split by server or by channel
@@ -65,8 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const servers = readJson('userServersPieData') || { labels: [], hours: [] };
         const channels = readJson('userFavoriteChannelsData') || { labels: [], hours: [] };
         HG.splitCard(splitCard, {
-            servers: { labels: servers.labels, values: servers.hours, metric: 'hours', desc: isEn ? 'Voice hours per server (top 10).' : 'Heures en vocal par serveur (top 10).' },
-            channels: { labels: channels.labels, values: channels.hours, metric: 'hours', desc: isEn ? 'Favorite voice channels, all servers combined.' : 'Salons vocaux favoris, tous serveurs confondus.' },
+            servers: { labels: servers.labels, values: servers.hours, metric: 'hours', desc:HG.tr('Heures en vocal par serveur (top 10).', 'Voice hours per server (top 10).')},
+            channels: { labels: channels.labels, values: channels.hours, metric: 'hours', desc:HG.tr('Salons vocaux favoris, tous serveurs confondus.', 'Favorite voice channels, all servers combined.')},
         }, 'servers');
     }
 
