@@ -604,5 +604,7 @@
  "p0517": "Menu",
  "p0518": "Pagina {n}",
  "p0519": "{day}: nessuna attività",
- "p0520": "{day}: {hours} h · {messages} messaggi"
+ "p0520": "{day}: {hours} h · {messages} messaggi",
+ "p0521": "Server non classificato",
+ "p0522": "Non classificato"
 }

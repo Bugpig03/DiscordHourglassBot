@@ -38,7 +38,7 @@
             <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
                  class="big-pp border-server" alt="icon">
             <div style="flex: 1; min-width: 220px;">
-                <h1 class="giant-bold-text" data-ghost="#{{ stats.rank or '' }}" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.servername }}</h1>
+                <h1 class="giant-bold-text" data-ghost="{{ '#' ~ stats.rank if stats.rank else '' }}" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.servername }}</h1>
                 <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
                     {% if stats.is_bot_present %}
                     <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 2px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
@@ -52,7 +52,7 @@
                     </span>
                     {% endif %}
                     <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 2px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem;">
-                        {{ t('server_profile.server_rank', rank=stats.rank, total=stats.total_server) }}
+                        {{ t('server_profile.server_rank', rank=stats.rank, total=stats.total_server) if stats.rank else tr('Serveur non classé', 'Unranked server') }}
                     </span>
                     {% if stats.join_date and stats.join_date.strip() %}
                     <span style="background: rgba(255, 255, 255, 0.05); color: #a3a6b0; border-radius: 2px; padding: 4px 12px; font-size: 0.88rem;">
@@ -81,7 +81,7 @@
         </div>
         <div class="home-stats-content">
             <span class="home-stats-label">{{ t('server_profile.server_rank_label') }}</span>
-            <span class="home-stats-value">#{{ stats.rank }} <span style="font-size: 0.85rem; color: #9a9da7;">/ {{ stats.total_server }}</span></span>
+            <span class="home-stats-value">{% if stats.rank %}#{{ stats.rank }} <span style="font-size: 0.85rem; color: #9a9da7;">/ {{ stats.total_server }}</span>{% else %}{{ t('user_profile.unranked') }}{% endif %}</span>
         </div>
     </div>
 

@@ -148,8 +148,8 @@ def render_users_versus(lang: str, all_users: list[str], all_servers: list[dict]
         entity2=data2,
         comparison=comparison,
         chart_json=chart_json,
-        u1_val=user1.username if user1 else u1_query,
-        u2_val=user2.username if user2 else u2_query,
+        u1_val=(user1.username or str(user1.user_id)) if user1 else u1_query,
+        u2_val=(user2.username or str(user2.user_id)) if user2 else u2_query,
         s1_val="",
         s2_val="",
         common_servers=common_servers,
@@ -208,8 +208,8 @@ def render_servers_versus(lang: str, all_users: list[str], all_servers: list[dic
         chart_json=chart_json,
         u1_val="",
         u2_val="",
-        s1_val=server1.servername if server1 else s1_query,
-        s2_val=server2.servername if server2 else s2_query,
+        s1_val=(server1.servername or str(server1.server_id)) if server1 else s1_query,
+        s2_val=(server2.servername or str(server2.server_id)) if server2 else s2_query,
         common_servers=[],
         selected_server=None,
         srv_val="",
@@ -251,7 +251,7 @@ def resolve_server(query: str) -> Servers | None:
 def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None = None) -> dict:
     """Compile comprehensive profile metrics for user comparison, globally or per server."""
     uid = user.user_id
-    uname = user.username or f"User {uid}"
+    uname = user.username or tr("Membre {id}", "Member {id}", lang, id=uid)
 
     if server_id:
         stat = Stats.select().where(Stats.user_id == uid, Stats.server_id == server_id).first()
@@ -320,7 +320,7 @@ def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None =
 def load_server_versus_data(server: Servers, lang: str = "fr") -> dict:
     """Compile comprehensive server metrics for server comparison."""
     sid = server.server_id
-    sname = server.servername or f"Server {sid}"
+    sname = server.servername or tr("Serveur {id}", "Server {id}", lang, id=sid)
     rank = get_server_rank(sid)
     tot_sec = get_total_seconds_by_server_id(sid) or 0
     tot_msg = get_total_message_by_server_id(sid) or 0

@@ -161,7 +161,8 @@ def compute_admin_data(lang: str = "fr") -> dict:
     active7 = int(_one("SELECT COUNT(DISTINCT user_id) FROM web_logins_daily WHERE day >= %s", (today - timedelta(days=6),)))
     active30 = int(_one("SELECT COUNT(DISTINCT user_id) FROM web_logins_daily WHERE day >= %s", (d30[0],)))
     recent = _rows(
-        "SELECT a.user_id, u.username, u.avatar, a.last_login_at, a.login_count, a.first_login_at FROM web_accounts a "
+        "SELECT a.user_id, COALESCE(u.username, a.username), COALESCE(u.avatar, a.avatar), a.last_login_at, a.login_count, "
+        "a.first_login_at FROM web_accounts a "
         "LEFT JOIN users u ON u.user_id = a.user_id ORDER BY a.last_login_at DESC LIMIT 100")
     accounts = {
         "total": accounts_total,

@@ -2070,5 +2070,13 @@
  "p0520": [
   "{day} : {hours} h · {messages} messages",
   "{day}: {hours} h · {messages} messages"
+ ],
+ "p0521": [
+  "Serveur non classé",
+  "Unranked server"
+ ],
+ "p0522": [
+  "Non classé",
+  "Unranked"
  ]
 }

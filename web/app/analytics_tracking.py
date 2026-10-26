@@ -96,6 +96,9 @@ def ensure_tables() -> None:
             had_accounts = db.table_exists("web_accounts")
             for sql in TABLES:
                 db.execute_sql(sql)
+            # Discord name and avatar seen at login: members who never spoke where the bot is have no users row
+            for column in ("username VARCHAR(100)", "avatar TEXT"):
+                db.execute_sql(f"ALTER TABLE web_accounts ADD COLUMN IF NOT EXISTS {column}")
             if not had_accounts and db.table_exists("user_profile_settings"):
                 # Every Discord login since v3.3.0 left a user_profile_settings row: keep them as known accounts
                 db.execute_sql(
@@ -247,20 +250,33 @@ def record_search(term: str) -> None:
     _start_flusher()
 
 
-def record_login(user_id: int | str) -> None:
-    """A Discord login (rare): written immediately."""
+def record_login(user_id: int | str, username: str | None = None, avatar: str | None = None) -> None:
+    """A Discord login (rare): written immediately, with the Discord name and avatar of the account."""
     if not _enabled:
         return
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     try:
         db.execute_sql(
-            "INSERT INTO web_accounts (user_id, first_login_at, last_login_at, login_count) VALUES (%s, %s, %s, 1) "
-            "ON CONFLICT (user_id) DO UPDATE SET last_login_at = EXCLUDED.last_login_at, login_count = web_accounts.login_count + 1",
-            (int(user_id), now, now),
+            "INSERT INTO web_accounts (user_id, first_login_at, last_login_at, login_count, username, avatar) "
+            "VALUES (%s, %s, %s, 1, %s, %s) ON CONFLICT (user_id) DO UPDATE SET last_login_at = EXCLUDED.last_login_at, "
+            "login_count = web_accounts.login_count + 1, username = COALESCE(EXCLUDED.username, web_accounts.username), "
+            "avatar = COALESCE(EXCLUDED.avatar, web_accounts.avatar)",
+            (int(user_id), now, now, username, avatar),
         )
         db.execute_sql("INSERT INTO web_logins_daily (day, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (now.date(), int(user_id)))
     except (DatabaseError, ValueError) as e:
         log.warning("Could not record the login of %s: %s", user_id, e)
+
+
+def remember_identity(user_id: int | str, username: str | None, avatar: str | None) -> None:
+    """Store the Discord name and avatar of an account already logged in (sessions opened before v3.25.1)."""
+    if not _enabled or not username:
+        return
+    try:
+        db.execute_sql("UPDATE web_accounts SET username = %s, avatar = %s WHERE user_id = %s AND username IS NULL",
+                       (username, avatar, int(user_id)))
+    except (DatabaseError, ValueError) as e:
+        log.warning("Could not store the identity of %s: %s", user_id, e)
 
 
 # ------------------------------------------------------------------------------

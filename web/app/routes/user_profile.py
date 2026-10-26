@@ -130,7 +130,7 @@ def profile(username: str):
     # Resolve target user properties
     user_id = int(target_user.user_id)
     g.tracked_entity = ("profile", str(user_id))  # audience stats count the member, whether reached by name or id
-    display_username = target_user.username or f"User {user_id}"
+    display_username = target_user.username or tr("Membre {id}", "Member {id}", id=user_id)
 
     lang = current_lang()
     can_view_presence = can_view_user_presence(user_id)

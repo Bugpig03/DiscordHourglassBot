@@ -251,7 +251,7 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
 
         # Discord banner and profile color, offered as profile customization options
         remember_discord_identity(user_id, user_json.get("banner"), user_json.get("accent_color"))
-        record_login(user_id)
+        record_login(user_id, user_json.get("username"), avatar_url)
         return True
     except Exception as e:
         current_app.logger.error(f"Error authenticating with Discord token: {e}")

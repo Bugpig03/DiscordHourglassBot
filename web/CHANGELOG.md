@@ -1,5 +1,17 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.25.1 - Serveurs sans Activité, Pseudos des Comptes & Coins Coupés - 26/10/2026
+### Corrections
+- **« None » à la place du rang** : un serveur sans activité affichait « Rang Serveur #None » et « #None » dans ses chiffres. Il affiche maintenant « Serveur non classé » / « Non classé », traduit dans les 12 langues, sans le grand « # » vide derrière le nom.
+  - Toutes les fiches serveur et un panel de profils (avec et sans activité) ont été vérifiés : plus aucun « None ».
+  - Carte au survol : « Non classé » à la place d'un tiret, et un nom de secours (« Membre 123… ») quand le pseudo est inconnu.
+  - Versus : un membre sans pseudo connu n'affiche plus « None » dans le champ de recherche, et les noms de secours sont traduits.
+- **Admin, dernières connexions sans pseudo** : les personnes connectées au site sans jamais avoir parlé là où se trouve le bot n'avaient pas de ligne côté bot, donc ni pseudo ni avatar.
+  - Le site enregistre maintenant le pseudo et l'avatar Discord à la connexion (deux colonnes ajoutées automatiquement à `web_accounts`).
+  - Les comptes déjà connectés les complètent à leur prochaine visite, sans déconnexion. Un compte qui ne revient pas garde son identifiant.
+- **Coins coupés au survol** : les panneaux qui s'allument au survol avaient un contour coloré coupé net sur les deux diagonales. Les diagonales prennent maintenant la couleur du contour, y compris sur les panneaux sans bordure.
+- **Coins encore arrondis** : les cartes des podiums de l'accueil (deux coins arrondis à côté des deux coins coupés), la pagination, les cases de la grille des horaires, les boutons pour effacer une recherche, les étapes de la page Confidentialité, et plusieurs blocs de l'admin et de la page Personnaliser.
+
 ## Version 3.25.0 - Site en 12 Langues - 25/10/2026
 ### Langues
 - **12 langues** : français, anglais, espagnol, portugais (Brésil), italien, allemand, polonais, turc, russe, hindi, japonais et coréen.

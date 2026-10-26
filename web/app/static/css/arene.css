@@ -1251,6 +1251,20 @@ html body .ar-cut[data-cut-br]::after {
 }
 html body .ar-cut[data-cut-br="bottom"]::after { border-bottom: inherit; }
 html body .ar-cut[data-cut-br="right"]::after { border-bottom: var(--cut-brw) solid var(--cut-brc); }
+/* Panels without a border: a diagonal that only shows on hover */
+html body .ar-cut[data-cut-tl="glow"]::before { border-top: 1px solid transparent; }
+html body .ar-cut[data-cut-br="glow"]::after { border-bottom: 1px solid transparent; }
+html body .ar-cut[data-cut-tl]::before,
+html body .ar-cut[data-cut-br]::after { transition: border-color 0.18s ease; }
+/* Hover glow (section "motion"): the cut corners take the color of the inset outline, so it runs all around */
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
+  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card).ar-cut:is([data-cut-tl="glow"], [data-cut-tl-soft]):hover::before {
+  border-top-color: color-mix(in srgb, var(--tone, var(--ar-accent)) 55%, transparent);
+}
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
+  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card).ar-cut:is([data-cut-br="glow"], [data-cut-br-soft]):hover::after {
+  border-bottom-color: color-mix(in srgb, var(--tone, var(--ar-accent)) 55%, transparent);
+}
 
 /* Filter rows: the search field next to its label takes the remaining width (it was 100% of the group
    on top of the label, so it ran past the right edge of the filter box) */
@@ -1751,3 +1765,11 @@ html body .legal-lang-note {
 /* Badge family header: long names (German, Russian…) push the tier tag to a second line instead of out of the card */
 html body .bd-family-head { flex-wrap: wrap; row-gap: 6px; }
 html body .bd-family-name { min-width: 0; overflow-wrap: anywhere; }
+/* Straight corners (Arène): boxes that still kept a radius from the page stylesheets. A cut box with a radius
+   showed rounded corners on its two uncut sides (home podium cards). */
+html body :is(.dashboard-podium-card, .pager-pages, .punch-cell, .page-search-clear, .legal-num, .legal-step-item,
+  .adm-stat, .adm-notice, .adm-search, .adm-tile, .cz-notice, .cz-tabs, .cz-tab, .cz-segmented, .cz-segmented span,
+  .cz-select, .cz-chip-body, .cz-list-item, .cz-savebar, .btn-customize-save, .cz-panel-intro, .cz-gallery-item,
+  .cz-preview-frame, .cz-row-icon) {
+  border-radius: 0;
+}

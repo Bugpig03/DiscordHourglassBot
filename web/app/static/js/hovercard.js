@@ -20,7 +20,7 @@
     const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const num = (v, d = 0) => Number(v || 0).toLocaleString(HG.locale, { minimumFractionDigits: d, maximumFractionDigits: d });
     const stat = (label, value) => `<div><b>${value}</b><span>${esc(label)}</span></div>`;
-    const rank = (d) => (d.rank ? `#${num(d.rank)}<small>/${num(d.rank_total)}</small>` : '—');
+    const rank = (d) => (d.rank ? `#${num(d.rank)}<small>/${num(d.rank_total)}</small>` : T('Non classé', 'Unranked'));
 
     function load(key) {
         if (!store.has(key)) {

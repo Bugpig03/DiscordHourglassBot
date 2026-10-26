@@ -604,5 +604,7 @@
  "p0517": "Menu",
  "p0518": "Strona {n}",
  "p0519": "{day}: brak aktywności",
- "p0520": "{day}: {hours} h · {messages} wiadomości"
+ "p0520": "{day}: {hours} h · {messages} wiadomości",
+ "p0521": "Serwer bez rankingu",
+ "p0522": "Bez rankingu"
 }

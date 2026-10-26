@@ -604,5 +604,7 @@
  "p0517": "Menü",
  "p0518": "Sayfa {n}",
  "p0519": "{day}: etkinlik yok",
- "p0520": "{day}: {hours} h · {messages} mesaj"
+ "p0520": "{day}: {hours} h · {messages} mesaj",
+ "p0521": "Sıralamada olmayan sunucu",
+ "p0522": "Sıralamada değil"
 }

@@ -94,6 +94,12 @@ def create_app():
         from flask import session
         if session.get("user"):
             session.permanent = True
+            # Sessions opened before v3.25.1 never stored the Discord name of the account: once per session
+            if not session.get("identity_saved"):
+                from app.analytics_tracking import remember_identity
+                user = session["user"]
+                remember_identity(user.get("id"), user.get("username"), user.get("avatar"))
+                session["identity_saved"] = True
 
     @app.after_request
     def vary_on_language(response):
