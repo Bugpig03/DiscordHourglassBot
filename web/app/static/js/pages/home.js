@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const hoursLabel = HG.tr('Heures en vocal', 'Voice hours');
         const msgsLabel = HG.tr('Messages', 'Messages');
+        const dayTicks = chartData.ticks || [];
+        const lastDay = dayTicks.length - 1;
 
         // Different marks for different units: bars for voice hours (left axis), a line for messages (right axis)
         const homeChart = new Chart(ctx, {
@@ -69,9 +71,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 scales: {
+                    // Every day: its number, with the month underneath at the start and on each 1st; a faint
+                    // line marks the change of month. Weekends are dimmer, today is white. With less than 20 px
+                    // per day (phones), one number out of 2 or 3 is shown, counted back from today; the months stay.
                     x: {
-                        grid: { display: false },
-                        ticks: { color: '#9a9da7', font: { size: 11 }, maxTicksLimit: 8, maxRotation: 0 }
+                        grid: {
+                            drawTicks: false,
+                            color: (c) => (c.index > 0 && dayTicks[c.index] && dayTicks[c.index][1]) ? 'rgba(255, 255, 255, 0.09)' : 'transparent'
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 0,
+                            padding: 8,
+                            font: { family: "'Chakra Petch', sans-serif", size: 11, weight: '600', lineHeight: 1.3 },
+                            color: (c) => c.index === lastDay ? '#f2f3f5' : (chartData.weekend || [])[c.index] ? '#6b6f78' : '#a3a6b0',
+                            callback: function(value, index) {
+                                const tick = dayTicks[index];
+                                if (!tick) return this.getLabelForValue(value);
+                                const perDay = this.chart.chartArea ? this.chart.chartArea.width / dayTicks.length : 99;
+                                const step = Math.max(1, Math.ceil(20 / perDay));
+                                const day = (lastDay - index) % step !== 0 ? '' : tick[0];
+                                return tick[1] ? [day, tick[1]] : day;
+                            }
+                        }
                     },
                     y: {
                         type: 'linear',

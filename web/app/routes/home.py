@@ -5,11 +5,43 @@ from peewee import fn, SQL
 from app.database import db, Users, Servers, Stats, VoiceSessions, MessageEvents, LiveServerStatus
 from app.functions import (
     format_date_heure_localized, ConvertSecondsToTime, _get_activity_delta,
-    get_daily_activity_last_30_days, get_partial_period, get_top_users_podium, get_top_servers_podium,
+    get_daily_activity_last_30_days, get_partial_period,
 )
-from app.i18n import current_lang, day_month, format_number
+from app.i18n import current_lang, day_month, format_number, month_abbr, tr
+from app.cache import cache
+from app.routes.top import (
+    RANKING_CACHE_SECONDS, SERVER_SORT_KEYS, USER_SORT_KEYS, _compute_server_ranking, _compute_user_ranking, rank_with_moves,
+    without_bots,
+)
 
 home_bp = Blueprint("home", __name__)
+
+PODIUM_PERIOD = "1m"  # last 30 days
+HOURGLASS_BOT_ID = 1210665993328926750
+
+
+def _podium(kind: str, limit: int) -> list[dict]:
+    """Top members ("members") or servers ("servers") by voice time over the last 30 days, messages breaking ties."""
+    if kind == "members":
+        rows = cache.get_or_set(("members", PODIUM_PERIOD, "all"), RANKING_CACHE_SECONDS,
+                                lambda: _compute_user_ranking(PODIUM_PERIOD, "all"))
+        # Real members only: Discord bots and apps (and Hourglass itself) are left out
+        rows = rank_with_moves([r for r in without_bots(rows) if int(r["user_id"]) != HOURGLASS_BOT_ID], USER_SORT_KEYS["hours"])
+    else:
+        rows = cache.get_or_set(("servers", PODIUM_PERIOD), RANKING_CACHE_SECONDS,
+                                lambda: _compute_server_ranking(PODIUM_PERIOD))
+        rows = rank_with_moves(rows, SERVER_SORT_KEYS["hours"])
+    podium = []
+    for r in rows:
+        if len(podium) == limit or not (r["seconds"] or r["messages"]):
+            break
+        entry = {"avatar": r["avatar_url"], "hours": round((r["seconds"] or 0) / 3600.0, 1), "messages": int(r["messages"] or 0)}
+        if kind == "members":
+            entry.update(user_id=r["user_id"], username=r["username"] or tr("Membre {id}", "Member {id}", id=r["user_id"]))
+        else:
+            entry.update(server_id=r["server_id"], servername=r["servername"] or tr("Serveur {id}", "Server {id}", id=r["server_id"]))
+        podium.append(entry)
+    return podium
 
 
 @home_bp.route("/", methods=["GET"])
@@ -69,19 +101,24 @@ def load_dashboard_stats() -> dict:
 
     # Daily Activity Chart Data for Home Dashboard
     daily_activity_data = get_daily_activity_last_30_days()
+    days = [datetime.strptime(row['date'], '%Y-%m-%d') for row in daily_activity_data]
     daily_chart_json = json.dumps({
-        "labels": [
-            day_month(datetime.strptime(row['date'], '%Y-%m-%d').day, datetime.strptime(row['date'], '%Y-%m-%d').month, lang)
-            for row in daily_activity_data
+        "labels": [day_month(d.day, d.month, lang) for d in days],
+        # Axis: every day number, with the month under the first day shown and under each 1st of the month
+        "ticks": [
+            [str(d.day), month_abbr(d.month, lang) if i == 0 or d.day == 1 else ""]
+            for i, d in enumerate(days)
         ],
+        "weekend": [d.weekday() >= 5 for d in days],
         "hours": [row["hours"] for row in daily_activity_data],
         "messages": [row["messages"] for row in daily_activity_data],
         "partial": get_partial_period(daily_activity_data, "day"),
     })
 
-    # Podiums (Top 3 Members & Top 3 Servers)
-    top_users = get_top_users_podium(3)
-    top_servers = get_top_servers_podium(3)
+    # Podiums: the 3 most active members and servers of the last 30 days (same figures as the "30 days"
+    # filter of the Members and Servers pages, whose cached rankings are reused)
+    top_users = _podium("members", 3)
+    top_servers = _podium("servers", 3)
 
     return {
         # 30-day activity metrics

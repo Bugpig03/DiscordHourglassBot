@@ -288,7 +288,7 @@ def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None =
     }
 
     badges = calculate_user_badges(stats_dict, lang=lang)
-    unlocked_badges = sum(b["tier"] for b in badges)  # tiers reached, 6 per badge
+    unlocked_badges = sum(b["tier"] for b in badges)  # tiers reached, 7 per badge
     xp_info = calculate_user_xp_and_level(tot_sec, tot_msg)
 
     return {

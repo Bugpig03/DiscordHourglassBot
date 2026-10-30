@@ -10,15 +10,15 @@
 
 <form method="GET" action="{{ url_for('top.top_servers') }}" id="top-filter-form" class="top-form" data-live-form>
     <div class="top-filter-group top-search-group">
-        <label for="topSearchInput" class="top-label">{{ t('top.search_label') }}</label>
+        <label for="topSearchInput" class="top-label">{{ t('top.search_label')|trim(' :：') }}</label>
         <div class="page-search-bar top-search-bar">
             <svg class="page-search-icon" width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="search"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM6 7h2v1h-2zM7 8h2v1h-2z"/><path d="M2 1h3v1h-3zM1 2h5v1h-5zM1 3h5v1h-5zM1 4h5v1h-5zM2 5h3v1h-3z" opacity="0.3"/></svg>
             <input type="text" id="topSearchInput" name="q" data-live-search value="{{ request.args.get('q', '') }}" placeholder="{{ t('servers_page.search_placeholder') }}" class="page-search-input" autocomplete="off" spellcheck="false">
         </div>
     </div>
 
-    <div>
-        <label for="top-filter-period" class="top-label">{{ t('top.period_label') }}</label>
+    <div class="top-filter-group">
+        <label for="top-filter-period" class="top-label">{{ t('top.period_label')|trim(' :：') }}</label>
         <select name="period" id="top-filter-period" class="top-select">
             <option value="24h" {% if request.args.get('period') == '24h' %}selected{% endif %}>{{ t('top.period_24h') }}</option>
             <option value="7d" {% if request.args.get('period') == '7d' %}selected{% endif %}>{{ t('top.period_7d') }}</option>
@@ -30,8 +30,8 @@
         </select>
     </div>
 
-    <div>
-        <label for="top-filter-sort" class="top-label">{{ t('top.sort_label') }}</label>
+    <div class="top-filter-group">
+        <label for="top-filter-sort" class="top-label">{{ t('top.sort_label')|trim(' :：') }}</label>
         <select name="sort_by" id="top-filter-sort" class="top-select">
             <option value="hours" {% if request.args.get('sort_by') == 'hours' or not request.args.get('sort_by') %}selected{% endif %}>{{ t('top.sort_hours') }}</option>
             <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>{{ t('top.sort_messages') }}</option>

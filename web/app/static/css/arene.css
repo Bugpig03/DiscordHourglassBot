@@ -423,8 +423,9 @@ html body .home-stats-box {
 }
 html body .dashboard-kpi-card:hover,
 html body .home-stats-box:hover { background: var(--ar-panel-2); transform: none; box-shadow: none; }
-html body .dashboard-kpi-card::before,
-html body .dashboard-kpi-card::after { display: none; }
+/* No decoration, except the diagonals of the cut corners drawn by js/corners.js (.ar-cut) */
+html body .dashboard-kpi-card:not(.ar-cut)::before,
+html body .dashboard-kpi-card:not(.ar-cut)::after { display: none; }
 html body .dashboard-kpi-icon,
 html body .home-stats-icon,
 html body .podium-card-icon,
@@ -521,6 +522,89 @@ html body .btn-customize-save:hover {
   transform: none;
   box-shadow: none;
 }
+/* Period of the home podiums ("30 derniers jours"), a small cut tag next to the title */
+html body .podium-card-title-wrap { flex-wrap: wrap; row-gap: 6px; min-width: 0; }
+html body .podium-card-period {
+  padding: 3px 8px;
+  clip-path: var(--cut-s);
+  background: var(--ar-panel-2);
+  color: var(--ar-muted);
+  font-family: var(--ar-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* "BOT" tag after the name of Discord bots and apps (bot_tag() in app/__init__.py, hover cards) */
+html body .bot-tag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 0.5em;
+  padding: 2px 6px;
+  clip-path: var(--cut-s);
+  background: var(--ar-accent);
+  color: #fff;
+  font-family: var(--ar-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+html body .profile-hero-name .bot-tag { font-size: 0.8rem; padding: 3px 8px; vertical-align: 0.35em; }
+
+/* "Show bots" switch of the Members filters, in the look of the selects next to it */
+html body .top-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--ar-panel-2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  clip-path: var(--cut-s);
+  cursor: pointer;
+  user-select: none;
+}
+html body .top-switch-input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 34px;
+  height: 18px;
+  margin: 0;
+  background: rgba(163, 166, 176, 0.3);
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+html body .top-switch-input::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transition: transform 0.18s ease;
+}
+html body .top-switch-input:checked { background: var(--ar-accent); }
+html body .top-switch-input:checked::after { transform: translateX(16px); }
+html body .top-switch-input:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 2px; }
+html body .top-switch-text {
+  color: var(--ar-fg);
+  font-family: var(--ar-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 html body .btn-hero-secondary,
 html body .btn-versus-action,
 html body .btn-export-card,
@@ -1773,3 +1857,144 @@ html body :is(.dashboard-podium-card, .pager-pages, .punch-cell, .page-search-cl
   .cz-preview-frame, .cz-row-icon) {
   border-radius: 0;
 }
+
+/* --------------------------------------------------------------- filter bars (Members, Servers) and lists
+   One layout for every filter: the caption above, then a control 44 px high with the same panel, line and cut
+   corners. Search fields take the larger share, the lists and the switch the rest; rows wrap as the width
+   shrinks. The drop-down lists are drawn by js/select.js (.hg-select-*). */
+html body .top-form {
+  display: flex;
+  flex-direction: row;  /* the page stylesheet stacked it in a column on phones */
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 16px;
+  padding: 18px 20px;
+}
+html body .top-form .top-filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 100%;
+  width: auto;
+  margin: 0;
+}
+html body .top-form :is(.top-search-group, .top-server-filter-group) { flex: 2 1 260px; min-width: min(260px, 100%); }
+html body .top-form .top-bots-filter-group { flex: 0 0 auto; }
+html body .top-form .top-label {
+  margin: 0;
+  color: var(--ar-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  white-space: nowrap;
+}
+html body .top-form .top-filter-group > :is(.page-search-wrap, .page-search-bar),
+html body .top-form .top-server-search-wrap { width: 100%; flex: none; }
+html body .top-form :is(.page-search-bar, .top-server-search-bar, .hg-select-btn, .top-switch) {
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 14px;
+  background: var(--ar-panel-2);
+  border: 1px solid var(--ar-line);
+  clip-path: var(--cut-s);
+}
+html body .top-form :is(.page-search-bar, .top-server-search-bar) { gap: 10px; }
+html body .top-form :is(.page-search-input, .top-server-search-input) { font-size: 0.92rem; font-weight: 600; }
+html body .top-form :is(.page-search-bar, .top-server-search-bar):hover,
+html body .top-form .top-switch:hover { border-color: rgba(255, 255, 255, 0.2); }
+html body .top-form :is(.page-search-bar, .top-server-search-bar):focus-within { border-color: var(--ar-accent); }
+html body .top-form .top-switch { gap: 12px; }
+@media (max-width: 640px) {
+  html body .top-form { padding: 14px; gap: 12px; }
+  html body .top-form .top-filter-group { flex-basis: 140px; }
+  html body .top-form .top-bots-filter-group { flex: 1 1 100%; }
+  html body .top-form .top-switch { width: 100%; }
+}
+
+/* Native select kept in the form for its value, replaced on screen by the button and list of js/select.js */
+html body select.hg-select-native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+html body .hg-select-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--ar-panel-2);
+  border: 1px solid var(--ar-line);
+  clip-path: var(--cut-s);
+  color: var(--ar-fg);
+  font-family: var(--ar-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+html body .hg-select-btn:hover { border-color: rgba(255, 255, 255, 0.2); }
+html body .hg-select-btn:focus-visible,
+html body .hg-select-btn.is-open { outline: none; border-color: var(--ar-accent); }
+html body .hg-select-btn:disabled { opacity: 0.5; cursor: default; }
+html body .hg-select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body .hg-select-chevron { display: inline-flex; flex-shrink: 0; color: var(--ar-muted); transition: transform 0.15s ease, color 0.15s ease; }
+html body .hg-select-btn.is-open .hg-select-chevron { transform: rotate(180deg); color: var(--ar-accent-hi); }
+
+html body .hg-select-list {
+  position: fixed;
+  z-index: 10000;
+  box-sizing: border-box;
+  max-width: calc(100vw - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  background: var(--ar-panel);
+  border: 1px solid var(--ar-line);
+  border-top: 2px solid var(--ar-accent);
+  clip-path: var(--cut-m);  /* a clipped box draws no shadow: the accent edge sets it apart */
+  animation: hg-select-in 0.12s ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ar-line) transparent;
+}
+html body .hg-select-list.is-up { border-top: 1px solid var(--ar-line); border-bottom: 2px solid var(--ar-accent); animation-name: hg-select-in-up; }
+@keyframes hg-select-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes hg-select-in-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { html body .hg-select-list { animation: none; } }
+html body .hg-select-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 12px;
+  color: var(--ar-muted);
+  font-family: var(--ar-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  clip-path: var(--cut-s);
+}
+html body .hg-select-opt.is-active { background: var(--ar-panel-2); color: var(--ar-fg); }
+html body .hg-select-opt[aria-selected="true"] { background: var(--ar-accent-soft); color: var(--ar-accent-hi); }
+html body .hg-select-opt[aria-selected="true"].is-active { background: color-mix(in srgb, var(--ar-accent) 26%, transparent); }
+html body .hg-select-opt.is-disabled { opacity: 0.45; cursor: default; }
+html body .hg-select-check { display: inline-flex; visibility: hidden; color: var(--ar-accent-hi); }
+html body .hg-select-opt[aria-selected="true"] .hg-select-check { visibility: visible; }
+html body .hg-select-opt-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }

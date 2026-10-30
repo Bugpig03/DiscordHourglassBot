@@ -38,7 +38,7 @@
             : `<div class="hc-badges"><span class="hc-badge-count">${num(d.badges)} / ${num(d.badges_total)} ${T('paliers', 'tiers')}</span></div>`;
         return `<div class="hc-top">
                 <img class="hc-avatar" src="${esc(d.avatar || '/static/images/base_avatar_big.png')}" alt="">
-                <div class="hc-id"><b>${esc(d.name)}</b><span class="hc-title">${esc(d.title)}</span></div>
+                <div class="hc-id"><b>${esc(d.name)}${d.bot ? '<span class="bot-tag">BOT</span>' : ''}</b><span class="hc-title">${esc(d.title)}</span></div>
             </div>
             <div class="hc-level"><span class="hc-lvl">${num(d.level)}</span><span class="hc-bar"><i style="width:${Number(d.progress) || 0}%"></i></span><span class="hc-pct">${num(d.progress, 0)} %</span></div>
             <div class="hc-stats">

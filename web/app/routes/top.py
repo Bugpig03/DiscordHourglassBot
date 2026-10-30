@@ -6,6 +6,7 @@ from peewee import fn, SQL, JOIN
 from app.database import Users, Stats, Servers, VoiceSessions, MessageEvents
 from app.cache import cache
 from app.gamification import calculate_user_xp_and_level
+from app.functions import get_bot_user_ids
 
 top_bp = Blueprint("top", __name__)
 
@@ -41,6 +42,12 @@ SERVER_SORT_KEYS = {
     "hours": (("seconds",), ("prev_seconds",)),
     "messages": (("messages",), ("prev_messages",)),
 }
+
+
+def without_bots(rows: list[dict]) -> list[dict]:
+    """Ranking rows without the Discord bots and apps (users.is_bot)."""
+    bots = get_bot_user_ids()
+    return [r for r in rows if int(r["user_id"]) not in bots] if bots else rows
 
 
 def move_days(period: str) -> int:
@@ -124,7 +131,8 @@ def top_users():
         users=users,
         servers=servers,
         total_pages=total_pages,
-        selected_server=selected_server
+        selected_server=selected_server,
+        show_bots=request.args.get("bots") == "1",
     )
 
 
@@ -274,6 +282,10 @@ def load_users() -> tuple[list[dict], int]:
     results = cache.get_or_set(
         ("members", period, server_id), RANKING_CACHE_SECONDS, lambda: _compute_user_ranking(period, server_id)
     )
+    # Discord bots and apps are left out unless the "Show bots" filter is on (?bots=1): the ranks are then
+    # those of the real members only
+    if request.args.get("bots") != "1":
+        results = without_bots(results)
     # Rank the whole list first, so a search still shows each member's real rank and movement
     if sort_by == "name":
         results = sorted(results, key=lambda x: (x["username"] or "").lower())

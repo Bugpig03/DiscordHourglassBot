@@ -12,14 +12,14 @@ def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict
     
     Formula:
       - 1 minute in voice = 1 XP
-      - 1 text message = 5 XP
+      - 1 text message = 1 XP (5 XP before v3.26.0)
       - Level curve: quadratic progression where Level = int((XP / 100) ** 0.5) + 1
     """
     total_seconds = max(0, total_seconds or 0)
     total_messages = max(0, total_messages or 0)
 
     voice_minutes = total_seconds // 60
-    total_xp = voice_minutes + (total_messages * 5)
+    total_xp = voice_minutes + total_messages
 
     level = int((total_xp / 100) ** 0.5) + 1
     current_level_base_xp = ((level - 1) ** 2) * 100
@@ -75,9 +75,9 @@ def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict
 
 
 def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[str, Any]]:
-    """The member's 8 badges, computed live from their statistics (nothing is stored).
+    """The member's 9 badges, computed live from their statistics (nothing is stored).
 
-    One badge per family (voice, messages, level, ranking, servers, loyalty, monthly activity, versatility),
+    One badge per family (voice, messages, level, ranking, servers, loyalty, monthly activity, streak, versatility),
     levelled up through 7 tiers: Bronze, Silver, Gold, Platinum, Diamond, Legend, Mythic. tier is 0 until the
     first one is reached; the tier color is the badge color everywhere (see TIERS).
     """
@@ -129,6 +129,13 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
             except Exception:
                 days_since_join = 0
 
+    # Longest run of consecutive active days ever (a tier once reached stays): given by the caller, or read
+    # from the database for the member (cached, see functions.get_user_best_streak)
+    best_streak = stats.get("best_streak")
+    if best_streak is None and str(stats.get("user_id") or "").isdigit():
+        from app.functions import get_user_best_streak
+        best_streak = get_user_best_streak(int(stats["user_id"]))
+
     values = {
         "voice": total_hours,
         "messages": total_messages,
@@ -137,6 +144,7 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
         "servers": server_count,
         "loyalty": days_since_join,
         "activity": last_30d_hours,
+        "streak": int(best_streak or 0),
         "hybrid": (total_hours, total_messages),
     }
     return [_family_badge(definition, values[definition[0]], lang) for definition in BADGE_DEFS]
@@ -165,6 +173,7 @@ _SVG = {
     "globe": '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
     "hourglass": '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
     "flame": '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+    "calendar_check": '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
     "infinity": '<path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/>',
 }
 
@@ -177,6 +186,8 @@ BADGE_DEFS = [
     ("servers", "Serveurs", "Servers", "Serveurs fréquentés", "Servers joined", "globe", "servers", [2, 3, 4, 6, 8, 12, 20]),
     ("loyalty", "Fidélité", "Loyalty", "Ancienneté depuis la première activité", "Time since the first activity", "hourglass", "days", [30, 60, 120, 250, 365, 730, 1095]),
     ("activity", "Activité", "Activity", "Heures en vocal sur les 30 derniers jours", "Voice hours over the last 30 days", "flame", "hours30", [5, 15, 40, 80, 120, 200, 300]),
+    ("streak", "Série", "Streak", "Plus longue série de jours actifs d’affilée", "Longest run of active days in a row", "calendar_check", "days",
+     [5, 10, 30, 60, 100, 250, 365]),
     ("hybrid", "Polyvalence", "Versatility", "Vocal et messages à la fois", "Voice and messages together", "infinity", "hybrid",
      [(10, 100), (50, 500), (100, 1000), (250, 2500), (500, 5000), (1000, 10000), (2500, 25000)]),
 ]

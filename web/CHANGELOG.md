@@ -1,5 +1,58 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.26.0 - Cartes du Bot aux Couleurs de l'Arène, dans la Langue du Membre - 28/10/2026
+### Cartes
+- **Toutes les cartes des commandes du bot passent à la DA Arène du site** (`/stats`, `/allstats`, `/versus`, `/top`, `/alltop`, `/server`, ainsi que la carte d'aide et les cartes « introuvable ») ; la structure de chaque carte ne change pas.
+  - Coins coupés, contour fin et liseré de couleur en haut à gauche, halos de couleur en fond.
+  - Polices du site : Chakra Petch pour les titres, chiffres et légendes (chiffres en italique), IBM Plex Sans pour les textes.
+  - Icônes en pixel art à la place des emojis, dans des blocs aux coins coupés.
+  - Couleurs par type : vocal en bleu, messages en vert, XP en ambre, serveur en corail, membres en violet. La couleur du profil reste celle du membre.
+- **Carte membre** : niveau et serveur en étiquettes biseautées, rang en grand chiffre doré sur un « #N » en relief, et tuiles avec un liseré de couleur. Les badges en vitrine prennent la couleur de leur palier (Mythique en holographique).
+- **Versus** : chaque moitié est teintée de la couleur de son joueur, avec « VS » dans un bloc coupé, une couronne pour le vainqueur, et des barres séparées au milieu.
+- **Top 10** : podium avec contour et liseré aux couleurs des médailles, et grand numéro en relief.
+- **Serveur** : icône du serveur aux coins coupés, quatre tuiles de couleur et courbe du vocal sur 30 jours.
+- **Chiffres, dates et séparateurs dans le format de la langue** (« 1 564h », « 9 sept 2024 », « 1.564h » en allemand).
+
+### Langues
+- **Les cartes suivent la langue Discord du membre qui lance la commande** (paramètre `?lang=`, envoyé par le bot v3.4.0) : français, anglais, espagnol, portugais, italien, allemand, polonais, turc et russe.
+  - Le hindi, le japonais et le coréen reçoivent la carte en anglais, faute de police pour ces écritures dans le moteur des cartes. Les textes du bot, eux, sont traduits.
+  - Le russe utilise Inter pour le cyrillique (sans italique).
+  - Les cartes intégrables `/api/card/...` acceptent aussi `?lang=` (anglais par défaut, comme avant).
+- 39 nouvelles phrases traduites dans les 11 langues.
+
+### Bots et applications Discord
+- **Étiquette « BOT »** après le nom des bots et applications Discord (bots musique en vocal, par exemple) : classement des membres, membres d'une fiche serveur, profil, Versus et cartes au survol.
+- **Filtre « Bots · Afficher » sur la page Membres, désactivé par défaut** : le classement ne montre que les vrais membres, et les rangs sont ceux des vrais membres. Un clic sur l'interrupteur réaffiche les bots, à leur place, avec l'étiquette. Le choix est gardé dans l'adresse (`?bots=1`) et dans la pagination.
+- Les podiums de l'accueil et la carte `/top` du bot ne montrent plus de bots non plus.
+- Les bots sont repérés par le bot Discord (v3.4.0, colonne `users.is_bot`). Tant que le bot n'a pas ajouté cette colonne, le site fonctionne comme avant, sans étiquette et sans rien masquer. La liste des bots est mise en cache 5 minutes.
+
+### Filtres des pages Membres et Serveurs
+- **Barre de filtres remise à plat** : chaque filtre a son titre au-dessus (sans « : »), et tous les champs font la même hauteur avec le même fond, le même contour et les mêmes coins coupés. Les deux recherches (membre, serveur) sont côte à côte, puis Période, Trier par et Bots. Les lignes se replient avec la largeur ; sur téléphone : recherches en pleine largeur, Période et Trier par côte à côte, puis Bots.
+- **Listes déroulantes aux couleurs du site** à la place des listes du navigateur (Période, Trier par, et le serveur favori de la page Personnaliser) : bouton à chevron, liste aux coins coupés avec un liseré de couleur, option choisie cochée, au clavier comme à la souris (flèches, Entrée, Échap, Tab, une lettre pour sauter à l'option).
+  - La liste s'ouvre vers le haut quand il manque de place en dessous et ne sort jamais de l'écran.
+  - Le menu natif reste dans le formulaire, caché : l'envoi des filtres, le rechargement de la liste et les lecteurs d'écran fonctionnent comme avant.
+
+### XP & Badges
+- **1 XP par message** au lieu de 5 (1 minute en vocal donne toujours 1 XP) : le vocal pèse maintenant bien plus que les messages. Les niveaux, titres, badges « Niveau », classements par XP, cartes du bot et cartes au survol sont recalculés automatiquement (rien n'est stocké), donc les membres qui écrivent beaucoup perdent quelques niveaux. La page Aide est à jour dans les 12 langues.
+- **Nouveau badge « Série »** : la plus longue série de jours actifs d'affilée (vocal ou messages), sur tout l'historique. Un palier atteint reste acquis, même après une journée sans activité.
+  - 7 paliers : Bronze 5 jours, Argent 10, Or 30, Platine 60, Diamant 100, Légende 250, Mythique 365.
+  - Disponible partout : onglet Badges du profil, vitrine, page Personnaliser, cartes du bot, Versus, cartes au survol. Il y a maintenant 9 badges et 63 paliers.
+  - Les jours sont comptés en heure UTC, pour que le badge soit le même pour tous les visiteurs. Comme dans le calendrier d'activité, une session vocale qui passe minuit compte sur les deux jours. Le résultat est mis en cache 10 minutes.
+- **« Record de série » du profil sur tout l'historique** : il ne regardait que les 365 derniers jours, alors qu'il est présenté comme « Record historique ». Il affiche maintenant la même valeur que le badge Série.
+
+### Accueil
+- **Podiums « Top Membres » et « Top Serveurs » sur les 30 derniers jours** (ils prenaient tout l'historique) : ce sont maintenant les plus actifs du moment, classés par temps vocal, puis par messages en cas d'égalité. Les chiffres sont les mêmes que le filtre « 30 jours » des pages Membres et Serveurs, dont le classement est réutilisé (cache de 60 s).
+  - Une étiquette « 30 derniers jours » est affichée à côté du titre, et « Voir tout le classement » ouvre la page déjà filtrée sur 30 jours.
+- **Graphique d'activité, tous les jours sur l'axe** (avant, un jour sur cinq environ) : le numéro de chaque jour, avec le mois en dessous au début et à chaque 1er du mois, et un trait discret au changement de mois. Les week-ends sont plus discrets et le jour actuel est en blanc. Sur téléphone, un numéro sur deux ou trois s'affiche selon la place, en partant d'aujourd'hui.
+
+### Corrections
+- **Boutons secondaires sans fond** (« Explorer les classements », « Analyses complètes », « Personnaliser », boutons d'export et de copie de la carte) : une règle ajoutée pendant le développement de cette version avait coupé leur style. Ils retrouvent leur fond de panneau.
+- **Coins coupés au survol des tuiles de chiffres** (accueil, Analyses) : le contour coloré restait coupé sur les deux diagonales, car une ancienne règle masquait les traits qui les dessinent. Les diagonales prennent maintenant la couleur du contour.
+
+### Technique
+- Polices des cartes converties depuis celles déjà hébergées par le site (`app/cards/fonts`), avec leurs licences OFL. La version d'IBM Plex Sans des cartes est renommée « HG Sans », car « Plex » est un nom réservé par sa licence pour les versions modifiées.
+- Le cache des cartes tient compte de la langue.
+
 ## Version 3.25.1 - Serveurs sans Activité, Pseudos des Comptes & Coins Coupés - 26/10/2026
 ### Corrections
 - **« None » à la place du rang** : un serveur sans activité affichait « Rang Serveur #None » et « #None » dans ses chiffres. Il affiche maintenant « Serveur non classé » / « Non classé », traduit dans les 12 langues, sans le grand « # » vide derrière le nom.

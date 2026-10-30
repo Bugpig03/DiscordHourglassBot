@@ -25,7 +25,7 @@
                 <div style="min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span class="medium-bold-text text-overflow nomargin" style="font-size: 1.05rem;">
                         {{ user.username }}
-                    </span>
+                    </span>{{ bot_tag(user.user_id) }}
                     <span class="user-level-tag {% if user.level >= 40 %}tier-master{% elif user.level >= 20 %}tier-veteran{% elif user.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">{{ t('common.level_tag', level=user.level) }}</span>
                 </div>
             </div>

@@ -31,7 +31,7 @@ from app.functions import (
     get_user_active_voice,
     get_user_favorite_voice_channels,
     get_recent_voice_sessions,
-    get_user_heatmap_data,
+    get_user_heatmap_data, get_user_best_streak,
     get_user_voice_companions,
     get_user_companions_since,
     format_date_localized,
@@ -199,6 +199,9 @@ def load_profile_extras(user_id: int, stats: dict, charts: dict, lang: str = "fr
     """
     tz = get_user_timezone()
     heatmap_annual = cache.get_or_set(("heatmap", user_id, 365, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=365))
+    # "Best streak" is the all-time record, the same figure as the Streak badge (the calendar only covers a year);
+    # a copy, the cached calendar is shared between visitors
+    heatmap_annual = {**heatmap_annual, "max_streak": get_user_best_streak(user_id)}
     heatmap_monthly = cache.get_or_set(("heatmap", user_id, 30, lang, tz), PROFILE_CACHE_SECONDS, lambda: get_user_heatmap_data(user_id, days=30))
     voice_companions = cache.get_or_set(("companions", user_id, lang), PROFILE_CACHE_SECONDS, lambda: get_user_voice_companions(user_id, limit=6))
     companions_since = cache.get_or_set(("companions_since", user_id), PROFILE_CACHE_SECONDS, lambda: get_user_companions_since(user_id))

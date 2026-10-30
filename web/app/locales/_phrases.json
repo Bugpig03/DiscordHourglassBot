@@ -2078,5 +2078,185 @@
  "p0522": [
   "Non classé",
   "Unranked"
+ ],
+ "p0523": [
+  "sur {n}",
+  "of {n}"
+ ],
+ "p0524": [
+  "Ce serveur",
+  "This server"
+ ],
+ "p0525": [
+  "Rang serveur",
+  "Server rank"
+ ],
+ "p0526": [
+  "Niveau {n} · {title}",
+  "Level {n} · {title}"
+ ],
+ "p0527": [
+  "{p} % vers le niveau {n}",
+  "{p}% to level {n}"
+ ],
+ "p0528": [
+  "Suivi depuis",
+  "Tracked since"
+ ],
+ "p0529": [
+  "Temps vocal",
+  "Voice time"
+ ],
+ "p0530": [
+  "30 derniers jours",
+  "Last 30 days"
+ ],
+ "p0531": [
+  "Paliers de badges",
+  "Badge tiers"
+ ],
+ "p0532": [
+  "Joueur 1",
+  "Player 1"
+ ],
+ "p0533": [
+  "Joueur 2",
+  "Player 2"
+ ],
+ "p0534": [
+  "Sur {server}",
+  "On {server}"
+ ],
+ "p0535": [
+  "ce serveur",
+  "this server"
+ ],
+ "p0536": [
+  "{name} gagne {a}–{b}",
+  "{name} wins {a}–{b}"
+ ],
+ "p0537": [
+  "Égalité {a}–{b}",
+  "It's a tie {a}–{b}"
+ ],
+ "p0538": [
+  "Toujours",
+  "All time"
+ ],
+ "p0539": [
+  "7 derniers jours",
+  "Last 7 days"
+ ],
+ "p0540": [
+  "Top 10 · Messages",
+  "Top 10 · Messages"
+ ],
+ "p0541": [
+  "Top 10 · Vocal",
+  "Top 10 · Voice"
+ ],
+ "p0542": [
+  "Pas encore d’activité sur cette période",
+  "No activity in this period yet"
+ ],
+ "p0543": [
+  "Membre",
+  "Member"
+ ],
+ "p0544": [
+  "Suivi depuis le {date}",
+  "Tracked since {date}"
+ ],
+ "p0545": [
+  "Suivi par Hourglass",
+  "Tracked by Hourglass"
+ ],
+ "p0546": [
+  "Membres",
+  "Members"
+ ],
+ "p0547": [
+  "Vocal · 30 derniers jours",
+  "Voice · last 30 days"
+ ],
+ "p0548": [
+  "{h} au total",
+  "{h} in total"
+ ],
+ "p0549": [
+  "Aucune activité vocale ces 30 derniers jours",
+  "No voice activity in the last 30 days"
+ ],
+ "p0550": [
+  "Tes statistiques sur ce serveur",
+  "Your stats on this server"
+ ],
+ "p0551": [
+  "Tes statistiques sur tous les serveurs",
+  "Your stats across every server"
+ ],
+ "p0552": [
+  "Top 10 de ce serveur",
+  "Top 10 of this server"
+ ],
+ "p0553": [
+  "Top 10 de tous les serveurs",
+  "Top 10 of every server"
+ ],
+ "p0554": [
+  "Duel entre deux membres",
+  "Head-to-head duel between two members"
+ ],
+ "p0555": [
+  "Statistiques de ce serveur",
+  "Statistics of this server"
+ ],
+ "p0556": [
+  "Toutes les commandes",
+  "Every command"
+ ],
+ "p0557": [
+  "Commandes Hourglass",
+  "Hourglass commands"
+ ],
+ "p0558": [
+  "Serveur introuvable",
+  "Server not found"
+ ],
+ "p0559": [
+  "Hourglass n’a encore aucune activité enregistrée pour ce serveur.",
+  "Hourglass has no activity recorded for this server yet."
+ ],
+ "p0560": [
+  "Membre introuvable",
+  "Member not found"
+ ],
+ "p0561": [
+  "Hourglass n’a encore aucune activité enregistrée pour ce membre.",
+  "Hourglass has no activity recorded for this member yet."
+ ],
+ "p0562": [
+  "Série",
+  "Streak"
+ ],
+ "p0563": [
+  "Plus longue série de jours actifs d’affilée",
+  "Longest run of active days in a row"
+ ],
+ "p0564": [
+  "Bot ou application Discord",
+  "Discord bot or app"
+ ],
+ "p0565": [
+  "Bots",
+  "Bots"
+ ],
+ "p0566": [
+  "Afficher les bots et applications Discord dans le classement",
+  "Show Discord bots and apps in the ranking"
+ ],
+ "p0567": [
+  "Afficher",
+  "Show"
  ]
 }

@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('top-filter-form');
     if (!form) return;
 
-    // Period and Sort auto-submit
-    form.querySelectorAll('select').forEach(function(select) {
+    // Period, Sort and "Show bots" auto-submit
+    form.querySelectorAll('select, input[type="checkbox"]').forEach(function(select) {
         select.addEventListener('change', function() {
             form.requestSubmit();
         });

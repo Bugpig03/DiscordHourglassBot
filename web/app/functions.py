@@ -993,66 +993,6 @@ def get_daily_activity_last_30_days() -> list[dict]:
     return result
 
 
-def get_top_users_podium(limit: int = 3) -> list[dict]:
-    """Retrieve top members with avatar for the dashboard podium."""
-    HOURGLASS_BOT_ID = 1210665993328926750
-    query = (
-        Stats
-        .select(
-            Stats.user_id,
-            Users.username,
-            Users.avatar,
-            fn.SUM(Stats.seconds).alias("total_seconds"),
-            fn.SUM(Stats.messages).alias("total_messages")
-        )
-        .join(Users, JOIN.LEFT_OUTER, on=(Stats.user_id == Users.user_id))
-        .where(Stats.user_id != HOURGLASS_BOT_ID)
-        .group_by(Stats.user_id, Users.username, Users.avatar)
-        .order_by(fn.SUM(Stats.seconds).desc())
-        .limit(limit)
-        .dicts()
-    )
-    res = []
-    for r in query:
-        res.append({
-            "user_id": r["user_id"],
-            "username": r["username"] or tr("Membre {id}", "Member {id}", id=r['user_id']),
-            "avatar": r["avatar"],
-            "hours": round((r["total_seconds"] or 0) / 3600.0, 1),
-            "messages": int(r["total_messages"] or 0)
-        })
-    return res
-
-
-def get_top_servers_podium(limit: int = 3) -> list[dict]:
-    """Retrieve top servers with avatar for the dashboard podium."""
-    query = (
-        Stats
-        .select(
-            Stats.server_id,
-            Servers.servername,
-            Servers.avatar,
-            fn.SUM(Stats.seconds).alias("total_seconds"),
-            fn.SUM(Stats.messages).alias("total_messages")
-        )
-        .join(Servers, JOIN.LEFT_OUTER, on=(Stats.server_id == Servers.server_id))
-        .group_by(Stats.server_id, Servers.servername, Servers.avatar)
-        .order_by(fn.SUM(Stats.seconds).desc())
-        .limit(limit)
-        .dicts()
-    )
-    res = []
-    for r in query:
-        res.append({
-            "server_id": r["server_id"],
-            "servername": r["servername"] or tr("Serveur {id}", "Server {id}", id=r['server_id']),
-            "avatar": r["avatar"],
-            "hours": round((r["total_seconds"] or 0) / 3600.0, 1),
-            "messages": int(r["total_messages"] or 0)
-        })
-    return res
-
-
 def get_top_10_users_by_hours() -> list[dict]:
     """Retrieve the top 10 most active members by total voice hours across all servers (excluding bot)."""
     HOURGLASS_BOT_ID = 1210665993328926750
@@ -1725,6 +1665,73 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
         "avg_ratio": avg_ratio,
         "has_data": len(labels) > 0
     }
+
+
+BOT_IDS_CACHE_SECONDS = 300
+
+
+def get_bot_user_ids() -> frozenset[int]:
+    """Discord bots and apps among the recorded members (users.is_bot, set by the bot since v3.4.0).
+
+    Empty while the bot has not added the column yet: the site then shows no BOT tag and hides nobody.
+    """
+    from app.cache import cache
+    from app.database import db
+
+    def compute() -> frozenset[int]:
+        try:
+            with db.atomic():
+                return frozenset(row[0] for row in db.execute_sql("SELECT user_id FROM users WHERE is_bot").fetchall())
+        except Exception:
+            return frozenset()
+
+    return cache.get_or_set(("bot_user_ids",), BOT_IDS_CACHE_SECONDS, compute)
+
+
+def is_bot_user(user_id) -> bool:
+    try:
+        return int(user_id) in get_bot_user_ids()
+    except (TypeError, ValueError):
+        return False
+
+
+BEST_STREAK_CACHE_SECONDS = 600
+
+
+def get_user_best_streak(user_id: int) -> int:
+    """Longest run of consecutive active days (voice or messages) ever, in UTC days, for the Streak badge.
+
+    Days are counted like the activity calendar: a live voice session counts on every day it covers, an
+    archived one (is_legacy) only when it is a daily record of 36 h or less.
+    """
+    from app.cache import cache
+    from app.database import db
+
+    def compute() -> int:
+        row = db.execute_sql("""
+            WITH days AS (
+                SELECT gs::date AS d
+                FROM voice_sessions v
+                CROSS JOIN LATERAL generate_series(date_trunc('day', v.joined_at),
+                    date_trunc('day', COALESCE(v.left_at, NOW() AT TIME ZONE 'UTC')), INTERVAL '1 day') AS gs
+                WHERE v.user_id = %s AND NOT v.is_legacy
+                UNION
+                SELECT v.joined_at::date
+                FROM voice_sessions v
+                WHERE v.user_id = %s AND v.is_legacy AND v.left_at - v.joined_at <= INTERVAL '36 hours'
+                UNION
+                SELECT m.created_at::date
+                FROM message_events m
+                WHERE m.user_id = %s AND m.count > 0
+            ),
+            runs AS (
+                SELECT d - (ROW_NUMBER() OVER (ORDER BY d))::int AS run FROM days
+            )
+            SELECT COALESCE(MAX(n), 0) FROM (SELECT COUNT(*) AS n FROM runs GROUP BY run) AS lengths
+        """, (user_id, user_id, user_id)).fetchone()
+        return int(row[0] or 0) if row else 0
+
+    return cache.get_or_set(("best_streak", int(user_id)), BEST_STREAK_CACHE_SECONDS, compute)
 
 
 def get_user_heatmap_data(user_id: int | str, days: int = 365) -> dict:

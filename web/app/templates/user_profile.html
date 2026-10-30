@@ -59,7 +59,7 @@
             </div>
 
             <div class="profile-hero-info">
-                <h1 id="profileName" class="profile-hero-name" data-ghost="{{ gamification.xp_info.level }}">{{ stats.username }}</h1>
+                <h1 id="profileName" class="profile-hero-name" data-ghost="{{ gamification.xp_info.level }}">{{ stats.username }}{{ bot_tag(stats.user_id) }}</h1>
                 <div class="profile-hero-meta">
                     <span class="profile-hero-title">{{ tr(gamification.xp_info.title_fr, gamification.xp_info.title_en) }}</span>
                     <span class="profile-hero-sep" aria-hidden="true">•</span>

@@ -1,8 +1,12 @@
-"""Design system of the stat cards: website colors, Inter font, SVG primitives, images and PNG export.
+"""Design system of the stat cards, in the website's "Arène" style: colors, fonts, cut-corner shapes, pixel icons,
+images and PNG export.
 
 Cards are meant to be read at small size (a Discord image is usually seen without clicking, around
 500 px wide): they are drawn on a large canvas (1200 px wide) with big type, then shown at half size
 as SVG or exported as a sharp 2x PNG. No text should be smaller than ~24 px on the canvas.
+
+Fonts are the website's own (Chakra Petch for titles, figures and captions, IBM Plex Sans for text, renamed HG Sans because "Plex" is a Reserved Font Name), converted
+to TTF for resvg; Inter stays as the fallback that draws Cyrillic.
 """
 
 import base64
@@ -17,174 +21,260 @@ from functools import lru_cache
 import requests
 from PIL import Image, ImageFont, ImageOps
 
+from app.i18n import day_month_year, format_number
+from app.pixel_icons import INNER as PIXEL_INNER, VIEWBOXES as PIXEL_VIEWBOXES
+
 log = logging.getLogger(__name__)
 
 FONT_DIR = os.path.join(os.path.dirname(__file__), "fonts")
-FONT_FAMILY = "Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
-_FONT_FILES = {400: "Inter-Regular.ttf", 600: "Inter-SemiBold.ttf", 700: "Inter-Bold.ttf", 800: "Inter-ExtraBold.ttf", 900: "Inter-Black.ttf"}
+DISPLAY = "'Chakra Petch', Inter, sans-serif"
+BODY = "'HG Sans', Inter, sans-serif"
+_FILES = {
+    ("display", 500, False): "ChakraPetch-500.ttf",
+    ("display", 600, False): "ChakraPetch-600.ttf",
+    ("display", 700, False): "ChakraPetch-700.ttf",
+    ("display", 600, True): "ChakraPetch-600Italic.ttf",
+    ("display", 700, True): "ChakraPetch-700Italic.ttf",
+    ("body", 400, False): "HGSans-400.ttf",
+    ("body", 600, False): "HGSans-600.ttf",
+    ("body", 700, False): "HGSans-700.ttf",
+    ("inter", 400, False): "Inter-Regular.ttf",
+    ("inter", 600, False): "Inter-SemiBold.ttf",
+    ("inter", 700, False): "Inter-Bold.ttf",
+}
 
-# Website palette (static/styles.css, pages/profile_theme.css)
-BG = "#0b1220"
-BG_2 = "#111a2b"
-TEXT = "#f1f5f9"
-SOFT = "#cbd5e1"
-MUTED = "#94a3b8"
-DIM = "#64748b"
-LINE = "#ffffff"          # used with a low opacity for borders and panels
-VOICE = "#38bdf8"
-MESSAGES = "#818cf8"
-GOLD = "#fbbf24"
-SILVER = "#cbd5e1"
-BRONZE = "#f59e0b"
-WIN = "#34d399"
+# Website palette (static/css/arene.css)
+BG = "#15161a"
+BG_2 = "#1a1c21"
+PANEL = "#212329"
+PANEL_2 = "#292c33"
+LINE = "#2e3138"
+TEXT = "#f2f3f5"
+SOFT = "#c9ccd3"
+MUTED = "#a3a6b0"
+DIM = "#72767d"
+ACCENT = "#717cf8"
+# One color per kind of figure, as on the website
+VOICE = "#717cf8"
+MESSAGES = "#3fd1a0"
+XP = "#f5b03b"
+SERVER = "#ff6b5e"
+MEMBER = "#b07cff"
+GOLD = "#f5c542"
+SILVER = "#c9ced6"
+BRONZE = "#d08a4f"
+DANGER = "#ed4245"
 SITE = "hourglassbot.net"
+HOLO = "url(#holo)"   # Mythic badge tier: the rainbow gradient defined by document()
+
+CUT = 24       # corner cut of the panels (12 px on the website, the canvas is 2x)
+CUT_S = 12     # small elements (6 px on the website)
 
 
 # ---------------------------------------------------------------------------
-# Text: measured with the same Inter files resvg draws with
+# Text: measured with the same files resvg draws with
 # ---------------------------------------------------------------------------
-@lru_cache(maxsize=64)
-def _font(weight: int, size: int) -> ImageFont.FreeTypeFont:
-    name = _FONT_FILES.get(weight) or _FONT_FILES[700]
-    return ImageFont.truetype(os.path.join(FONT_DIR, name), size)
+def _weight(font: str, weight: int) -> int:
+    if font == "display":
+        return 500 if weight <= 500 else 600 if weight <= 600 else 700
+    return 400 if weight <= 400 else 600 if weight <= 600 else 700
 
 
-@lru_cache(maxsize=1)
-def _inter_codepoints() -> frozenset:
-    """Characters Inter can draw (its cmap); every weight shares the same character set."""
+@lru_cache(maxsize=128)
+def _font(font: str, weight: int, italic: bool, size: int) -> ImageFont.FreeTypeFont:
+    key = (font, _weight(font, weight), italic and font == "display" and weight >= 600)
+    return ImageFont.truetype(os.path.join(FONT_DIR, _FILES.get(key) or _FILES[(font, key[1], False)]), size)
+
+
+@lru_cache(maxsize=8)
+def _codepoints(name: str) -> frozenset:
     from fontTools.ttLib import TTFont
-    with TTFont(os.path.join(FONT_DIR, _FONT_FILES[700]), lazy=True) as font:
+    with TTFont(os.path.join(FONT_DIR, name), lazy=True) as font:
         return frozenset(font.getBestCmap())
 
 
+def _drawable() -> frozenset:
+    return _codepoints(_FILES[("display", 700, False)]) | _codepoints(_FILES[("body", 400, False)]) | _codepoints(_FILES[("inter", 700, False)])
+
+
 def clean(value) -> str:
-    """Drop what Inter cannot draw (emoji, CJK...) instead of showing empty boxes; collapse the spaces left."""
-    raw = str(value if value is not None else "")
-    codepoints = _inter_codepoints()
+    """Drop what no card font can draw (emoji, CJK...) instead of showing empty boxes; collapse the spaces left."""
+    # Chakra Petch has no narrow no-break space (French thousands): a regular no-break space reads the same
+    raw = str(value if value is not None else "").replace("\u202f", "\u00a0")
+    codepoints = _drawable()
     kept = "".join(ch for ch in raw if ch.isspace() or ord(ch) in codepoints)
     return " ".join(kept.split()) if kept != raw else raw
 
 
-def text_width(text: str, size: float, weight: int = 700) -> float:
-    """Width in canvas pixels (measured at 4x for sub-pixel precision)."""
-    return _font(weight, max(1, round(size * 4))).getlength(clean(text)) / 4
+def text_width(value: str, size: float, weight: int = 700, font: str = "display", italic: bool = False) -> float:
+    """Width in canvas pixels (measured at 4x for sub-pixel precision); letters the font lacks are measured with Inter."""
+    value = clean(value)
+    own = _codepoints(_FILES[(font, _weight(font, weight), False)])
+    if any(not ch.isspace() and ord(ch) not in own for ch in value):
+        font, italic = "inter", False
+    return _font(font, weight, italic, max(1, round(size * 4))).getlength(value) / 4
 
 
-def fit_text(text: str, max_width: float, size: float, weight: int = 700, min_size: float | None = None) -> tuple[str, float]:
+def fit_text(value: str, max_width: float, size: float, weight: int = 700, min_size: float | None = None,
+             font: str = "display", italic: bool = False, spacing: float = 0) -> tuple[str, float]:
     """Shrink the font down to min_size, then shorten with an ellipsis, so the text fits max_width."""
-    text = clean(text)
+    value = clean(value)
     min_size = min_size or size
-    while size > min_size and text_width(text, size, weight) > max_width:
+
+    def width(v, s):
+        return text_width(v, s, weight, font, italic) + spacing * len(v)
+
+    while size > min_size and width(value, size) > max_width:
         size -= 1
-    if text_width(text, size, weight) <= max_width:
-        return text, size
-    while len(text) > 1 and text_width(text + "…", size, weight) > max_width:
-        text = text[:-1]
-    return text.rstrip() + "…", size
+    if width(value, size) <= max_width:
+        return value, size
+    while len(value) > 1 and width(value + "…", size) > max_width:
+        value = value[:-1]
+    return value.rstrip() + "…", size
 
 
 def esc(value) -> str:
     return html.escape(str(value if value is not None else ""), quote=True)
 
 
-def text(x: float, y: float, value: str, size: float, weight: int = 700, fill: str = TEXT,
-         anchor: str = "start", opacity: float | None = None, spacing: float | None = None) -> str:
+def text(x: float, y: float, value: str, size: float, weight: int = 700, fill: str = TEXT, anchor: str = "start",
+         opacity: float | None = None, spacing: float | None = None, font: str = "display", italic: bool = False) -> str:
+    family = DISPLAY if font == "display" else BODY
     extra = f' fill-opacity="{opacity}"' if opacity is not None else ""
     if spacing:
         extra += f' letter-spacing="{spacing}"'
-    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="{FONT_FAMILY}" font-size="{size:.1f}" '
-            f'font-weight="{weight}" fill="{fill}" text-anchor="{anchor}"{extra}>{esc(clean(value))}</text>')
+    if italic:
+        extra += ' font-style="italic"'
+    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="{family}" font-size="{size:.1f}" '
+            f'font-weight="{_weight(font, weight)}" fill="{fill}" text-anchor="{anchor}"{extra}>{esc(clean(value))}</text>')
 
 
-def label(x: float, y: float, value: str, size: float = 24, fill: str = MUTED, anchor: str = "start") -> str:
-    """Small uppercase caption above a value."""
-    return text(x, y, value.upper(), size, 700, fill, anchor, spacing=1.5)
+def caption(x: float, y: float, value: str, size: float = 23, fill: str = MUTED, anchor: str = "start") -> str:
+    """Small uppercase caption above a value (Chakra Petch, spaced like the website's labels)."""
+    return text(x, y, value.upper(), size, 600, fill, anchor, spacing=size * 0.08)
 
 
-def rect(x: float, y: float, w: float, h: float, r: float, fill: str, opacity: float = 1,
-         stroke: str | None = None, stroke_opacity: float = 0.1, stroke_width: float = 2) -> str:
-    out = f'<rect x="{x:.1f}" y="{y:.1f}" width="{max(0, w):.1f}" height="{max(0, h):.1f}" rx="{r}" fill="{fill}"'
+def caption_width(value: str, size: float) -> float:
+    return text_width(value.upper(), size, 600) + size * 0.08 * len(value)
+
+
+def ghost(x: float, y: float, value: str, size: float, anchor: str = "end", opacity: float = 0.08) -> str:
+    """Huge outlined figure in the background (rank, level), like the website's titles."""
+    family = DISPLAY
+    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="{family}" font-size="{size:.1f}" font-weight="700" font-style="italic" '
+            f'fill="none" stroke="{TEXT}" stroke-opacity="{opacity}" stroke-width="3" text-anchor="{anchor}">{esc(clean(value))}</text>')
+
+
+# ---------------------------------------------------------------------------
+# Shapes: cut corners (top left and bottom right), slanted tags
+# ---------------------------------------------------------------------------
+def cut_points(x: float, y: float, w: float, h: float, c: float) -> str:
+    c = min(c, w / 2, h / 2)
+    pts = [(x + c, y), (x + w, y), (x + w, y + h - c), (x + w - c, y + h), (x, y + h), (x, y + c)]
+    return " ".join(f"{px:.1f},{py:.1f}" for px, py in pts)
+
+
+def shape(x: float, y: float, w: float, h: float, fill: str, opacity: float = 1, cut: float = CUT,
+          stroke: str | None = None, stroke_opacity: float = 1, stroke_width: float = 2) -> str:
+    """Cut-corner box; the outline runs along the diagonals too, as on the website."""
+    out = f'<polygon points="{cut_points(x, y, max(0, w), max(0, h), cut)}" fill="{fill}"'
     if opacity != 1:
         out += f' fill-opacity="{opacity}"'
     if stroke:
-        out += f' stroke="{stroke}" stroke-opacity="{stroke_opacity}" stroke-width="{stroke_width}"'
+        out += f' stroke="{stroke}" stroke-opacity="{stroke_opacity}" stroke-width="{stroke_width}" stroke-linejoin="miter"'
     return out + "/>"
 
 
-def panel(x: float, y: float, w: float, h: float, r: float = 24, tint: str = LINE, opacity: float = 0.045) -> str:
-    """Card surface of the website (gray-box): faint fill and hairline border."""
-    return rect(x, y, w, h, r, tint, opacity, stroke=LINE, stroke_opacity=0.09)
+def panel(x: float, y: float, w: float, h: float, cut: float = CUT, fill: str = PANEL, stroke: str = LINE) -> str:
+    """Card surface of the website (an-card): solid panel, thin line around, cut corners."""
+    return shape(x, y, w, h, fill, 1, cut, stroke, 1, 2)
 
 
-def pill(x: float, y: float, value: str, color: str, size: float = 26, h: float = 48, anchor: str = "start",
-         weight: int = 800, max_width: float | None = None) -> tuple[str, float]:
-    """Rounded chip (tinted background, colored text). Returns (svg, width)."""
-    pad = h * 0.45
+def top_line(x: float, y: float, w: float, cut: float, color: str, width: float = 5) -> str:
+    """Colored top edge of a tile that carries on into the cut corner (the website's key figure tiles)."""
+    half = width / 2
+    return (f'<polyline points="{x + half:.1f},{y + cut:.1f} {x + cut:.1f},{y + half:.1f} {x + w - half:.1f},{y + half:.1f}" '
+            f'fill="none" stroke="{color}" stroke-width="{width}" stroke-linejoin="miter"/>')
+
+
+def slant(x: float, y: float, w: float, h: float, fill: str, opacity: float = 1, s: float = CUT_S,
+          stroke: str | None = None, stroke_opacity: float = 1) -> str:
+    pts = f"{x + s:.1f},{y:.1f} {x + w:.1f},{y:.1f} {x + w - s:.1f},{y + h:.1f} {x:.1f},{y + h:.1f}"
+    out = f'<polygon points="{pts}" fill="{fill}"'
+    if opacity != 1:
+        out += f' fill-opacity="{opacity}"'
+    if stroke:
+        out += f' stroke="{stroke}" stroke-opacity="{stroke_opacity}" stroke-width="2"'
+    return out + "/>"
+
+
+def tag(x: float, y: float, value: str, color: str, size: float = 24, h: float = 46, anchor: str = "start",
+        max_width: float | None = None, solid: bool = False) -> tuple[str, float]:
+    """Slanted label (level, scope, period): tinted, or solid with dark text. Returns (svg, width)."""
+    pad = h * 0.5
+    spacing = size * 0.06
+    value = value.upper()
     if max_width:
-        value, size = fit_text(value, max_width - 2 * pad, size, weight, size * 0.8)
-    w = text_width(value, size, weight) + 2 * pad
+        value, size = fit_text(value, max_width - 2 * pad, size, 700, size * 0.8, spacing=spacing)
+    w = text_width(value, size, 700) + spacing * len(value) + 2 * pad
     left = x - w if anchor == "end" else x - w / 2 if anchor == "middle" else x
-    svg = (rect(left, y, w, h, h / 2, color, 0.14, stroke=color, stroke_opacity=0.45)
-           + text(left + w / 2, y + h / 2 + size * 0.36, value, size, weight, color, "middle"))
+    if solid:
+        svg = slant(left, y, w, h, color) + text(left + w / 2, y + h / 2 + size * 0.36, value, size, 700, BG, "middle", spacing=spacing)
+    else:
+        svg = (slant(left, y, w, h, color, 0.14, stroke=color, stroke_opacity=0.55)
+               + text(left + w / 2, y + h / 2 + size * 0.36, value, size, 700, color, "middle", spacing=spacing))
     return svg, w
 
 
-def progress(x: float, y: float, w: float, h: float, ratio: float, color: str, color_2: str | None = None, uid: str = "p") -> str:
+def progress(x: float, y: float, w: float, h: float, ratio: float, color: str) -> str:
+    """Straight bar on a dark track (no rounded ends in the Arène style)."""
     ratio = max(0.0, min(1.0, ratio))
-    fill_w = max(h, w * ratio) if ratio > 0 else 0
-    grad = ""
-    paint = color
-    if color_2:
-        grad = (f'<defs><linearGradient id="{uid}" x1="0" y1="0" x2="1" y2="0">'
-                f'<stop offset="0" stop-color="{color}"/><stop offset="1" stop-color="{color_2}"/></linearGradient></defs>')
-        paint = f"url(#{uid})"
-    return grad + rect(x, y, w, h, h / 2, LINE, 0.08) + (rect(x, y, fill_w, h, h / 2, paint) if fill_w else "")
+    fill_w = w * ratio
+    out = f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" fill="{PANEL_2}"/>'
+    if fill_w > 0:
+        out += f'<rect x="{x:.1f}" y="{y:.1f}" width="{fill_w:.1f}" height="{h:.1f}" fill="{color}"/>'
+    return out
 
 
-def icon(inner_svg: str, x: float, y: float, size: float, color: str, stroke: float = 2) -> str:
-    """Lucide-style 24x24 icon (badge svg_path) drawn at (x, y) with the given size."""
-    s = size / 24
-    return (f'<g transform="translate({x:.1f},{y:.1f}) scale({s:.4f})" fill="none" stroke="{color}" '
-            f'stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round">{inner_svg}</g>')
+def pixel(name: str, x: float, y: float, size: float, color: str) -> str:
+    """Pixel-art icon of the website (9 x 9 grid), drawn crisp at any size."""
+    inner = PIXEL_INNER.get(name) or PIXEL_INNER["star"]
+    view = PIXEL_VIEWBOXES.get(name) or "0 0 9 9"
+    return (f'<svg x="{x:.1f}" y="{y:.1f}" width="{size:.1f}" height="{size:.1f}" viewBox="{view}" shape-rendering="crispEdges">'
+            f'<g fill="{color}">{inner}</g></svg>')
 
 
-ICONS = {
-    "mic": '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
-    "message": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-    "calendar": '<rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
-    "clock": '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-    "trophy": '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
-    "users": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    "activity": '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
-    "headphones": '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
-    "star": '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-    "hourglass": '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
-    "crown": '<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>',
-}
+def icon_block(x: float, y: float, size: float, name: str, color: str) -> str:
+    """Icon on a solid square of its color (the website's tile icons)."""
+    pad = size * 0.2
+    return shape(x, y, size, size, color, 1, CUT_S * 0.75) + pixel(name, x + pad, y + pad, size - 2 * pad, BG)
 
 
 # ---------------------------------------------------------------------------
-# Numbers and colors
+# Numbers, dates and colors (in the card's language)
 # ---------------------------------------------------------------------------
-def fmt_int(n) -> str:
-    return f"{int(n or 0):,}"
+def fmt_int(n, lang: str = "en") -> str:
+    return format_number(int(n or 0), 0, lang)
 
 
-def fmt_hours(seconds) -> str:
-    """Voice time: 35m, 45.2h, 771h, 12,450h."""
+def fmt_hours(seconds, lang: str = "en") -> str:
+    """Voice time: 35m, 45.2h, 771h, 12,450h (separators of the card's language)."""
     seconds = int(seconds or 0)
     if seconds < 3600:
         return f"{seconds // 60}m"
     hours = seconds / 3600
-    return f"{hours:.1f}h" if hours < 100 else f"{int(hours):,}h"
+    return f"{format_number(hours, 1, lang)}h" if hours < 100 else f"{format_number(int(hours), 0, lang)}h"
 
 
-def fmt_date(value) -> str:
-    return value.strftime("%b %d, %Y").replace(" 0", " ") if value else "—"
+def fmt_date(value, lang: str = "en") -> str:
+    if not value:
+        return "—"
+    label = day_month_year(value.day, value.month, value.year, lang)
+    return label.lower() if lang == "fr" else label   # "28 avr 2024", as on the website
 
 
 def hex_rgb(hex_color: str) -> tuple[int, int, int]:
-    h = (hex_color or "#38bdf8").lstrip("#")
+    h = (hex_color or ACCENT).lstrip("#")
     return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
 
 
@@ -256,37 +346,57 @@ def local_cover(path: str, w: int, h: int) -> str | None:
     return _cached(("local", path, w, h), build)
 
 
-def avatar(cx: float, cy: float, r: float, image_uri: str | None, name: str, ring: str, uid: str, ring_width: float = 7) -> str:
-    """Round avatar with a colored ring; the initial on a dark disc when there is no picture."""
+def _initial(name: str) -> str:
+    return (clean(name) or "?").strip()[:1].upper() or "?"
+
+
+def avatar(cx: float, cy: float, r: float, image_uri: str | None, name: str, ring: str, uid: str, ring_width: float = 6) -> str:
+    """Round member avatar with a colored ring (avatars stay round on the website); the initial without a picture."""
     out = f'<circle cx="{cx}" cy="{cy}" r="{r + ring_width}" fill="{ring}"/>'
-    out += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#1e293b"/>'
+    out += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{PANEL_2}"/>'
     if image_uri:
         out += (f'<clipPath id="{uid}"><circle cx="{cx}" cy="{cy}" r="{r}"/></clipPath>'
                 f'<image href="{image_uri}" x="{cx - r}" y="{cy - r}" width="{2 * r}" height="{2 * r}" '
                 f'clip-path="url(#{uid})" preserveAspectRatio="xMidYMid slice"/>')
     else:
-        initial = (name or "?").strip()[:1].upper() or "?"
-        out += text(cx, cy + r * 0.36, initial, r, 900, SOFT, "middle")
+        out += text(cx, cy + r * 0.36, _initial(name), r, 700, SOFT, "middle")
+    return out
+
+
+def server_icon(x: float, y: float, size: float, image_uri: str | None, name: str, ring: str, uid: str, ring_width: float = 6) -> str:
+    """Square server icon with cut corners and a colored frame (the website's server pages)."""
+    out = shape(x - ring_width, y - ring_width, size + 2 * ring_width, size + 2 * ring_width, ring, 1, CUT)
+    out += shape(x, y, size, size, PANEL_2, 1, CUT - ring_width * 0.6)
+    if image_uri:
+        out += (f'<clipPath id="{uid}"><polygon points="{cut_points(x, y, size, size, CUT - ring_width * 0.6)}"/></clipPath>'
+                f'<image href="{image_uri}" x="{x}" y="{y}" width="{size}" height="{size}" '
+                f'clip-path="url(#{uid})" preserveAspectRatio="xMidYMid slice"/>')
+    else:
+        out += text(x + size / 2, y + size / 2 + size * 0.18, _initial(name), size / 2, 700, SOFT, "middle")
     return out
 
 
 # ---------------------------------------------------------------------------
 # Document and export
 # ---------------------------------------------------------------------------
-def document(w: int, h: int, body: str, bg: str = BG, radius: int = 36, glow: str | None = None) -> str:
-    """Full SVG card (rounded, transparent corners). Displayed at half size: the canvas is 2x."""
-    glow_svg = ""
-    if glow:
-        glow_svg = (f'<defs><radialGradient id="glow" cx="0.15" cy="0" r="0.9">'
-                    f'<stop offset="0" stop-color="{glow}" stop-opacity="0.22"/>'
-                    f'<stop offset="1" stop-color="{glow}" stop-opacity="0"/></radialGradient></defs>'
-                    f'<rect width="{w}" height="{h}" rx="{radius}" fill="url(#glow)"/>')
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w // 2}" height="{h // 2}" viewBox="0 0 {w} {h}">'
-            f'<defs><clipPath id="frame"><rect width="{w}" height="{h}" rx="{radius}"/></clipPath>'
-            f'<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{bg}"/>'
-            f'<stop offset="1" stop-color="{BG_2 if bg == BG else bg}"/></linearGradient></defs>'
-            f'<g clip-path="url(#frame)"><rect width="{w}" height="{h}" fill="url(#bg)"/>{glow_svg}{body}</g>'
-            f'<rect x="1" y="1" width="{w - 2}" height="{h - 2}" rx="{radius - 1}" fill="none" stroke="{LINE}" stroke-opacity="0.1" stroke-width="2"/>'
+def document(w: int, h: int, body: str, accent: str = ACCENT, bg: str = BG, halo: str | None = None) -> str:
+    """Full SVG card: cut-corner frame, the website's dark background with two soft halos, colored top edge.
+    Displayed at half size: the canvas is 2x."""
+    halo = halo or MEMBER
+    frame = cut_points(0, 0, w, h, 32)
+    defs = (f'<defs><clipPath id="frame"><polygon points="{frame}"/></clipPath>'
+            f'<radialGradient id="halo1" cx="0.08" cy="0" r="0.75"><stop offset="0" stop-color="{accent}" stop-opacity="0.20"/>'
+            f'<stop offset="1" stop-color="{accent}" stop-opacity="0"/></radialGradient>'
+            f'<radialGradient id="halo2" cx="1" cy="1" r="0.6"><stop offset="0" stop-color="{halo}" stop-opacity="0.10"/>'
+            f'<stop offset="1" stop-color="{halo}" stop-opacity="0"/></radialGradient>'
+            f'<linearGradient id="holo" x1="0" y1="0" x2="1" y2="0.3">'
+            f'<stop offset="0" stop-color="#ff7bd5"/><stop offset="0.25" stop-color="#ffd36e"/><stop offset="0.5" stop-color="#5ff0b0"/>'
+            f'<stop offset="0.75" stop-color="#6fb6ff"/><stop offset="1" stop-color="#b07cff"/></linearGradient></defs>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w // 2}" height="{h // 2}" viewBox="0 0 {w} {h}">{defs}'
+            f'<g clip-path="url(#frame)"><rect width="{w}" height="{h}" fill="{bg}"/>'
+            f'<rect width="{w}" height="{h}" fill="url(#halo1)"/><rect width="{w}" height="{h}" fill="url(#halo2)"/>{body}</g>'
+            f'<polygon points="{cut_points(1, 1, w - 2, h - 2, 31)}" fill="none" stroke="{LINE}" stroke-width="2"/>'
+            f'<polyline points="1,33 33,1 {w * 0.42:.0f},1" fill="none" stroke="{accent}" stroke-width="4"/>'
             f'</svg>')
 
 
@@ -294,5 +404,5 @@ def to_png(svg: str) -> bytes:
     """Rasterize a card with resvg at full canvas size (the 2x image Discord displays sharply)."""
     import resvg_py
     data = resvg_py.svg_to_bytes(svg_string=svg, zoom=2, font_dirs=[FONT_DIR], skip_system_fonts=True,
-                                 font_family="Inter", sans_serif_family="Inter")
+                                 font_family="Chakra Petch", sans_serif_family="HG Sans")
     return bytes(data)

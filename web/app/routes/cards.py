@@ -3,6 +3,9 @@
 - /internal/card/<kind>.png: PNG images for the Discord bot, protected by the CARD_TOKEN shared secret
   (header X-Card-Token). Disabled (404) while CARD_TOKEN is not configured.
 - /api/card/...: the same cards as embeddable SVG (public, rate limited like the rest of /api/card/).
+
+Every card takes ?lang= (the Discord locale of the member who ran the command, or a site language code);
+English by default, see builders.card_lang for the languages the cards can draw.
 """
 
 import hmac
@@ -17,6 +20,10 @@ cards_bp = Blueprint("cards", __name__)
 log = logging.getLogger(__name__)
 
 PNG_CACHE_SECONDS = 120
+
+
+def _lang() -> str:
+    return builders.card_lang(request.args.get("lang"))
 
 
 def _int_arg(name: str) -> int | None:
@@ -50,7 +57,8 @@ def internal_member_card():
     user_id, server_id = _int_arg("user"), _int_arg("server")
     if not user_id:
         abort(400)
-    return _png(("member", user_id, server_id), lambda: builders.member_card(user_id, server_id))
+    lang = _lang()
+    return _png(("member", user_id, server_id, lang), lambda: builders.member_card(user_id, server_id, lang))
 
 
 @cards_bp.route("/internal/card/versus.png")
@@ -59,14 +67,16 @@ def internal_versus_card():
     u1, u2, server_id = _int_arg("u1"), _int_arg("u2"), _int_arg("server")
     if not u1 or not u2:
         abort(400)
-    return _png(("versus", u1, u2, server_id), lambda: builders.versus_card(u1, u2, server_id))
+    lang = _lang()
+    return _png(("versus", u1, u2, server_id, lang), lambda: builders.versus_card(u1, u2, server_id, lang))
 
 
 @cards_bp.route("/internal/card/top.png")
 def internal_top_card():
     _check_token()
     metric, period, server_id = request.args.get("type", "voice"), request.args.get("period", "all"), _int_arg("server")
-    return _png(("top", metric, period, server_id), lambda: builders.top_card(metric, period, server_id))
+    lang = _lang()
+    return _png(("top", metric, period, server_id, lang), lambda: builders.top_card(metric, period, server_id, lang))
 
 
 @cards_bp.route("/internal/card/server.png")
@@ -75,7 +85,8 @@ def internal_server_card():
     server_id = _int_arg("server")
     if not server_id:
         abort(400)
-    return _png(("server", server_id), lambda: builders.server_card(server_id))
+    lang = _lang()
+    return _png(("server", server_id, lang), lambda: builders.server_card(server_id, lang))
 
 
 # ---------------------------------------------------------------------------
@@ -85,8 +96,7 @@ def _svg(build, max_age: int = 180) -> Response:
     try:
         svg, status = build(), 200
     except builders.CardNotFound as e:
-        what = "Server" if str(e) == "server" else "Member"
-        svg, status = builders.error_card(f"{what} not found", f"Hourglass has no activity recorded for this {what.lower()} yet."), 404
+        svg, status = builders.not_found_card(str(e), _lang()), 404
     resp = Response(svg, mimetype="image/svg+xml", status=status)
     resp.headers["Cache-Control"] = f"public, max-age={max_age}" if status == 200 else "no-store"
     return resp
@@ -102,40 +112,40 @@ def _user_or_404(identifier: str) -> int:
 @cards_bp.route("/api/card/user/<username>")
 @cards_bp.route("/api/card/allstats/<username>")
 def svg_member_card(username: str):
-    return _svg(lambda: builders.member_card(_user_or_404(username)))
+    return _svg(lambda: builders.member_card(_user_or_404(username), lang=_lang()))
 
 
 @cards_bp.route("/api/card/user/<username>/server/<int:server_id>")
 @cards_bp.route("/api/card/stats/<username>/<int:server_id>")
 def svg_member_server_card(username: str, server_id: int):
-    return _svg(lambda: builders.member_card(_user_or_404(username), server_id))
+    return _svg(lambda: builders.member_card(_user_or_404(username), server_id, _lang()))
 
 
 @cards_bp.route("/api/card/versus/<user1>/<user2>")
 def svg_versus_card(user1: str, user2: str):
-    return _svg(lambda: builders.versus_card(_user_or_404(user1), _user_or_404(user2), _int_arg("server")))
+    return _svg(lambda: builders.versus_card(_user_or_404(user1), _user_or_404(user2), _int_arg("server"), _lang()))
 
 
 @cards_bp.route("/api/card/top/server/<int:server_id>")
 @cards_bp.route("/api/card/server/<int:server_id>/top")
 def svg_server_top_card(server_id: int):
-    return _svg(lambda: builders.top_card(request.args.get("type", "voice"), request.args.get("period", "all"), server_id))
+    return _svg(lambda: builders.top_card(request.args.get("type", "voice"), request.args.get("period", "all"), server_id, _lang()))
 
 
 @cards_bp.route("/api/card/top")
 @cards_bp.route("/api/card/top/global")
 @cards_bp.route("/api/card/alltop")
 def svg_global_top_card():
-    return _svg(lambda: builders.top_card(request.args.get("type", "voice"), request.args.get("period", "all")))
+    return _svg(lambda: builders.top_card(request.args.get("type", "voice"), request.args.get("period", "all"), lang=_lang()))
 
 
 @cards_bp.route("/api/card/server/<int:server_id>")
 def svg_server_card(server_id: int):
-    return _svg(lambda: builders.server_card(server_id))
+    return _svg(lambda: builders.server_card(server_id, _lang()))
 
 
 @cards_bp.route("/api/card/commands")
 @cards_bp.route("/api/card/help")
 @cards_bp.route("/api/card/aide")
 def svg_help_card():
-    return _svg(builders.help_card, max_age=3600)
+    return _svg(lambda: builders.help_card(_lang()), max_age=3600)

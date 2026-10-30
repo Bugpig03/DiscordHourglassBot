@@ -18,6 +18,7 @@ from app.functions import (
     get_total_message_by_server_id,
     get_total_seconds_by_server_id,
     get_user_count_by_server_id,
+    is_bot_user,
 )
 from app.gamification import calculate_user_badges, calculate_user_xp_and_level
 from app.profile_records import featured_badges
@@ -50,6 +51,7 @@ def _user_card(user_id: int, lang: str) -> dict | None:
     return {
         "kind": "user",
         "name": user.username or tr("Membre {id}", "Member {id}", lang, id=user_id),
+        "bot": is_bot_user(user_id),
         "avatar": stats["avatar_url"],
         "accent": theme["accent_hex"],
         "level": xp["level"],

@@ -149,6 +149,15 @@ def create_app():
 
     app.jinja_env.globals['pixel_icon'] = pixel_svg  # {{ pixel_icon('mic', 18) }}: pixel-art icon
 
+    def bot_tag(user_id) -> Markup:
+        """{{ bot_tag(user.user_id) }} after a member name: a small "BOT" tag on Discord bots and apps."""
+        from app.functions import is_bot_user
+        if not is_bot_user(user_id):
+            return Markup("")
+        return Markup('<span class="bot-tag" title="{}">BOT</span>').format(tr("Bot ou application Discord", "Discord bot or app"))
+
+    app.jinja_env.globals['bot_tag'] = bot_tag
+
     def asset_version(filename: str) -> int:
         """Cache-busting token for a static file: changes whenever the file changes on disk."""
         try:
