@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	log.Println("🚀 Démarrage de Hourglass Bot v3.3.0 (Go Edition)...")
+	log.Println("🚀 Démarrage de Hourglass Bot v3.4.0 (Go Edition)...")
 
 	// 1. Chargement de la configuration
 	cfg, err := config.LoadConfig()
@@ -39,6 +39,10 @@ func main() {
 	// Unique members present on the servers (admin page), same principle
 	if err := db.EnsureMemberSnapshotsTable(ensureCtx); err != nil {
 		log.Printf("⚠️ Comptage des membres uniques désactivé (table bot_member_snapshots indisponible): %v", err)
+	}
+	// Bots and apps flagged in users (BOT tag and ranking filter of the website)
+	if err := db.EnsureUsersBotColumn(ensureCtx); err != nil {
+		log.Printf("⚠️ Repérage des bots désactivé (colonne users.is_bot indisponible): %v", err)
 	}
 	ensureCancel()
 

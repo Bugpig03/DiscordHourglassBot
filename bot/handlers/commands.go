@@ -161,7 +161,7 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "This command can only be used inside a server. Try `/allstats` or `/alltop` here.",
+				Content: msg(i, "server_only"),
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
@@ -246,16 +246,16 @@ func (h *BotHandler) handleStats(ctx context.Context, s *discordgo.Session, i *d
 	userID, _ := strconv.ParseInt(targetUser.ID, 10, 64)
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
 
-	params := url.Values{"user": {targetUser.ID}}
+	params := url.Values{"user": {targetUser.ID}, "lang": {string(i.Locale)}}
 	if !isGlobal {
 		params.Set("server", i.GuildID)
 	}
 	png, err := card.Fetch(ctx, "member", params)
-	link := fmt.Sprintf("[View full profile on hourglassbot.net](https://hourglassbot.net/profile/%d)", userID)
+	link := msg(i, "profile_link", fmt.Sprintf("https://hourglassbot.net/profile/%d", userID))
 
 	sendCard(s, i, png, err, fmt.Sprintf("stats_%d.png", userID), link, func() string {
 		if errors.Is(err, card.ErrNotFound) {
-			return fmt.Sprintf("Hourglass has no activity recorded for **%s** yet.", targetUser.Username)
+			return msg(i, "no_member", targetUser.Username)
 		}
 		fctx, cancel := fallbackContext()
 		defer cancel()
@@ -284,7 +284,7 @@ func (h *BotHandler) handleVersus(ctx context.Context, s *discordgo.Session, i *
 	}
 	if u1 == nil || u2 == nil {
 		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: "Please designate two valid members for the duel.",
+			Content: msg(i, "two_members"),
 		})
 		return
 	}
@@ -293,17 +293,17 @@ func (h *BotHandler) handleVersus(ctx context.Context, s *discordgo.Session, i *
 	u2ID, _ := strconv.ParseInt(u2.ID, 10, 64)
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
 
-	params := url.Values{"u1": {u1.ID}, "u2": {u2.ID}}
-	link := fmt.Sprintf("[Full comparison on hourglassbot.net](https://hourglassbot.net/versus?u1=%d&u2=%d)", u1ID, u2ID)
+	params := url.Values{"u1": {u1.ID}, "u2": {u2.ID}, "lang": {string(i.Locale)}}
+	link := msg(i, "versus_link", fmt.Sprintf("https://hourglassbot.net/versus?u1=%d&u2=%d", u1ID, u2ID))
 	if !isGlobal {
 		params.Set("server", i.GuildID)
-		link = fmt.Sprintf("[Full comparison on hourglassbot.net](https://hourglassbot.net/versus?u1=%d&u2=%d&srv=%d)", u1ID, u2ID, serverID)
+		link = msg(i, "versus_link", fmt.Sprintf("https://hourglassbot.net/versus?u1=%d&u2=%d&srv=%d", u1ID, u2ID, serverID))
 	}
 	png, err := card.Fetch(ctx, "versus", params)
 
 	sendCard(s, i, png, err, fmt.Sprintf("versus_%d_%d.png", u1ID, u2ID), link, func() string {
 		if errors.Is(err, card.ErrNotFound) {
-			return "Hourglass has no activity recorded for one of these members yet."
+			return msg(i, "no_members")
 		}
 		fctx, cancel := fallbackContext()
 		defer cancel()
@@ -318,12 +318,12 @@ func (h *BotHandler) handleVersus(ctx context.Context, s *discordgo.Session, i *
 
 func (h *BotHandler) handleServerStats(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
 	serverID, _ := strconv.ParseInt(i.GuildID, 10, 64)
-	png, err := card.Fetch(ctx, "server", url.Values{"server": {i.GuildID}})
-	link := fmt.Sprintf("[Server dashboard on hourglassbot.net](https://hourglassbot.net/server/%d)", serverID)
+	png, err := card.Fetch(ctx, "server", url.Values{"server": {i.GuildID}, "lang": {string(i.Locale)}})
+	link := msg(i, "server_link", fmt.Sprintf("https://hourglassbot.net/server/%d", serverID))
 
 	sendCard(s, i, png, err, fmt.Sprintf("server_%d.png", serverID), link, func() string {
 		if errors.Is(err, card.ErrNotFound) {
-			return "Hourglass has no activity recorded for this server yet."
+			return msg(i, "no_server")
 		}
 		fctx, cancel := fallbackContext()
 		defer cancel()
@@ -361,11 +361,11 @@ func (h *BotHandler) handleTopFiltered(ctx context.Context, s *discordgo.Session
 	if rankingType == "messages" {
 		webType = "messages"
 	}
-	params := url.Values{"type": {webType}, "period": {period}}
-	link := "[Full leaderboard on hourglassbot.net](https://hourglassbot.net/members)"
+	params := url.Values{"type": {webType}, "period": {period}, "lang": {string(i.Locale)}}
+	link := msg(i, "top_link", "https://hourglassbot.net/members")
 	if !isGlobal {
 		params.Set("server", i.GuildID)
-		link = fmt.Sprintf("[Full leaderboard on hourglassbot.net](https://hourglassbot.net/members?server_id=%d)", serverID)
+		link = msg(i, "top_link", fmt.Sprintf("https://hourglassbot.net/members?server_id=%d", serverID))
 	}
 	png, err := card.Fetch(ctx, "top", params)
 

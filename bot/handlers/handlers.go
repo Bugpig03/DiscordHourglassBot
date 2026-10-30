@@ -69,7 +69,7 @@ func (h *BotHandler) OnMessageCreate(s *discordgo.Session, m *discordgo.MessageC
 	log.Printf("💬 [MESSAGE] User %d (%s) a envoyé un message dans le salon %s", userID, m.Author.Username, m.ChannelID)
 
 	// 1. Mise à jour utilisateur & message
-	_ = h.DB.UpsertUser(ctx, userID, m.Author.Username, avatarURL)
+	_ = h.DB.UpsertUser(ctx, userID, m.Author.Username, avatarURL, m.Author.Bot)
 	_ = h.DB.RecordMessageEvent(ctx, userID, serverID, channelID)
 
 	// 2. Mise à jour des métadonnées du salon textuel
@@ -99,7 +99,7 @@ func (h *BotHandler) OnVoiceStateUpdate(s *discordgo.Session, v *discordgo.Voice
 	// Métadonnées utilisateur
 	if v.Member != nil && v.Member.User != nil {
 		avatarURL := v.Member.User.AvatarURL("1024")
-		_ = h.DB.UpsertUser(ctx, userID, v.Member.User.Username, avatarURL)
+		_ = h.DB.UpsertUser(ctx, userID, v.Member.User.Username, avatarURL, v.Member.User.Bot)
 	}
 
 	isStreaming := v.SelfStream
@@ -280,6 +280,7 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	// Unique people across every server (admin page): a member present on several servers counts once
 	members := make(map[string]struct{})
 	online := make(map[string]struct{})
+	bots := make(map[int64]struct{}) // bots and apps present on the servers, flagged in users (website)
 	memberships, listedServers := 0, 0
 
 	for _, g := range s.State.Guilds {
@@ -295,6 +296,9 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 				continue
 			}
 			if m.User.Bot {
+				if id, err := strconv.ParseInt(m.User.ID, 10, 64); err == nil {
+					bots[id] = struct{}{}
+				}
 				continue
 			}
 			memberships++
@@ -332,6 +336,16 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		totalIdle += idle
 		totalDnd += dnd
 		totalOffline += offline
+	}
+
+	if len(bots) > 0 {
+		ids := make([]int64, 0, len(bots))
+		for id := range bots {
+			ids = append(ids, id)
+		}
+		if err := h.DB.MarkBots(ctx, ids); err != nil {
+			log.Printf("⚠️ [BOTS] Repérage des bots impossible: %v", err)
+		}
 	}
 
 	if len(s.State.Guilds) > 0 {
@@ -388,7 +402,7 @@ func (h *BotHandler) OnGuildCreate(s *discordgo.Session, g *discordgo.GuildCreat
 				_ = h.DB.UpsertChannel(ctx, chID, serverID, ch.Name, "voice")
 			}
 			if vs.Member != nil && vs.Member.User != nil {
-				_ = h.DB.UpsertUser(ctx, uID, vs.Member.User.Username, vs.Member.User.AvatarURL("1024"))
+				_ = h.DB.UpsertUser(ctx, uID, vs.Member.User.Username, vs.Member.User.AvatarURL("1024"), vs.Member.User.Bot)
 			}
 
 			if err := h.DB.SyncVoiceSession(ctx, uID, serverID, chID, vs.SelfStream, vs.SelfVideo); err != nil {
@@ -443,7 +457,7 @@ func (h *BotHandler) reconcileSessions(s *discordgo.Session) {
 					_ = h.DB.UpsertChannel(ctx, chID, serverID, ch.Name, "voice")
 				}
 				if vs.Member != nil && vs.Member.User != nil {
-					_ = h.DB.UpsertUser(ctx, uID, vs.Member.User.Username, vs.Member.User.AvatarURL("1024"))
+					_ = h.DB.UpsertUser(ctx, uID, vs.Member.User.Username, vs.Member.User.AvatarURL("1024"), vs.Member.User.Bot)
 				}
 
 				_ = h.DB.SyncVoiceSession(ctx, uID, serverID, chID, vs.SelfStream, vs.SelfVideo)

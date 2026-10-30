@@ -1,5 +1,13 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.4.0 - Cartes dans la Langue du Membre - 28/10/2026
+
+- **Les cartes suivent la langue Discord** du membre qui lance la commande : le bot envoie sa langue au site (`lang`), qui dessine la carte dans la nouvelle DA Arène (site v3.26.0).
+- **Messages du bot traduits** dans les 12 langues du site : liens « Voir le profil complet », « Comparaison complète », « Classement complet » et « Tableau de bord du serveur », messages « aucune activité enregistrée », commande réservée aux serveurs, duel sans deux membres valides. Une langue Discord absente répond en anglais.
+- Les réponses de secours en texte (site injoignable) et `/help` restent en anglais.
+- **Repérage des bots et applications Discord** : nouvelle colonne `users.is_bot`, remplie quand le bot enregistre un membre (message ou vocal). Toutes les 15 minutes, avec le comptage des membres, les bots présents sur les serveurs sont aussi marqués, y compris ceux enregistrés avant cette version. Le site s'en sert pour l'étiquette « BOT » et pour masquer les bots de ses classements par défaut (v3.26.0).
+  - La colonne est ajoutée au démarrage si elle manque. Si l'ajout échoue, le bot continue d'enregistrer les membres comme avant. Migration facultative : `database/migrations/2026-10-30_bot_v3.4.0_users_is_bot.sql`.
+
 ## Version 3.3.0 - Comptage des Membres Uniques - 23/10/2026
 
 - **Relevé des membres présents sur les serveurs**, toutes les 15 minutes avec le relevé de présence, pour la page admin du site (v3.20.0) :

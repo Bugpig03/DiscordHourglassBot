@@ -12,6 +12,9 @@ import (
 
 type DB struct {
 	Pool *pgxpool.Pool
+	// hasBotColumn is set once users.is_bot exists (EnsureUsersBotColumn): until then UpsertUser keeps
+	// its former query, so a missing column never stops members from being recorded
+	hasBotColumn bool
 }
 
 func New(connStr string) (*DB, error) {
@@ -51,8 +54,23 @@ func (db *DB) Close() {
 	}
 }
 
-// UpsertUser insère ou met à jour les informations d'un utilisateur
-func (db *DB) UpsertUser(ctx context.Context, userID int64, username, avatar string) error {
+// UpsertUser insère ou met à jour les informations d'un utilisateur (isBot : compte bot ou application,
+// jamais retiré une fois posé)
+func (db *DB) UpsertUser(ctx context.Context, userID int64, username, avatar string, isBot bool) error {
+	if db.hasBotColumn {
+		_, err := db.Pool.Exec(ctx, `
+			INSERT INTO users (user_id, username, avatar, is_bot)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (user_id) DO UPDATE
+			SET username = EXCLUDED.username,
+			    avatar = COALESCE(EXCLUDED.avatar, users.avatar),
+			    is_bot = users.is_bot OR EXCLUDED.is_bot
+			WHERE users.username IS DISTINCT FROM EXCLUDED.username
+			   OR users.avatar IS DISTINCT FROM COALESCE(EXCLUDED.avatar, users.avatar)
+			   OR (EXCLUDED.is_bot AND NOT users.is_bot)
+		`, userID, username, avatar, isBot)
+		return err
+	}
 	query := `
 		INSERT INTO users (user_id, username, avatar)
 		VALUES ($1, $2, $3)
