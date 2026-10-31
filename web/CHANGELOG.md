@@ -1,5 +1,9 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.26.1 - Images pour la Page top.gg - 31/10/2026
+- **Images de présentation** dans `app/static/promo/`, servies à `https://hourglassbot.net/static/promo/...` pour la page top.gg du bot : bannière, bandeau des 4 points forts, une carte `/stats` et la carte d'aide, au style Arène des cartes.
+- Textes du profil top.gg (description courte, description longue en anglais et en français, catégories, langues, liens) dans `docs/topgg/` à la racine du dépôt.
+
 ## Version 3.26.0 - Cartes du Bot aux Couleurs de l'Arène, dans la Langue du Membre - 28/10/2026
 ### Cartes
 - **Toutes les cartes des commandes du bot passent à la DA Arène du site** (`/stats`, `/allstats`, `/versus`, `/top`, `/alltop`, `/server`, ainsi que la carte d'aide et les cartes « introuvable ») ; la structure de chaque carte ne change pas.
