@@ -1,5 +1,9 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.31.3 - Admin : Listes Lisibles dans les Cartes Étroites - 01/11/2026
+- **Journal de sécurité dans une carte étroite** (encadré « Derniers événements » de la vue d'ensemble) : la mise en page dépend maintenant de la largeur de la carte, pas de celle de l'écran. Sur grand écran, l'encadré gardait ses quatre colonnes et l'adresse de la page s'affichait une lettre par ligne ; il passe désormais au format compact : type et heure, puis IP, page et détail en dessous.
+- **Barres de défilement** : les listes et journaux qui défilent dans leur carte réservent une place à la barre, qui ne recouvre plus les chiffres ni le texte.
+
 ## Version 3.31.2 - Check-up de Configuration Plus Clair - 01/11/2026
 - **Check-up de l'onglet Sécurité de l'admin** : chaque ligne a un titre court (Clé de session, HTTPS, Connexion Discord…) et un texte qui dépend de son état. En vert, ce qui est en place (« Par code : le jeton Discord ne passe jamais par le navigateur. ») ; en rouge, le problème et le réglage à faire (« Mode implicite, moins sûr : définir DISCORD_CLIENT_SECRET. »). Avant, le texte était le même dans les deux cas : une ligne verte pouvait afficher « sans secret ».
 - **Journal de sécurité en colonnes** : type, heure, membre et IP, page, puis le détail sur sa propre ligne, en entier (il était coupé sur le côté). Les pages s'affichent sans le nom de domaine (`/versus`).

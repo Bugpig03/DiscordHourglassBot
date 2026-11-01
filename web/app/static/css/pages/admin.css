@@ -199,6 +199,7 @@ code { font-family: var(--mono); font-size: 0.86em; color: var(--accent-hi); }
 
 /* ------------------------------------------------------------------ cards */
 .an-card {
+    container: card / inline-size;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 0;
@@ -373,7 +374,18 @@ a.an-rank-name:hover { color: var(--accent-hi); }
 .an-rank-value { text-align: right; color: var(--soft); font-variant-numeric: tabular-nums; font-weight: 600; }
 .an-rank-empty { padding: 18px 0; color: var(--muted); text-align: center; }
 
-.adm-scroll { max-height: 360px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+/* Long lists scroll inside their card; the scrollbar gets its own lane instead of covering the figures */
+.adm-scroll {
+    max-height: 360px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 12px;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+}
+.adm-scroll::-webkit-scrollbar { width: 8px; }
+.adm-scroll::-webkit-scrollbar-thumb { background: var(--line-2); }
 .adm-search {
     display: flex;
     align-items: center;
@@ -420,17 +432,16 @@ a.an-rank-name:hover { color: var(--accent-hi); }
 .adm-table.adm-log td:first-child { white-space: nowrap; }
 .adm-table.adm-log td.adm-log-detail { grid-column: 2 / -1; color: var(--muted); font-size: 12.5px; }
 .adm-table.adm-log td.adm-log-detail:empty { display: none; }
-@media (max-width: 1400px) {
-    #tab-overview .adm-table.adm-log tr { grid-template-columns: minmax(0, 1fr) auto; }
-    #tab-overview .adm-table.adm-log td:nth-child(3),
-    #tab-overview .adm-table.adm-log td:nth-child(4),
-    #tab-overview .adm-table.adm-log td.adm-log-detail { grid-column: 1 / -1; }
-}
-@media (max-width: 760px) {
-    .adm-table.adm-log tr { grid-template-columns: minmax(0, 1fr) auto; }
+/* Narrow card (overview box, phone): type and time on the first line, then who, page and detail under it.
+   Decided by the card's own width, not the screen's (a side card stays narrow on a wide screen). */
+@container card (max-width: 760px) {
+    .adm-table.adm-log tr { grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; }
+    .adm-table.adm-log td:nth-child(2) { text-align: right; }
     .adm-table.adm-log td:nth-child(3),
     .adm-table.adm-log td:nth-child(4),
     .adm-table.adm-log td.adm-log-detail { grid-column: 1 / -1; }
+    .adm-table.adm-log td:nth-child(3):empty,
+    .adm-table.adm-log td:nth-child(4):empty { display: none; }
 }
 .adm-user { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; color: var(--text); text-decoration: none; vertical-align: middle; }
 .adm-user:hover { color: var(--accent-hi); }
