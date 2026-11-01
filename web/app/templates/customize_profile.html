@@ -43,85 +43,93 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div class="cz-tabs" role="tablist">
-            <button type="button" class="cz-tab active" role="tab" data-panel="appearance">{{tr('Apparence', 'Appearance')}}</button>
-            <button type="button" class="cz-tab" role="tab" data-panel="highlights">{{tr('Vitrine', 'Showcase')}}</button>
-            <button type="button" class="cz-tab" role="tab" data-panel="privacy">{{tr('Confidentialité', 'Privacy')}}</button>
+            <button type="button" class="cz-tab active" role="tab" data-panel="appearance">{{ pixel_icon('palette', 14) }}<span>{{tr('Apparence', 'Appearance')}}</span></button>
+            <button type="button" class="cz-tab" role="tab" data-panel="highlights">{{ pixel_icon('pin', 14) }}<span>{{tr('Vitrine', 'Showcase')}}</span></button>
+            <button type="button" class="cz-tab" role="tab" data-panel="privacy">{{ pixel_icon('lock', 14) }}<span>{{tr('Confidentialité', 'Privacy')}}</span></button>
         </div>
 
         <!-- ============================ Apparence ============================ -->
+        <!-- Top to bottom, in the order they appear on the profile: banner, color, page background -->
         <section class="gray-box small-border-radius cz-panel" data-panel="appearance">
-            <p class="cz-panel-intro">{{tr('Trois réglages, visibles sur tout ton profil. L’aperçu à droite change en direct ; pense à enregistrer.', 'Three settings, visible across your whole profile. The preview on the right updates live; remember to save.')}}</p>
-
             <div class="cz-row">
                 <div class="cz-row-head cz-row-head-icon">
-                    <span class="cz-row-icon"><svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="palette"><path d="M2 0h4v1h-4zM1 1h1v1h-1zM6 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM6 4h3v1h-3zM0 5h1v1h-1zM4 5h2v1h-2zM8 5h1v1h-1zM1 6h1v1h-1zM4 6h1v1h-1zM8 6h1v1h-1zM2 7h3v1h-3zM7 7h1v1h-1zM5 8h2v1h-2z"/></svg></span>
-                    <div class="cz-row-text">
-                        <h2 class="cz-row-title">{{tr('Couleur du profil', 'Profile color')}}</h2>
-                        <p class="cz-row-desc">{{tr('Avatar, niveau, onglets, calendrier et graphiques.', 'Avatar, level, tabs, calendar and charts.')}}</p>
-                    </div>
-                    <span class="cz-current" data-current="accent_color">{{ current_accent }}</span>
-                </div>
-                <div class="swatch-grid">
-                    {% for color in palette %}
-                    <label class="swatch" data-tip="{{ color.label }}">
-                        <input type="radio" name="accent_color" value="{{ color.key }}" data-hex="{{ color.hex }}" data-label="{{ color.label }}" {% if theme.accent_key == color.key %}checked{% endif %}>
-                        <span class="swatch-dot" style="background: {{ color.hex }};"></span>
-                        <span class="sr-only">{{ color.label }}</span>
-                    </label>
-                    {% endfor %}
-                    {% if discord_accent %}
-                    <label class="swatch" data-tip="{{tr('Couleur de mon profil Discord', 'My Discord profile color')}}">
-                        <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" data-label="{{tr('Couleur Discord', 'Discord color')}}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
-                        <span class="swatch-dot swatch-discord" style="background: {{ discord_accent }};"></span>
-                        <span class="sr-only">Discord</span>
-                    </label>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="cz-row">
-                <div class="cz-row-head cz-row-head-icon">
-                    <span class="cz-row-icon"><svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="image"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h2v1h-2zM8 2h1v1h-1zM0 3h1v1h-1zM2 3h2v1h-2zM6 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM5 4h4v1h-4zM0 5h1v1h-1zM3 5h1v1h-1zM5 5h4v1h-4zM0 6h1v1h-1zM2 6h7v1h-7zM0 7h9v1h-9z"/></svg></span>
+                    <span class="cz-row-icon">{{ pixel_icon('image', 18) }}</span>
                     <div class="cz-row-text">
                         <h2 class="cz-row-title">{{tr('Bannière', 'Banner')}}</h2>
-                        <p class="cz-row-desc">{{tr('Image affichée en haut de ton profil. Aucune par défaut.', 'Picture shown at the top of your profile. None by default.')}}</p>
+                        <p class="cz-row-desc">{{tr('Image en haut de ton profil.', 'Picture at the top of your profile.')}}</p>
                     </div>
                     <span class="cz-current" data-current="banner">{{ current_banner }}</span>
                 </div>
-                <div class="cz-segmented">
-                    <label><input type="radio" name="banner_mode" value="none" data-label="{{tr('Aucune', 'None')}}" {% if theme.banner_mode == 'none' %}checked{% endif %}><span>{{tr('Aucune', 'None')}}</span></label>
-                    <label><input type="radio" name="banner_mode" value="image" {% if theme.banner_mode == 'image' %}checked{% endif %}><span>{{tr('Image de la galerie', 'Gallery picture')}}</span></label>
-                </div>
-                <div class="cz-gallery cz-gallery-banners {% if theme.banner_mode == 'image' %}open{% endif %}" id="bannerGallery">
+                {# "None" is the first tile; the others are folded behind "Show the N others" #}
+                {% set banner_shown = 6 %}
+                <div class="cz-gallery cz-gallery-banners" id="bannerGallery">
+                    <label class="cz-gallery-item cz-gallery-none">
+                        <input type="radio" name="banner_image" value="" data-label="{{tr('Aucune', 'None')}}" {% if theme.banner_mode == 'none' %}checked{% endif %}>
+                        <span class="cz-gallery-empty">{{ pixel_icon('close', 14) }}</span>
+                        <span class="cz-gallery-name">{{tr('Aucune', 'None')}}</span>
+                    </label>
                     {% for item in banner_gallery %}
-                    <label class="cz-gallery-item">
-                        <input type="radio" name="banner_image" value="{{ item.key }}" data-full="{{ item.url }}" data-label="{{ item.label }}" {% if theme.banner_image == item.key %}checked{% endif %}>
+                    <label class="cz-gallery-item {% if loop.index >= banner_shown %}is-extra{% endif %}">
+                        <input type="radio" name="banner_image" value="{{ item.key }}" data-full="{{ item.url }}" data-label="{{ item.label }}" {% if theme.banner_mode == 'image' and theme.banner_image == item.key %}checked{% endif %}>
                         <img src="{{ item.thumb }}" alt="" loading="lazy">
                         <span class="cz-gallery-name">{{ item.label }}</span>
                     </label>
                     {% endfor %}
                 </div>
+                {% set banner_hidden = banner_gallery | length - banner_shown + 1 %}
+                {% if banner_hidden > 0 %}
+                <button type="button" class="cz-more" id="bannerMore" hidden
+                        data-more="{{ tr('Voir les {n} autres', 'Show the {n} others') | replace('{n}', banner_hidden | string) }}"
+                        data-less="{{tr('Afficher moins', 'Show less')}}">{{ pixel_icon('chevron_down', 12) }}<span></span></button>
+                {% endif %}
             </div>
 
             <div class="cz-row">
                 <div class="cz-row-head cz-row-head-icon">
-                    <span class="cz-row-icon"><svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="panel"><path d="M0 0h9v1h-9zM0 1h9v1h-9zM0 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM0 7h9v1h-9z"/></svg></span>
+                    <span class="cz-row-icon">{{ pixel_icon('palette', 18) }}</span>
+                    <div class="cz-row-text">
+                        <h2 class="cz-row-title">{{tr('Couleur du profil', 'Profile color')}}</h2>
+                        <p class="cz-row-desc">{{tr('Niveau, onglets, calendrier et graphiques.', 'Level, tabs, calendar and charts.')}}</p>
+                    </div>
+                    <span class="cz-current" data-current="accent_color">{{ current_accent }}</span>
+                </div>
+                <div class="cz-colors">
+                    {% for color in palette %}
+                    <label class="cz-color" data-tip="{{ color.label }}">
+                        <input type="radio" name="accent_color" value="{{ color.key }}" data-hex="{{ color.hex }}" data-label="{{ color.label }}" {% if theme.accent_key == color.key %}checked{% endif %}>
+                        <span class="cz-color-fill" style="--c: {{ color.hex }};">{{ pixel_icon('check', 12) }}</span>
+                        <span class="sr-only">{{ color.label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% if discord_accent %}
+                <label class="cz-color-discord">
+                    <input type="radio" name="accent_color" value="discord" data-hex="{{ discord_accent }}" data-label="{{tr('Couleur Discord', 'Discord color')}}" {% if theme.accent_key == 'discord' %}checked{% endif %}>
+                    <span class="cz-color-fill" style="--c: {{ discord_accent }};">{{ pixel_icon('check', 12) }}</span>
+                    <span class="cz-color-discord-text">{{tr('Couleur de mon profil Discord', 'My Discord profile color')}}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <div class="cz-row">
+                <div class="cz-row-head cz-row-head-icon">
+                    <span class="cz-row-icon">{{ pixel_icon('panel', 18) }}</span>
                     <div class="cz-row-text">
                         <h2 class="cz-row-title">{{tr('Fond de la page', 'Page background')}}</h2>
-                        <p class="cz-row-desc">{{tr('Couleur unie derrière toute ta page de profil.', 'Solid color behind your whole profile page.')}}</p>
+                        <p class="cz-row-desc">{{tr('Couleur derrière toute ta page.', 'Color behind your whole page.')}}</p>
                     </div>
                     <span class="cz-current" data-current="background_color">{{ current_background }}</span>
                 </div>
-                <div class="swatch-grid">
-                    <label class="swatch" data-tip="{{tr('Par défaut', 'Default')}}">
-                        <input type="radio" name="background_color" value="" data-hex="" data-label="{{tr('Par défaut', 'Default')}}" {% if not theme.background_color %}checked{% endif %}>
-                        <span class="swatch-dot swatch-none"></span>
-                        <span class="sr-only">{{tr('Par défaut', 'Default')}}</span>
+                <div class="cz-colors cz-colors-bg">
+                    <label class="cz-color cz-color-none" data-tip="{{tr('Aucun', 'None')}}">
+                        <input type="radio" name="background_color" value="" data-hex="" data-label="{{tr('Aucun', 'None')}}" {% if not theme.background_color %}checked{% endif %}>
+                        <span class="cz-color-fill">{{ pixel_icon('close', 12) }}</span>
+                        <span class="sr-only">{{tr('Aucun', 'None')}}</span>
                     </label>
                     {% for color in background_colors %}
-                    <label class="swatch" data-tip="{{ color.label }}">
+                    <label class="cz-color" data-tip="{{ color.label }}">
                         <input type="radio" name="background_color" value="{{ color.key }}" data-hex="{{ color.hex }}" data-label="{{ color.label }}" {% if theme.background_color == color.key %}checked{% endif %}>
-                        <span class="swatch-dot swatch-bg" style="background: {{ color.hex }};"></span>
+                        <span class="cz-color-fill" style="--c: {{ color.hex }};">{{ pixel_icon('check', 12) }}</span>
                         <span class="sr-only">{{ color.label }}</span>
                     </label>
                     {% endfor %}
@@ -232,6 +240,7 @@
 
         <div class="cz-savebar">
             <span class="cz-dirty" id="dirtyHint" hidden>{{tr('Modifications non enregistrées', 'Unsaved changes')}}</span>
+            <button type="button" class="cz-cancel" id="cancelChanges" hidden>{{tr('Annuler', 'Cancel')}}</button>
             <button type="submit" class="btn-customize-save">{{tr('Enregistrer', 'Save')}}</button>
         </div>
     </form>

@@ -38,6 +38,9 @@ def _check_token() -> None:
     expected = current_app.config.get("CARD_TOKEN") or ""
     given = request.headers.get("X-Card-Token", "")
     if not expected or not hmac.compare_digest(given.encode(), expected.encode()):
+        if expected:  # a wrong or missing token while the bot route is enabled: someone posing as the bot
+            from app.security_log import record
+            record("card_token_fail", "jeton absent" if not given else "jeton faux")
         abort(404)
 
 

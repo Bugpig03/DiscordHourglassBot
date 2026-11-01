@@ -43,11 +43,68 @@ SERVER_SORT_KEYS = {
     "messages": (("messages",), ("prev_messages",)),
 }
 
+# Sort by arrival date (first activity seen by Hourglass): oldest first or newest first. No rank in this mode.
+ARRIVAL_SORTS = {"arrival_old": False, "arrival_new": True}
+# Arrival dates only move when someone new shows up: one batch query every 10 minutes is plenty
+ARRIVAL_CACHE_SECONDS = 600
+
 
 def without_bots(rows: list[dict]) -> list[dict]:
     """Ranking rows without the Discord bots and apps (users.is_bot)."""
     bots = get_bot_user_ids()
     return [r for r in rows if int(r["user_id"]) not in bots] if bots else rows
+
+
+def _first_dates(query, key) -> dict:
+    """{id: earliest date} from a (id, MIN(date)) grouped query."""
+    return {getattr(row, key): row.first for row in query if row.first}
+
+
+def _user_arrivals(server_id: str) -> dict:
+    """First activity of every member (on one server when filtered), like "Member since" on the profile:
+    the first stats row, else the first voice session, else the first message."""
+    def compute():
+        sources = [
+            (Stats, Stats.date_creation, Stats.server_id),
+            (VoiceSessions, VoiceSessions.joined_at, VoiceSessions.server_id),
+            (MessageEvents, MessageEvents.created_at, MessageEvents.server_id),
+        ]
+        dates = {}
+        for model, column, server_column in sources:
+            query = model.select(model.user_id, fn.MIN(column).alias("first"))
+            if server_id != "all":
+                query = query.where(server_column == int(server_id))
+            for user_id, first in _first_dates(query.group_by(model.user_id), "user_id").items():
+                dates.setdefault(user_id, first)  # earlier sources win, as on the profile
+        return dates
+    return cache.get_or_set(("arrivals", "members", server_id), ARRIVAL_CACHE_SECONDS, compute)
+
+
+def _server_arrivals() -> dict:
+    """Day Hourglass started tracking each server: first_tracked_at or its first stats row, whichever is older
+    (same rule as the server page and the /server card), else its first voice session."""
+    def compute():
+        stats = _first_dates(
+            Stats.select(Stats.server_id, fn.MIN(Stats.date_creation).alias("first")).group_by(Stats.server_id), "server_id")
+        voice = _first_dates(
+            VoiceSessions.select(VoiceSessions.server_id, fn.MIN(VoiceSessions.joined_at).alias("first"))
+            .group_by(VoiceSessions.server_id), "server_id")
+        dates = {}
+        for server in Servers.select(Servers.server_id, Servers.first_tracked_at):
+            known = [d for d in (server.first_tracked_at, stats.get(server.server_id)) if d]
+            if not known and server.server_id in voice:
+                known = [voice[server.server_id]]
+            if known:
+                dates[server.server_id] = min(known)
+        return dates
+    return cache.get_or_set(("arrivals", "servers"), ARRIVAL_CACHE_SECONDS, compute)
+
+
+def sort_by_arrival(results: list[dict], arrivals: dict, key: str, newest_first: bool) -> list[dict]:
+    """Copies of the rows with their "arrival" date, oldest (or newest) first; unknown dates go last either way."""
+    rows = [{**r, "arrival": arrivals.get(int(r[key]))} for r in results]
+    dated = sorted((r for r in rows if r["arrival"]), key=lambda r: r["arrival"], reverse=newest_first)
+    return dated + [r for r in rows if not r["arrival"]]
 
 
 def move_days(period: str) -> int:
@@ -115,7 +172,7 @@ def rank_with_moves(results: list[dict], sort_keys: tuple) -> list[dict]:
 
 @top_bp.route("/members", methods=["GET"])
 def top_users():
-    """Members page: ranking by voice/messages/XP or A–Z, with search, period and server filters."""
+    """Members page: ranking by voice/messages/XP, A–Z or arrival date, with search, period and server filters."""
     users, total_pages = load_users()
     servers = list(Servers.select().order_by(Servers.servername))
     selected_server = None
@@ -138,7 +195,7 @@ def top_users():
 
 @top_bp.route("/servers", methods=["GET"])
 def top_servers():
-    """Servers page: ranking by voice/messages or A–Z, with search and period filters."""
+    """Servers page: ranking by voice/messages, A–Z or arrival date, with search and period filters."""
     servers, total_pages = load_servers()
     return render_template("top_servers.html", servers=servers, total_pages=total_pages)
 
@@ -289,6 +346,8 @@ def load_users() -> tuple[list[dict], int]:
     # Rank the whole list first, so a search still shows each member's real rank and movement
     if sort_by == "name":
         results = sorted(results, key=lambda x: (x["username"] or "").lower())
+    elif sort_by in ARRIVAL_SORTS:
+        results = sort_by_arrival(results, _user_arrivals(server_id), "user_id", ARRIVAL_SORTS[sort_by])
     else:
         results = rank_with_moves(results, USER_SORT_KEYS.get(sort_by, USER_SORT_KEYS["hours"]))
     if search_query:
@@ -411,6 +470,8 @@ def load_servers() -> tuple[list[dict], int]:
     # Rank the whole list first, so a search still shows each server's real rank and movement
     if sort_by == "name":
         results = sorted(results, key=lambda x: (x["servername"] or "").lower())
+    elif sort_by in ARRIVAL_SORTS:
+        results = sort_by_arrival(results, _server_arrivals(), "server_id", ARRIVAL_SORTS[sort_by])
     else:
         results = rank_with_moves(results, SERVER_SORT_KEYS.get(sort_by, SERVER_SORT_KEYS["hours"]))
     if search_query:

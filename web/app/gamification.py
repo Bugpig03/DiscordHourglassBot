@@ -7,6 +7,66 @@ from app.i18n import format_number, tr
 from app.pixel_icons import pixel_svg
 
 
+# Titles by level (v3.30.0): (from level, French, English, color group). Round levels, ranking words of
+# competitive games; the top two are Hourglass's own (the hourglass, time).
+LEVEL_TITLES = [
+    (1, "Recrue", "Rookie", "rookie"),
+    (5, "Habitué", "Regular", "rookie"),
+    (10, "Confirmé", "Seasoned", "adept"),
+    (20, "Vétéran", "Veteran", "adept"),
+    (30, "Champion", "Champion", "master"),
+    (40, "Maître", "Master", "master"),
+    (50, "Grand Maître", "Grandmaster", "master"),
+    (60, "Icône", "Icon", "legend"),
+    (70, "Immortel", "Immortal", "legend"),
+    (80, "Titan", "Titan", "legend"),
+    (90, "Gardien du Sablier", "Hourglass Keeper", "legend"),
+    (100, "Maître du Temps", "Timekeeper", "legend"),
+]
+
+
+def level_title(level: int) -> tuple:
+    """(from level, French, English, color group) of the title worn at this level."""
+    return next((t for t in reversed(LEVEL_TITLES) if level >= t[0]), LEVEL_TITLES[0])
+
+
+def xp_for_level(level: int) -> int:
+    """XP needed to reach a level (curve of calculate_user_xp_and_level)."""
+    return ((max(1, level) - 1) ** 2) * 100
+
+
+def title_ladder(lang: str = "fr") -> list[dict]:
+    """Help page: every title with its level, the XP it takes and the voice time that is (1 XP per minute)."""
+    return [{
+        "level": lvl,
+        "title": tr(fr, en, lang),
+        "group": group,
+        "xp": xp_for_level(lvl),
+        "hours": _round_hours(xp_for_level(lvl) / 60),
+    } for lvl, fr, en, group in LEVEL_TITLES]
+
+
+def _round_hours(hours: float) -> int:
+    """About this many hours, in a round figure: 27, 140, 600, 1 400, 16 300."""
+    step = 1 if hours < 100 else 10 if hours < 1000 else 100
+    return int(round(hours / step) * step)
+
+
+def badge_ladders(lang: str = "fr") -> list[dict]:
+    """Help page: the 9 badges and what each of their 7 tiers asks."""
+    out = []
+    for key, name_fr, name_en, what_fr, what_en, icon, kind, thresholds in BADGE_DEFS:
+        out.append({
+            "id": key,
+            "name": tr(name_fr, name_en, lang),
+            "what": tr(what_fr, what_en, lang),
+            "icon": str(pixel_svg(icon, 18)),
+            "tiers": [{"key": TIERS[i][0], "label": tr(TIERS[i][1], TIERS[i][2], lang), "color": TIERS[i][3],
+                       "threshold": _threshold_text(kind, threshold, lang)} for i, threshold in enumerate(thresholds)],
+        })
+    return out
+
+
 def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict[str, Any]:
     """Calculate user XP, level, title, and progress percentage based on voice time and messages.
     
@@ -32,40 +92,13 @@ def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict
     else:
         progress_percent = 100.0
 
-    # Dynamic honor titles depending on level
-    titles = {
-        "fr": [
-            (50, "Légende Hourglass"),
-            (40, "Grand Maître"),
-            (30, "Vétéran de l'Éther"),
-            (20, "Expert des Ondes"),
-            (10, "Membre Confirmé"),
-            (5, "Initié Actif"),
-            (1, "Novice Curieux"),
-        ],
-        "en": [
-            (50, "Hourglass Legend"),
-            (40, "Grandmaster"),
-            (30, "Aether Veteran"),
-            (20, "Voice Expert"),
-            (10, "Senior Member"),
-            (5, "Active Initiate"),
-            (1, "Curious Novice"),
-        ]
-    }
-
-    def get_title(lang: str = "fr") -> str:
-        lang_titles = titles.get(lang, titles["fr"])
-        for min_lvl, title_name in lang_titles:
-            if level >= min_lvl:
-                return title_name
-        return "Membre" if lang == "fr" else "Member"
-
+    title = level_title(level)
     return {
         "total_xp": total_xp,
         "level": level,
-        "title_fr": get_title("fr"),
-        "title_en": get_title("en"),
+        "title_fr": title[1],
+        "title_en": title[2],
+        "title_group": title[3],
         "current_level_base_xp": current_level_base_xp,
         "next_level_target_xp": next_level_target_xp,
         "xp_progress_in_level": xp_progress_in_level,
@@ -147,7 +180,55 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
         "streak": int(best_streak or 0),
         "hybrid": (total_hours, total_messages),
     }
-    return [_family_badge(definition, values[definition[0]], lang) for definition in BADGE_DEFS]
+    # Ranking and Activity can go down (someone overtakes you, a quiet month): the best rank and the best 30 days
+    # ever reached are stored (best_records), and the badge keeps the higher tier of now and of that record
+    records = stats.get("best_records")
+    if records is None and str(stats.get("user_id") or "").isdigit():
+        from app.best_records import get_best_records
+        records = get_best_records(int(stats["user_id"]))
+    if records:
+        # Best of now and of the record: a better (lower) spot wins, at the same spot the most hours count
+        best_rank = records.get("best_rank")
+        if best_rank:
+            best_hours = float(records.get("best_rank_hours") or 0)
+            if rank is None or best_rank < rank:
+                values["rank"] = (int(best_rank), best_hours)
+            elif best_rank == rank:
+                values["rank"] = (rank, max(total_hours, best_hours))
+        if records.get("best_30d_hours"):
+            values["activity"] = max(last_30d_hours, float(records["best_30d_hours"]))
+
+    badges = []
+    for definition in BADGE_DEFS:
+        badge = _family_badge(definition, values[definition[0]], lang)
+        note = _record_text(definition[0], records, lang) if records else None
+        if note:
+            badge["record"] = note
+            badge["description"] = f"{badge['description']} {note}"
+        badges.append(badge)
+    return badges
+
+
+def _record_text(key: str, records: dict, lang: str) -> str | None:
+    """"Best spot: #3, on 12 Mar 2026." / "Record: 152 h, from 6 May to 4 Jun 2026." (dates in the visitor's language)"""
+    from app.i18n import day_month_year
+
+    def short(d):
+        return day_month_year(d.day, d.month, d.year, lang) if d else ""
+
+    if key == "rank" and records.get("best_rank"):
+        when = records.get("best_rank_on")
+        if when:
+            return tr("Meilleure place : #{rank}, le {date}.", "Best spot: #{rank}, on {date}.", lang,
+                      rank=records["best_rank"], date=short(when))
+        return tr("Meilleure place : #{rank}.", "Best spot: #{rank}.", lang, rank=records["best_rank"])
+    if key == "activity" and records.get("best_30d_hours"):
+        hours = format_number(records["best_30d_hours"], 1, lang)
+        if records.get("best_30d_end"):
+            return tr("Record : {hours} h, du {start} au {end}.", "Record: {hours} h, from {start} to {end}.", lang,
+                      hours=hours, start=short(records.get("best_30d_start")), end=short(records["best_30d_end"]))
+        return tr("Record : {hours} h sur 30 jours.", "Record: {hours} h over 30 days.", lang, hours=hours)
+    return None
 
 
 # ------------------------------------------------------------------------------
@@ -182,10 +263,12 @@ BADGE_DEFS = [
     ("voice", "Vocal", "Voice", "Temps passé en vocal", "Time spent in voice", "headphones", "hours", [1, 10, 100, 500, 1000, 2500, 5000]),
     ("messages", "Messages", "Messages", "Messages envoyés", "Messages sent", "chat", "messages", [25, 250, 1000, 5000, 10000, 25000, 50000]),
     ("level", "Niveau", "Level", "Niveau atteint", "Level reached", "star", "level", [5, 10, 20, 30, 50, 70, 90]),
-    ("rank", "Classement", "Ranking", "Place au classement vocal global", "Spot in the global voice ranking", "trophy", "rank", [100, 50, 25, 10, 3, 1, (1, 5000)]),
+    ("rank", "Classement", "Ranking", "Meilleure place au classement vocal global", "Best spot in the global voice ranking", "trophy", "rank",
+     [100, 50, 25, 10, 5, 3, 1]),
     ("servers", "Serveurs", "Servers", "Serveurs fréquentés", "Servers joined", "globe", "servers", [2, 3, 4, 6, 8, 12, 20]),
     ("loyalty", "Fidélité", "Loyalty", "Ancienneté depuis la première activité", "Time since the first activity", "hourglass", "days", [30, 60, 120, 250, 365, 730, 1095]),
-    ("activity", "Activité", "Activity", "Heures en vocal sur les 30 derniers jours", "Voice hours over the last 30 days", "flame", "hours30", [5, 15, 40, 80, 120, 200, 300]),
+    ("activity", "Activité", "Activity", "Meilleur total de vocal sur 30 jours", "Best voice total over 30 days", "flame", "hours30",
+     [5, 15, 40, 80, 120, 200, 300]),
     ("streak", "Série", "Streak", "Plus longue série de jours actifs d’affilée", "Longest run of active days in a row", "calendar_check", "days",
      [5, 10, 30, 60, 100, 250, 365]),
     ("hybrid", "Polyvalence", "Versatility", "Vocal et messages à la fois", "Voice and messages together", "infinity", "hybrid",
@@ -339,7 +422,9 @@ def build_badge_overview(badges: list[dict], lang: str = "fr") -> dict:
             "name": t["label"],
             "rarity": t["key"],
             "icon": b["icon"],
-            "description": tr("{badge} · {tier} : {goal}", "{badge} · {tier}: {goal}", lang, badge=b["name"], tier=t["label"], goal=t["threshold"]),
+            # Ranking and Activity: the stored record and its date show when hovering any tier of the ladder
+            "description": tr("{badge} · {tier} : {goal}", "{badge} · {tier}: {goal}", lang, badge=b["name"], tier=t["label"], goal=t["threshold"])
+                           + (f". {b['record']}" if b.get("record") else ""),
             "progress_text": b["current"] if t["state"] == "next" else "",
         } for t in b["tiers"]]
         families.append({

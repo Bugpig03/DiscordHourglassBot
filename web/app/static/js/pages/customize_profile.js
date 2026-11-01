@@ -6,6 +6,7 @@
     if (!form || !preview) return;
 
     // ---- Tabs (without JavaScript every panel stays visible) ----
+    const layout = form.closest('.cz-layout');
     const tabs = [...form.querySelectorAll('.cz-tab')];
     const panels = [...form.querySelectorAll('.cz-panel')];
     function showPanel(name) {
@@ -15,6 +16,7 @@
             t.setAttribute('aria-selected', on ? 'true' : 'false');
         });
         panels.forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        if (layout) layout.dataset.panel = name;
         try { sessionStorage.setItem('hgCustomizePanel', name); } catch (e) {}
     }
     form.classList.add('cz-js');
@@ -48,24 +50,37 @@
 
     const bannerGallery = document.getElementById('bannerGallery');
     function applyBanner() {
-        const input = form.querySelector('input[name="banner_mode"]:checked');
-        const mode = input ? input.value : 'image';
         const picture = form.querySelector('input[name="banner_image"]:checked');
-        if (bannerGallery) bannerGallery.classList.toggle('open', mode === 'image');
-        // Opening the gallery without a picture picks the first one, so the preview shows something
-        if (mode === 'image' && !picture && bannerGallery) {
-            const first = bannerGallery.querySelector('input');
-            if (first) { first.checked = true; return applyBanner(); }
-        }
-        banner.hidden = mode === 'none';
-        hero.classList.toggle('has-banner', mode !== 'none');
-        const src = mode === 'image' && picture ? picture.dataset.full : '';
+        const src = picture && picture.value ? picture.dataset.full : '';
+        banner.hidden = !src;
+        hero.classList.toggle('has-banner', !!src);
         bannerImg.hidden = !src;
         if (src && bannerImg.getAttribute('src') !== src) {
             delete bannerImg.dataset.fallbackDone;
             bannerImg.style.display = '';
             bannerImg.src = src;
         }
+    }
+
+    // Only the first pictures are shown; "Show the N others" unfolds the rest (open from the start when the
+    // chosen picture is one of them)
+    const bannerMore = document.getElementById('bannerMore');
+    function setGalleryOpen(open) {
+        if (!bannerMore) return;
+        bannerGallery.classList.toggle('is-expanded', open);
+        bannerMore.classList.toggle('is-open', open);
+        bannerMore.querySelector('span').textContent = open ? bannerMore.dataset.less : bannerMore.dataset.more;
+        bannerMore.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    if (bannerMore) {
+        bannerMore.hidden = false;
+        const chosen = bannerGallery.querySelector('input:checked');
+        setGalleryOpen(!!(chosen && chosen.closest('.is-extra')));
+        bannerMore.addEventListener('click', () => {
+            const open = !bannerGallery.classList.contains('is-expanded');
+            setGalleryOpen(open);
+            if (!open) bannerGallery.scrollIntoView({ block: 'nearest' });
+        });
     }
 
     function applyBackground() {
@@ -116,9 +131,11 @@
 
     // ---- Unsaved changes hint ----
     const dirtyHint = document.getElementById('dirtyHint');
+    const cancel = document.getElementById('cancelChanges');
     const initialState = new URLSearchParams(new FormData(form)).toString();
     function refreshDirty() {
         dirtyHint.hidden = new URLSearchParams(new FormData(form)).toString() === initialState;
+        cancel.hidden = dirtyHint.hidden;
     }
     let submitting = false;
     form.addEventListener('submit', () => { submitting = true; });
@@ -135,21 +152,40 @@
         const checked = name => form.querySelector(`input[name="${name}"]:checked`);
         setCurrent('accent_color', checked('accent_color')?.dataset.label);
         setCurrent('background_color', checked('background_color')?.dataset.label);
-        const mode = checked('banner_mode');
-        setCurrent('banner', mode && mode.value === 'none' ? mode.dataset.label : checked('banner_image')?.dataset.label);
+        setCurrent('banner', checked('banner_image')?.dataset.label);
     }
 
     form.addEventListener('change', function (e) {
         const name = e.target.name;
         if (name === 'accent_color') applyColor();
-        else if (name === 'banner_mode') applyBanner();
-        else if (name === 'banner_image') { form.querySelector('input[name="banner_mode"][value="image"]').checked = true; applyBanner(); }
+        else if (name === 'banner_image') applyBanner();
         else if (name === 'background_color') applyBackground();
         else if (name === 'favorite_server_id') applyFavorite();
         else if (name === 'featured_badges') { applyLimit(badgePicker); applyShowcase(); }
         else if (name === 'pinned_records') applyLimit(recordPicker);
         else if (name === 'layout_private' && visibility) visibility.classList.toggle('is-disabled', privateBox.checked);
         refreshCurrent();
+        refreshDirty();
+    });
+
+    function applyAll() {
+        applyColor();
+        applyBanner();
+        applyBackground();
+        applyFavorite();
+        applyLimit(badgePicker);
+        applyLimit(recordPicker);
+        applyShowcase();
+        if (visibility) visibility.classList.toggle('is-disabled', privateBox.checked);
+        refreshCurrent();
+    }
+
+    // "Cancel": back to the saved choices (form.reset restores what the page was rendered with)
+    cancel.addEventListener('click', () => {
+        form.reset();
+        const select = form.querySelector('#favoriteServer');
+        if (select) select.dispatchEvent(new Event('change', { bubbles: true }));  // redraws the custom list button
+        applyAll();
         refreshDirty();
     });
 

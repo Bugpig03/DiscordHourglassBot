@@ -67,6 +67,8 @@
             <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>{{ t('top.sort_messages') }}</option>
             <option value="xp" {% if request.args.get('sort_by') in ('xp', 'level') %}selected{% endif %}>{{ t('top.sort_xp') }}</option>
             <option value="name" {% if request.args.get('sort_by') == 'name' %}selected{% endif %}>{{ t('top.sort_name') }}</option>
+            <option value="arrival_old" {% if request.args.get('sort_by') == 'arrival_old' %}selected{% endif %}>{{ tr('Arrivée : plus anciens', 'Arrival: oldest first') }}</option>
+            <option value="arrival_new" {% if request.args.get('sort_by') == 'arrival_new' %}selected{% endif %}>{{ tr('Arrivée : plus récents', 'Arrival: newest first') }}</option>
         </select>
     </div>
 
@@ -101,7 +103,7 @@
     <div class="gray-box link" style="padding: 0;">
         <a class="link" href="{{ url_for('user_profile.profile', username=user.user_id or user['username']) }}" data-hover="user:{{ user.user_id }}" style="padding: 12px 16px;">
             <div class="stats-box">
-                {% if request.args.get('sort_by') != 'name' %}
+                {% if request.args.get('sort_by') not in ('name', 'arrival_old', 'arrival_new') %}
                 <span class="rank-badge {% if user_rank == 1 %}rank-1{% elif user_rank == 2 %}rank-2{% elif user_rank == 3 %}rank-3{% else %}rank-other{% endif %}">
                     #{{ user_rank }}
                 </span>
@@ -116,6 +118,7 @@
                     <span class="text-overflow">{{ user.username }}</span>{{ bot_tag(user.user_id) }}
                     <span class="user-level-tag {% if user.level >= 40 %}tier-master{% elif user.level >= 20 %}tier-veteran{% elif user.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">{{ t('common.level_tag', level=user.level) }}</span>
                 </span>
+                {% if user.arrival is defined %}<span class="arrival-tag" data-tip="{{ tr('Suivi par Hourglass depuis le {date}', 'Tracked by Hourglass since {date}', date=short_date(user.arrival)) if user.arrival else tr('Aucune activité enregistrée', 'No recorded activity') }}">{{ pixel_icon('calendar', 12) }}{{ short_date(user.arrival) if user.arrival else '—' }}</span>{% endif %}
                 <span class="hours-fixed">
                     <svg width="13" height="13" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>{{ (user.seconds / 3600) | round(1) | thousands_fr }} {{ t('top.hours_unit') }}
                 </span>

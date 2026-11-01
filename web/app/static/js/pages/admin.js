@@ -11,7 +11,7 @@ const TOOLTIP = { backgroundColor: 'rgba(24, 25, 29, 0.95)', titleColor: '#fff',
 const GRID = { color: 'rgba(255, 255, 255, 0.06)' };
 
 function switchGraphTab(tabId) {
-    const OLD_TABS = { 'tab-custom': 'tab-accounts', 'tab-commands': 'tab-bot', 'tab-health': 'tab-tech' };
+    const OLD_TABS = { 'tab-custom': 'tab-profiles', 'tab-commands': 'tab-bot', 'tab-health': 'tab-tech' };
     tabId = OLD_TABS[tabId] || tabId;
     if (!document.getElementById(tabId)) tabId = 'tab-overview';
     currentTab = tabId;
@@ -152,8 +152,9 @@ function renderTraffic() {
 // Tabs are made of sections; each tab renders its sections once, when first opened
 // ---------------------------------------------------------------------------
 const TAB_LABELS = {
-    'tab-traffic': T('Site web', 'Website'), 'tab-accounts': T('Comptes', 'Accounts'),
+    'tab-traffic': T('Site web', 'Website'), 'tab-accounts': T('Comptes', 'Accounts'), 'tab-profiles': T('Profils', 'Profiles'),
     'tab-community': T('Communauté', 'Community'), 'tab-bot': 'Bot', 'tab-tech': T('Technique', 'Technical'),
+    'tab-security': T('Sécurité', 'Security'),
 };
 
 function sectionOverview() {
@@ -165,11 +166,13 @@ function sectionOverview() {
             o.delta_7 === null ? T('mesure en cours de démarrage', 'tracking just started') : `${pct(o.delta_7)} ${T('vs 7 j précédents', 'vs previous 7 d')}`, ''],
         ['tab-traffic', T('Visiteurs uniques · aujourd’hui', 'Unique visitors · today'), HG.fmt(o.uniques_today), `${T('moyenne 7 j', '7-day average')} : ${HG.fmt(o.uniques_7_avg, 1)}`, ''],
         ['tab-accounts', T('Comptes Discord liés', 'Linked Discord accounts'), HG.fmt(o.accounts), `+${HG.fmt(o.accounts_new_week)} ${T('cette semaine', 'this week')}`, ''],
-        ['tab-accounts', T('Profils personnalisés', 'Customized profiles'), HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`, ''],
+        ['tab-profiles', T('Profils personnalisés', 'Customized profiles'), HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`, ''],
         ['tab-community', T('Membres présents', 'Members present'), a ? HG.fmt(a.unique) : '—',
             a ? `${HG.fmt(a.silent_percent, 1)} % ${T('jamais actifs', 'never active')}` : T('en attente du bot v3.3.0', 'waiting for bot v3.3.0'), ''],
         ['tab-community', T('Serveurs du bot', 'Bot servers'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`, ''],
         ['tab-bot', T('Commandes · 30 jours', 'Commands · 30 days'), HG.fmt(c.total), `${HG.fmt(c.failed_percent, 1)} % ${T('d’erreurs', 'errors')}`, c.failed ? 'warn' : ''],
+        ['tab-security', T('Alertes de sécurité · 24 h', 'Security alerts · 24 h'), HG.fmt(securityAlerts(24)),
+            `${HG.fmt(securityAlerts(7))} ${T('sur 7 jours', 'in 7 days')}`, securityAlerts(24) > 50 ? 'ko' : securityAlerts(24) ? 'warn' : 'ok'],
         ['tab-tech', T('Erreurs serveur · 30 j', 'Server errors · 30 d'), HG.fmt(errors500), `${HG.fmt(sum(h.s404))} ${T('pages introuvables', 'pages not found')}`, errors500 ? 'ko' : 'ok'],
     ];
     const box = document.getElementById('overviewTiles');
@@ -325,13 +328,84 @@ function sectionHealth() {
         lineChart('statusChart', h.labels, [bars('404', h.s404, '#a3a6b0'), bars('429', h.s429, '#fbbf24'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
 }
 
+// ---------------------------------------------------------------------------
+// Security journal
+// ---------------------------------------------------------------------------
+const SECURITY_COLORS = {
+    login_fail: '#f87171', admin_denied: '#fb923c', csrf_fail: '#facc15', rate_limited: '#a3a6b0', scan: '#b07cff',
+    card_token_fail: '#ef4444', csp_violation: '#38bdf8', server_error: '#ff6b5e', too_large: '#4f9dff',
+};
+const QUIET_KINDS = ['login_ok', 'admin_access'];
+
+// Suspicious events (everything but successful logins and admin access) over the last 24 h or 7 days
+function securityAlerts(hoursOrDays) {
+    const s = data.security || {};
+    const totals = (hoursOrDays === 24 ? s.totals_24h : s.totals_7d) || {};
+    return Object.entries(totals).filter(([k]) => !QUIET_KINDS.includes(k)).reduce((a, [, n]) => a + n, 0);
+}
+
+function securityRow(e, withPath = true) {
+    const who = e.user
+        ? (e.user_url ? `<a href="${HG.esc(e.user_url)}" class="adm-link">${HG.esc(e.user)}</a>` : HG.esc(e.user))
+        : (e.ip ? `<code>${HG.esc(e.ip)}</code>` : '');
+    return `<tr data-kind="${HG.esc(e.kind)}">
+        <td><span class="adm-sev is-${HG.esc(e.severity)}">${HG.esc(e.label)}</span>${e.hits > 1 ? ` <span class="adm-hits">×${HG.fmt(e.hits)}</span>` : ''}</td>
+        <td class="adm-muted">${dateText(e.at)}</td>
+        <td>${who}${e.user && e.ip ? ` <code class="adm-muted">${HG.esc(e.ip)}</code>` : ''}</td>
+        ${withPath && e.path ? `<td><code>${HG.esc(e.path)}</code></td>` : ''}
+        ${e.detail ? `<td class="adm-muted">${HG.esc(e.detail)}</td>` : ''}</tr>`;
+}
+
+function sectionSecurity() {
+    const s = data.security;
+    document.getElementById('securityNotice').hidden = s.enabled;
+    const t24 = s.totals_24h, t7 = s.totals_7d;
+    const n = (k, src = t24) => src[k] || 0;
+    const tile = (kind, label, warnAt = 1, koAt = Infinity) =>
+        [label, HG.fmt(n(kind)), `${HG.fmt(n(kind, t7))} ${T('sur 7 j', 'in 7 d')}`, n(kind) >= koAt ? 'ko' : n(kind) >= warnAt ? 'warn' : 'ok'];
+    renderStats(document.getElementById('securityStats'), [
+        tile('login_fail', T('Connexions échouées', 'Failed logins'), 5, 30),
+        [T('Connexions réussies', 'Successful logins'), HG.fmt(n('login_ok')), `${HG.fmt(n('login_ok', t7))} ${T('sur 7 j', 'in 7 d')}`, ''],
+        tile('scan', T('Scans de robots', 'Bot scans'), 20, 500),
+        tile('rate_limited', T('Limites de requêtes (429)', 'Rate limits (429)'), 10, 200),
+        tile('admin_denied', T('Accès admin refusés', 'Admin access denied'), 1, 20),
+        tile('csrf_fail', T('Formulaires refusés (CSRF)', 'Forms refused (CSRF)'), 1, 10),
+        tile('card_token_fail', T('Jetons de carte invalides', 'Invalid card tokens'), 1, 1),
+        tile('csp_violation', T('Violations CSP', 'CSP violations'), 1, 50),
+        tile('server_error', T('Erreurs serveur (500)', 'Server errors (500)'), 1, 10),
+        tile('too_large', T('Requêtes trop grosses', 'Requests too large'), 1, 20),
+    ]);
+    const kinds = s.kinds.filter(k => !QUIET_KINDS.includes(k.key) && (s.daily[k.key] || []).some(v => v));
+    lineChart('securityChart', s.labels,
+        kinds.map(k => bars(k.label, s.daily[k.key], SECURITY_COLORS[k.key] || '#a3a6b0')), { type: 'bar', stacked: true });
+    document.getElementById('securityRetention').textContent =
+        T('300 derniers événements · conservés {n} jours · IP abrégée', 'Last 300 events · kept {n} days · shortened IP', { n: s.retention_days });
+
+    const log = document.querySelector('#securityLog tbody');
+    log.innerHTML = s.recent.map(e => securityRow(e)).join('') || `<tr><td>${T('Aucun événement enregistré', 'No event recorded')}</td></tr>`;
+    const select = document.getElementById('securityKind');
+    s.kinds.forEach(k => select.insertAdjacentHTML('beforeend', `<option value="${HG.esc(k.key)}">${HG.esc(k.label)}</option>`));
+    select.dispatchEvent(new Event('change'));  // redraws the custom list with the new options
+    select.addEventListener('change', () => {
+        log.querySelectorAll('tr[data-kind]').forEach(tr => { tr.classList.toggle('is-filtered', !!select.value && tr.dataset.kind !== select.value); });
+    });
+
+    document.querySelector('#adminLog tbody').innerHTML = s.admin_log.map(e => securityRow(e, false)).join('')
+        || `<tr><td>${T('Aucun accès enregistré', 'No access recorded')}</td></tr>`;
+    document.getElementById('securityCheckup').innerHTML = s.checkup.map(c => `
+        <li class="${c.ok ? 'is-ok' : 'is-ko'}"><span class="adm-check">${c.ok ? '✓' : '✕'}</span>
+            <span class="adm-check-text"><strong>${HG.esc(c.label)}</strong><span class="adm-muted">${HG.esc(c.detail || '')}</span></span></li>`).join('');
+}
+
 const TAB_SECTIONS = {
     'tab-overview': [sectionOverview],
     'tab-traffic': [sectionTraffic],
-    'tab-accounts': [sectionAccounts, sectionCustomization],
+    'tab-accounts': [sectionAccounts],
+    'tab-profiles': [sectionCustomization],
     'tab-community': [sectionCommunity],
     'tab-bot': [sectionBotStatus, sectionCommands],
     'tab-tech': [sectionHealth, sectionDatabase],
+    'tab-security': [sectionSecurity],
 };
 
 function initTab(tabId) {

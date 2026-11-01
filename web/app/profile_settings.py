@@ -17,31 +17,36 @@ from app.profile_gallery import BANNERS, banner_url as gallery_banner_url
 
 log = logging.getLogger(__name__)
 
-# Accent palette tuned for the dark theme (every color stays readable on #212329 cards).
-# Blurple, the accent of the site itself (Arène theme, v3.24.0), is the default.
+# Accent palette of the Arène theme (v3.27.0): 16 distinct hues around the wheel, including the four type colors
+# of the site (messages, XP, servers, members). Blurple, the accent of the site itself, is the default.
+# Text drawn on top of the accent is always dark (#15161a): white is too pale on every one of these colors.
 PALETTE = [
     ("blurple", "#717cf8", "Blurple", "Blurple"),
+    ("blue", "#4f9dff", "Bleu", "Blue"),
     ("sky", "#38bdf8", "Ciel", "Sky"),
-    ("indigo", "#818cf8", "Indigo", "Indigo"),
-    ("violet", "#a78bfa", "Violet", "Violet"),
-    ("pink", "#f472b6", "Rose", "Pink"),
-    ("red", "#f87171", "Rouge", "Red"),
-    ("orange", "#fb923c", "Orange", "Orange"),
-    ("amber", "#fbbf24", "Ambre", "Amber"),
-    ("lime", "#a3e635", "Citron vert", "Lime"),
-    ("emerald", "#34d399", "Émeraude", "Emerald"),
-    ("teal", "#2dd4bf", "Turquoise", "Teal"),
-    ("blue", "#60a5fa", "Bleu", "Blue"),
     ("cyan", "#22d3ee", "Cyan", "Cyan"),
-    ("purple", "#c084fc", "Pourpre", "Purple"),
-    ("fuchsia", "#e879f9", "Fuchsia", "Fuchsia"),
-    ("coral", "#fb7185", "Corail", "Coral"),
-    ("peach", "#fdba74", "Pêche", "Peach"),
-    ("yellow", "#facc15", "Jaune", "Yellow"),
+    ("teal", "#2dd4bf", "Turquoise", "Teal"),
+    ("mint", "#3fd1a0", "Menthe", "Mint"),
     ("green", "#4ade80", "Vert", "Green"),
-    ("mint", "#6ee7b7", "Menthe", "Mint"),
+    ("lime", "#a3e635", "Citron vert", "Lime"),
+    ("yellow", "#facc15", "Jaune", "Yellow"),
+    ("gold", "#f5b03b", "Or", "Gold"),
+    ("orange", "#fb923c", "Orange", "Orange"),
+    ("coral", "#ff6b5e", "Corail", "Coral"),
+    ("pink", "#f472b6", "Rose", "Pink"),
+    ("fuchsia", "#e879f9", "Fuchsia", "Fuchsia"),
+    ("purple", "#b07cff", "Améthyste", "Amethyst"),
     ("silver", "#cbd5e1", "Argent", "Silver"),
 ]
+# Colors of the palette before v3.27.0, read as the closest remaining one (nothing is rewritten in the database)
+ACCENT_ALIASES = {
+    "indigo": "blurple",
+    "violet": "purple",
+    "amber": "gold",
+    "peach": "orange",
+    "red": "coral",
+    "emerald": "mint",
+}
 PALETTE_HEX = {key: hex_ for key, hex_, _, _ in PALETTE}
 DEFAULT_ACCENT = "blurple"
 OLD_DEFAULT_ACCENT = "sky"  # default until v3.23
@@ -65,7 +70,6 @@ BACKGROUND_COLORS = [
     ("olive", "#1d2110", "Olive", "Olive"),
     ("forest", "#0e2117", "Forêt", "Forest"),
     ("teal", "#0b2327", "Sarcelle", "Teal"),
-    ("slate", "#1a1f28", "Ardoise", "Slate"),
     ("black", "#050608", "Noir", "Black"),
 ]
 BACKGROUND_HEX = {k: h for k, h, _, _ in BACKGROUND_COLORS}
@@ -162,7 +166,7 @@ def get_profile_settings(user_id: int | str) -> dict:
         return settings
     if row:
         settings.update({
-            "accent_color": row.accent_color or DEFAULT_ACCENT,
+            "accent_color": normalize_accent(row.accent_color),
             "banner_mode": effective_banner_mode(row.banner_mode, row.banner_image),
             "discord_banner": row.discord_banner,
             "discord_accent": row.discord_accent,
@@ -174,6 +178,12 @@ def get_profile_settings(user_id: int | str) -> dict:
             "layout": _json_dict(row.layout),
         })
     return settings
+
+
+def normalize_accent(key: str | None) -> str:
+    """Saved accent key, with the colors removed from the palette mapped to their closest one."""
+    key = key or DEFAULT_ACCENT
+    return ACCENT_ALIASES.get(key, key)
 
 
 def _json_list(raw: str | None) -> list[str]:

@@ -19,6 +19,7 @@ from app.database import Users, Stats
 from app.security import valid_csrf
 from app.profile_settings import remember_discord_identity
 from app.analytics_tracking import record_login
+from app.security_log import record as security_event
 from app.i18n import tr
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -194,6 +195,16 @@ def get_discord_redirect_uri() -> str:
     return f"{scheme}://{host}/auth/callback"
 
 
+def _token_is_ours(access_token: str) -> bool:
+    """True when Discord says this access token belongs to the Hourglass application."""
+    client_id = str(current_app.config.get("DISCORD_CLIENT_ID", Config.DISCORD_CLIENT_ID))
+    try:
+        resp = requests.get(f"{DISCORD_API_BASE}/oauth2/@me", headers={"Authorization": f"Bearer {access_token}"}, timeout=10)
+        return resp.status_code == 200 and str((resp.json().get("application") or {}).get("id")) == client_id
+    except (requests.RequestException, ValueError):
+        return False
+
+
 def _authenticate_with_discord_token(access_token: str) -> bool:
     """Fetch user profile and guild memberships directly from Discord API and save to session."""
     auth_headers = {"Authorization": f"Bearer {access_token}"}
@@ -201,6 +212,7 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
         user_resp = requests.get(f"{DISCORD_API_BASE}/users/@me", headers=auth_headers, timeout=10)
         if user_resp.status_code != 200:
             current_app.logger.error(f"Failed to fetch user from Discord: status {user_resp.status_code}")
+            security_event("login_fail", f"Discord /users/@me : HTTP {user_resp.status_code}", path=request.path)
             return False
 
         user_json = user_resp.json()
@@ -239,6 +251,11 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
         except Exception:
             pass
 
+        # A fresh session for the account: keys left by a previous visitor of this browser go, and the CSRF token
+        # is renewed (the OAuth keys still needed by the callback stay)
+        for key in [k for k in session.keys() if k not in ("oauth_state", "oauth_next_url", "oauth_is_popup")]:
+            session.pop(key, None)
+
         # Store authenticated user session (permanent 60-day cookie)
         session.permanent = True
         session["user"] = {
@@ -252,6 +269,7 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
         # Discord banner and profile color, offered as profile customization options
         remember_discord_identity(user_id, user_json.get("banner"), user_json.get("accent_color"))
         record_login(user_id, user_json.get("username"), avatar_url)
+        security_event("login_ok", user_json.get("username"), user_id=user_id, path=request.path)
         return True
     except Exception as e:
         current_app.logger.error(f"Error authenticating with Discord token: {e}")
@@ -330,6 +348,7 @@ def callback():
 
     error = request.args.get("error")
     if error:
+        security_event("login_fail", f"Discord : {error}"[:80], path=request.path)
         if is_popup:
             return render_template("auth_callback.html", next_url=next_url, is_popup=True, error=error)
         return redirect(url_for("auth.login", error=error))
@@ -341,7 +360,8 @@ def callback():
         state = request.args.get("state")
         expected_state = session.pop("oauth_state", None)
 
-        if not state or state != expected_state:
+        if not state or not expected_state or not secrets.compare_digest(str(state), expected_state):
+            security_event("login_fail", "state invalide (code)", path=request.path)
             if is_popup:
                 return render_template("auth_callback.html", next_url=next_url, is_popup=True, error="invalid_state")
             return redirect(url_for("auth.login", error="invalid_state"))
@@ -370,8 +390,11 @@ def callback():
                         session.pop("oauth_is_popup", None)
                         return render_template("auth_callback.html", next_url=destination, is_popup=True, auto_close=True)
                     return redirect(destination)
+            if token_resp.status_code != 200:
+                security_event("login_fail", f"échange du code refusé : HTTP {token_resp.status_code}", path=request.path)
         except Exception as e:
             current_app.logger.error(f"Discord OAuth2 code exchange error: {e}")
+            security_event("login_fail", f"échange du code : {type(e).__name__}", path=request.path)
 
         if is_popup:
             return render_template("auth_callback.html", next_url=next_url, is_popup=True, error="token_failed")
@@ -392,10 +415,17 @@ def token_login():
 
     # The state must always be present and match the one issued by /auth/oauth (CSRF / login injection)
     if not expected_state or not state or not secrets.compare_digest(str(state), expected_state):
+        security_event("login_fail", "state invalide (jeton)")
         return {"success": False, "error": "Invalid state"}, 400
 
     if not access_token:
         return {"success": False, "error": "Missing access token"}, 400
+
+    # The token must have been issued to Hourglass: a member's token for another application must not open
+    # a session here (token substitution)
+    if not _token_is_ours(access_token):
+        security_event("login_fail", "jeton émis pour une autre application")
+        return {"success": False, "error": "Discord authentication failed"}, 401
 
     success = _authenticate_with_discord_token(access_token)
     if not success:
@@ -414,6 +444,8 @@ def logout():
     Not to the previous page: some only exist for a logged-in member (/admin answers 404 to visitors).
     A plain GET does not log out, so a third-party page cannot disconnect visitors with an <img> or a link.
     """
+    if request.method == "POST" and not valid_csrf(request.form.get("csrf_token")):
+        security_event("csrf_fail", "déconnexion")
     if request.method == "POST" and valid_csrf(request.form.get("csrf_token")):
         for key in ("user", "guild_ids", "oauth_state", "oauth_next_url", "oauth_is_popup", "csrf_token"):
             session.pop(key, None)

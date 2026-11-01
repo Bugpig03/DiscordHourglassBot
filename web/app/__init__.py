@@ -25,6 +25,8 @@ from app.routes.versus import versus_bp
 from app.routes.customize import customize_bp
 from app.routes.admin import admin_bp
 from app.analytics_tracking import init_tracking
+from app.security_log import init_security_log
+from app.best_records import init_best_records
 from app.admin import is_admin
 from app.profile_settings import ensure_table as ensure_profile_settings_table
 from app.pixel_icons import pixel_svg
@@ -73,6 +75,9 @@ def create_app():
 
     # Anonymous audience measurement for the admin page (no cookie, no IP stored)
     init_tracking(app)
+    init_security_log(app)
+    # Best rank and best 30 days of every member, so the Ranking and Activity badges never go down
+    init_best_records(app)
 
     # Profile customization table (created if the migration was not applied; never blocks startup)
     ensure_profile_settings_table()
@@ -157,6 +162,13 @@ def create_app():
         return Markup('<span class="bot-tag" title="{}">BOT</span>').format(tr("Bot ou application Discord", "Discord bot or app"))
 
     app.jinja_env.globals['bot_tag'] = bot_tag
+
+    def short_date(dt) -> str:
+        """{{ short_date(date) }}: '28 avr. 2024' in the visitor's language."""
+        from app.i18n import day_month_year
+        return day_month_year(dt.day, dt.month, dt.year) if dt else ""
+
+    app.jinja_env.globals['short_date'] = short_date
 
     def asset_version(filename: str) -> int:
         """Cache-busting token for a static file: changes whenever the file changes on disk."""

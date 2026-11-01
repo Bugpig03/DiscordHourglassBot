@@ -1,5 +1,83 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.30.0 - Badges Classement et Activité Définitivement Acquis - 01/11/2026
+- **Meilleure place et meilleurs 30 jours sauvegardés** pour chaque membre, dans une nouvelle table du site `user_best_records` (migration `2026-11-01_web_v3.30.0_user_best_records.sql`, aussi créée au démarrage). Les badges ne sont toujours pas stockés : seulement ces deux records, avec leur date.
+  - Meilleure place au classement vocal global, avec le premier jour où elle a été atteinte et les heures de vocal à ce moment.
+  - Meilleur total de vocal sur 30 jours glissants, avec la période.
+  - Un record ne fait que s'améliorer ; en cas d'égalité, la première date est gardée.
+- **Historique repris dès la création** : les relevés quotidiens de `historical_stats` (classement de chaque jour depuis octobre 2024) et les sessions vocales (fenêtres de 30 jours). Les totaux importés à la création des sessions vocales (5 octobre 2024, sessions de durée nulle jusqu'à 257 h) sont écartés, et une journée ne compte jamais plus de 24 h.
+- **Mise à jour toutes les heures**, par un seul worker (verrou PostgreSQL) et en une requête pour tout le monde. Aucun calcul en plus à chaque visite, aucun changement côté bot.
+- **Badges Classement et Activité** : le palier est le meilleur entre maintenant et le record. Ils ne redescendent plus quand quelqu'un vous dépasse ou après un mois calme. Descriptions : « Meilleure place au classement vocal global » et « Meilleur total de vocal sur 30 jours ».
+  - La date du record s'affiche au survol du badge (vitrine, carte au survol) et de chaque palier dans l'onglet Badges du profil : « Meilleure place : #3, le 12 mars 2026 », « Record : 152 h, du 6 mai au 4 juin 2026 ».
+  - Les cartes du bot (`/stats`, `/allstats`) suivent, avec le même calcul.
+- **Nouveaux paliers du badge Classement** : Top 100 (Bronze), Top 50 (Argent), Top 25 (Or), Top 10 (Platine), Top 5 (Diamant), Top 3 (Légende), n°1 (Mythique). Avant : Top 3 en Diamant, n°1 en Légende, et n°1 avec 5 000 h en Mythique.
+- **La place globale ne compte plus les bots et applications Discord** (profil, badge, record), comme la page Membres.
+- 6 nouvelles phrases traduites dans les 10 autres langues.
+
+### Titres par niveau
+- **Nouveaux titres, à des niveaux ronds** : Recrue (1), Habitué (5), Confirmé (10), Vétéran (20), Champion (30), Maître (40), Grand Maître (50), Icône (60), Immortel (70), Titan (80), Gardien du Sablier (90), Maître du Temps (100). Ils remplacent les 7 anciens (Novice Curieux… Légende Hourglass) partout : profil, carte au survol, Versus, cartes du bot et aperçu de la personnalisation. Traduits dans les 12 langues.
+
+### Page Aide
+- **Titres par niveau** : les 12 titres avec leur niveau, l'XP demandée et le temps de vocal équivalent (arrondi), colorés par groupe (gris, bleu, violet, doré).
+- **Paliers des badges** : les 9 badges et ce que demande chacun de leurs 7 paliers, de Bronze à Mythique (tableau sur ordinateur, grille par badge sur téléphone).
+- Commandes affichées en commandes slash (`/stats`, `/top [type] [period] [scope]`, `/help`…) au lieu de l'ancien préfixe `!`, avec `/versus` ajoutée ; description mise à jour dans les 12 langues.
+
+## Version 3.29.0 - Journal de Sécurité et Durcissement du Site - 01/11/2026
+### Journal de sécurité
+- **Nouvelle table `web_security_events`** (créée au démarrage, migration `2026-11-01_web_v3.29.0_security_events.sql`) : connexions réussies et échouées (state invalide, refus de Discord, jeton d'une autre application), accès admin et tentatives refusées, formulaires refusés (CSRF), limites de requêtes (429), scans de robots (`/.env`, `/.git`, `wp-login.php`, `phpmyadmin`, `.php`…), jetons de carte invalides, violations CSP, erreurs 500 (type d'erreur seulement) et requêtes trop grosses (413).
+  - **IP abrégée** uniquement (IPv4 `82.64.12.x`, IPv6 `/48`), jamais complète. Suppression automatique après 90 jours.
+  - Écriture par lots toutes les 30 s : les événements identiques d'une même minute sont regroupés avec un compteur, et un afflux (scanner) est plafonné par minute. Aucune requête SQL par visite.
+- **Nouvel onglet admin « Sécurité »** : dix compteurs sur 24 h (avec les 7 jours, en orange ou rouge au-delà d'un seuil), événements par jour sur 30 jours, sources les plus actives et adresses visées sur 7 jours, journal des 300 derniers événements filtrable par type, accès à l'admin, et **check-up de la configuration** (clé de session, HTTPS, cookie, CSP, debug, mot de passe de la base, jeton des cartes, secret Discord, IP transmise par le proxy, journal, nombre d'admins). Une tuile « Alertes de sécurité » sur la vue d'ensemble y mène.
+- Sur téléphone, les compteurs de l'admin passent à deux par ligne.
+- Page Confidentialité : paragraphe « Journal de sécurité » dans les 12 langues, date de mise à jour au 1er novembre 2026.
+
+### Durcissement
+- **IP des visiteurs** : `X-Real-IP` et `X-Forwarded-For` ne sont plus crus que s'ils viennent du proxy (réseau privé ou machine locale). Si le port de l'application était joignable directement, un attaquant pouvait changer d'IP à chaque requête et contourner les limites.
+- **Connexion par jeton (mode implicite)** : le site vérifie auprès de Discord que le jeton a été émis pour Hourglass ; le jeton d'un membre pour une autre application est refusé.
+- **Session remise à neuf à la connexion** (anciennes clés et jeton CSRF renouvelés). Aucun membre déjà connecté n'est déconnecté par la mise à jour.
+- **HSTS** (6 mois, sans préchargement) sur les pages servies en HTTPS.
+- **Requêtes limitées à 256 Ko** (413 au-delà).
+- **`Cache-Control: no-store`** sur `/admin`, `/me/` et `/auth/`.
+- **Limites de requêtes** ajoutées sur `/admin` (60/min) et `/csp-report` (20/min).
+- **Rapports CSP** : le navigateur signale les scripts bloqués à `/csp-report` (taille limitée, rapports vides ignorés).
+- La comparaison du `state` OAuth du mode code se fait en temps constant, comme celle du mode jeton.
+
+## Version 3.28.0 - Tri par Date d'Arrivée - 01/11/2026
+- **Deux nouveaux tris sur les pages Membres et Serveurs** : « Arrivée : plus anciens » et « Arrivée : plus récents ».
+  - Membre : sa première activité vue par Hourglass, comme « Membre depuis » sur son profil. Avec le filtre serveur, c'est sa première activité sur ce serveur.
+  - Serveur : le jour où Hourglass a commencé à le suivre, comme sur sa fiche et la carte `/server`.
+  - Chaque ligne affiche la date dans une étiquette calendrier (« 28 Avr 2024 »), avec le détail au survol. Sans rang ni flèches dans ce mode, comme pour le tri A–Z. Sur petit téléphone, la date remplace le temps vocal.
+  - Recherche, serveur, période (les chiffres restent ceux de la période), bots masqués et pagination fonctionnent avec ce tri. Sans date connue, la ligne passe en fin de liste.
+  - Les dates sont calculées en une requête groupée par source et mises en cache 10 minutes.
+- 4 nouvelles phrases traduites dans les 10 autres langues.
+- Étiquette « Non suivi » des serveurs quittés par le bot au style du site : coins coupés, majuscules, gris discret (elle était arrondie).
+
+### Page admin
+- **Plus aucun défilement horizontal**, à toutes les largeurs :
+  - la barre d'onglets est une grille (7 onglets sur une ligne en grand écran, 4 + 3 en dessous de 1280 px) au lieu de défiler sur le côté ;
+  - les tableaux (dernières connexions, derniers membres et serveurs arrivés, temps de réponse des commandes, taille des tables) passent à la ligne : le nom d'abord, puis ses détails, qui descendent sous le nom quand la carte est étroite.
+- **Nouvel onglet « Profils »** : la personnalisation des profils quitte l'onglet Comptes, qui ne garde que les connexions. La tuile « Profils personnalisés » de la vue d'ensemble y mène.
+- Communauté : le graphique des arrivées et départs de serveurs suit directement les membres présents, les deux tableaux des derniers arrivés viennent ensuite.
+- Technique : le graphique des erreurs et les adresses 404 côte à côte.
+- Listes avec pastille de couleur (couleurs de profil, fonds) : la valeur restait coincée sous la ligne, elle est de nouveau alignée à droite.
+
+## Version 3.27.0 - Personnalisation du Profil Repensée, Palette Arène - 01/11/2026
+### Page Personnaliser
+- **Bannière : une seule galerie, avec « Aucune » en première case** (sélectionnée par défaut). Le choix « Aucune / Image de la galerie » disparaît : choisir « Aucune » enregistre l'absence de bannière, choisir une image l'affiche. Les pages ouvertes avant la mise à jour s'enregistrent toujours correctement.
+  - Les 5 premières images sont affichées, les autres derrière « Voir les N autres » (ouvert d'office si l'image choisie en fait partie). La galerie ne défile plus à l'intérieur de la page.
+- **Couleurs en cases carrées aux coins coupés**, remplies de la couleur, avec une coche sur la couleur choisie (les pastilles rondes dépassaient de leurs cases). 8 par ligne, sans case isolée sur téléphone. « Couleur de mon profil Discord » a sa propre ligne, avec son libellé.
+- **Fond de la page** : même présentation, avec une case « Aucun » en premier à la place de la pastille barrée.
+- Ordre de l'onglet Apparence calqué sur le profil : Bannière, Couleur, Fond. Descriptions raccourcies, icônes dans les onglets.
+- **Bouton « Annuler »** dans la barre d'enregistrement quand des changements ne sont pas enregistrés : il remet les choix enregistrés, aperçu compris.
+- **Téléphone et tablette** : l'aperçu devient compact (bannière, avatar, pseudo, barre de niveau) et reste collé en haut de l'écran pendant les réglages ; la vitrine n'apparaît dans l'aperçu que sur l'onglet Vitrine. Le choix actuel passe sous le titre de chaque réglage, et les onglets tiennent en entier jusqu'à 320 px.
+
+### Couleurs du profil
+- **Nouvelle palette de 16 couleurs accordée au thème Arène**, sans quasi-doublons et avec les couleurs du site : Blurple (par défaut), Bleu, Ciel, Cyan, Turquoise, Menthe, Vert, Citron vert, Jaune, Or, Orange, Corail, Rose, Fuchsia, Améthyste, Argent.
+  - Les couleurs retirées sont lues comme la plus proche, sans rien réécrire en base : Indigo → Blurple, Violet → Améthyste, Ambre → Or, Pêche → Orange, Rouge → Corail, Émeraude → Menthe. Le profil, les cartes du bot et la page admin suivent.
+- **Texte foncé sur la couleur du membre** : onglets actifs, boutons de période, badge de niveau (désormais uni). Le texte blanc était sous le seuil de lisibilité avec toutes les couleurs (1,5:1 sur Jaune ou Argent).
+- Fond « Ardoise » retiré (presque identique au fond par défaut) : les profils qui l'avaient reviennent au fond par défaut.
+- 7 nouvelles phrases traduites dans les 10 autres langues ; les traductions des libellés retirés sont supprimées.
+
 ## Version 3.26.1 - Images pour la Page top.gg - 31/10/2026
 - **Images de présentation** dans `app/static/promo/`, servies à `https://hourglassbot.net/static/promo/...` pour la page top.gg du bot : bannière, bandeau des 4 points forts, une carte `/stats` et la carte d'aide, au style Arène des cartes.
 - Textes du profil top.gg (description courte, description longue en anglais et en français, catégories, langues, liens) dans `docs/topgg/` à la racine du dépôt.

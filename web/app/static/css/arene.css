@@ -644,7 +644,6 @@ html body .search-input:focus {
 /* Segmented controls */
 html body .granularity-toggle-group,
 html body .chart-btn-group,
-html body .cz-segmented,
 html body .lang-switch {
   border-radius: 0;
   gap: 3px;
@@ -653,8 +652,7 @@ html body .lang-switch {
   border: 0;
 }
 html body .granularity-btn,
-html body .chart-toggle-btn,
-html body .cz-segmented button {
+html body .chart-toggle-btn {
   border-radius: 0;
   clip-path: var(--slant);
   background: var(--ar-panel-2);
@@ -668,8 +666,6 @@ html body .cz-segmented button {
 }
 html body .granularity-btn.active,
 html body .chart-toggle-btn.active,
-html body .cz-segmented button.active,
-html body .cz-segmented button[aria-pressed="true"],
 html body .granularity-btn[aria-pressed="true"] {
   background: var(--ar-accent);
   color: #fff;
@@ -863,7 +859,6 @@ html body .bd-family,
 html body .bd-tier,
 html body .bd-summary,
 html body .cz-gallery-item,
-html body .swatch,
 html body .profile-private-notice,
 html body .chart-empty-state,
 html body .legal-highlight-box,
@@ -883,7 +878,7 @@ html body .user-level-circle {
 /* Customization page */
 html body .cz-savebar { border-radius: 0; clip-path: var(--cut-s); background: #101115; }
 html body .cz-switch { border-radius: 2px; }
-html body .swatch { clip-path: var(--cut-s); }
+html body :is(.cz-color-fill, .cz-color-discord, .cz-more, .cz-cancel) { clip-path: var(--cut-s); border-radius: 0; }
 
 /* --------------------------------------------------------------- tables */
 html body .commands-table th,
@@ -1238,8 +1233,7 @@ html body .an-badge { white-space: normal; max-width: 100%; }
   html body .top-tab-btn,
   html body .cz-tab,
   html body .granularity-btn,
-  html body .chart-toggle-btn,
-  html body .cz-segmented button {
+  html body .chart-toggle-btn {
     clip-path: var(--cut-s);
   }
   html body .graphs-tab-btn { padding-left: 4px; padding-right: 4px; }
@@ -1852,7 +1846,7 @@ html body .bd-family-name { min-width: 0; overflow-wrap: anywhere; }
 /* Straight corners (Arène): boxes that still kept a radius from the page stylesheets. A cut box with a radius
    showed rounded corners on its two uncut sides (home podium cards). */
 html body :is(.dashboard-podium-card, .pager-pages, .punch-cell, .page-search-clear, .legal-num, .legal-step-item,
-  .adm-stat, .adm-notice, .adm-search, .adm-tile, .cz-notice, .cz-tabs, .cz-tab, .cz-segmented, .cz-segmented span,
+  .adm-stat, .adm-notice, .adm-search, .adm-tile, .cz-notice, .cz-tabs, .cz-tab,
   .cz-select, .cz-chip-body, .cz-list-item, .cz-savebar, .btn-customize-save, .cz-panel-intro, .cz-gallery-item,
   .cz-preview-frame, .cz-row-icon) {
   border-radius: 0;
@@ -1998,3 +1992,60 @@ html body .hg-select-opt.is-disabled { opacity: 0.45; cursor: default; }
 html body .hg-select-check { display: inline-flex; visibility: hidden; color: var(--ar-accent-hi); }
 html body .hg-select-opt[aria-selected="true"] .hg-select-check { visibility: visible; }
 html body .hg-select-opt-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* --------------------------------------------------------------- profile page: text on the member color
+   White on the member color is below 4.5:1 for every palette color (1.5:1 on yellow or silver): anything
+   drawn on a solid accent fill uses the dark ink of the site instead (v3.27.0). */
+html body .profile-themed {
+  --accent-ink: #15161a;
+}
+html body .profile-themed :is(.graphs-tab-btn.active, .top-tab-btn.active, .granularity-btn.active,
+  .granularity-btn[aria-pressed="true"], .chart-toggle-btn.active, .pager-btn.is-current, .page-link-selected,
+  .user-level-circle, .user-level-circle *, .btn-customize-save, .top-button) {
+  color: var(--accent-ink);
+}
+html body .profile-themed .graphs-tab-btn.active .tab-desc { color: rgba(21, 22, 26, 0.72); }
+html body .profile-themed :is(.graphs-tab-btn.active, .top-tab-btn.active) svg { color: var(--accent-ink); }
+/* Solid fill: the dark end of the old gradient made dark figures unreadable */
+html body .profile-themed .user-level-circle { background: var(--accent); }
+
+/* --------------------------------------------------------------- rankings sorted by arrival date
+   "Since 28 Apr 2024" chip in front of the figures, same slanted chip as the voice / messages ones (v3.28.0) */
+html body .arrival-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  clip-path: var(--slant);
+  background: rgba(176, 124, 255, 0.14);
+  color: #c9a6ff;
+  font-family: var(--ar-display);
+  font-weight: 700;
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  html body .arrival-tag { padding: 3px 9px; font-size: 0.76rem; }
+}
+/* Small phones: the date replaces the voice chip (the messages chip is already hidden there) */
+@media (max-width: 440px) {
+  html body .stats-box:has(.arrival-tag) .hours-fixed { display: none; }
+}
+
+/* "Not tracked" tag of servers the bot has left: same cut-corner tag as "BOT", in the muted gray */
+html body .server-untracked-badge {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--cut-s);
+  background: var(--ar-panel-2);
+  box-shadow: inset 0 0 0 1px var(--ar-line);
+  color: var(--ar-muted);
+  font-family: var(--ar-display);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}

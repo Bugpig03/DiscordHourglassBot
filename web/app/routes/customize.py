@@ -17,8 +17,6 @@ from app.routes.user_profile import load_profile_extras, load_user_charts_data, 
 from app.profile_settings import (
     BACKGROUND_COLORS,
     BACKGROUND_HEX,
-    BANNER_MODES,
-    DEFAULT_BANNER_IMAGE,
     DISCORD_ACCENT,
     HIDEABLE_BLOCKS,
     PALETTE,
@@ -30,6 +28,7 @@ from app.profile_settings import (
     save_profile_settings,
 )
 from app.security import valid_csrf
+from app.security_log import record as security_event
 from app.i18n import current_lang, tr
 
 customize_bp = Blueprint("customize", __name__)
@@ -50,6 +49,7 @@ def customize_profile():
 
     if request.method == "POST":
         if not valid_csrf(request.form.get("csrf_token")):
+            security_event("csrf_fail", "personnalisation du profil", user_id=user_id)
             abort(400)
         if not member:
             return redirect(url_for("customize.customize_profile"))
@@ -72,7 +72,7 @@ def customize_profile():
     current_accent = next((c["label"] for c in palette if c["key"] == theme["accent_key"]), label("Couleur Discord", "Discord color"))
     current_banner = (next((b["label"] for b in banner_gallery if b["key"] == theme["banner_image"]), "")
                       if theme["banner_mode"] == "image" else label("Aucune", "None"))
-    current_background = next((c["label"] for c in background_colors if c["key"] == theme["background_color"]), label("Par défaut", "Default"))
+    current_background = next((c["label"] for c in background_colors if c["key"] == theme["background_color"]), label("Aucun", "None"))
     return render_template(
         "customize_profile.html",
         member=member,
@@ -107,14 +107,12 @@ def _validated_form(settings: dict, servers: list[dict], badges: list[dict]) -> 
     if accent not in PALETTE_HEX and not (accent == DISCORD_ACCENT and discord_accent_hex(settings)):
         accent = settings["accent_color"]
 
-    banner_mode = request.form.get("banner_mode", "")
-    if banner_mode not in BANNER_MODES:
-        banner_mode = settings["banner_mode"]
-
-    # Gallery pictures: only known keys; choosing the gallery without a picture uses the default one
+    # The gallery starts with a "None" tile (empty value): a known picture means "image", anything else "none".
+    # Pages opened before v3.27.0 still send banner_mode (none + a picture means "none").
     banner_image = request.form.get("banner_image") or None
     if banner_image not in BANNERS:
-        banner_image = DEFAULT_BANNER_IMAGE if banner_mode == "image" else None
+        banner_image = None
+    banner_mode = "image" if banner_image and request.form.get("banner_mode") != "none" else "none"
     background_color = request.form.get("background_color") or None
     if background_color not in BACKGROUND_HEX:
         background_color = None

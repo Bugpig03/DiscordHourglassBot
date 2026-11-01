@@ -26,9 +26,11 @@
         <button class="graphs-tab-btn active" data-tab="tab-overview" data-call="switchGraphTab" data-arg="tab-overview"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="grid"><path d="M0 0h4v1h-4zM5 0h4v1h-4zM0 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM5 2h4v1h-4zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h4v1h-4zM5 4h4v1h-4zM5 5h1v1h-1zM8 5h1v1h-1zM0 6h4v1h-4zM5 6h1v1h-1zM8 6h1v1h-1zM0 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM8 7h1v1h-1zM0 8h4v1h-4zM5 8h4v1h-4z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Vue d’ensemble', 'Overview')}}</span></span></button>
         <button class="graphs-tab-btn" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="globe"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM8 2h1v1h-1zM0 3h9v1h-9zM0 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM8 4h1v1h-1zM0 5h9v1h-9zM0 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Site web', 'Website')}}</span></span></button>
         <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="user_check"><path d="M2 0h3v1h-3zM1 1h5v1h-5zM1 2h5v1h-5zM2 3h3v1h-3zM8 3h1v1h-1zM7 4h2v1h-2zM1 5h4v1h-4zM6 5h2v1h-2zM0 6h7v1h-7zM0 7h6v1h-6z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Comptes', 'Accounts')}}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-profiles" data-call="switchGraphTab" data-arg="tab-profiles">{{ pixel_icon('palette', 15) }}<span class="tab-text"><span class="tab-title">{{tr('Profils', 'Profiles')}}</span></span></button>
         <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community"><svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Communauté', 'Community')}}</span></span></button>
         <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="bot"><path d="M4 0h1v1h-1zM1 1h7v1h-7zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h2v1h-2zM3 3h1v1h-1zM5 3h1v1h-1zM7 3h2v1h-2zM1 4h1v1h-1zM7 4h1v1h-1zM1 5h1v1h-1zM3 5h3v1h-3zM7 5h1v1h-1zM1 6h7v1h-7zM2 7h1v1h-1zM6 7h1v1h-1z"/></svg><span class="tab-text"><span class="tab-title">Bot</span></span></button>
         <button class="graphs-tab-btn" data-tab="tab-tech" data-call="switchGraphTab" data-arg="tab-tech"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="wrench"><path d="M5 0h1v1h-1zM7 0h1v1h-1zM5 1h1v1h-1zM7 1h2v1h-2zM5 2h3v1h-3zM4 3h3v1h-3zM3 4h3v1h-3zM2 5h3v1h-3zM1 6h3v1h-3zM0 7h3v1h-3zM1 8h1v1h-1z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Technique', 'Technical')}}</span></span></button>
+        <button class="graphs-tab-btn" data-tab="tab-security" data-call="switchGraphTab" data-arg="tab-security">{{ pixel_icon('shield', 15) }}<span class="tab-text"><span class="tab-title">{{tr('Sécurité', 'Security')}}</span></span></button>
     </div>
 </div>
 
@@ -112,7 +114,10 @@
         <div class="an-card-head"><h2 class="an-card-title">{{tr('Dernières connexions', 'Latest logins')}}</h2></div>
         <div class="adm-table-wrap"><table class="adm-table" id="recentLogins"><tbody><tr><td>…</td></tr></tbody></table></div>
     </section>
-    <h2 class="adm-section-title">{{tr('Personnalisation des profils', 'Profile customization')}}</h2>
+</div>
+
+<!-- ============================== Profils ============================== -->
+<div id="tab-profiles" class="graphs-tab-pane">
     <div class="adm-stats" id="customStats"></div>
     <div class="an-grid-2">
         <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Couleurs', 'Colors')}}</h2></div><ol class="an-rank" data-list="customization.accents">{{ loading() }}</ol></section>
@@ -134,6 +139,11 @@
         <div class="adm-stats" id="audienceStats"></div>
         <div class="an-chart an-chart-sm" id="audienceChartWrap">{{ loading() }}<canvas id="audienceChart"></canvas></div>
     </section>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Serveurs : arrivées et départs du bot', 'Servers: bot joins and leaves')}}</h2>
+            <p class="an-card-desc">{{tr('12 derniers mois.', 'Last 12 months.')}}</p></div></div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="serversChart"></canvas></div>
+    </section>
     <div class="an-grid-2">
         <section class="gray-box small-border-radius an-card">
             <div class="an-card-head"><div><h2 class="an-card-title">{{tr('30 derniers membres arrivés', 'Last 30 members to arrive')}}</h2>
@@ -146,11 +156,6 @@
             <div class="adm-table-wrap"><table class="adm-table" id="recentServers"><tbody><tr><td>…</td></tr></tbody></table></div>
         </section>
     </div>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Serveurs : arrivées et départs du bot', 'Servers: bot joins and leaves')}}</h2>
-            <p class="an-card-desc">{{tr('12 derniers mois.', 'Last 12 months.')}}</p></div></div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="serversChart"></canvas></div>
-    </section>
 </div>
 
 <!-- ================================ Bot ================================ -->
@@ -180,6 +185,7 @@
 <div id="tab-tech" class="graphs-tab-pane">
     <h2 class="adm-section-title">{{tr('Santé du site', 'Site health')}}</h2>
     <div class="adm-stats" id="healthStats"></div>
+    <div class="an-grid-2">
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Erreurs par jour · 30 j', 'Errors per day · 30 d')}}</h2>
             <p class="an-card-desc">{{tr('404 page introuvable, 429 limite de requêtes, 500 erreur serveur.', '404 not found, 429 rate limited, 500 server error.')}}</p></div></div>
@@ -189,11 +195,57 @@
         <div class="an-card-head"><h2 class="an-card-title">{{tr('Adresses 404 les plus fréquentes', 'Most frequent 404 paths')}}</h2></div>
         <ol class="an-rank" data-list="health.top_404">{{ loading() }}</ol>
     </section>
+    </div>
     <h2 class="adm-section-title">{{tr('Base de données', 'Database')}}</h2>
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Taille des tables', 'Table sizes')}}</h2><p class="an-card-desc" id="dbSize">&nbsp;</p></div></div>
         <div class="adm-table-wrap"><table class="adm-table" id="dbTables"><tbody><tr><td>…</td></tr></tbody></table></div>
     </section>
+</div>
+
+<!-- ============================= Sécurité ============================= -->
+<div id="tab-security" class="graphs-tab-pane">
+    <p class="adm-notice" id="securityNotice" hidden>{{tr('Journal de sécurité indisponible : la table web_security_events n’a pas pu être créée (voir les logs du site).', 'Security journal unavailable: the web_security_events table could not be created (see the site logs).')}}</p>
+    <h2 class="adm-section-title">{{tr('Dernières 24 heures', 'Last 24 hours')}}</h2>
+    <div class="adm-stats" id="securityStats"></div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Événements par jour · 30 j', 'Events per day · 30 d')}}</h2>
+            <p class="an-card-desc">{{tr('Hors connexions réussies et accès admin.', 'Successful logins and admin access left out.')}}</p></div></div>
+        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="securityChart"></canvas></div>
+    </section>
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Sources les plus actives · 7 j', 'Most active sources · 7 d')}}</h2>
+                <p class="an-card-desc">{{tr('IP abrégée et types d’événements (scans, 429, échecs…).', 'Shortened IP and event types (scans, 429, failures…).')}}</p></div></div>
+            <ol class="an-rank" data-list="security.top_ips">{{ loading() }}</ol>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Adresses visées · 7 j', 'Targeted paths · 7 d')}}</h2>
+                <p class="an-card-desc">{{tr('Pages des événements suspects.', 'Pages of the suspicious events.')}}</p></div></div>
+            <ol class="an-rank" data-list="security.top_paths">{{ loading() }}</ol>
+        </section>
+    </div>
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
+            <div><h2 class="an-card-title">{{tr('Journal', 'Journal')}}</h2>
+                <p class="an-card-desc" id="securityRetention">&nbsp;</p></div>
+            <select class="top-select adm-kind-filter" id="securityKind" aria-label="{{tr('Type d’événement', 'Event type')}}">
+                <option value="">{{tr('Tous les événements', 'All events')}}</option>
+            </select>
+        </div>
+        <div class="adm-table-wrap"><table class="adm-table adm-log" id="securityLog"><tbody><tr><td>…</td></tr></tbody></table></div>
+    </section>
+    <div class="an-grid-2">
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Check-up de la configuration', 'Configuration check-up')}}</h2>
+                <p class="an-card-desc">{{tr('Lu sur le site en marche, à chaque ouverture de la page.', 'Read from the running site each time the page opens.')}}</p></div></div>
+            <ul class="adm-checkup" id="securityCheckup"></ul>
+        </section>
+        <section class="gray-box small-border-radius an-card">
+            <div class="an-card-head"><h2 class="an-card-title">{{tr('Accès à l’admin', 'Admin access')}}</h2></div>
+            <div class="adm-table-wrap"><table class="adm-table adm-log" id="adminLog"><tbody><tr><td>…</td></tr></tbody></table></div>
+        </section>
+    </div>
 </div>
 
 <script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang}|tojson }}</script>

@@ -79,6 +79,12 @@
 .cz-tab:hover {
     color: #ffffff;
 }
+.cz-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
 .cz-tab.active {
     background: #717cf8;
     color: #15161a;
@@ -118,84 +124,91 @@
     margin-left: 4px;
 }
 
-/* Color swatches */
-.swatch-grid {
+/* Color tiles: squares filled with the color, a check mark on the chosen one */
+.cz-colors {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 46px));
+    gap: 8px;
+}
+.cz-colors-bg {
+    grid-template-columns: repeat(6, minmax(0, 46px));
+}
+.cz-color,
+.cz-color-discord {
+    position: relative;
+    cursor: pointer;
+}
+.cz-color input,
+.cz-color-discord input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.cz-color-fill {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    background: var(--c);
+    color: #15161a;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    transition: transform 0.12s ease, filter 0.12s ease;
 }
-.swatch {
-    position: relative;
-    cursor: pointer;
+.cz-color-fill svg {
+    visibility: hidden;
 }
-.swatch input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
+.cz-color:hover .cz-color-fill,
+.cz-color-discord:hover .cz-color-fill {
+    filter: brightness(1.12);
 }
-.swatch-dot {
-    display: block;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25);
-    transition: transform 0.15s ease, border-color 0.15s ease;
+.cz-color input:checked + .cz-color-fill,
+.cz-color-discord input:checked + .cz-color-fill {
+    box-shadow: inset 0 0 0 3px #ffffff, inset 0 0 0 5px rgba(21, 22, 26, 0.55);
 }
-/* Page background swatches are dark: a light ring keeps them visible; "default" is crossed out */
-.swatch-bg {
-    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+.cz-color input:checked + .cz-color-fill svg,
+.cz-color-discord input:checked + .cz-color-fill svg {
+    visibility: visible;
 }
-.swatch-none {
-    background: linear-gradient(135deg, transparent 45%, rgba(248, 113, 113, 0.85) 45%, rgba(248, 113, 113, 0.85) 55%, transparent 55%), #1c1d22;
-    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+.cz-color input:focus-visible + .cz-color-fill,
+.cz-color-discord input:focus-visible + .cz-color-fill {
+    outline: 2px solid #ffffff;
+    outline-offset: -6px;
 }
-.swatch-discord {
-    outline: 2px dashed rgba(255, 255, 255, 0.35);
-    outline-offset: 2px;
+/* Page backgrounds are dark: light check mark */
+.cz-colors-bg .cz-color-fill {
+    color: #ffffff;
 }
-.swatch:hover .swatch-dot {
-    transform: scale(1.08);
-}
-.swatch input:checked + .swatch-dot {
-    border-color: #ffffff;
-}
-.swatch input:focus-visible + .swatch-dot {
-    box-shadow: 0 0 0 3px rgba(113, 124, 248, 0.8);
-}
-
-/* Segmented control (banner) */
-.cz-segmented {
-    display: inline-flex;
-    padding: 3px;
-    gap: 3px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.cz-segmented label {
-    position: relative;
-    cursor: pointer;
-}
-.cz-segmented input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-.cz-segmented span {
-    display: block;
-    padding: 7px 16px;
-    border-radius: 8px;
+/* "None": empty tile with a cross */
+.cz-color-none .cz-color-fill {
+    background: repeating-linear-gradient(135deg, #1b1c21 0 6px, #24262c 6px 12px);
     color: #a3a6b0;
-    font-weight: 700;
+}
+.cz-color-none .cz-color-fill svg {
+    visibility: visible;
+}
+.cz-color-none input:checked + .cz-color-fill {
+    color: #ffffff;
+}
+/* Discord color: its own row, with a label */
+.cz-color-discord {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 6px 14px 6px 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.cz-color-discord .cz-color-fill {
+    width: 34px;
+}
+.cz-color-discord-text {
+    color: #e3e5e8;
+    font-weight: 600;
     font-size: 0.88rem;
 }
-.cz-segmented input:checked + span {
-    background: rgba(113, 124, 248, 0.18);
-    color: #717cf8;
-}
-.cz-segmented input:focus-visible + span {
-    outline: 2px solid #717cf8;
+.cz-color-discord:has(input:checked) {
+    border-color: rgba(255, 255, 255, 0.35);
 }
 
 .cz-select {
@@ -446,6 +459,23 @@
     box-shadow: 0 8px 26px rgba(113, 124, 248, 0.5);
 }
 
+.cz-cancel {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #c9ccd3;
+    padding: 11px 18px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.cz-cancel:hover {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+.cz-cancel[hidden] {
+    display: none;
+}
+
 /* Preview */
 .cz-preview {
     position: sticky;
@@ -489,13 +519,83 @@
     display: none;
 }
 
+/* The top bar stops following the page below 1024 px */
+@media (max-width: 1024px) {
+    .cz-preview {
+        top: 12px;
+    }
+}
 @media (max-width: 960px) {
     .cz-layout {
         grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
     }
     .cz-preview {
-        position: static;
+        position: sticky;
+        top: 0;
+        z-index: 3;
         order: -1;
+        padding: 8px 0;
+        background: #15161a;
+        box-shadow: 0 10px 16px -10px rgba(0, 0, 0, 0.7);
+    }
+    .cz-preview-label {
+        display: none;
+    }
+    .cz-preview .cz-preview-frame.has-backdrop {
+        padding: 6px;
+    }
+    .cz-preview .profile-banner {
+        height: 44px;
+    }
+    .cz-preview .profile-hero-body {
+        padding: 10px 14px 12px;
+    }
+    .cz-preview .profile-hero.has-banner .profile-avatar-wrap {
+        margin-top: -26px;
+    }
+    .cz-preview .big-pp,
+    .cz-preview .profile-hero.has-banner .big-pp {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+    }
+    .cz-preview .profile-hero-main {
+        gap: 12px;
+    }
+    .cz-preview .profile-hero.has-banner .profile-hero-info {
+        padding-top: 4px;
+    }
+    .cz-preview .profile-hero-main {
+        align-items: center;
+    }
+    .cz-preview-name {
+        font-size: 1.1rem;
+    }
+    .cz-preview .profile-hero-meta {
+        display: none;
+    }
+    /* Level: the line and its bar are enough (the number is in the text) */
+    .cz-preview .profile-level {
+        margin-top: 8px;
+        padding: 5px 10px 7px;
+    }
+    .cz-preview .profile-level .user-level-circle {
+        display: none;
+    }
+    .cz-preview .profile-level-line {
+        margin-bottom: 3px;
+    }
+    /* The showcase only matters on its own tab */
+    .cz-layout:not([data-panel="highlights"]) .cz-preview-vitrine {
+        display: none;
+    }
+    .cz-preview-vitrine {
+        margin-top: 8px;
+        padding: 10px 12px;
+    }
+    .cz-preview-vitrine .profile-vitrine-head {
+        display: none;
     }
 }
 @media (max-width: 600px) {
@@ -513,19 +613,15 @@
         padding: 8px 6px;
         font-size: 0.85rem;
     }
+    .cz-tab svg {
+        display: none;
+    }
     .cz-savebar .btn-customize-save {
         flex: 1;
     }
     .cz-dirty {
         font-size: 0.78rem;
         padding: 5px 10px;
-    }
-    .cz-segmented {
-        display: flex;
-    }
-    .cz-segmented label {
-        flex: 1;
-        text-align: center;
     }
 }
 
@@ -587,9 +683,6 @@
     gap: 8px;
     margin-top: 12px;
 }
-.cz-js .cz-gallery-banners:not(.open) {
-    display: none;
-}
 .cz-gallery-banners {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
@@ -650,13 +743,46 @@
     background: var(--backdrop-color);
 }
 
-/* Large galleries scroll inside their row instead of stretching the page */
-.cz-gallery-banners {
-    max-height: 340px;
-    overflow-y: auto;
-    padding: 3px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+/* Pictures after the first ones wait behind "Show the N others" (all visible without JavaScript) */
+.cz-js .cz-gallery-banners:not(.is-expanded) .is-extra {
+    display: none;
+}
+.cz-gallery-none .cz-gallery-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 1;
+    background: repeating-linear-gradient(135deg, #1b1c21 0 8px, #22242a 8px 16px);
+    color: #a3a6b0;
+}
+.cz-gallery-none:has(input:checked) .cz-gallery-empty {
+    color: #ffffff;
+}
+.cz-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #c9ccd3;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.cz-more:hover {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.cz-more svg {
+    transition: transform 0.15s ease;
+}
+.cz-more.is-open svg {
+    transform: rotate(180deg);
+}
+.cz-more[hidden] {
+    display: none;
 }
 
 /* Appearance tab: icon, title and the current choice on one line, then the options */
@@ -698,16 +824,11 @@
 [data-panel="appearance"] .cz-row {
     padding: 22px 0;
 }
-[data-panel="appearance"] .swatch-grid {
-    gap: 12px;
-    padding-left: 50px;
-}
-[data-panel="appearance"] .cz-segmented {
+[data-panel="appearance"] :is(.cz-colors, .cz-gallery-banners, .cz-more, .cz-color-discord) {
     margin-left: 50px;
 }
 [data-panel="appearance"] .cz-gallery-banners {
-    margin-left: 50px;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
 }
 /* Picture name under each banner thumbnail */
@@ -725,19 +846,39 @@
     color: #717cf8;
 }
 @media (max-width: 640px) {
-    [data-panel="appearance"] .swatch-grid,
-    [data-panel="appearance"] .cz-segmented,
-    [data-panel="appearance"] .cz-gallery-banners {
+    [data-panel="appearance"] :is(.cz-colors, .cz-gallery-banners, .cz-more, .cz-color-discord) {
         margin-left: 0;
-        padding-left: 0;
     }
     [data-panel="appearance"] .cz-gallery-banners {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+    /* Tiles share the width: 8 (or 6) per row whatever the phone */
+    .cz-colors {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .cz-colors-bg {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    /* Current choice under the title instead of squeezing the description */
     .cz-row-head-icon {
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr);
+        column-gap: 12px;
+        row-gap: 8px;
     }
     .cz-current {
+        grid-column: 2;
+        justify-self: start;
         max-width: 100%;
+    }
+}
+
+/* Very small phones: the three tab names fit without scrolling */
+@media (max-width: 400px) {
+    html body .cz-tab {
+        font-size: 0.7rem;
+        letter-spacing: 0.02em;
+        padding: 8px 4px;
     }
 }

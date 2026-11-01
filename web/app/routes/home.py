@@ -53,8 +53,11 @@ def home():
 
 @home_bp.route("/supports", methods=["GET"])
 def supports():
-    """Render the project support and help information page."""
-    return render_template("supports.html")
+    """Render the project support and help information page (commands, XP, titles and badge tiers)."""
+    from app.gamification import badge_ladders, title_ladder
+    from app.i18n import current_lang
+    lang = current_lang()
+    return render_template("supports.html", titles=title_ladder(lang), badge_ladders=badge_ladders(lang))
 
 
 @home_bp.route("/confidentialite", methods=["GET"])

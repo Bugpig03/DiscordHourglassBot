@@ -16,7 +16,13 @@ def is_admin() -> bool:
 def admin_required(view):
     @wraps(view)
     def wrapper(*args, **kwargs):
+        from flask import request
+        from app.security_log import record
+        user = get_current_user()
         if not is_admin():
+            record("admin_denied", "connecté" if user else "visiteur", user_id=user.get("id") if user else None)
             abort(404)
+        if request.endpoint == "admin.admin_page":  # the page itself, not each data call it makes
+            record("admin_access", user_id=user.get("id"))
         return view(*args, **kwargs)
     return wrapper

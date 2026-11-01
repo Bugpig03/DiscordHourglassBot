@@ -1,0 +1,158 @@
+/* Help page: titles by level and badge tiers (v3.30.0) */
+.help-ladder-card {
+    padding: 24px !important;
+}
+.help-ladder-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.25rem;
+}
+.help-ladder-title svg {
+    color: var(--ar-accent, #717cf8);
+}
+.help-ladder-desc {
+    margin: 6px 0 18px;
+}
+
+/* Titles: one tile per step, colored by group */
+.help-titles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px;
+}
+.help-title {
+    --group: #a3a6b0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 14px;
+    background: var(--ar-panel-2, #292c33);
+    box-shadow: inset 3px 0 0 var(--group);
+    clip-path: var(--cut-s);
+}
+.help-title.group-adept { --group: #4f9dff; }
+.help-title.group-master { --group: #b07cff; }
+.help-title.group-legend { --group: #f5b03b; }
+.help-title-level {
+    color: var(--group);
+    font-family: var(--ar-display, inherit);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.help-title-name {
+    color: #f2f3f5;
+    font-family: var(--ar-display, inherit);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+.help-title-req {
+    color: #a3a6b0;
+    font-size: 0.8rem;
+}
+
+/* Badge tiers: a row per badge, a column per tier (stacked on phones) */
+.help-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.help-badges-head,
+.help-badge-row {
+    display: grid;
+    grid-template-columns: minmax(170px, 1.6fr) repeat(7, minmax(0, 1fr));
+    gap: 6px;
+    align-items: center;
+}
+.help-tier-name {
+    color: var(--tier);
+    font-family: var(--ar-display, inherit);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-transform: uppercase;
+}
+.help-badge-row {
+    padding: 8px 10px;
+    background: var(--ar-panel-2, #292c33);
+    clip-path: var(--cut-s);
+}
+.help-badge-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.help-badge-name > span:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.help-badge-name strong {
+    color: #f2f3f5;
+    font-size: 0.92rem;
+}
+.help-badge-name small {
+    color: #a3a6b0;
+    font-size: 0.74rem;
+    line-height: 1.25;
+}
+.help-badge-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    padding: 6px;
+    color: var(--ar-accent, #717cf8);
+    background: rgba(113, 124, 248, 0.12);
+    clip-path: var(--cut-s);
+}
+.help-badge-tier {
+    color: #e3e5e8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 6px 2px;
+    box-shadow: inset 0 2px 0 var(--tier);
+    background: rgba(255, 255, 255, 0.03);
+}
+.help-badge-tier em {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .help-badges-head {
+        display: none;
+    }
+    .help-badge-row {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .help-badge-name {
+        grid-column: 1 / -1;
+        margin-bottom: 4px;
+    }
+    .help-badge-tier em {
+        display: block;
+        color: var(--tier);
+        font-style: normal;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+}
+@media (max-width: 420px) {
+    .help-badge-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .help-titles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .help-title {
+        padding: 10px 12px;
+    }
+}

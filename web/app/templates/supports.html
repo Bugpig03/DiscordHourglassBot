@@ -3,6 +3,7 @@
 {% block title %}{{ t('supports.title') }}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/supports.css', v=asset_version('css/pages/supports.css')) }}">
 <h1 class="big-bold-text">{{ t('supports.heading') }}</h1>
 
 <!-- Commands Table Card -->
@@ -22,27 +23,31 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>!stats [user]</td>
+                    <td>/stats [user]</td>
                     <td>{{ t('supports.cmd_stats') }}</td>
                 </tr>
                 <tr>
-                    <td>!allstats [user]</td>
+                    <td>/allstats [user]</td>
                     <td>{{ t('supports.cmd_allstats') }}</td>
                 </tr>
                 <tr>
-                    <td>!top</td>
+                    <td>/top [type] [period] [scope]</td>
                     <td>{{ t('supports.cmd_top') }}</td>
                 </tr>
                 <tr>
-                    <td>!alltop</td>
+                    <td>/alltop</td>
                     <td>{{ t('supports.cmd_alltop') }}</td>
                 </tr>
                 <tr>
-                    <td>!server</td>
+                    <td>/versus &lt;player1&gt; &lt;player2&gt;</td>
+                    <td>{{ tr('Duel entre deux membres, avec un vainqueur.', 'Head-to-head duel between two members, with a winner.') }}</td>
+                </tr>
+                <tr>
+                    <td>/server</td>
                     <td>{{ t('supports.cmd_server') }}</td>
                 </tr>
                 <tr>
-                    <td>!aide</td>
+                    <td>/help</td>
                     <td>{{ t('supports.cmd_help') }}</td>
                 </tr>
             </tbody>
@@ -130,6 +135,54 @@
             </div>
             <p class="xp-guide-desc">{{ t('supports.xp_card_desc') }}</p>
         </div>
+    </div>
+</div>
+
+<!-- Titles by level -->
+<div class="gray-box small-border-radius help-ladder-card" id="titres">
+    <div class="medium-bold-text nomargin help-ladder-title">
+        {{ pixel_icon('star', 22) }}
+        <span>{{ tr('Titres par niveau', 'Titles by level') }}</span>
+    </div>
+    <p class="small-text gray help-ladder-desc">
+        {{ tr('Chaque palier de niveau donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.', 'Each level step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer.') }}
+    </p>
+    <ol class="help-titles">
+        {% for t in titles %}
+        <li class="help-title group-{{ t.group }}">
+            <span class="help-title-level">{{ tr('Niv.', 'Lvl') }} {{ t.level }}</span>
+            <span class="help-title-name">{{ t.title }}</span>
+            <span class="help-title-req">{% if t.level == 1 %}{{ tr('Dès le départ', 'From the start') }}{% else %}{{ t.xp | num }} XP · ~{{ t.hours | num }} h{% endif %}</span>
+        </li>
+        {% endfor %}
+    </ol>
+</div>
+
+<!-- Badge tiers -->
+<div class="gray-box small-border-radius help-ladder-card" id="badges">
+    <div class="medium-bold-text nomargin help-ladder-title">
+        {{ pixel_icon('award', 22) }}
+        <span>{{ tr('Paliers des badges', 'Badge tiers') }}</span>
+    </div>
+    <p class="small-text gray help-ladder-desc">
+        {{ tr('9 badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.', '9 badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month.') }}
+    </p>
+    <div class="help-badges">
+        <div class="help-badges-head" aria-hidden="true">
+            <span></span>
+            {% for tier in badge_ladders[0].tiers %}<span class="help-tier-name" style="--tier: {{ tier.color }};">{{ tier.label }}</span>{% endfor %}
+        </div>
+        {% for b in badge_ladders %}
+        <div class="help-badge-row">
+            <div class="help-badge-name">
+                <span class="help-badge-icon">{{ b.icon | safe }}</span>
+                <span><strong>{{ b.name }}</strong><small>{{ b.what }}</small></span>
+            </div>
+            {% for tier in b.tiers %}
+            <span class="help-badge-tier" style="--tier: {{ tier.color }};"><em>{{ tier.label }}</em>{{ tier.threshold }}</span>
+            {% endfor %}
+        </div>
+        {% endfor %}
     </div>
 </div>
 

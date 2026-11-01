@@ -1,19 +1,22 @@
-"""Admin page: audience, Discord-linked accounts, profile customization, bot/database health (admins only)."""
+"""Admin page: audience, Discord-linked accounts, profile customization, bot/database health, security journal
+(admins only)."""
 
 import json
+import os
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 
-from flask import Blueprint, jsonify, render_template, url_for
+from flask import Blueprint, current_app, jsonify, render_template, request, url_for
 
 from app.admin import admin_required
 from app.analytics_tracking import flush as flush_audience
+from app import security_log
 from app.cache import cache
 from app.database import db
 from app.gamification import calculate_user_badges, normalize_badge_ids
 from app.profile_gallery import BANNERS
 from app.profile_records import RECORD_CATALOG
-from app.profile_settings import BACKGROUND_COLORS, DEFAULT_ACCENT, HIDEABLE_BLOCKS, PALETTE, effective_banner_mode
+from app.profile_settings import BACKGROUND_COLORS, DEFAULT_ACCENT, HIDEABLE_BLOCKS, PALETTE, effective_banner_mode, normalize_accent
 from app.i18n import current_lang, day_month, month_year
 
 admin_bp = Blueprint("admin", __name__)
@@ -25,8 +28,10 @@ PAGE_LABELS = {
     "versus": ("Versus", "Versus"), "customize": ("Personnalisation", "Customization"), "help": ("Aide", "Help"),
     "privacy": ("Confidentialité", "Privacy"), "terms": ("Conditions", "Terms"), "other": ("Autres", "Other"),
 }
+SECURITY_ATTACK_KINDS = ("login_fail", "admin_denied", "csrf_fail", "rate_limited", "scan", "card_token_fail", "too_large")
 DB_TABLES = ["voice_sessions", "message_events", "historical_stats", "stats", "users", "servers", "channels",
-             "presence_history", "user_profile_settings", "web_visitors_daily", "web_pageviews_daily", "web_accounts"]
+             "presence_history", "user_profile_settings", "web_visitors_daily", "web_pageviews_daily", "web_accounts",
+             "web_security_events"]
 
 
 @admin_bp.route("/admin", methods=["GET"])
@@ -40,7 +45,11 @@ def admin_page():
 def admin_data():
     lang = current_lang()
     flush_audience(settle_all=False)  # include the last minute of this worker
-    return jsonify(cache.get_or_set(("admin", lang), ADMIN_CACHE_SECONDS, lambda: compute_admin_data(lang)))
+    security_log.flush()
+    data = dict(cache.get_or_set(("admin", lang), ADMIN_CACHE_SECONDS, lambda: compute_admin_data(lang)))
+    # Security: never cached, and the configuration check-up reads this very request (proxy headers, HTTPS)
+    data["security"] = compute_security(lang)
+    return jsonify(data)
 
 
 # ------------------------------------------------------------------------------
@@ -199,7 +208,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
         customized += bool(changed)
         private += is_private
         favorite += bool(fav)
-        accent_c[accent or DEFAULT_ACCENT] += 1
+        accent_c[normalize_accent(accent)] += 1
         banner_mode_c[mode] += 1
         if mode == "image":
             banner_c[banner] += 1
@@ -380,4 +389,94 @@ def compute_admin_data(lang: str = "fr") -> dict:
         "bot": bot,
         "health": health,
         "generated_at": datetime.utcnow().isoformat(timespec="seconds"),
+    }
+
+
+# ------------------------------------------------------------------------------
+# Security journal and configuration check-up
+# ------------------------------------------------------------------------------
+
+def _config_checkup(fr: bool) -> list[dict]:
+    """Settings that matter for security, green or red, read from the running app and this request."""
+    from app import config as app_config
+    from app.config import Config
+    from app.security import client_ip
+    t = (lambda a, b: a if fr else b)
+    key_ok = app_config.SECRET_KEY_SOURCE in ("env", "discord", "database")
+    proxy_ip = bool(request.headers.get("X-Real-IP") or request.headers.get("X-Forwarded-For"))
+    csp_report_only = os.environ.get("CSP_REPORT_ONLY", "false").lower() in ("1", "true", "yes")
+    checks = [
+        (t("Clé de session stable", "Stable session key"), key_ok,
+         t(f"source : {app_config.SECRET_KEY_SOURCE}", f"source: {app_config.SECRET_KEY_SOURCE}")),
+        (t("Site servi en HTTPS", "Site served over HTTPS"), request.is_secure,
+         t("en-tête X-Forwarded-Proto du proxy", "X-Forwarded-Proto header from the proxy")),
+        (t("Cookie de session réservé au HTTPS", "HTTPS-only session cookie"), bool(Config.SESSION_COOKIE_SECURE), "SESSION_COOKIE_SECURE"),
+        (t("CSP appliquée (pas en simple rapport)", "CSP enforced (not report-only)"), not csp_report_only, "CSP_REPORT_ONLY"),
+        (t("Mode debug désactivé", "Debug mode off"), not current_app.debug, "FLASK_DEBUG"),
+        (t("Mot de passe de la base personnalisé", "Custom database password"), Config.DB_PASSWORD not in ("", "admin", "postgres"),
+         "POSTGRESQL_PASSWORD"),
+        (t("Jeton des cartes du bot défini", "Bot card token set"), bool(Config.CARD_TOKEN), "CARD_TOKEN"),
+        (t("Connexion Discord par code (secret défini)", "Discord login by code (secret set)"), bool(Config.DISCORD_CLIENT_SECRET),
+         t("sans secret : mode implicite, moins sûr", "without it: implicit mode, less safe")),
+        (t("IP des visiteurs transmise par le proxy", "Visitor IP passed on by the proxy"), proxy_ip or not request.remote_addr or
+         client_ip() == request.remote_addr,
+         t(f"vue ici : {security_log.short_ip(client_ip()) or 'inconnue'}", f"seen here: {security_log.short_ip(client_ip()) or 'unknown'}")),
+        (t("Journal de sécurité actif", "Security journal on"), security_log._enabled, "web_security_events"),
+    ]
+    items = [{"label": label, "ok": bool(ok), "detail": detail} for label, ok, detail in checks]
+    items.append({"label": t("Comptes admin", "Admin accounts"), "ok": 0 < len(Config.ADMIN_USER_IDS) <= 3,
+                  "detail": str(len(Config.ADMIN_USER_IDS))})
+    return items
+
+
+def compute_security(lang: str = "fr") -> dict:
+    fr = lang == "fr"
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    d30 = _days(30)
+    labels = {k: (fr_l if fr else en_l) for k, (fr_l, en_l, _) in security_log.KINDS.items()}
+    severity = {k: sev for k, (_, _, sev) in security_log.KINDS.items()}
+
+    def totals(since):
+        return {k: int(n) for k, n in _rows("SELECT kind, SUM(hits) FROM web_security_events WHERE at >= %s GROUP BY kind", (since,))}
+
+    daily = _rows("SELECT at::date, kind, SUM(hits) FROM web_security_events WHERE at >= %s GROUP BY 1, 2", (d30[0],))
+    by_kind = {}
+    for day, kind, n in daily:
+        by_kind.setdefault(kind, {})[day] = int(n)
+    attack = SECURITY_ATTACK_KINDS + ("csp_violation", "server_error")
+    since7 = now - timedelta(days=7)
+    top_ips = _rows(
+        "SELECT ip, SUM(hits), STRING_AGG(DISTINCT kind, ',') FROM web_security_events "
+        "WHERE at >= %s AND ip IS NOT NULL AND kind = ANY(%s) GROUP BY ip ORDER BY 2 DESC LIMIT 40", (since7, list(attack)))
+    top_paths = _rows(
+        "SELECT path, SUM(hits) FROM web_security_events WHERE at >= %s AND kind = ANY(%s) AND path <> '' "
+        "GROUP BY path ORDER BY 2 DESC LIMIT 40", (since7, list(attack)))
+    names = "LEFT JOIN web_accounts a ON a.user_id = e.user_id LEFT JOIN users u ON u.user_id = e.user_id"
+    recent = _rows(
+        f"SELECT e.at, e.kind, e.ip, e.path, e.user_id, COALESCE(u.username, a.username), e.detail, e.hits "
+        f"FROM web_security_events e {names} ORDER BY e.at DESC, e.id DESC LIMIT 300")
+    admin_log = _rows(
+        f"SELECT e.at, e.kind, e.ip, e.user_id, COALESCE(u.username, a.username), e.detail, e.hits FROM web_security_events e {names} "
+        "WHERE e.kind IN ('admin_access', 'admin_denied') ORDER BY e.at DESC, e.id DESC LIMIT 60")
+
+    def event(row):
+        at, kind, ip, path, uid, name, detail, hits = row
+        return {"at": at.isoformat(timespec="seconds"), "kind": kind, "label": labels.get(kind, kind), "severity": severity.get(kind, "info"),
+                "ip": ip, "path": path, "user": name or (str(uid) if uid else None),
+                "user_url": url_for("user_profile.profile", username=uid) if uid else None, "detail": detail, "hits": int(hits)}
+
+    return {
+        "enabled": security_log._enabled,
+        "kinds": [{"key": k, "label": labels[k], "severity": severity[k]} for k in security_log.KINDS],
+        "totals_24h": totals(now - timedelta(hours=24)),
+        "totals_7d": totals(since7),
+        "labels": [_day_label(d, lang) for d in d30],
+        "daily": {k: [v.get(d, 0) for d in d30] for k, v in by_kind.items()},
+        "top_ips": [{"name": f"{ip} · " + ", ".join(labels.get(k, k) for k in (kinds or "").split(",") if k), "value": int(n)}
+                    for ip, n, kinds in top_ips],
+        "top_paths": [{"name": p, "value": int(n)} for p, n in top_paths],
+        "recent": [event(r) for r in recent],
+        "admin_log": [event((at, kind, ip, "", uid, name, detail, hits)) for at, kind, ip, uid, name, detail, hits in admin_log],
+        "checkup": _config_checkup(fr),
+        "retention_days": security_log.RETENTION_DAYS,
     }

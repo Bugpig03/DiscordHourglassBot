@@ -162,19 +162,18 @@ def get_total_message_by_server_id(server_id: int) -> int:
 
 
 def get_global_rank_by_user_id_seconds(user_id: int) -> int | str:
-    """Determine the global rank of a user based on total voice seconds across all servers."""
+    """Global rank of a user by total voice seconds across all servers, among real members: Discord bots and
+    apps are left out (v3.30.0), as on the Members page."""
     user_total = Stats.select(fn.SUM(Stats.seconds)).where(Stats.user_id == user_id).scalar() or 0
     if user_total == 0:
         return "Non classé"
 
-    # Count how many users have more total seconds than the target user
-    higher_count = (
-        Stats
-        .select(Stats.user_id)
-        .group_by(Stats.user_id)
-        .having(fn.SUM(Stats.seconds) > user_total)
-        .count()
-    )
+    # Count how many members have more total seconds than the target user
+    query = Stats.select(Stats.user_id)
+    bots = get_bot_user_ids()
+    if bots:
+        query = query.where(Stats.user_id.not_in(list(bots)))
+    higher_count = query.group_by(Stats.user_id).having(fn.SUM(Stats.seconds) > user_total).count()
     return higher_count + 1
 
 

@@ -145,6 +145,9 @@ class Config:
     # in .env only for a local setup served over plain HTTP on another host name.
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true").lower() not in ("0", "false", "no")
 
+    # Request bodies above 256 KB are refused (413): the site only receives small forms and JSON
+    MAX_CONTENT_LENGTH = 256 * 1024
+
     # Discord user IDs allowed on /admin, comma separated (empty: nobody)
     ADMIN_USER_IDS = frozenset(i.strip() for i in os.environ.get("ADMIN_USER_IDS", "").split(",") if i.strip().isdigit())
 

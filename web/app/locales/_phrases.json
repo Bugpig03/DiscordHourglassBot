@@ -119,10 +119,6 @@
   "Aucune",
   "None"
  ],
- "p0031": [
-  "Par défaut",
-  "Default"
- ],
  "p0032": [
   "Serveur",
   "Server"
@@ -222,10 +218,6 @@
  "p0056": [
   "Dernières connexions",
   "Latest logins"
- ],
- "p0057": [
-  "Personnalisation des profils",
-  "Profile customization"
  ],
  "p0058": [
   "Couleurs",
@@ -399,17 +391,9 @@
   "Confidentialité",
   "Privacy"
  ],
- "p0101": [
-  "Trois réglages, visibles sur tout ton profil. L’aperçu à droite change en direct ; pense à enregistrer.",
-  "Three settings, visible across your whole profile. The preview on the right updates live; remember to save."
- ],
  "p0102": [
   "Couleur du profil",
   "Profile color"
- ],
- "p0103": [
-  "Avatar, niveau, onglets, calendrier et graphiques.",
-  "Avatar, level, tabs, calendar and charts."
  ],
  "p0104": [
   "Couleur de mon profil Discord",
@@ -419,21 +403,9 @@
   "Bannière",
   "Banner"
  ],
- "p0106": [
-  "Image affichée en haut de ton profil. Aucune par défaut.",
-  "Picture shown at the top of your profile. None by default."
- ],
- "p0107": [
-  "Image de la galerie",
-  "Gallery picture"
- ],
  "p0108": [
   "Fond de la page",
   "Page background"
- ],
- "p0109": [
-  "Couleur unie derrière toute ta page de profil.",
-  "Solid color behind your whole profile page."
  ],
  "p0110": [
   "Ta vitrine apparaît sous ton en-tête : c’est ta sélection personnelle.",
@@ -1465,7 +1437,7 @@
  ],
  "p0369": [
   "sur 7 jours",
-  "over 7 days"
+  "in 7 days"
  ],
  "p0370": [
   "sur 48 h",
@@ -1543,33 +1515,9 @@
   "Utilisateurs ({n})",
   "Users ({n})"
  ],
- "p0389": [
-  "Novice Curieux",
-  "Curious Novice"
- ],
- "p0390": [
-  "Initié Actif",
-  "Active Initiate"
- ],
- "p0391": [
-  "Membre Confirmé",
-  "Senior Member"
- ],
- "p0392": [
-  "Expert des Ondes",
-  "Voice Expert"
- ],
- "p0393": [
-  "Vétéran de l'Éther",
-  "Aether Veteran"
- ],
  "p0394": [
   "Grand Maître",
   "Grandmaster"
- ],
- "p0395": [
-  "Légende Hourglass",
-  "Hourglass Legend"
  ],
  "p0396": [
   "Bronze",
@@ -1619,10 +1567,6 @@
   "Classement",
   "Ranking"
  ],
- "p0408": [
-  "Place au classement vocal global",
-  "Spot in the global voice ranking"
- ],
  "p0409": [
   "Serveurs fréquentés",
   "Servers joined"
@@ -1638,10 +1582,6 @@
  "p0412": [
   "Activité",
   "Activity"
- ],
- "p0413": [
-  "Heures en vocal sur les 30 derniers jours",
-  "Voice hours over the last 30 days"
  ],
  "p0414": [
   "Polyvalence",
@@ -1851,25 +1791,13 @@
   "Rose",
   "Pink"
  ],
- "p0466": [
-  "Rouge",
-  "Red"
- ],
  "p0467": [
   "Orange",
   "Orange"
  ],
- "p0468": [
-  "Ambre",
-  "Amber"
- ],
  "p0469": [
   "Citron vert",
   "Lime"
- ],
- "p0470": [
-  "Émeraude",
-  "Emerald"
  ],
  "p0471": [
   "Turquoise",
@@ -1883,10 +1811,6 @@
   "Cyan",
   "Cyan"
  ],
- "p0474": [
-  "Pourpre",
-  "Purple"
- ],
  "p0475": [
   "Fuchsia",
   "Fuchsia"
@@ -1894,10 +1818,6 @@
  "p0476": [
   "Corail",
   "Coral"
- ],
- "p0477": [
-  "Pêche",
-  "Peach"
  ],
  "p0478": [
   "Jaune",
@@ -1942,10 +1862,6 @@
  "p0488": [
   "Sarcelle",
   "Teal"
- ],
- "p0489": [
-  "Ardoise",
-  "Slate"
  ],
  "p0490": [
   "Noir",
@@ -2258,5 +2174,269 @@
  "p0567": [
   "Afficher",
   "Show"
+ ],
+ "p0568": [
+  "Image en haut de ton profil.",
+  "Picture at the top of your profile."
+ ],
+ "p0569": [
+  "Voir les {n} autres",
+  "Show the {n} others"
+ ],
+ "p0570": [
+  "Afficher moins",
+  "Show less"
+ ],
+ "p0571": [
+  "Niveau, onglets, calendrier et graphiques.",
+  "Level, tabs, calendar and charts."
+ ],
+ "p0572": [
+  "Couleur derrière toute ta page.",
+  "Color behind your whole page."
+ ],
+ "p0573": [
+  "Annuler",
+  "Cancel"
+ ],
+ "p0574": [
+  "Améthyste",
+  "Amethyst"
+ ],
+ "p0575": [
+  "Arrivée : plus anciens",
+  "Arrival: oldest first"
+ ],
+ "p0576": [
+  "Arrivée : plus récents",
+  "Arrival: newest first"
+ ],
+ "p0577": [
+  "Suivi par Hourglass depuis le {date}",
+  "Tracked by Hourglass since {date}"
+ ],
+ "p0578": [
+  "Aucune activité enregistrée",
+  "No recorded activity"
+ ],
+ "p0579": [
+  "Profils",
+  "Profiles"
+ ],
+ "p0580": [
+  "Sécurité",
+  "Security"
+ ],
+ "p0581": [
+  "Journal de sécurité indisponible : la table web_security_events n’a pas pu être créée (voir les logs du site).",
+  "Security journal unavailable: the web_security_events table could not be created (see the site logs)."
+ ],
+ "p0582": [
+  "Dernières 24 heures",
+  "Last 24 hours"
+ ],
+ "p0583": [
+  "Événements par jour · 30 j",
+  "Events per day · 30 d"
+ ],
+ "p0584": [
+  "Hors connexions réussies et accès admin.",
+  "Successful logins and admin access left out."
+ ],
+ "p0585": [
+  "Sources les plus actives · 7 j",
+  "Most active sources · 7 d"
+ ],
+ "p0586": [
+  "IP abrégée et types d’événements (scans, 429, échecs…).",
+  "Shortened IP and event types (scans, 429, failures…)."
+ ],
+ "p0587": [
+  "Adresses visées · 7 j",
+  "Targeted paths · 7 d"
+ ],
+ "p0588": [
+  "Pages des événements suspects.",
+  "Pages of the suspicious events."
+ ],
+ "p0589": [
+  "Journal",
+  "Journal"
+ ],
+ "p0590": [
+  "Type d’événement",
+  "Event type"
+ ],
+ "p0591": [
+  "Tous les événements",
+  "All events"
+ ],
+ "p0592": [
+  "Check-up de la configuration",
+  "Configuration check-up"
+ ],
+ "p0593": [
+  "Lu sur le site en marche, à chaque ouverture de la page.",
+  "Read from the running site each time the page opens."
+ ],
+ "p0594": [
+  "Accès à l’admin",
+  "Admin access"
+ ],
+ "p0595": [
+  "Alertes de sécurité · 24 h",
+  "Security alerts · 24 h"
+ ],
+ "p0596": [
+  "sur 7 j",
+  "in 7 d"
+ ],
+ "p0597": [
+  "Connexions échouées",
+  "Failed logins"
+ ],
+ "p0598": [
+  "Connexions réussies",
+  "Successful logins"
+ ],
+ "p0599": [
+  "Scans de robots",
+  "Bot scans"
+ ],
+ "p0600": [
+  "Limites de requêtes (429)",
+  "Rate limits (429)"
+ ],
+ "p0601": [
+  "Accès admin refusés",
+  "Admin access denied"
+ ],
+ "p0602": [
+  "Formulaires refusés (CSRF)",
+  "Forms refused (CSRF)"
+ ],
+ "p0603": [
+  "Jetons de carte invalides",
+  "Invalid card tokens"
+ ],
+ "p0604": [
+  "Violations CSP",
+  "CSP violations"
+ ],
+ "p0605": [
+  "Erreurs serveur (500)",
+  "Server errors (500)"
+ ],
+ "p0606": [
+  "Requêtes trop grosses",
+  "Requests too large"
+ ],
+ "p0607": [
+  "300 derniers événements · conservés {n} jours · IP abrégée",
+  "Last 300 events · kept {n} days · shortened IP"
+ ],
+ "p0608": [
+  "Aucun événement enregistré",
+  "No event recorded"
+ ],
+ "p0609": [
+  "Aucun accès enregistré",
+  "No access recorded"
+ ],
+ "p0610": [
+  "Meilleure place : #{rank}, le {date}.",
+  "Best spot: #{rank}, on {date}."
+ ],
+ "p0611": [
+  "Meilleure place : #{rank}.",
+  "Best spot: #{rank}."
+ ],
+ "p0612": [
+  "Record : {hours} h, du {start} au {end}.",
+  "Record: {hours} h, from {start} to {end}."
+ ],
+ "p0613": [
+  "Record : {hours} h sur 30 jours.",
+  "Record: {hours} h over 30 days."
+ ],
+ "p0614": [
+  "Meilleure place au classement vocal global",
+  "Best spot in the global voice ranking"
+ ],
+ "p0615": [
+  "Meilleur total de vocal sur 30 jours",
+  "Best voice total over 30 days"
+ ],
+ "p0616": [
+  "Duel entre deux membres, avec un vainqueur.",
+  "Head-to-head duel between two members, with a winner."
+ ],
+ "p0617": [
+  "Titres par niveau",
+  "Titles by level"
+ ],
+ "p0618": [
+  "Chaque palier de niveau donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.",
+  "Each level step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer."
+ ],
+ "p0619": [
+  "Niv.",
+  "Lvl"
+ ],
+ "p0620": [
+  "Dès le départ",
+  "From the start"
+ ],
+ "p0621": [
+  "Paliers des badges",
+  "Badge tiers"
+ ],
+ "p0622": [
+  "9 badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.",
+  "9 badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month."
+ ],
+ "p0623": [
+  "Recrue",
+  "Rookie"
+ ],
+ "p0624": [
+  "Habitué",
+  "Regular"
+ ],
+ "p0625": [
+  "Confirmé",
+  "Seasoned"
+ ],
+ "p0626": [
+  "Vétéran",
+  "Veteran"
+ ],
+ "p0627": [
+  "Champion",
+  "Champion"
+ ],
+ "p0628": [
+  "Maître",
+  "Master"
+ ],
+ "p0629": [
+  "Icône",
+  "Icon"
+ ],
+ "p0630": [
+  "Immortel",
+  "Immortal"
+ ],
+ "p0631": [
+  "Titan",
+  "Titan"
+ ],
+ "p0632": [
+  "Gardien du Sablier",
+  "Hourglass Keeper"
+ ],
+ "p0633": [
+  "Maître du Temps",
+  "Timekeeper"
  ]
 }
