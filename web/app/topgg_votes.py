@@ -34,7 +34,10 @@ API_BASE = "https://top.gg/api/v1"
 SYNC_SECONDS = 3600
 SYNC_LOCK_ID = 727302
 SIGNATURE_MAX_AGE = 600  # seconds: an older signed request is a replay
-CACHE_SECONDS = 120
+# A member's votes are kept this long per Gunicorn worker. Short on purpose: the webhook reaches one worker only,
+# the 3 others would show the old count until it runs out (a vote seemed to come and go between refreshes).
+# The query reads the primary key (user_id first), so it stays cheap without a longer cache.
+CACHE_SECONDS = 5
 
 TABLE = ("CREATE TABLE IF NOT EXISTS topgg_votes (user_id BIGINT NOT NULL, created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, "
          "expires_at TIMESTAMP WITHOUT TIME ZONE, weight SMALLINT NOT NULL DEFAULT 1, source VARCHAR(8) NOT NULL, "

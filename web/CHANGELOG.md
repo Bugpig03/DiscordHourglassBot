@@ -1,5 +1,8 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.32.1 - Votes Affichés sans Retard - 01/11/2026
+- **Un vote semblait apparaître puis disparaître selon les rafraîchissements** : chacun des 4 workers du site gardait le nombre de votes d'un membre en mémoire 2 minutes, et seul le worker qui recevait le webhook l'oubliait. Ce cache passe à 5 secondes : la requête lit la clé de la table (0,05 ms), elle n'a pas besoin de plus. Les cartes au survol et les cartes du bot, comme pour les autres statistiques, peuvent garder l'ancien total jusqu'à 2 minutes.
+
 ## Version 3.32.0 - Votes top.gg et Badge Soutien - 01/11/2026
 ### Votes
 - **Les votes pour Hourglass sur top.gg sont enregistrés** dans une nouvelle table du site `topgg_votes` (créée au démarrage, migration `2026-11-01_web_v3.32.0_topgg_votes.sql`) : membre Discord, date, date du prochain vote possible, poids.
