@@ -1,5 +1,9 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.31.1 - Admin aux Coins Droits, Clé de Session Stable - 01/11/2026
+- **Admin** : coins droits partout (cartes, boutons, pastilles, listes, champs) ; seuls les points d'état, les avatars et l'indicateur de chargement restent ronds. Nouvelle icône pixel « Actualiser » (flèche circulaire) à la place de l'icône d'échange, qui ressemblait à des réglages.
+- **Clé de session** : la clé déjà enregistrée en base passe avant celle dérivée de `DISCORD_CLIENT_SECRET`. Ajouter le secret Discord pour passer à la connexion par code ne déconnecte donc plus personne.
+
 ## Version 3.31.0 - Nouvelle Console Admin - 01/11/2026
 - **L'admin devient une console pleine page**, séparée du thème Arène du site : thème sombre sobre, police IBM Plex Sans, coins légèrement arrondis, sans coins coupés ni titres en majuscules, chiffres alignés. Le blurple du site reste la seule couleur d'accent ; vert, orange et rouge ne servent qu'aux états.
 - **Volet vertical à gauche** avec les sections regroupées (Pilotage : Vue d'ensemble, Site web, Comptes, Profils, Communauté ; Technique : Bot, Technique, Sécurité), un lien de retour au site, et des pastilles sur ce qui demande un coup d'œil : alertes de sécurité du jour, erreurs serveur, bot silencieux. Sur téléphone et tablette, le volet devient un menu coulissant.

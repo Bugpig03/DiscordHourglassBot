@@ -88,18 +88,55 @@ def _database_secret_key() -> str | None:
     return None
 
 
+def _stored_secret_key() -> str | None:
+    """Session key already kept in web_settings, read once without creating anything (None when there is none).
+
+    Checked before the key derived from DISCORD_CLIENT_SECRET: a site that runs on the stored key keeps it when
+    the Discord secret is added later, so nobody is logged out by that change.
+    """
+    try:
+        import psycopg2
+    except ImportError:
+        return None
+    conn = None
+    try:
+        conn = psycopg2.connect(
+            dbname=os.environ.get("POSTGRESQL_DBNAME", "devhourglass"), user=os.environ.get("POSTGRESQL_USER", "postgres"),
+            password=os.environ.get("POSTGRESQL_PASSWORD", "admin"), host=os.environ.get("POSTGRESQL_HOST", "localhost"),
+            port=int(os.environ.get("POSTGRESQL_PORT", "5432")), connect_timeout=5,
+        )
+        with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('web_settings')")
+            if not cur.fetchone()[0]:
+                return None
+            cur.execute("SELECT value FROM web_settings WHERE key = 'session_secret'")
+            row = cur.fetchone()
+            return row[0] if row and row[0] else None
+    except Exception:
+        return None
+    finally:
+        if conn is not None:
+            conn.close()
+
+
 def load_secret_key() -> str:
     """Return the session signing key without ever falling back to a value published in the source code.
 
-    Priority: SECRET_KEY / FLASK_SECRET_KEY env var, then a key derived from DISCORD_CLIENT_SECRET
-    (stable across Gunicorn workers), then a random key stored once in the database (survives the
-    container being recreated by an update, so members stay logged in), then web/.flask_secret_key.
+    Priority: SECRET_KEY / FLASK_SECRET_KEY env var, then the key already stored in the database (so adding
+    DISCORD_CLIENT_SECRET later logs nobody out), then a key derived from DISCORD_CLIENT_SECRET (stable across
+    Gunicorn workers), then a random key stored once in the database (survives the container being recreated by
+    an update, so members stay logged in), then web/.flask_secret_key.
     """
     global SECRET_KEY_SOURCE
     configured = os.environ.get("SECRET_KEY") or os.environ.get("FLASK_SECRET_KEY")
     if configured:
         SECRET_KEY_SOURCE = "env"
         return configured
+
+    stored = _stored_secret_key()
+    if stored:
+        SECRET_KEY_SOURCE = "database"
+        return stored
 
     client_secret = os.environ.get("DISCORD_CLIENT_SECRET")
     if client_secret:
