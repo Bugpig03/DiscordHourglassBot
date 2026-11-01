@@ -32,6 +32,8 @@ PAGE_LABELS = {
     "privacy": ("Confidentialité", "Privacy"), "terms": ("Conditions", "Terms"), "other": ("Autres", "Other"),
 }
 SECURITY_ATTACK_KINDS = ("login_fail", "admin_denied", "csrf_fail", "rate_limited", "scan", "card_token_fail", "webhook_fail", "too_large")
+# Bot log lines shown in the "Logs du bot" section (bot v3.7.0 keeps the last 500 in bot_logs)
+BOT_LOG_LINES = 200
 # Tables above this size show PostgreSQL's estimate instead of an exact COUNT(*) (kept fast as the base grows)
 EXACT_COUNT_MAX_BYTES = 512 * 1024 * 1024
 
@@ -54,6 +56,21 @@ def admin_data():
     # Security: never cached, and the configuration check-up reads this very request (proxy headers, HTTPS)
     data["security"] = compute_security(lang, days)
     return jsonify(data)
+
+
+@admin_bp.route("/admin/logs", methods=["GET"])
+@admin_required
+def admin_logs():
+    """Last lines logged by the bot, oldest first as in Portainer. Never cached; ?after=<id> returns only newer lines."""
+    after = request.args.get("after", 0, type=int)
+    try:
+        rows = db.execute_sql("SELECT id, created_at, line FROM bot_logs WHERE id > %s ORDER BY id DESC LIMIT %s",
+                              (after, BOT_LOG_LINES)).fetchall()
+    except Exception:
+        db.rollback()
+        return jsonify({"available": False, "lines": []})
+    return jsonify({"available": True, "lines": [
+        {"id": int(i), "at": at.isoformat(timespec="seconds"), "line": line} for i, at, line in reversed(rows)]})
 
 
 # ------------------------------------------------------------------------------

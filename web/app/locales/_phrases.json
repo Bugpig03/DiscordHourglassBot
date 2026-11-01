@@ -2582,5 +2582,53 @@
  "p0703": [
   "Soutien",
   "Supporter"
+ ],
+ "p0704": [
+  "Logs du bot",
+  "Bot logs"
+ ],
+ "p0705": [
+  "Aucun log pour l’instant : la copie des logs en base démarre avec la version 3.7.0 du bot (table bot_logs).",
+  "No log yet: logs are copied to the database from bot version 3.7.0 (bot_logs table)."
+ ],
+ "p0706": [
+  "Tout",
+  "All"
+ ],
+ "p0707": [
+  "Alertes",
+  "Warnings"
+ ],
+ "p0708": [
+  "Filtrer…",
+  "Filter…"
+ ],
+ "p0709": [
+  "Filtrer les lignes",
+  "Filter lines"
+ ],
+ "p0710": [
+  "Direct",
+  "Live"
+ ],
+ "p0711": [
+  "Plus de votes",
+  "Most votes"
+ ],
+ "p0712": [
+  "vote(s)",
+  "vote(s)"
+ ],
+ "p0713": [
+  "Aucune ligne ne correspond",
+  "No matching line"
+ ],
+ "p0714": [
+  "Aucune ligne",
+  "No line"
+ ],
+ "p0715": [
+  "{n} dernières lignes · dernière le {d}",
+  "Last {n} lines · latest on {d}"
  ]
 }

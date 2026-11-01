@@ -7,6 +7,7 @@ from app.database import Users, Stats, Servers, VoiceSessions, MessageEvents
 from app.cache import cache
 from app.gamification import calculate_user_xp_and_level
 from app.functions import get_bot_user_ids
+from app.topgg_votes import CACHE_SECONDS as VOTES_CACHE_SECONDS, vote_counts
 
 top_bp = Blueprint("top", __name__)
 
@@ -38,6 +39,8 @@ USER_SORT_KEYS = {
     "xp": (("xp", "seconds", "messages"), ("prev_xp", "prev_seconds", "prev_messages")),
 }
 USER_SORT_KEYS["level"] = USER_SORT_KEYS["xp"]
+# Votes for Hourglass on top.gg (in the chosen period); equal counts fall back to voice time then messages
+USER_SORT_KEYS["votes"] = (("votes", "seconds", "messages"), ("prev_votes", "prev_seconds", "prev_messages"))
 SERVER_SORT_KEYS = {
     "hours": (("seconds",), ("prev_seconds",)),
     "messages": (("messages",), ("prev_messages",)),
@@ -98,6 +101,24 @@ def _server_arrivals() -> dict:
                 dates[server.server_id] = min(known)
         return dates
     return cache.get_or_set(("arrivals", "servers"), ARRIVAL_CACHE_SECONDS, compute)
+
+
+def _vote_counts(period: str) -> dict:
+    """Votes of every member in the period, and in the same window N days earlier (rank movement)."""
+    def compute():
+        now = datetime.utcnow()
+        days, shift = PERIOD_MAP.get(period), timedelta(days=move_days(period))
+        start = now - timedelta(days=days) if days else None
+        return vote_counts(start, start - shift if start else None, now - shift)
+    # Short cache like the profile: a new vote reaches one worker only (webhook)
+    return cache.get_or_set(("votes", period), VOTES_CACHE_SECONDS, compute)
+
+
+def with_votes(results: list[dict], period: str) -> list[dict]:
+    """Copies of the rows with their "votes" and "prev_votes" (the cached rows are shared between requests)."""
+    counts = _vote_counts(period)
+    return [{**r, "votes": counts.get(int(r["user_id"]), (0, 0))[0], "prev_votes": counts.get(int(r["user_id"]), (0, 0))[1]}
+            for r in results]
 
 
 def sort_by_arrival(results: list[dict], arrivals: dict, key: str, newest_first: bool) -> list[dict]:
@@ -172,7 +193,7 @@ def rank_with_moves(results: list[dict], sort_keys: tuple) -> list[dict]:
 
 @top_bp.route("/members", methods=["GET"])
 def top_users():
-    """Members page: ranking by voice/messages/XP, A–Z or arrival date, with search, period and server filters."""
+    """Members page: ranking by voice/messages/XP/top.gg votes, A–Z or arrival date, with search, period and server filters."""
     users, total_pages = load_users()
     servers = list(Servers.select().order_by(Servers.servername))
     selected_server = None
@@ -348,6 +369,8 @@ def load_users() -> tuple[list[dict], int]:
         results = sorted(results, key=lambda x: (x["username"] or "").lower())
     elif sort_by in ARRIVAL_SORTS:
         results = sort_by_arrival(results, _user_arrivals(server_id), "user_id", ARRIVAL_SORTS[sort_by])
+    elif sort_by == "votes":
+        results = rank_with_moves(with_votes(results, period), USER_SORT_KEYS["votes"])
     else:
         results = rank_with_moves(results, USER_SORT_KEYS.get(sort_by, USER_SORT_KEYS["hours"]))
     if search_query:

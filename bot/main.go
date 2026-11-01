@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -16,7 +17,7 @@ import (
 )
 
 func main() {
-	log.Println("🚀 Démarrage de Hourglass Bot v3.6.0 (Go Edition)...")
+	log.Println("🚀 Démarrage de Hourglass Bot v3.7.0 (Go Edition)...")
 
 	// 1. Chargement de la configuration
 	cfg, err := config.LoadConfig()
@@ -43,6 +44,14 @@ func main() {
 	// Bots and apps flagged in users (BOT tag and ranking filter of the website)
 	if err := db.EnsureUsersBotColumn(ensureCtx); err != nil {
 		log.Printf("⚠️ Repérage des bots désactivé (colonne users.is_bot indisponible): %v", err)
+	}
+	// Log lines copied to bot_logs as well (website admin page, "Logs du bot")
+	if err := db.EnsureBotLogsTable(ensureCtx); err != nil {
+		log.Printf("⚠️ Copie des logs en base désactivée (table bot_logs indisponible): %v", err)
+	} else {
+		logs := db.NewLogWriter()
+		log.SetOutput(io.MultiWriter(os.Stderr, logs))
+		defer logs.Close()
 	}
 	ensureCancel()
 

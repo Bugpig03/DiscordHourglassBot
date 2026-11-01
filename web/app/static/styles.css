@@ -1602,6 +1602,25 @@ div.gray-box.link:hover {
   margin: 0 !important;
 }
 
+.votes-fixed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 107, 138, 0.14);
+  color: #ff6b8a;
+  border: 1px solid rgba(255, 107, 138, 0.3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  margin: 0 !important;
+}
+
+.votes-fixed.is-zero {
+  opacity: 0.45;
+}
+
 .xp-fixed {
   background: rgba(245, 158, 11, 0.15);
   color: #fbbf24;
@@ -1630,7 +1649,8 @@ div.gray-box.link:hover {
   }
   .hours-fixed,
   .messages-fixed,
-  .xp-fixed {
+  .xp-fixed,
+  .votes-fixed {
     padding: 3px 9px;
     font-size: 0.8rem;
   }

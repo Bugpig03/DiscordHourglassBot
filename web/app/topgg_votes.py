@@ -116,6 +116,23 @@ def user_votes(user_id) -> dict:
     return cache.get_or_set(("topgg_votes", int(user_id)), CACHE_SECONDS, load)
 
 
+def vote_counts(start: datetime | None, prev_start: datetime | None, prev_end: datetime) -> dict:
+    """{user_id: (votes since start, votes between prev_start and prev_end)} for the members page (sort by votes).
+    A start of None counts every vote."""
+    if not _enabled:
+        return {}
+    oldest = datetime(1970, 1, 1)
+    try:
+        rows = db.execute_sql(
+            "SELECT user_id, COUNT(*) FILTER (WHERE created_at >= %s), "
+            "COUNT(*) FILTER (WHERE created_at >= %s AND created_at < %s) FROM topgg_votes GROUP BY user_id",
+            (start or oldest, prev_start or oldest, prev_end)).fetchall()
+    except DatabaseError:
+        db.rollback()
+        return {}
+    return {int(uid): (int(cur), int(prev)) for uid, cur, prev in rows}
+
+
 # ------------------------------------------------------------------------------
 # Webhook
 # ------------------------------------------------------------------------------

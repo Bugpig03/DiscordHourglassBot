@@ -1000,12 +1000,13 @@ def get_top_10_users_by_hours() -> list[dict]:
         .select(
             Stats.user_id,
             Users.username,
+            Users.avatar,
             fn.SUM(Stats.seconds).alias("total_seconds"),
             fn.SUM(Stats.messages).alias("total_messages")
         )
         .join(Users, JOIN.LEFT_OUTER, on=(Stats.user_id == Users.user_id))
         .where(Stats.user_id != HOURGLASS_BOT_ID)
-        .group_by(Stats.user_id, Users.username)
+        .group_by(Stats.user_id, Users.username, Users.avatar)
         .order_by(fn.SUM(Stats.seconds).desc())
         .limit(10)
         .dicts()
@@ -1017,6 +1018,7 @@ def get_top_10_users_by_hours() -> list[dict]:
         top_users.append({
             "user_id": row["user_id"],
             "username": name,
+            "avatar": row["avatar"],
             "hours": round((row["total_seconds"] or 0) / 3600, 1),
             "messages": int(row["total_messages"] or 0)
         })
@@ -1031,12 +1033,13 @@ def get_top_10_users_by_messages() -> list[dict]:
         .select(
             Stats.user_id,
             Users.username,
+            Users.avatar,
             fn.SUM(Stats.seconds).alias("total_seconds"),
             fn.SUM(Stats.messages).alias("total_messages")
         )
         .join(Users, JOIN.LEFT_OUTER, on=(Stats.user_id == Users.user_id))
         .where(Stats.user_id != HOURGLASS_BOT_ID)
-        .group_by(Stats.user_id, Users.username)
+        .group_by(Stats.user_id, Users.username, Users.avatar)
         .order_by(fn.SUM(Stats.messages).desc())
         .limit(10)
         .dicts()
@@ -1048,6 +1051,7 @@ def get_top_10_users_by_messages() -> list[dict]:
         top_users.append({
             "user_id": row["user_id"],
             "username": name,
+            "avatar": row["avatar"],
             "hours": round((row["total_seconds"] or 0) / 3600, 1),
             "messages": int(row["total_messages"] or 0)
         })

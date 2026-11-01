@@ -364,9 +364,8 @@ function renderRanking(card, metric) {
         const href = kind === 'servers'
             ? PAGE_CFG.server_url.replace(/0$/, encodeURIComponent(r.id))
             : PAGE_CFG.profile_url.replace(/0$/, encodeURIComponent(r.id));
-        const avatar = kind === 'servers'
-            ? `<img src="${HG.esc(r.avatar || PAGE_CFG.server_icon)}" data-fallback="${HG.esc(PAGE_CFG.server_icon)}" alt="">`
-            : '';
+        const fallback = kind === 'servers' ? PAGE_CFG.server_icon : PAGE_CFG.user_icon;
+        const avatar = `<img src="${HG.esc(r.avatar || fallback)}" data-fallback="${HG.esc(fallback)}" alt=""${kind === 'members' ? ' class="is-member"' : ''}>`;
         const value = metric === 'hours' ? `${HG.fmt(r.value, 1)} h` : HG.fmt(r.value);
         return `<li class="an-rank-item${i < 3 ? ' podium-' + (i + 1) : ''}">
             <span class="an-rank-pos">${i + 1}</span>

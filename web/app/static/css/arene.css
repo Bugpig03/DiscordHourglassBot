@@ -116,6 +116,7 @@ html body .rank,
 html body .hours-fixed,
 html body .messages-fixed,
 html body .xp-fixed,
+html body .votes-fixed,
 html body .an-delta,
 html body .an-rank-value,
 html body .an-rank-pos,
@@ -983,7 +984,8 @@ html body .rank-badge.rank-other {
 html body .rank-badge.rank-other { color: var(--ar-dim); }
 html body .hours-fixed,
 html body .messages-fixed,
-html body .xp-fixed {
+html body .xp-fixed,
+html body .votes-fixed {
   border-radius: 0;
   clip-path: var(--slant);
   border-color: transparent;
@@ -2029,7 +2031,7 @@ html body .arrival-tag {
 }
 /* Small phones: the date replaces the voice chip (the messages chip is already hidden there) */
 @media (max-width: 440px) {
-  html body .stats-box:has(.arrival-tag) .hours-fixed { display: none; }
+  html body .stats-box:has(.arrival-tag, .votes-fixed) .hours-fixed { display: none; }
 }
 
 /* "Not tracked" tag of servers the bot has left: same cut-corner tag as "BOT", in the muted gray */

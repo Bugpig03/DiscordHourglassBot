@@ -355,8 +355,8 @@ def compute_graphs_data(lang: str = "fr") -> dict:
         },
         "top_servers": {"hours": _top_servers(Stats.seconds, lang), "messages": _top_servers(Stats.messages, lang)},
         "top_members": {
-            "hours": [{"id": str(r["user_id"]), "name": r["username"], "value": r["hours"]} for r in top_hours],
-            "messages": [{"id": str(r["user_id"]), "name": r["username"], "value": r["messages"]} for r in top_msgs],
+            "hours": [{"id": str(r["user_id"]), "name": r["username"], "avatar": r["avatar"], "value": r["hours"]} for r in top_hours],
+            "messages": [{"id": str(r["user_id"]), "name": r["username"], "avatar": r["avatar"], "value": r["messages"]} for r in top_msgs],
         },
     }
 

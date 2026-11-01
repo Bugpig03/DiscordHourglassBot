@@ -380,9 +380,25 @@
     padding: 20px;
     text-align: center;
 }
+/* Ranking cards: the "see all" button sits at the bottom, level in both cards */
+.an-card[data-ranking] {
+    display: flex;
+    flex-direction: column;
+}
+.an-card[data-ranking] .an-rank {
+    margin-bottom: 16px;
+}
+.an-card[data-ranking] .an-more {
+    margin-top: auto;
+    align-self: flex-start;
+}
+.an-rank-item img.is-member {
+    border-radius: 50%;
+}
 .an-more {
     display: inline-block;
     margin-top: 14px;
+    padding: 8px 14px;
     color: #717cf8;
     font-weight: 700;
     font-size: 0.88rem;

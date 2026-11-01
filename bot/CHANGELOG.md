@@ -1,5 +1,14 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.7.0 - Logs Recopiés en Base - 01/11/2026
+
+- **Les logs du bot sont aussi écrits dans la table `bot_logs`**, que la page admin du site affiche (section « Logs du bot », site v3.33.0). La sortie du conteneur, donc Portainer, reste identique.
+  - La table est créée au démarrage (migration `2026-11-01_bot_v3.7.0_bot_logs.sql`).
+  - Les lignes sont écrites par lots toutes les 2 secondes, sans la date en tête (la table a sa colonne `created_at`), coupées à 2000 caractères.
+  - Seules les 500 dernières lignes sont gardées : nettoyage toutes les 10 minutes.
+  - La copie ne ralentit jamais le bot : si la base ne répond pas, les lignes restent seulement dans la sortie du conteneur, et l'erreur n'est signalée qu'une fois.
+  - Les lignes encore en attente sont écrites à l'arrêt du bot, message d'arrêt compris.
+
 ## Version 3.6.0 - Commande /vote - 01/11/2026
 
 - **Nouvelle commande `/vote`** : lien de vote top.gg, nombre de votes du membre et, s'il a déjà voté, quand il pourra revoter (heure affichée par Discord dans la langue et le fuseau du lecteur). Fonctionne aussi en message privé. Textes dans les 12 langues ; `/help` la mentionne.

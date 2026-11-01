@@ -478,6 +478,32 @@ a.an-rank-name:hover { color: var(--accent-hi); }
     font: inherit;
     font-size: 13px;
 }
+/* Bot logs: terminal-like lines, time in a fixed column, warnings and errors colored */
+.adm-logs-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.adm-toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--soft); font-size: 13px; cursor: pointer; }
+.adm-toggle input { accent-color: var(--accent); }
+.adm-logs.adm-scroll {
+    max-height: calc(100vh - 230px);
+    min-height: 240px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 8px 12px 8px 10px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.55;
+}
+.adm-log-line { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 12px; padding: 1px 4px; }
+.adm-log-line:hover { background: var(--panel-2); }
+.adm-log-line time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.adm-log-line span { color: var(--soft); white-space: pre-wrap; overflow-wrap: anywhere; }
+.adm-log-line.is-warn span { color: var(--warn); }
+.adm-log-line.is-error { background: var(--ko-soft); }
+.adm-log-line.is-error span { color: var(--ko); }
+.adm-logs-empty { margin: 0; padding: 16px 4px; }
+@container card (max-width: 560px) {
+    .adm-log-line { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 3px 4px; }
+}
+
 .adm-checkup { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .adm-checkup li { display: flex; align-items: flex-start; gap: 10px; padding: 7px 2px; border-top: 1px solid var(--line); }
 .adm-checkup li:first-child { border-top: 0; }

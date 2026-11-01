@@ -31,6 +31,7 @@ function switchGraphTab(tabId) {
     }
     setDrawer(false);
     initTab(tabId);
+    if (tabId === 'tab-logs') startLogs(); else stopLogs();
     requestAnimationFrame(() => Object.values(charts).forEach(c => { try { c.resize(); } catch (e) {} }));
     if (window.history && window.history.replaceState) window.history.replaceState(null, '', `?days=${days}#${tabId}`);
 }
@@ -491,6 +492,80 @@ function sectionSecurity() {
             <span class="adm-check-text"><strong>${HG.esc(c.label)}</strong><span class="adm-muted">${HG.esc(c.detail || '')}</span></span></li>`).join('');
 }
 
+// ---------------- Bot logs: last 200 lines of bot_logs, refreshed every 10 s while the section is open ----------------
+const LOG_MAX = 200;
+const LOG_EVERY_MS = 10000;
+let logLines = [];
+let logTimer = null;
+let logBusy = false;
+
+// Level from the bot's own emoji and words (its log lines have no level field)
+function logLevel(line) {
+    if (/❌|🚨|panic|erreur|error|failed|échec|impossible/i.test(line)) return 'error';
+    if (/⚠️|warn|attention|retry|timeout/i.test(line)) return 'warn';
+    return '';
+}
+
+function logTime(iso) {
+    const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'));
+    return d.toLocaleString(HG.locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function renderLogs() {
+    const box = document.getElementById('logsBox');
+    const level = document.querySelector('#logsLevel button.active').dataset.level;
+    const needle = fold(document.getElementById('logsSearch').value.trim());
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    const shown = logLines.filter(l => (!level || l.level === level || (level === 'warn' && l.level === 'error'))
+        && (!needle || fold(l.line).includes(needle)));
+    box.innerHTML = shown.map(l => `<div class="adm-log-line${l.level ? ' is-' + l.level : ''}"><time>${logTime(l.at)}</time><span>${HG.esc(l.line)}</span></div>`).join('')
+        || `<p class="adm-muted adm-logs-empty">${logLines.length ? T('Aucune ligne ne correspond', 'No matching line') : T('Aucune ligne', 'No line')}</p>`;
+    // Follows the newest line like Portainer, unless the reader scrolled up
+    if (atBottom || !box.dataset.scrolled) { box.scrollTop = box.scrollHeight; box.dataset.scrolled = '1'; }
+    const last = logLines[logLines.length - 1];
+    document.getElementById('logsMeta').textContent = T('{n} dernières lignes · dernière le {d}', 'Last {n} lines · latest on {d}',
+        { n: HG.fmt(logLines.length), d: last ? logTime(last.at) : '—' });
+}
+
+function fetchLogs() {
+    if (logBusy) return Promise.resolve();
+    logBusy = true;
+    const after = logLines.length ? logLines[logLines.length - 1].id : 0;
+    return fetch(`/admin/logs?after=${after}`, { credentials: 'same-origin' })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(json => {
+            document.getElementById('logsNotice').hidden = json.available && (json.lines.length + logLines.length) > 0;
+            if (!json.lines.length && logsDrawn()) return;
+            logLines = logLines.concat(json.lines.map(l => ({ ...l, level: logLevel(l.line) }))).slice(-LOG_MAX);
+            renderLogs();
+        })
+        .catch(err => console.error('Bot logs failed:', err))
+        .finally(() => { logBusy = false; });
+}
+
+// The list was drawn once already (nothing new to add)
+const logsDrawn = () => !!document.getElementById('logsBox').dataset.scrolled;
+
+function startLogs() {
+    fetchLogs();
+    clearInterval(logTimer);
+    logTimer = document.getElementById('logsLive').checked ? setInterval(() => { if (!document.hidden) fetchLogs(); }, LOG_EVERY_MS) : null;
+}
+
+function stopLogs() {
+    clearInterval(logTimer);
+    logTimer = null;
+}
+
+function bindLogs() {
+    document.querySelectorAll('#logsLevel button').forEach(btn => btn.addEventListener('click', () => {
+        document.querySelectorAll('#logsLevel button').forEach(b => b.classList.toggle('active', b === btn));
+        renderLogs();
+    }));
+    document.getElementById('logsSearch').addEventListener('input', () => renderLogs());
+    document.getElementById('logsLive').addEventListener('change', () => { if (currentTab === 'tab-logs') startLogs(); });
+}
+
 const TAB_SECTIONS = {
     'tab-overview': [sectionOverview],
     'tab-traffic': [sectionTraffic],
@@ -542,7 +617,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('#admPeriod [data-days]').forEach(btn => btn.addEventListener('click', () => {
         if (+btn.dataset.days !== days) load(+btn.dataset.days);
     }));
-    document.getElementById('admRefresh').addEventListener('click', () => load(days));
+    document.getElementById('admRefresh').addEventListener('click', () => { load(days); if (currentTab === 'tab-logs') fetchLogs(); });
+    bindLogs();
     document.getElementById('admMenu').addEventListener('click', () => setDrawer(!document.getElementById('admApp').classList.contains('side-open')));
     document.getElementById('admScrim').addEventListener('click', () => setDrawer(false));
     document.addEventListener('keydown', e => { if (e.key === 'Escape') setDrawer(false); });

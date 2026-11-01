@@ -40,6 +40,7 @@
             {{ nav('tab-bot', 'bot', 'Bot', 'navBadgeBot') }}
             {{ nav('tab-tech', 'wrench', tr('Technique', 'Technical'), 'navBadgeTech') }}
             {{ nav('tab-security', 'shield', tr('Sécurité', 'Security'), 'navBadgeSecurity') }}
+            {{ nav('tab-logs', 'terminal', tr('Logs du bot', 'Bot logs')) }}
         </nav>
         <div class="adm-side-foot">
             <a class="adm-nav-item" href="{{ url_for('home.home') }}">{{ pixel_icon('arrow_left', 16) }}<span class="adm-nav-label">{{tr('Retour au site', 'Back to the site')}}</span></a>
@@ -209,6 +210,26 @@
                 {{ card(tr('Base de données · taille des tables', 'Database · table sizes')) }}
                 <p class="an-card-desc" id="dbSize">&nbsp;</p>
                 <div class="adm-table-wrap"><table class="adm-table" id="dbTables"><tbody><tr><td>…</td></tr></tbody></table></div>
+            </section>
+        </section>
+
+        <!-- ============================ Logs du bot ============================ -->
+        <section id="tab-logs" class="graphs-tab-pane">
+            <p class="adm-notice" id="logsNotice" hidden>{{tr('Aucun log pour l’instant : la copie des logs en base démarre avec la version 3.7.0 du bot (table bot_logs).', 'No log yet: logs are copied to the database from bot version 3.7.0 (bot_logs table).')}}</p>
+            <section class="an-card">
+                <div class="an-card-head">
+                    <div><h2 class="an-card-title">{{tr('Logs du bot', 'Bot logs')}}</h2><p class="an-card-desc" id="logsMeta">&nbsp;</p></div>
+                    <div class="adm-logs-tools">
+                        <div class="adm-seg" id="logsLevel" role="group" aria-label="{{tr('Niveau', 'Level')}}">
+                            <button type="button" data-level="" class="active">{{tr('Tout', 'All')}}</button>
+                            <button type="button" data-level="warn">{{tr('Alertes', 'Warnings')}}</button>
+                            <button type="button" data-level="error">{{tr('Erreurs', 'Errors')}}</button>
+                        </div>
+                        <input type="search" class="adm-select" id="logsSearch" placeholder="{{tr('Filtrer…', 'Filter…')}}" aria-label="{{tr('Filtrer les lignes', 'Filter lines')}}">
+                        <label class="adm-toggle"><input type="checkbox" id="logsLive" checked> {{tr('Direct', 'Live')}}</label>
+                    </div>
+                </div>
+                <div class="adm-logs adm-scroll" id="logsBox" role="log" aria-live="off"></div>
             </section>
         </section>
 

@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.33.0 - Tri par Votes et Logs du Bot dans l'Admin - 01/11/2026
+- **Page Membres : tri « Plus de votes »**. Classe les membres par votes pour Hourglass sur top.gg, sur la période choisie (24 h à Toujours), avec le rang et sa progression comme les autres tris. Chaque ligne affiche alors ses votes ; sur petit téléphone, cette puce remplace celle des heures.
+- **Analyses, onglet Communauté** :
+  - les photos de profil apparaissent dans « Membres les plus actifs », comme les icônes des serveurs à côté ;
+  - les boutons « Voir tous les serveurs » et « Voir le classement complet » ont maintenant leur marge et sont alignés en bas des deux cartes.
+- **Admin : nouvelle section « Logs du bot »** (groupe Technique). Elle affiche les 200 dernières lignes des logs du bot, recopiées en base par le bot à partir de la v3.7.0 (table `bot_logs`), sans passer par Portainer.
+  - Plus récentes en bas, comme Portainer. La liste suit les nouvelles lignes, sauf si on remonte dans l'historique.
+  - Actualisation toutes les 10 secondes tant que la section est ouverte (case « Direct »), sans recharger les lignes déjà affichées.
+  - Filtres Tout / Alertes / Erreurs, déduits des ⚠️ et ❌ des messages du bot, et recherche dans le texte.
+
 ## Version 3.32.1 - Votes Affichés sans Retard - 01/11/2026
 - **Un vote semblait apparaître puis disparaître selon les rafraîchissements** : chacun des 4 workers du site gardait le nombre de votes d'un membre en mémoire 2 minutes, et seul le worker qui recevait le webhook l'oubliait. Ce cache passe à 5 secondes : la requête lit la clé de la table (0,05 ms), elle n'a pas besoin de plus. Les cartes au survol et les cartes du bot, comme pour les autres statistiques, peuvent garder l'ancien total jusqu'à 2 minutes.
 
