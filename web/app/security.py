@@ -9,6 +9,7 @@ import secrets
 import threading
 import time
 from collections import deque
+from urllib.parse import urlsplit
 
 from flask import g, jsonify, request, session
 
@@ -220,8 +221,12 @@ def init_security(app) -> None:
             # blocked as they should be, but are not about the site: not journaled
             if any(x.startswith(EXTENSION_SCHEMES) for x in (blocked, source)):
                 continue
+            # The site never builds scripts from blob: URLs; extensions do (code injected with a random id)
+            if blocked.startswith("blob") or source.startswith("blob"):
+                continue
             page = body.get("document-uri") or body.get("documentURL") or ""
-            detail = f"{directive} : {blocked}" + (f" · {source}" if source and source != page else "") + (f" · « {sample[:60]} »" if sample else "")
+            page = urlsplit(str(page)).path or str(page)  # "/versus" rather than the whole address
+            detail = f"{directive} : {blocked}" + (f" · {source}" if source and urlsplit(source).path != page else "") + (f" · « {sample[:60]} »" if sample else "")
             record("csp_violation", detail[:200], path=str(page)[:160])
         return "", 204
 

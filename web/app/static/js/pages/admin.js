@@ -359,9 +359,13 @@ function sectionCommunity() {
 
 function sectionDatabase() {
         const b = data.bot;
-        document.getElementById('dbSize').textContent = `${T('Taille totale', 'Total size')} : ${HG.fmt(b.db_mb, 1)} Mo`;
+        // Reclaimable: space left by deleted rows, kept by the table until a VACUUM FULL
+        const reclaim = b.tables.reduce((a, r) => a + (r.reclaim_mb || 0), 0);
+        document.getElementById('dbSize').textContent = `${T('Taille totale', 'Total size')} : ${HG.fmt(b.db_mb, 1)} Mo`
+            + (reclaim ? ` · ${T('environ {n} Mo récupérables avec VACUUM FULL', 'about {n} MB reclaimable with VACUUM FULL', { n: HG.fmt(reclaim, 1) })}` : '');
         document.querySelector('#dbTables tbody').innerHTML = b.tables.map(r => `<tr><td><code>${HG.esc(r.name)}</code></td>
-            <td>${HG.fmt(r.rows)} ${T('lignes', 'rows')}</td><td>${HG.fmt(r.mb, 1)} Mo</td></tr>`).join('');
+            <td>${HG.fmt(r.rows)} ${T('lignes', 'rows')}</td><td>${HG.fmt(r.mb, 1)} Mo</td>
+            ${r.reclaim_mb ? `<td class="adm-warn-text" title="${HG.esc(`VACUUM FULL ANALYZE ${r.name};`)}">≈ ${HG.fmt(r.reclaim_mb, 1)} Mo ${T('récupérables', 'reclaimable')}</td>` : ''}</tr>`).join('');
 }
 
 function sectionHealth() {
@@ -407,16 +411,18 @@ function securityAlerts(hoursOrDays) {
     return Object.entries(totals).filter(([k]) => !QUIET_KINDS.includes(k)).reduce((a, [, n]) => a + n, 0);
 }
 
-function securityRow(e, withPath = true) {
+// One journal line in fixed columns (type, time, who, page), the detail under it in full
+function securityRow(e) {
     const who = e.user
         ? (e.user_url ? `<a href="${HG.esc(e.user_url)}" class="adm-link">${HG.esc(e.user)}</a>` : HG.esc(e.user))
-        : (e.ip ? `<code>${HG.esc(e.ip)}</code>` : '');
+        : '';
+    const page = (e.path || '').replace(/^https?:\/\/[^/]+/, '');
     return `<tr data-kind="${HG.esc(e.kind)}">
         <td><span class="adm-sev is-${HG.esc(e.severity)}">${HG.esc(e.label)}</span>${e.hits > 1 ? ` <span class="adm-hits">×${HG.fmt(e.hits)}</span>` : ''}</td>
         <td class="adm-muted">${dateText(e.at)}</td>
-        <td>${who}${e.user && e.ip ? ` <code class="adm-muted">${HG.esc(e.ip)}</code>` : ''}</td>
-        ${withPath && e.path ? `<td><code>${HG.esc(e.path)}</code></td>` : ''}
-        ${e.detail ? `<td class="adm-muted">${HG.esc(e.detail)}</td>` : ''}</tr>`;
+        <td>${who}${who && e.ip ? ' ' : ''}${e.ip ? `<code class="adm-muted">${HG.esc(e.ip)}</code>` : ''}</td>
+        <td>${page ? `<code>${HG.esc(page)}</code>` : ''}</td>
+        <td class="adm-log-detail">${HG.esc(e.detail || '')}</td></tr>`;
 }
 
 function sectionSecurity() {
@@ -460,7 +466,7 @@ function sectionSecurity() {
     }
     filter();
 
-    document.querySelector('#adminLog tbody').innerHTML = s.admin_log.map(e => securityRow(e, false)).join('')
+    document.querySelector('#adminLog tbody').innerHTML = s.admin_log.map(e => securityRow(e)).join('')
         || `<tr><td>${T('Aucun accès enregistré', 'No access recorded')}</td></tr>`;
     document.getElementById('securityCheckup').innerHTML = s.checkup.map(c => `
         <li class="${c.ok ? 'is-ok' : 'is-ko'}"><span class="adm-check">${c.ok ? '✓' : '✕'}</span>

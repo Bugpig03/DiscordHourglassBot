@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.31.2 - Check-up de Configuration Plus Clair - 01/11/2026
+- **Check-up de l'onglet Sécurité de l'admin** : chaque ligne a un titre court (Clé de session, HTTPS, Connexion Discord…) et un texte qui dépend de son état. En vert, ce qui est en place (« Par code : le jeton Discord ne passe jamais par le navigateur. ») ; en rouge, le problème et le réglage à faire (« Mode implicite, moins sûr : définir DISCORD_CLIENT_SECRET. »). Avant, le texte était le même dans les deux cas : une ligne verte pouvait afficher « sans secret ».
+- **Journal de sécurité en colonnes** : type, heure, membre et IP, page, puis le détail sur sa propre ligne, en entier (il était coupé sur le côté). Les pages s'affichent sans le nom de domaine (`/versus`).
+- **Violations CSP** : les scripts bloqués venant d'une adresse `blob:` ne sont plus enregistrés. Le site n'en crée jamais ; ce sont des extensions du navigateur qui injectent du code avec un identifiant aléatoire.
+- **Base de données (onglet Technique)** : toutes les tables sont listées automatiquement (avant, une liste fixe de 13 tables), avec leur nombre exact de lignes (`COUNT(*)` jusqu'à 512 Mo par table, estimation au-delà) au lieu de l'estimation de PostgreSQL, qui affichait 0 ou rien pour les tables jamais analysées.
+- **Espace récupérable par table** : estimation de la place prise au-delà de ce que les lignes demandent (place laissée par des lignes supprimées, que PostgreSQL garde pour la table jusqu'à un `VACUUM FULL`), affichée en orange à partir de 1 Mo, avec le total en tête de la carte et la commande au survol. Exemple : `presence_history`, gonflée par les anciens relevés par serveur supprimés en bot v3.1.1.
+
 ## Version 3.31.1 - Admin aux Coins Droits, Clé de Session Stable - 01/11/2026
 - **Admin** : coins droits partout (cartes, boutons, pastilles, listes, champs) ; seuls les points d'état, les avatars et l'indicateur de chargement restent ronds. Nouvelle icône pixel « Actualiser » (flèche circulaire) à la place de l'icône d'échange, qui ressemblait à des réglages.
 - **Clé de session** : la clé déjà enregistrée en base passe avant celle dérivée de `DISCORD_CLIENT_SECRET`. Ajouter le secret Discord pour passer à la connexion par code ne déconnecte donc plus personne.

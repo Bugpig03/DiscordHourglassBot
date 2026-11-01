@@ -408,7 +408,30 @@ a.an-rank-name:hover { color: var(--accent-hi); }
 .adm-table td { padding: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .adm-table td:first-child { flex: 1 1 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .adm-table td:not(:first-child) { flex: 0 0 auto; color: var(--soft); }
-.adm-log td:not(:first-child) { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+/* Journal: fixed columns (type, time, who, page) and the detail on its own line, never cut */
+.adm-table.adm-log tr {
+    display: grid;
+    grid-template-columns: minmax(150px, 190px) 110px minmax(120px, 210px) minmax(0, 1fr);
+    column-gap: 14px;
+    row-gap: 3px;
+    align-items: start;
+}
+.adm-table.adm-log td { flex: none; min-width: 0; white-space: normal; overflow-wrap: anywhere; overflow: visible; }
+.adm-table.adm-log td:first-child { white-space: nowrap; }
+.adm-table.adm-log td.adm-log-detail { grid-column: 2 / -1; color: var(--muted); font-size: 12.5px; }
+.adm-table.adm-log td.adm-log-detail:empty { display: none; }
+@media (max-width: 1400px) {
+    #tab-overview .adm-table.adm-log tr { grid-template-columns: minmax(0, 1fr) auto; }
+    #tab-overview .adm-table.adm-log td:nth-child(3),
+    #tab-overview .adm-table.adm-log td:nth-child(4),
+    #tab-overview .adm-table.adm-log td.adm-log-detail { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+    .adm-table.adm-log tr { grid-template-columns: minmax(0, 1fr) auto; }
+    .adm-table.adm-log td:nth-child(3),
+    .adm-table.adm-log td:nth-child(4),
+    .adm-table.adm-log td.adm-log-detail { grid-column: 1 / -1; }
+}
 .adm-user { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; color: var(--text); text-decoration: none; vertical-align: middle; }
 .adm-user:hover { color: var(--accent-hi); }
 .adm-user img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
@@ -416,6 +439,7 @@ a.an-rank-name:hover { color: var(--accent-hi); }
 .adm-link:hover { color: var(--accent-hi); text-decoration: underline; }
 .adm-muted { color: var(--muted) !important; }
 .adm-bad { color: var(--ko) !important; font-weight: 600; }
+.adm-warn-text { color: var(--warn) !important; font-weight: 600; }
 .adm-table tr.is-filtered { display: none !important; }
 
 /* Security journal */

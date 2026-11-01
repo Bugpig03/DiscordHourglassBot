@@ -32,9 +32,8 @@ PAGE_LABELS = {
     "privacy": ("Confidentialité", "Privacy"), "terms": ("Conditions", "Terms"), "other": ("Autres", "Other"),
 }
 SECURITY_ATTACK_KINDS = ("login_fail", "admin_denied", "csrf_fail", "rate_limited", "scan", "card_token_fail", "too_large")
-DB_TABLES = ["voice_sessions", "message_events", "historical_stats", "stats", "users", "servers", "channels",
-             "presence_history", "user_profile_settings", "web_visitors_daily", "web_pageviews_daily", "web_accounts",
-             "web_security_events"]
+# Tables above this size show PostgreSQL's estimate instead of an exact COUNT(*) (kept fast as the base grows)
+EXACT_COUNT_MAX_BYTES = 512 * 1024 * 1024
 
 
 @admin_bp.route("/admin", methods=["GET"])
@@ -67,6 +66,39 @@ def _rows(sql: str, params=()) -> list[tuple]:
     except Exception:
         db.rollback()
         return []
+
+
+# Reclaimable space estimate: a row costs its data + 28 bytes (header and line pointer), pages are ~85 % full;
+# an index entry ~40 bytes, at most ~70 % full. Above this much, the table is worth a VACUUM FULL.
+ROW_OVERHEAD_BYTES = 28
+INDEX_ENTRY_BYTES = 40
+RECLAIM_MIN_BYTES = 1024 * 1024
+
+
+def _table_sizes() -> list[tuple]:
+    """(name, rows, bytes, reclaimable bytes) of every table of the database, biggest first.
+
+    Row counts are exact (COUNT(*)) up to EXACT_COUNT_MAX_BYTES: the planner estimates read 0 or -1 for tables
+    never analyzed or restored from a dump. Reclaimable space is what the table and its indexes take beyond what
+    their rows need: space left by deleted rows, that PostgreSQL keeps for the table until a VACUUM FULL (None
+    when the table is too big to measure quickly).
+    """
+    out = []
+    for name, estimate, size, heap, index_size, index_count in _rows(
+            "SELECT c.relname, GREATEST(c.reltuples, 0)::bigint, pg_total_relation_size(c.oid), pg_relation_size(c.oid), "
+            "pg_indexes_size(c.oid), (SELECT COUNT(*) FROM pg_index i WHERE i.indrelid = c.oid) FROM pg_class c "
+            "JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND n.nspname = 'public' ORDER BY 3 DESC"):
+        rows, reclaimable = estimate, None
+        if size <= EXACT_COUNT_MAX_BYTES:
+            quoted = '"' + name.replace('"', '""') + '"'  # names come from the catalog
+            measured = _rows(f"SELECT COUNT(*), COALESCE(SUM(pg_column_size(t.*)), 0) FROM {quoted} t")
+            if measured:
+                rows, data_bytes = int(measured[0][0]), int(measured[0][1])
+                needed_heap = (data_bytes + rows * ROW_OVERHEAD_BYTES) / 0.85 + 8192
+                needed_index = (rows * INDEX_ENTRY_BYTES / 0.7 + 16384) * int(index_count)
+                reclaimable = int(max(0, heap - needed_heap) + max(0, index_size - needed_index))
+        out.append((name, rows, size, reclaimable))
+    return out
 
 
 def _one(sql: str, params=(), default=0):
@@ -261,9 +293,7 @@ def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
     last_heartbeat = _one("SELECT MAX(last_heartbeat) FROM voice_sessions WHERE left_at IS NULL", default=None)
     now_naive = datetime.utcnow()
     presence_age = round((now_naive - last_presence).total_seconds() / 60) if last_presence else None
-    sizes = _rows(
-        "SELECT c.relname, GREATEST(c.reltuples, 0)::bigint, pg_total_relation_size(c.oid) FROM pg_class c "
-        "WHERE c.relname = ANY(%s) AND c.relkind = 'r' ORDER BY 3 DESC", (DB_TABLES,))
+    sizes = _table_sizes()
     # Latest arrivals: a member arrives with their first stats row (first activity seen on any server)
     member_rows = _rows(
         "SELECT f.user_id, f.first_seen, u.username, u.avatar, sv.server_id, sv.servername FROM ("
@@ -324,7 +354,9 @@ def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
         "last_heartbeat": last_heartbeat.isoformat(timespec="minutes") if last_heartbeat else None,
         "months": {"labels": [month_year(m.month, m.year, lang) for m in months],
                    "joins": [int(joins.get(m, 0)) for m in months], "leaves": [int(leaves.get(m, 0)) for m in months]},
-        "tables": [{"name": n, "rows": int(r), "mb": round(b / 1048576, 1)} for n, r, b in sizes],
+        "tables": [{"name": n, "rows": int(r), "mb": round(b / 1048576, 1),
+                    "reclaim_mb": round(f / 1048576, 1) if f is not None and f >= RECLAIM_MIN_BYTES else 0}
+                   for n, r, b, f in sizes],
         "db_mb": round(int(_one("SELECT pg_database_size(current_database())")) / 1048576, 1),
     }
 
@@ -403,36 +435,65 @@ def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
 # ------------------------------------------------------------------------------
 
 def _config_checkup(fr: bool) -> list[dict]:
-    """Settings that matter for security, green or red, read from the running app and this request."""
+    """Settings that matter for security, green or red, read from the running app and this request.
+
+    Each line says what was found: why it is fine when green, what goes wrong and what to set when red.
+    """
     from app import config as app_config
     from app.config import Config
     from app.security import client_ip
     t = (lambda a, b: a if fr else b)
-    key_ok = app_config.SECRET_KEY_SOURCE in ("env", "discord", "database")
+    source = app_config.SECRET_KEY_SOURCE
+    key_text = {
+        "env": (t("Variable SECRET_KEY : stable entre les mises à jour.", "SECRET_KEY variable: stable across updates.")),
+        "database": (t("Enregistrée en base : stable entre les mises à jour.", "Stored in the database: stable across updates.")),
+        "discord": (t("Dérivée du secret Discord : stable tant que le secret ne change pas.", "Derived from the Discord secret: stable as long as the secret does not change.")),
+        "file": (t("Fichier du conteneur : perdue à chaque mise à jour, les membres sont déconnectés. Définir SECRET_KEY.",
+                   "Container file: lost on every update, members are logged out. Set SECRET_KEY.")),
+        "random": (t("Aléatoire : change à chaque démarrage, les membres sont déconnectés. Définir SECRET_KEY.",
+                     "Random: changes on every start, members are logged out. Set SECRET_KEY.")),
+    }.get(source, source)
+    seen_ip = security_log.short_ip(client_ip()) or t("inconnue", "unknown")
     proxy_ip = bool(request.headers.get("X-Real-IP") or request.headers.get("X-Forwarded-For"))
+    ip_ok = proxy_ip or not request.remote_addr or client_ip() == request.remote_addr
     csp_report_only = os.environ.get("CSP_REPORT_ONLY", "false").lower() in ("1", "true", "yes")
+    admins = len(Config.ADMIN_USER_IDS)
+    # (label, ok, text when ok, text when not)
     checks = [
-        (t("Clé de session stable", "Stable session key"), key_ok,
-         t(f"source : {app_config.SECRET_KEY_SOURCE}", f"source: {app_config.SECRET_KEY_SOURCE}")),
-        (t("Site servi en HTTPS", "Site served over HTTPS"), request.is_secure,
-         t("en-tête X-Forwarded-Proto du proxy", "X-Forwarded-Proto header from the proxy")),
-        (t("Cookie de session réservé au HTTPS", "HTTPS-only session cookie"), bool(Config.SESSION_COOKIE_SECURE), "SESSION_COOKIE_SECURE"),
-        (t("CSP appliquée (pas en simple rapport)", "CSP enforced (not report-only)"), not csp_report_only, "CSP_REPORT_ONLY"),
-        (t("Mode debug désactivé", "Debug mode off"), not current_app.debug, "FLASK_DEBUG"),
-        (t("Mot de passe de la base personnalisé", "Custom database password"), Config.DB_PASSWORD not in ("", "admin", "postgres"),
-         "POSTGRESQL_PASSWORD"),
-        (t("Jeton des cartes du bot défini", "Bot card token set"), bool(Config.CARD_TOKEN), "CARD_TOKEN"),
-        (t("Connexion Discord par code (secret défini)", "Discord login by code (secret set)"), bool(Config.DISCORD_CLIENT_SECRET),
-         t("sans secret : mode implicite, moins sûr", "without it: implicit mode, less safe")),
-        (t("IP des visiteurs transmise par le proxy", "Visitor IP passed on by the proxy"), proxy_ip or not request.remote_addr or
-         client_ip() == request.remote_addr,
-         t(f"vue ici : {security_log.short_ip(client_ip()) or 'inconnue'}", f"seen here: {security_log.short_ip(client_ip()) or 'unknown'}")),
-        (t("Journal de sécurité actif", "Security journal on"), security_log._enabled, "web_security_events"),
+        (t("Clé de session", "Session key"), source in ("env", "discord", "database"), key_text, key_text),
+        (t("HTTPS", "HTTPS"), request.is_secure,
+         t("Le site est servi en HTTPS.", "The site is served over HTTPS."),
+         t("Page reçue en HTTP : le proxy doit envoyer X-Forwarded-Proto: https.", "Page received over HTTP: the proxy must send X-Forwarded-Proto: https.")),
+        (t("Cookie de session", "Session cookie"), bool(Config.SESSION_COOKIE_SECURE),
+         t("Envoyé uniquement en HTTPS.", "Only sent over HTTPS."),
+         t("Envoyé aussi en HTTP : retirer SESSION_COOKIE_SECURE=false.", "Also sent over HTTP: remove SESSION_COOKIE_SECURE=false.")),
+        (t("Politique de sécurité (CSP)", "Content Security Policy"), not csp_report_only,
+         t("Appliquée : les scripts non autorisés sont bloqués.", "Enforced: unauthorized scripts are blocked."),
+         t("En simple rapport : rien n'est bloqué. Retirer CSP_REPORT_ONLY.", "Report-only: nothing is blocked. Remove CSP_REPORT_ONLY.")),
+        (t("Mode debug", "Debug mode"), not current_app.debug,
+         t("Désactivé.", "Off."),
+         t("Activé : les erreurs affichent le code. Retirer FLASK_DEBUG.", "On: errors show the code. Remove FLASK_DEBUG.")),
+        (t("Mot de passe de la base", "Database password"), Config.DB_PASSWORD not in ("", "admin", "postgres"),
+         t("Personnalisé.", "Custom."),
+         t("Valeur par défaut : changer POSTGRESQL_PASSWORD.", "Default value: change POSTGRESQL_PASSWORD.")),
+        (t("Cartes du bot", "Bot cards"), bool(Config.CARD_TOKEN),
+         t("Jeton défini : seul le bot peut demander les cartes.", "Token set: only the bot can request the cards."),
+         t("CARD_TOKEN absent : le bot ne peut pas obtenir ses cartes.", "CARD_TOKEN missing: the bot cannot get its cards.")),
+        (t("Connexion Discord", "Discord login"), bool(Config.DISCORD_CLIENT_SECRET),
+         t("Par code : le jeton Discord ne passe jamais par le navigateur.", "By code: the Discord token never goes through the browser."),
+         t("Mode implicite, moins sûr : définir DISCORD_CLIENT_SECRET.", "Implicit mode, less safe: set DISCORD_CLIENT_SECRET.")),
+        (t("IP des visiteurs", "Visitor IP"), ip_ok,
+         t(f"Transmise par le proxy (vue ici : {seen_ip}).", f"Passed on by the proxy (seen here: {seen_ip})."),
+         t("Le proxy n'envoie pas X-Real-IP : tous les visiteurs ont la même IP pour les limites.",
+           "The proxy sends no X-Real-IP: every visitor shares one IP for the limits.")),
+        (t("Journal de sécurité", "Security journal"), security_log._enabled,
+         t("Actif, conservé 90 jours.", "On, kept 90 days."),
+         t("Table web_security_events indisponible : voir les logs du site.", "web_security_events table unavailable: see the site logs.")),
+        (t("Comptes admin", "Admin accounts"), 0 < admins <= 3,
+         t(f"{admins} compte(s) dans ADMIN_USER_IDS.", f"{admins} account(s) in ADMIN_USER_IDS."),
+         t(f"{admins} compte(s) dans ADMIN_USER_IDS : en garder entre 1 et 3.", f"{admins} account(s) in ADMIN_USER_IDS: keep 1 to 3.")),
     ]
-    items = [{"label": label, "ok": bool(ok), "detail": detail} for label, ok, detail in checks]
-    items.append({"label": t("Comptes admin", "Admin accounts"), "ok": 0 < len(Config.ADMIN_USER_IDS) <= 3,
-                  "detail": str(len(Config.ADMIN_USER_IDS))})
-    return items
+    return [{"label": label, "ok": bool(ok), "detail": good if ok else bad} for label, ok, good, bad in checks]
 
 
 def compute_security(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
