@@ -334,8 +334,6 @@
  "p0163": "Ganze Rangliste ansehen",
  "p0164": "in 30 T.",
  "p0165": "erfasste Profile",
- "p0166": "AKTIVE SERVER",
- "p0167": "Verbundene Server",
  "p0168": "Alle Analysen",
  "p0169": "Noch nicht genug Aktivität",
  "p0170": "Dieses Diagramm füllt sich automatisch mit den Sprachsitzungen und Nachrichten, die Hourglass erfasst.",
@@ -667,5 +665,7 @@
  "p0631": "Titan",
  "p0632": "Hüter der Sanduhr",
  "p0633": "Zeitmeister",
- "p0677": "Neuigkeiten"
+ "p0677": "Neuigkeiten",
+ "p0680": "Einzelne Server",
+ "p0681": "{n} aktuell mit dem Bot"
 }

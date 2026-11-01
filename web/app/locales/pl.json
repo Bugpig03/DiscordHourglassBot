@@ -334,8 +334,6 @@
  "p0163": "Zobacz cały ranking",
  "p0164": "w 30 dni",
  "p0165": "zapisanych profili",
- "p0166": "AKTYWNE SERWERY",
- "p0167": "Połączone serwery",
  "p0168": "Pełne analizy",
  "p0169": "Jeszcze za mało aktywności",
  "p0170": "Ten wykres wypełni się automatycznie wraz z sesjami głosowymi i wiadomościami śledzonymi przez Hourglass.",
@@ -667,5 +665,7 @@
  "p0631": "Tytan",
  "p0632": "Strażnik Klepsydry",
  "p0633": "Władca Czasu",
- "p0677": "Nowości"
+ "p0677": "Nowości",
+ "p0680": "Unikalne serwery",
+ "p0681": "{n} z botem obecnie"
 }

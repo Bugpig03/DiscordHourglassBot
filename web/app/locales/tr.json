@@ -334,8 +334,6 @@
  "p0163": "Tüm sıralamayı gör",
  "p0164": "30 günde",
  "p0165": "kayıtlı profil",
- "p0166": "AKTİF SUNUCULAR",
- "p0167": "Bağlı sunucular",
  "p0168": "Tüm analizler",
  "p0169": "Henüz yeterli etkinlik yok",
  "p0170": "Bu grafik, Hourglass'ın takip ettiği ses oturumları ve mesajlarla kendiliğinden dolacak.",
@@ -667,5 +665,7 @@
  "p0631": "Titan",
  "p0632": "Kum Saatinin Bekçisi",
  "p0633": "Zamanın Efendisi",
- "p0677": "Yenilikler"
+ "p0677": "Yenilikler",
+ "p0680": "Tekil sunucular",
+ "p0681": "Şu an botla {n}"
 }

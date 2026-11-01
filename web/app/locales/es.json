@@ -334,8 +334,6 @@
  "p0163": "Ver la clasificación completa",
  "p0164": "en 30 d",
  "p0165": "perfiles registrados",
- "p0166": "SERVIDORES ACTIVOS",
- "p0167": "Servidores conectados",
  "p0168": "Análisis completos",
  "p0169": "Aún no hay suficiente actividad",
  "p0170": "Este gráfico se llenará automáticamente con las sesiones de voz y los mensajes que registre Hourglass.",
@@ -667,5 +665,7 @@
  "p0631": "Titán",
  "p0632": "Guardián del Reloj de Arena",
  "p0633": "Señor del Tiempo",
- "p0677": "Novedades"
+ "p0677": "Novedades",
+ "p0680": "Servidores únicos",
+ "p0681": "{n} con el bot ahora"
 }

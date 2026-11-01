@@ -1,5 +1,8 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.31.5 - Tuile « Serveurs Uniques » de l'Accueil - 01/11/2026
+- **Accueil** : la tuile « Serveurs actifs / Serveurs connectés » devient **« Serveurs uniques »**, comme « Utilisateurs uniques » à côté. Son chiffre est le nombre de serveurs suivis par Hourglass depuis le début (ce qu'elle comptait déjà) ; la pastille dessous indique **combien ont le bot actuellement** (icône bot), au lieu de « Serveurs connectés », trompeur. Traduit dans les 12 langues.
+
 ## Version 3.31.4 - HSTS Unique et Batterie de Tests de Sécurité - 01/11/2026
 - **HSTS** : le proxy openresty envoie déjà son propre `Strict-Transport-Security`, ce qui faisait deux en-têtes contradictoires (les navigateurs ne retiennent que le premier). Avec `HSTS_FROM_PROXY=true` dans l'environnement, le site n'envoie plus le sien ; une ligne « HSTS » du check-up de l'admin indique qui l'envoie.
 - **Batterie de tests de sécurité** `web/scripts/security_check.py` (55 contrôles, sans serveur, sans rien écrire en base) : en-têtes et CSP, cookie de session, contrôle d'accès (admin, sessions vocales réservées au propriétaire, jeton des cartes), CSRF, redirections ouvertes, `state` OAuth, XSS réfléchi (60 injections), injection SQL (dont temporelle et par cookie), traversée de répertoires, méthodes HTTP, taille des requêtes, pages d'erreur, limites de requêtes et IP falsifiée, en-tête Host. `--quiet` n'affiche que les échecs ; code de sortie 1 en cas d'échec.

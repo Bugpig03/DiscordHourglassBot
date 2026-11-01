@@ -84,7 +84,8 @@ def load_dashboard_stats() -> dict:
     # All-time totals
     nb_users = Users.select().count()
     nb_profiles = Stats.select().count()
-    nb_servers = Servers.select().count()
+    nb_servers = Servers.select().count()  # every server Hourglass has ever tracked
+    nb_servers_present = Servers.select().where(Servers.is_bot_present == True).count()  # noqa: E712
     nb_messages = Stats.select(fn.SUM(Stats.messages)).scalar() or 0
     active_secs = (
         VoiceSessions
@@ -133,6 +134,7 @@ def load_dashboard_stats() -> dict:
         "nb_users": nb_users,
         "nb_profiles": nb_profiles,
         "nb_servers": nb_servers,
+        "nb_servers_present": nb_servers_present,
         "nb_messages": nb_messages,
         "nb_time": nb_time,
         "nb_voice_hours_str": nb_voice_hours_str,

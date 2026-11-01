@@ -334,8 +334,6 @@
  "p0163": "Vedi la classifica completa",
  "p0164": "in 30 g",
  "p0165": "profili registrati",
- "p0166": "SERVER ATTIVI",
- "p0167": "Server connessi",
  "p0168": "Analisi complete",
  "p0169": "Non c'è ancora abbastanza attività",
  "p0170": "Questo grafico si riempirà automaticamente con le sessioni vocali e i messaggi registrati da Hourglass.",
@@ -667,5 +665,7 @@
  "p0631": "Titano",
  "p0632": "Custode della Clessidra",
  "p0633": "Signore del Tempo",
- "p0677": "Novità"
+ "p0677": "Novità",
+ "p0680": "Server unici",
+ "p0681": "{n} con il bot ora"
 }

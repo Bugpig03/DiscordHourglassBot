@@ -551,14 +551,6 @@
   "profils enregistrés",
   "server profiles"
  ],
- "p0166": [
-  "SERVEURS ACTIFS",
-  "ACTIVE SERVERS"
- ],
- "p0167": [
-  "Serveurs connectés",
-  "Connected servers"
- ],
  "p0168": [
   "Analyses complètes",
   "Full Analytics"
@@ -2498,5 +2490,13 @@
  "p0679": [
   "récupérables",
   "reclaimable"
+ ],
+ "p0680": [
+  "Serveurs uniques",
+  "Unique servers"
+ ],
+ "p0681": [
+  "{n} avec le bot actuellement",
+  "{n} with the bot right now"
  ]
 }

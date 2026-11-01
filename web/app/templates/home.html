@@ -92,10 +92,10 @@
         </div>
     </div>
 
-    <!-- 4. Active Servers -->
+    <!-- 4. Unique servers (ever tracked), with how many have the bot today -->
     <div class="dashboard-kpi-card accent-amber">
         <div class="dashboard-kpi-top">
-            <span class="dashboard-kpi-label">{{tr('SERVEURS ACTIFS', 'ACTIVE SERVERS')}}</span>
+            <span class="dashboard-kpi-label">{{tr('Serveurs uniques', 'Unique servers')}}</span>
             <div class="dashboard-kpi-icon icon-servers">
                 <svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
             </div>
@@ -105,8 +105,8 @@
         </div>
         <div class="dashboard-kpi-footer">
             <div class="dashboard-kpi-pill pill-amber">
-                <svg width="12" height="12" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
-                <span>{{tr('Serveurs connectés', 'Connected servers')}}</span>
+                {{ pixel_icon('bot', 12) }}
+                <span>{{ tr('{n} avec le bot actuellement', '{n} with the bot right now', n=stats.nb_servers_present | thousands_fr) }}</span>
             </div>
         </div>
     </div>
