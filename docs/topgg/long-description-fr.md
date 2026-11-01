@@ -28,12 +28,13 @@ Chaque commande répond par une **carte image**, dans la langue Discord du membr
 | `/alltop` | Top 10 de tous les serveurs |
 | `/versus <player1> <player2> [scope]` | Duel entre deux membres, avec un vainqueur |
 | `/server` | Vocal, messages, membres et 30 derniers jours du serveur |
+| `/vote` | Lien de vote, tes votes et quand revoter |
 | `/help` | Toutes les commandes |
 
 ## 🏆 Niveaux, badges et séries
 
 - **XP et niveaux** : 1 XP par minute en vocal, 1 XP par message. Des titres de *Novice Curieux* à *Légende Hourglass*.
-- **9 badges, 7 paliers chacun** (Bronze, Argent, Or, Platine, Diamant, Légende, Mythique) : vocal, messages, niveau, classement, serveurs, fidélité, activité du mois, **série de jours** et polyvalence.
+- **10 badges, 7 paliers chacun** (Bronze, Argent, Or, Platine, Diamant, Légende, Mythique) : vocal, messages, niveau, classement, serveurs, fidélité, activité du mois, **série de jours**, polyvalence et **Soutien**, gagné en votant pour Hourglass ici sur top.gg.
 - **Séries** : reviens jour après jour ; ta plus longue série débloque jusqu'au palier Mythique à 365 jours.
 - **Évolution des rangs** : vois qui monte ▲ ou descend ▼ dans les classements.
 

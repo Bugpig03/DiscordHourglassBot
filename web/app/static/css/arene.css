@@ -2059,3 +2059,32 @@ html body .footer-version {
   justify-content: center;
 }
 html body .footer-changelog { font-size: inherit; }
+
+
+/* top.gg votes (v3.32.0): count in the profile header, "Vote" button, home hero button */
+html body .profile-votes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ar-muted);
+}
+html body .profile-votes svg { color: #ff6b8a; }
+html body .profile-votes.is-active { color: #ff8aa3; font-weight: 600; }
+html body .btn-vote-topgg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  clip-path: var(--cut-s);
+  background: rgba(255, 107, 138, 0.14);
+  color: #ff8aa3;
+  font-family: var(--ar-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+html body .btn-vote-topgg:hover { background: rgba(255, 107, 138, 0.24); color: #ffb3c3; }
+html body .btn-hero-vote svg { color: #ff6b8a; }
+html body .btn-hero-vote { display: inline-flex; align-items: center; gap: 8px; }

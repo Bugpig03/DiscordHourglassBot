@@ -141,6 +141,17 @@
 
         <!-- ============================ Communauté ============================ -->
         <section id="tab-community" class="graphs-tab-pane">
+            <h2 class="adm-section-title">{{tr('Votes top.gg', 'top.gg votes')}}</h2>
+            <p class="adm-notice" id="votesNotice" hidden></p>
+            <div class="adm-stats" id="voteStats"></div>
+            <div class="an-grid-2">
+                <section class="an-card">
+                    {{ card(tr('Votes par jour', 'Votes per day'), tr('Reçus par le webhook top.gg, rattrapés chaque heure par l’API.', 'Received by the top.gg webhook, caught up every hour from the API.'), period=True) }}
+                    <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="votesChart"></canvas></div>
+                </section>
+                <section class="an-card">{{ card(tr('Meilleurs votants', 'Top voters'), period=True) }}<ol class="an-rank" data-list="votes.top">{{ loading() }}</ol></section>
+            </div>
+            <h2 class="adm-section-title">{{tr('Membres et serveurs', 'Members and servers')}}</h2>
             <p class="adm-notice" id="audienceNotice" hidden>{{tr('Pas encore de relevé : il apparaît 15 minutes après le démarrage du bot v3.3.0.', 'No snapshot yet: it appears 15 minutes after bot v3.3.0 starts.')}}</p>
             <div class="adm-stats" id="audienceStats"></div>
             <div class="an-grid-2">

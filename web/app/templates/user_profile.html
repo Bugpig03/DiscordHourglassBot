@@ -66,6 +66,10 @@
                     <span>{{ t('user_profile.member_since') }} {{ stats.join_date }}</span>
                     <span class="profile-hero-sep" aria-hidden="true">•</span>
                     <span class="profile-hero-id" data-tip="{{tr('Identifiant Discord', 'Discord ID')}}">ID {{ stats.user_id }}</span>
+                    {% if votes.total %}
+                    <span class="profile-hero-sep" aria-hidden="true">•</span>
+                    <span class="profile-votes{% if votes.active %} is-active{% endif %}" data-tip="{{ tr('A voté pour Hourglass sur top.gg dans les 12 dernières heures', 'Voted for Hourglass on top.gg in the last 12 hours') if votes.active else tr('Votes pour Hourglass sur top.gg', 'Votes for Hourglass on top.gg') }}">{{ pixel_icon('heart', 12) }}{{ tr('{n} vote(s)', '{n} vote(s)', n=votes.total | num) }}{% if votes.active %} · {{ tr('A voté', 'Voted') }}{% endif %}</span>
+                    {% endif %}
                 </div>
                 {% if can_view_presence and stats.active_voice %}
                 <span class="profile-live-voice">
@@ -81,6 +85,11 @@
                     <svg width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="pen"><path d="M7 0h1v1h-1zM6 1h3v1h-3zM5 2h3v1h-3zM4 3h3v1h-3zM3 4h3v1h-3zM2 5h3v1h-3zM1 6h3v1h-3zM0 7h2v1h-2zM0 8h1v1h-1z"/></svg>
                     <span>{{tr('Personnaliser', 'Customize')}}</span>
                 </a>
+                {% if not votes.active %}
+                <a href="{{ vote_url }}" class="btn-vote-topgg" target="_blank" rel="noopener noreferrer" title="{{ tr('Voter pour Hourglass sur top.gg (toutes les 12 h)', 'Vote for Hourglass on top.gg (every 12 h)') }}">
+                    {{ pixel_icon('heart', 16) }}<span>{{ tr('Voter', 'Vote') }}</span>
+                </a>
+                {% endif %}
                 {% endif %}
                 <a href="{{ url_for('versus.versus', u1=stats.user_id) }}" class="btn-versus-action" title="{{ t('profile.versus_btn') }}">
                     <svg width="17" height="17" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="swords"><path d="M0 0h2v1h-2zM7 0h2v1h-2zM0 1h3v1h-3zM6 1h3v1h-3zM1 2h3v1h-3zM5 2h3v1h-3zM2 3h5v1h-5zM3 4h3v1h-3zM2 5h5v1h-5zM1 6h3v1h-3zM5 6h3v1h-3zM0 7h2v1h-2zM7 7h2v1h-2zM0 8h1v1h-1zM8 8h1v1h-1z"/></svg>

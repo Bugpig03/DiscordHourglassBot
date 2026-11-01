@@ -27,6 +27,7 @@ from app.routes.admin import admin_bp
 from app.analytics_tracking import init_tracking
 from app.security_log import init_security_log
 from app.best_records import init_best_records
+from app.topgg_votes import init_topgg_votes
 from app.admin import is_admin
 from app.profile_settings import ensure_table as ensure_profile_settings_table
 from app.pixel_icons import pixel_svg
@@ -78,6 +79,8 @@ def create_app():
     init_security_log(app)
     # Best rank and best 30 days of every member, so the Ranking and Activity badges never go down
     init_best_records(app)
+    # top.gg votes: webhook /webhooks/topgg and hourly catch-up of the vote history
+    init_topgg_votes(app)
 
     # Profile customization table (created if the migration was not applied; never blocks startup)
     ensure_profile_settings_table()

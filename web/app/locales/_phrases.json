@@ -2259,10 +2259,6 @@
   "Paliers des badges",
   "Badge tiers"
  ],
- "p0622": [
-  "9 badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.",
-  "9 badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month."
- ],
  "p0623": [
   "Recrue",
   "Rookie"
@@ -2498,5 +2494,93 @@
  "p0681": [
   "{n} avec le bot actuellement",
   "{n} with the bot right now"
+ ],
+ "p0682": [
+  "{n} vote(s)",
+  "{n} vote(s)"
+ ],
+ "p0683": [
+  "Votes top.gg",
+  "top.gg votes"
+ ],
+ "p0684": [
+  "Votes par jour",
+  "Votes per day"
+ ],
+ "p0685": [
+  "Reçus par le webhook top.gg, rattrapés chaque heure par l’API.",
+  "Received by the top.gg webhook, caught up every hour from the API."
+ ],
+ "p0686": [
+  "Meilleurs votants",
+  "Top voters"
+ ],
+ "p0687": [
+  "Membres et serveurs",
+  "Members and servers"
+ ],
+ "p0688": [
+  "Voter sur top.gg",
+  "Vote on top.gg"
+ ],
+ "p0689": [
+  "{n} badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.",
+  "{n} badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month."
+ ],
+ "p0690": [
+  "A voté pour Hourglass sur top.gg dans les 12 dernières heures",
+  "Voted for Hourglass on top.gg in the last 12 hours"
+ ],
+ "p0691": [
+  "Votes pour Hourglass sur top.gg",
+  "Votes for Hourglass on top.gg"
+ ],
+ "p0692": [
+  "A voté",
+  "Voted"
+ ],
+ "p0693": [
+  "Voter pour Hourglass sur top.gg (toutes les 12 h)",
+  "Vote for Hourglass on top.gg (every 12 h)"
+ ],
+ "p0694": [
+  "Voter",
+  "Vote"
+ ],
+ "p0695": [
+  "À définir dans le .env du site : {v} (webhook en temps réel et historique des votes).",
+  "To set in the site .env: {v} (real-time webhook and vote history)."
+ ],
+ "p0696": [
+  "Votes",
+  "Votes"
+ ],
+ "p0697": [
+  "votant(s)",
+  "voter(s)"
+ ],
+ "p0698": [
+  "Ce mois-ci",
+  "This month"
+ ],
+ "p0699": [
+  "Votes en cours",
+  "Active votes"
+ ],
+ "p0700": [
+  "membres qui ont voté depuis moins de 12 h",
+  "members who voted less than 12 h ago"
+ ],
+ "p0701": [
+  "Total enregistré",
+  "Total recorded"
+ ],
+ "p0702": [
+  "Webhooks top.gg refusés",
+  "top.gg webhooks refused"
+ ],
+ "p0703": [
+  "Soutien",
+  "Supporter"
  ]
 }

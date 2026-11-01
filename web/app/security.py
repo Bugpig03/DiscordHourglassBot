@@ -23,6 +23,7 @@ IMAGE_HOSTS = "https://cdn.discordapp.com https://media.discordapp.net"
 # effective ceiling is up to 4x higher, which is fine for abuse protection (not exact quotas).
 RATE_LIMITS = [
     ("/csp-report", 20),
+    ("/webhooks/", 120),
     ("/admin", 60),
     ("/api/card/", 30),
     ("/api/search", 90),

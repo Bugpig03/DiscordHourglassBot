@@ -325,6 +325,23 @@ function sectionBotStatus() {
         ]);
 }
 
+function sectionVotes() {
+    const v = data.votes;
+    const notice = document.getElementById('votesNotice');
+    const missing = [!v.webhook_ready && 'TOPGG_WEBHOOK_SECRET', !v.api_ready && 'TOPGG_TOKEN'].filter(Boolean);
+    notice.hidden = !missing.length;
+    notice.textContent = missing.length
+        ? T('À définir dans le .env du site : {v} (webhook en temps réel et historique des votes).', 'To set in the site .env: {v} (real-time webhook and vote history).', { v: missing.join(', ') })
+        : '';
+    renderStats(document.getElementById('voteStats'), [
+        [`${T('Votes', 'Votes')} · ${periodLabel()}`, HG.fmt(v.period), `${HG.fmt(v.voters)} ${T('votant(s)', 'voter(s)')}`],
+        [T('Ce mois-ci', 'This month'), HG.fmt(v.month)],
+        [T('Votes en cours', 'Active votes'), HG.fmt(v.active), T('membres qui ont voté depuis moins de 12 h', 'members who voted less than 12 h ago')],
+        [T('Total enregistré', 'Total recorded'), HG.fmt(v.total)],
+    ]);
+    lineChart('votesChart', v.labels, [bars(T('Votes', 'Votes'), v.daily, '#ff6b8a')], { type: 'bar' });
+}
+
 function sectionCommunity() {
         const b = data.bot;
         lineChart('serversChart', b.months.labels, [bars(T('Arrivées', 'Joins'), b.months.joins, '#34d399'), bars(T('Départs', 'Leaves'), b.months.leaves, '#f87171')], { type: 'bar' });
@@ -400,7 +417,7 @@ function sectionHealth() {
 // ---------------------------------------------------------------------------
 const SECURITY_COLORS = {
     login_fail: '#f87171', admin_denied: '#fb923c', csrf_fail: '#facc15', rate_limited: '#a3a6b0', scan: '#b07cff',
-    card_token_fail: '#ef4444', csp_violation: '#38bdf8', server_error: '#ff6b5e', too_large: '#4f9dff',
+    card_token_fail: '#ef4444', webhook_fail: '#ff6b5e', csp_violation: '#38bdf8', server_error: '#ff6b5e', too_large: '#4f9dff',
 };
 const QUIET_KINDS = ['login_ok', 'admin_access'];
 
@@ -440,6 +457,7 @@ function sectionSecurity() {
         tile('admin_denied', T('Accès admin refusés', 'Admin access denied'), 1, 20),
         tile('csrf_fail', T('Formulaires refusés (CSRF)', 'Forms refused (CSRF)'), 1, 10),
         tile('card_token_fail', T('Jetons de carte invalides', 'Invalid card tokens'), 1, 1),
+        tile('webhook_fail', T('Webhooks top.gg refusés', 'top.gg webhooks refused'), 1, 5),
         tile('csp_violation', T('Violations CSP', 'CSP violations'), 1, 50),
         tile('server_error', T('Erreurs serveur (500)', 'Server errors (500)'), 1, 10),
         tile('too_large', T('Requêtes trop grosses', 'Requests too large'), 1, 20),
@@ -478,7 +496,7 @@ const TAB_SECTIONS = {
     'tab-traffic': [sectionTraffic],
     'tab-accounts': [sectionAccounts],
     'tab-profiles': [sectionCustomization],
-    'tab-community': [sectionCommunity],
+    'tab-community': [sectionVotes, sectionCommunity],
     'tab-bot': [sectionBotStatus, sectionCommands],
     'tab-tech': [sectionHealth, sectionDatabase],
     'tab-security': [sectionSecurity],

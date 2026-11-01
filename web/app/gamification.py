@@ -53,7 +53,7 @@ def _round_hours(hours: float) -> int:
 
 
 def badge_ladders(lang: str = "fr") -> list[dict]:
-    """Help page: the 9 badges and what each of their 7 tiers asks."""
+    """Help page: every badge and what each of its 7 tiers asks."""
     out = []
     for key, name_fr, name_en, what_fr, what_en, icon, kind, thresholds in BADGE_DEFS:
         out.append({
@@ -108,9 +108,10 @@ def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict
 
 
 def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[str, Any]]:
-    """The member's 9 badges, computed live from their statistics (nothing is stored).
+    """The member's 10 badges, computed live from their statistics (nothing is stored).
 
-    One badge per family (voice, messages, level, ranking, servers, loyalty, monthly activity, streak, versatility),
+    One badge per family (voice, messages, level, ranking, servers, loyalty, monthly activity, streak, versatility,
+    top.gg votes),
     levelled up through 7 tiers: Bronze, Silver, Gold, Platinum, Diamond, Legend, Mythic. tier is 0 until the
     first one is reached; the tier color is the badge color everywhere (see TIERS).
     """
@@ -179,6 +180,7 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
         "activity": last_30d_hours,
         "streak": int(best_streak or 0),
         "hybrid": (total_hours, total_messages),
+        "votes": _vote_count(stats),
     }
     # Ranking and Activity can go down (someone overtakes you, a quiet month): the best rank and the best 30 days
     # ever reached are stored (best_records), and the badge keeps the higher tier of now and of that record
@@ -207,6 +209,16 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
             badge["description"] = f"{badge['description']} {note}"
         badges.append(badge)
     return badges
+
+
+def _vote_count(stats: dict) -> int:
+    """Votes for Hourglass on top.gg: given by the caller, or read for the member (cached)."""
+    if stats.get("votes_total") is not None:
+        return int(stats["votes_total"])
+    if str(stats.get("user_id") or "").isdigit():
+        from app.topgg_votes import user_votes
+        return user_votes(int(stats["user_id"]))["total"]
+    return 0
 
 
 def _record_text(key: str, records: dict, lang: str) -> str | None:
@@ -256,6 +268,7 @@ _SVG = {
     "flame": '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
     "calendar_check": '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
     "infinity": '<path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/>',
+    "heart": '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
 }
 
 # (key, name fr, name en, what it measures fr, en, icon, kind, thresholds from Bronze to Mythic)
@@ -273,6 +286,9 @@ BADGE_DEFS = [
      [5, 10, 30, 60, 100, 250, 365]),
     ("hybrid", "Polyvalence", "Versatility", "Vocal et messages à la fois", "Voice and messages together", "infinity", "hybrid",
      [(10, 100), (50, 500), (100, 1000), (250, 2500), (500, 5000), (1000, 10000), (2500, 25000)]),
+    # Votes for Hourglass on top.gg (one vote every 12 h; a weekend vote counts once here)
+    ("votes", "Soutien", "Supporter", "Votes pour Hourglass sur top.gg", "Votes for Hourglass on top.gg", "heart", "votes",
+     [1, 5, 10, 25, 50, 100, 200]),
 ]
 BADGE_IDS = [d[0] for d in BADGE_DEFS]
 
@@ -343,6 +359,8 @@ def _threshold_text(kind: str, threshold, lang: str) -> str:
         return tr("{n} serveurs", "{n} servers", lang, n=threshold)
     if kind == "days":
         return tr("{n} jours", "{n} days", lang, n=_fmt_number(threshold, lang))
+    if kind == "votes":
+        return tr("{n} vote(s)", "{n} vote(s)", lang, n=_fmt_number(threshold, lang))
     return tr("{h} h + {m} messages", "{h} h + {m} messages", lang, h=_fmt_number(threshold[0], lang), m=_fmt_number(threshold[1], lang))
 
 
@@ -359,6 +377,8 @@ def _current_text(kind: str, value, lang: str) -> str:
         return tr("{n} serveurs", "{n} servers", lang, n=value)
     if kind == "days":
         return tr("{n} jours", "{n} days", lang, n=_fmt_number(value or 0, lang))
+    if kind == "votes":
+        return tr("{n} vote(s)", "{n} vote(s)", lang, n=_fmt_number(value or 0, lang))
     return tr("{h} h + {m} messages", "{h} h + {m} messages", lang, h=_fmt_number(round(value[0], 1), lang), m=_fmt_number(value[1], lang))
 
 

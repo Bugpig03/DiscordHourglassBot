@@ -1,5 +1,10 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.6.0 - Commande /vote - 01/11/2026
+
+- **Nouvelle commande `/vote`** : lien de vote top.gg, nombre de votes du membre et, s'il a déjà voté, quand il pourra revoter (heure affichée par Discord dans la langue et le fuseau du lecteur). Fonctionne aussi en message privé. Textes dans les 12 langues ; `/help` la mentionne.
+- Les votes viennent de la table `topgg_votes` remplie par le site (v3.32.0) ; sans elle, la commande répond avec 0 vote.
+
 ## Version 3.5.1 - Serveurs Quittés Pendant une Absence - 01/11/2026
 
 - **Serveurs comptés à tort comme présents** : un serveur qui retire le bot pendant que celui-ci est hors ligne (redémarrage, mise à jour, panne) n'envoie jamais d'événement de départ, et restait marqué « bot présent » dans la base (51 dans l'admin pour 26 serveurs réels). À chaque connexion, le bot compare désormais la base à la liste de serveurs envoyée par Discord et marque les autres comme partis (date de départ = moment de la correction). La base de l'admin et le chiffre de top.gg concordent.

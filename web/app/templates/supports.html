@@ -165,7 +165,7 @@
         <span>{{ tr('Paliers des badges', 'Badge tiers') }}</span>
     </div>
     <p class="small-text gray help-ladder-desc">
-        {{ tr('9 badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.', '9 badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month.') }}
+        {{ tr('{n} badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.', '{n} badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month.', n=badge_ladders | length) }}
     </p>
     <div class="help-badges">
         <div class="help-badges-head" aria-hidden="true">

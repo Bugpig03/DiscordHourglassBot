@@ -9,7 +9,7 @@ C'est le texte affiché dans les résultats de recherche : il compte beaucoup po
 **Anglais (recommandé, 127 caractères)**
 
 ```
-Voice & message leaderboards for your server: stat cards, XP levels, 63 badge tiers, streaks and a web dashboard. 12 languages.
+Voice & message leaderboards for your server: stat cards, XP levels, 70 badge tiers, streaks and a web dashboard. 12 languages.
 ```
 
 **Français (122 caractères)**

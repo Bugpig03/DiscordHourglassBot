@@ -31,7 +31,7 @@ PAGE_LABELS = {
     "versus": ("Versus", "Versus"), "customize": ("Personnalisation", "Customization"), "help": ("Aide", "Help"),
     "privacy": ("Confidentialité", "Privacy"), "terms": ("Conditions", "Terms"), "other": ("Autres", "Other"),
 }
-SECURITY_ATTACK_KINDS = ("login_fail", "admin_denied", "csrf_fail", "rate_limited", "scan", "card_token_fail", "too_large")
+SECURITY_ATTACK_KINDS = ("login_fail", "admin_denied", "csrf_fail", "rate_limited", "scan", "card_token_fail", "webhook_fail", "too_large")
 # Tables above this size show PostgreSQL's estimate instead of an exact COUNT(*) (kept fast as the base grows)
 EXACT_COUNT_MAX_BYTES = 512 * 1024 * 1024
 
@@ -360,6 +360,27 @@ def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
         "db_mb": round(int(_one("SELECT pg_database_size(current_database())")) / 1048576, 1),
     }
 
+    # ---------------- top.gg votes (webhook and hourly catch-up, web v3.32.0) ----------------
+    vote_daily = _rows("SELECT created_at::date, COUNT(*) FROM topgg_votes WHERE created_at >= %s GROUP BY 1", (win[0],))
+    vote_top = _rows(
+        "SELECT v.user_id, COALESCE(u.username, a.username), COALESCE(u.avatar, a.avatar), COUNT(*) FROM topgg_votes v "
+        "LEFT JOIN users u ON u.user_id = v.user_id LEFT JOIN web_accounts a ON a.user_id = v.user_id "
+        "WHERE v.created_at >= %s GROUP BY v.user_id, 2, 3 ORDER BY 4 DESC LIMIT 50", (win[0],))
+    month_start = today.replace(day=1)
+    votes = {
+        "total": int(_one("SELECT COUNT(*) FROM topgg_votes")),
+        "period": sum(int(n) for _, n in vote_daily),
+        "voters": int(_one("SELECT COUNT(DISTINCT user_id) FROM topgg_votes WHERE created_at >= %s", (win[0],))),
+        "month": int(_one("SELECT COUNT(*) FROM topgg_votes WHERE created_at >= %s", (month_start,))),
+        "active": int(_one("SELECT COUNT(DISTINCT user_id) FROM topgg_votes WHERE expires_at > %s", (datetime.utcnow(),))),
+        "labels": [_day_label(d, lang) for d in win],
+        "daily": _series(vote_daily, win),
+        "top": [{"name": name or str(uid), "avatar": avatar, "url": url_for("user_profile.profile", username=uid), "value": int(n)}
+                for uid, name, avatar, n in vote_top],
+        "webhook_ready": bool(os.environ.get("TOPGG_WEBHOOK_SECRET")),
+        "api_ready": bool(os.environ.get("TOPGG_TOKEN")),
+    }
+
     # ---------------- Site health ----------------
     status_rows = _rows("SELECT day, status, SUM(hits) FROM web_status_daily WHERE day >= %s GROUP BY day, status", (win[0],))
     by_status = {s: {} for s in (404, 429, 500)}
@@ -425,6 +446,7 @@ def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
         "accounts": accounts,
         "customization": customization,
         "bot": bot,
+        "votes": votes,
         "health": health,
         "generated_at": datetime.utcnow().isoformat(timespec="seconds"),
     }

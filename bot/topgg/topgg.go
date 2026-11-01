@@ -23,6 +23,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// VoteURL is the page where members vote for Hourglass (one vote every 12 hours).
+const VoteURL = "https://top.gg/bot/1210665993328926750/vote"
+
 // Interval between two posts: top.gg updates the figure a few times an hour at most.
 const Interval = 30 * time.Minute
 

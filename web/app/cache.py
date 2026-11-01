@@ -32,5 +32,10 @@ class TTLCache:
                 self._data.popitem(last=False)
         return value
 
+    def delete(self, key: Hashable) -> None:
+        """Forget one entry (this worker only; the others refresh it when its TTL runs out)."""
+        with self._lock:
+            self._data.pop(key, None)
+
 
 cache = TTLCache()

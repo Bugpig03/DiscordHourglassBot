@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
- 
+
+## Version 3.32.0 - Votes top.gg et Badge Soutien - 01/11/2026
+### Votes
+- **Les votes pour Hourglass sur top.gg sont enregistrés** dans une nouvelle table du site `topgg_votes` (créée au démarrage, migration `2026-11-01_web_v3.32.0_topgg_votes.sql`) : membre Discord, date, date du prochain vote possible, poids.
+  - **En temps réel** par le webhook top.gg, sur `/webhooks/topgg` : signature HMAC-SHA256 vérifiée (`x-topgg-signature`, secret `whs_…` dans `TOPGG_WEBHOOK_SECRET`), requête de plus de 10 minutes refusée (rejeu). Les webhooks à l'ancien format (en-tête `Authorization`) sont acceptés avec le même secret. Tout refus va dans le journal de sécurité (« Webhook top.gg refusé ») ; limite de 120 requêtes par minute.
+  - **Rattrapage toutes les heures** par l'API top.gg (`TOPGG_TOKEN`), et **historique de l'année passée** au premier passage : un vote manqué par le webhook est retrouvé. Un vote reçu deux fois n'est compté qu'une fois.
+- **Badge « Soutien » (Supporter)**, le 10ᵉ : 1, 5, 10, 25, 50, 100 et 200 votes, de Bronze à Mythique. Un vote du week-end (qui compte double sur top.gg) compte une fois ici. Il apparaît partout où sont les badges : profil, vitrine, cartes du bot, page Aide.
+- **Profil** : nombre de votes à côté de l'identifiant, avec « A voté » pendant les 12 heures du vote ; sur son propre profil, bouton **Voter** quand un vote est possible.
+- **Accueil** : bouton « Voter sur top.gg » dans l'en-tête.
+- **Admin, onglet Communauté** : votes de la période, du mois, votes en cours, total, votes par jour, meilleurs votants, et rappel des variables manquantes ; nouveau compteur « Webhooks top.gg refusés » dans l'onglet Sécurité.
+- **Page Aide et textes** : 10 badges et 70 paliers. Page Confidentialité : paragraphe sur les votes dans les 12 langues.
+
 ## Version 3.31.5 - Tuile « Serveurs Uniques » de l'Accueil - 01/11/2026
 - **Accueil** : la tuile « Serveurs actifs / Serveurs connectés » devient **« Serveurs uniques »**, comme « Utilisateurs uniques » à côté. Son chiffre est le nombre de serveurs suivis par Hourglass depuis le début (ce qu'elle comptait déjà) ; la pastille dessous indique **combien ont le bot actuellement** (icône bot), au lieu de « Serveurs connectés », trompeur. Traduit dans les 12 langues.
 

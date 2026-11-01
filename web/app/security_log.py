@@ -37,6 +37,7 @@ KINDS = {
     "rate_limited": ("Limite de requêtes (429)", "Rate limited (429)", "warn"),
     "scan": ("Scan de robot", "Bot scan", "warn"),
     "card_token_fail": ("Jeton de carte invalide", "Invalid card token", "high"),
+    "webhook_fail": ("Webhook top.gg refusé", "top.gg webhook refused", "high"),
     "csp_violation": ("Violation CSP", "CSP violation", "warn"),
     "server_error": ("Erreur serveur (500)", "Server error (500)", "high"),
     "too_large": ("Requête trop grosse (413)", "Request too large (413)", "warn"),

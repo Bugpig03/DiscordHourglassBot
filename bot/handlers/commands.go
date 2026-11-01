@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"hourglass-bot/card"
+	"hourglass-bot/topgg"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -118,6 +119,10 @@ var Commands = []*discordgo.ApplicationCommand{
 		Name:        "help",
 		Description: "Every Hourglass command.",
 	},
+	{
+		Name:        "vote",
+		Description: "Vote for Hourglass on top.gg, and see your votes.",
+	},
 }
 
 func (h *BotHandler) RegisterSlashCommands(s *discordgo.Session) {
@@ -191,6 +196,8 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 		h.handleTopFiltered(ctx, s, i, true)
 	case "help":
 		h.handleHelp(ctx, s, i)
+	case "vote":
+		h.handleVote(ctx, s, i)
 	}
 }
 
@@ -444,6 +451,34 @@ func (h *BotHandler) topText(ctx context.Context, rankingType, period string, is
 	return out
 }
 
+// handleVote answers with the top.gg vote link, the member's vote count and when they can vote again.
+// Votes are stored by the website (table topgg_votes, filled by the top.gg webhook): without it, 0 votes.
+func (h *BotHandler) handleVote(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
+	userID := ""
+	if i.Member != nil && i.Member.User != nil {
+		userID = i.Member.User.ID
+	} else if i.User != nil {
+		userID = i.User.ID
+	}
+	var count int64
+	var next *time.Time
+	if uid, err := strconv.ParseInt(userID, 10, 64); err == nil {
+		_ = h.DB.Pool.QueryRow(ctx, `SELECT COUNT(*), MAX(expires_at) FROM topgg_votes WHERE user_id = $1`, uid).Scan(&count, &next)
+	}
+	text := msg(i, "vote_intro", topgg.VoteURL) + "\n\n" + msg(i, "vote_count", count)
+	if next != nil && next.After(time.Now()) {
+		text += "\n" + msg(i, "vote_next", fmt.Sprintf("<t:%d:R>", next.Unix()))
+	} else {
+		text += "\n" + msg(i, "vote_ready")
+	}
+	_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+		Embeds: []*discordgo.MessageEmbed{{
+			Description: text,
+			Color:       0xff6b8a,
+		}},
+	})
+}
+
 func (h *BotHandler) handleHelp(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
 	commands := []struct{ name, desc string }{
 		{"/stats [user]", "Your stats on this server: voice, messages, rank and showcase badges."},
@@ -452,6 +487,7 @@ func (h *BotHandler) handleHelp(ctx context.Context, s *discordgo.Session, i *di
 		{"/alltop", "Top 10 across every server."},
 		{"/versus <player1> <player2> [scope]", "Head-to-head duel between two members, on this server or everywhere."},
 		{"/server", "Statistics of this server: voice, messages, members and the last 30 days."},
+		{"/vote", "Vote for Hourglass on top.gg (every 12 hours) and see your votes."},
 		{"/help", "This list."},
 	}
 	var desc strings.Builder

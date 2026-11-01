@@ -28,12 +28,13 @@ Every command answers with an **image card**, drawn in the member's own Discord 
 | `/alltop` | Top 10 across every server |
 | `/versus <player1> <player2> [scope]` | Head-to-head duel between two members, with a winner |
 | `/server` | This server's voice time, messages, members and its last 30 days |
+| `/vote` | Vote link, your votes and when you can vote again |
 | `/help` | Every command |
 
 ## 🏆 Levels, badges and streaks
 
 - **XP and levels**: 1 XP per minute in voice, 1 XP per message. Titles from *Curious Novice* to *Hourglass Legend*.
-- **9 badges, 7 tiers each** (Bronze, Silver, Gold, Platinum, Diamond, Legend, Mythic): voice, messages, level, ranking, servers, loyalty, monthly activity, **daily streak** and versatility.
+- **10 badges, 7 tiers each** (Bronze, Silver, Gold, Platinum, Diamond, Legend, Mythic): voice, messages, level, ranking, servers, loyalty, monthly activity, **daily streak**, versatility and **Supporter**, earned by voting for Hourglass here on top.gg.
 - **Streaks**: keep coming back day after day; the longest run unlocks up to the Mythic tier at 365 days.
 - **Rank movements**: see who climbed ▲ or dropped ▼ in the leaderboards.
 
