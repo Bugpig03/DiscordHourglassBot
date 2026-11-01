@@ -38,8 +38,11 @@ EXTENSION_SCHEMES = ("chrome-extension:", "moz-extension:", "safari-extension:",
 
 # Pages with private data: never kept by a browser or proxy cache
 NO_STORE_PREFIXES = ("/admin", "/me/", "/auth/")
-# HTTPS only for 6 months (no preload list: removing a site from it takes months)
+# HTTPS only for 6 months (no preload list: removing a site from it takes months). Set HSTS_FROM_PROXY=true when
+# the reverse proxy already sends its own Strict-Transport-Security: two headers contradict each other, and browsers
+# only keep the first one.
 HSTS = "max-age=15552000"
+HSTS_FROM_PROXY = os.environ.get("HSTS_FROM_PROXY", "false").lower() in ("1", "true", "yes")
 
 
 def csp_nonce() -> str:
@@ -186,7 +189,7 @@ def init_security(app) -> None:
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
-        if request.is_secure:
+        if request.is_secure and not HSTS_FROM_PROXY:
             response.headers.setdefault("Strict-Transport-Security", HSTS)
         if request.path.startswith(NO_STORE_PREFIXES):
             response.headers["Cache-Control"] = "no-store"

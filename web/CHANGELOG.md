@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.31.4 - HSTS Unique et Batterie de Tests de Sécurité - 01/11/2026
+- **HSTS** : le proxy openresty envoie déjà son propre `Strict-Transport-Security`, ce qui faisait deux en-têtes contradictoires (les navigateurs ne retiennent que le premier). Avec `HSTS_FROM_PROXY=true` dans l'environnement, le site n'envoie plus le sien ; une ligne « HSTS » du check-up de l'admin indique qui l'envoie.
+- **Batterie de tests de sécurité** `web/scripts/security_check.py` (55 contrôles, sans serveur, sans rien écrire en base) : en-têtes et CSP, cookie de session, contrôle d'accès (admin, sessions vocales réservées au propriétaire, jeton des cartes), CSRF, redirections ouvertes, `state` OAuth, XSS réfléchi (60 injections), injection SQL (dont temporelle et par cookie), traversée de répertoires, méthodes HTTP, taille des requêtes, pages d'erreur, limites de requêtes et IP falsifiée, en-tête Host. `--quiet` n'affiche que les échecs ; code de sortie 1 en cas d'échec.
+- **Pied de page** : lien « Nouveautés ↗ » à côté du numéro de version, vers ce changelog sur GitHub (nouvel onglet), traduit dans les 12 langues.
+
 ## Version 3.31.3 - Admin : Listes Lisibles dans les Cartes Étroites - 01/11/2026
 - **Journal de sécurité dans une carte étroite** (encadré « Derniers événements » de la vue d'ensemble) : la mise en page dépend maintenant de la largeur de la carte, pas de celle de l'écran. Sur grand écran, l'encadré gardait ses quatre colonnes et l'adresse de la page s'affichait une lettre par ligne ; il passe désormais au format compact : type et heure, puis IP, page et détail en dessous.
 - **Barres de défilement** : les listes et journaux qui défilent dans leur carte réservent une place à la barre, qui ne recouvre plus les chiffres ni le texte.

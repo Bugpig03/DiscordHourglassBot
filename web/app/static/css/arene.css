@@ -2049,3 +2049,13 @@ html body .server-untracked-badge {
   line-height: 1.3;
   text-transform: uppercase;
 }
+
+/* Footer: version, then the link to the changelog on GitHub (v3.31.4) */
+html body .footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+html body .footer-changelog { font-size: inherit; }

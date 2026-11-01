@@ -2486,5 +2486,17 @@
  "p0676": [
   "erreurs serveur",
   "server errors"
+ ],
+ "p0677": [
+  "Nouveautés",
+  "Changelog"
+ ],
+ "p0678": [
+  "environ {n} Mo récupérables avec VACUUM FULL",
+  "about {n} MB reclaimable with VACUUM FULL"
+ ],
+ "p0679": [
+  "récupérables",
+  "reclaimable"
  ]
 }

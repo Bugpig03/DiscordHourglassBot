@@ -209,7 +209,11 @@
             </a>
         </div>
         <div class="small-text gray">{{ t('footer.powered_by') }}</div>
-        <div class="micro-text gray">{{ t('footer.version') }}</div>
+        <div class="micro-text gray footer-version">
+            <span>{{ t('footer.version') }}</span>
+            <span class="footer-sep">•</span>
+            <a href="https://github.com/Bugpig03/DiscordHourglassBot/blob/main/web/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="footer-link footer-changelog">{{ tr('Nouveautés', 'Changelog') }}<span aria-hidden="true"> ↗</span></a>
+        </div>
     </footer>
 
 <div class="ar-loader" id="arLoader" aria-hidden="true">

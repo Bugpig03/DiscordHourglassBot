@@ -441,7 +441,7 @@ def _config_checkup(fr: bool) -> list[dict]:
     """
     from app import config as app_config
     from app.config import Config
-    from app.security import client_ip
+    from app.security import HSTS_FROM_PROXY, client_ip
     t = (lambda a, b: a if fr else b)
     source = app_config.SECRET_KEY_SOURCE
     key_text = {
@@ -464,6 +464,10 @@ def _config_checkup(fr: bool) -> list[dict]:
         (t("HTTPS", "HTTPS"), request.is_secure,
          t("Le site est servi en HTTPS.", "The site is served over HTTPS."),
          t("Page reçue en HTTP : le proxy doit envoyer X-Forwarded-Proto: https.", "Page received over HTTP: the proxy must send X-Forwarded-Proto: https.")),
+        (t("HSTS", "HSTS"), True,
+         t("Envoyé par le proxy (HSTS_FROM_PROXY).", "Sent by the proxy (HSTS_FROM_PROXY).") if HSTS_FROM_PROXY else
+         t("Envoyé par le site (6 mois). Si le proxy en envoie aussi un, définir HSTS_FROM_PROXY=true.",
+           "Sent by the site (6 months). If the proxy sends one too, set HSTS_FROM_PROXY=true."), ""),
         (t("Cookie de session", "Session cookie"), bool(Config.SESSION_COOKIE_SECURE),
          t("Envoyé uniquement en HTTPS.", "Only sent over HTTPS."),
          t("Envoyé aussi en HTTP : retirer SESSION_COOKIE_SECURE=false.", "Also sent over HTTP: remove SESSION_COOKIE_SECURE=false.")),
