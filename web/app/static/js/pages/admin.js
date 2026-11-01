@@ -1,25 +1,43 @@
-/* Admin page: cards, charts and ranked lists fed by /admin/data (cached 60 s server side). */
+/* Admin console: sidebar sections, a period for the whole page (7 / 30 / 90 days), cards, charts and lists fed by
+   /admin/data?days=N (cached 60 s server side). Each section renders once per loaded period, when first opened. */
 const PAGE_CFG = JSON.parse(document.getElementById('hgPageConfig').textContent);
 const T = (fr, en, vars) => HG.tr(fr, en, vars);
 const charts = {};
 const initializedTabs = new Set();
 let data = null;
 let currentTab = 'tab-overview';
-let trafficRange = 30;
+let days = 30;
+const PERIODS = [7, 30, 90];
 
-const TOOLTIP = { backgroundColor: 'rgba(24, 25, 29, 0.95)', titleColor: '#fff', bodyColor: '#e3e5e8', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, padding: 10 };
-const GRID = { color: 'rgba(255, 255, 255, 0.06)' };
+const TOOLTIP = { backgroundColor: '#1d1f26', titleColor: '#e8e9ee', bodyColor: '#b6b9c3', borderColor: '#333744', borderWidth: 1, padding: 10 };
+const GRID = { color: '#22252d' };
+const periodLabel = () => T('{n} j', '{n} d', { n: days });
 
 function switchGraphTab(tabId) {
     const OLD_TABS = { 'tab-custom': 'tab-profiles', 'tab-commands': 'tab-bot', 'tab-health': 'tab-tech' };
     tabId = OLD_TABS[tabId] || tabId;
     if (!document.getElementById(tabId)) tabId = 'tab-overview';
     currentTab = tabId;
-    document.querySelectorAll('.graphs-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+    document.querySelectorAll('.adm-nav-item[data-tab]').forEach(b => {
+        const on = b.dataset.tab === tabId;
+        b.classList.toggle('active', on);
+        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
     document.querySelectorAll('.graphs-tab-pane').forEach(p => p.classList.toggle('active', p.id === tabId));
+    const item = document.querySelector(`.adm-nav-item[data-tab="${tabId}"] .adm-nav-label`);
+    if (item) {
+        document.getElementById('admTitle').textContent = item.textContent;
+        document.title = `${item.textContent} · Admin · Hourglass`;
+    }
+    setDrawer(false);
     initTab(tabId);
     requestAnimationFrame(() => Object.values(charts).forEach(c => { try { c.resize(); } catch (e) {} }));
-    if (window.history && window.history.replaceState) window.history.replaceState(null, '', '#' + tabId);
+    if (window.history && window.history.replaceState) window.history.replaceState(null, '', `?days=${days}#${tabId}`);
+}
+
+function setDrawer(open) {
+    document.getElementById('admApp').classList.toggle('side-open', open);
+    document.getElementById('admScrim').hidden = !open;
 }
 
 function pct(value) {
@@ -111,10 +129,10 @@ function lineChart(id, labels, datasets, opts = {}) {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: datasets.length > 1, labels: { color: '#e3e5e8', usePointStyle: true } }, tooltip: TOOLTIP },
+            plugins: { legend: { display: datasets.length > 1, labels: { color: '#b6b9c3', usePointStyle: true, boxWidth: 8 } }, tooltip: TOOLTIP },
             scales: {
-                x: { stacked: !!opts.stacked, grid: { display: false }, ticks: { color: '#a3a6b0', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
-                y: { stacked: !!opts.stacked, beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', precision: 0 } },
+                x: { stacked: !!opts.stacked, grid: { display: false }, ticks: { color: '#868a96', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+                y: { stacked: !!opts.stacked, beginAtZero: true, grid: GRID, border: { display: false }, ticks: { color: '#868a96', precision: 0 } },
             },
         },
     });
@@ -130,22 +148,41 @@ function renderKpis() {
     const b = data.bot;
     const status = document.getElementById('admBotStatus');
     status.textContent = b.bot_online ? T('Bot en ligne', 'Bot online') : T('Bot silencieux', 'Bot silent');
-    status.className = 'adm-bot-status ' + (b.bot_online ? 'ok' : 'ko');
+    status.className = 'adm-pill ' + (b.bot_online ? 'ok' : 'ko');
     status.title = `${T('Dernier relevé de présence', 'Last presence snapshot')} : ${dateText(b.last_presence)}`;
     document.getElementById('admMeta').textContent = `${T('Mis à jour', 'Updated')} ${dateText(data.generated_at)}`
         + (o.tracking_since ? ` · ${T('mesure d’audience depuis le', 'audience tracked since')} ${o.tracking_since}` : '');
+    document.querySelectorAll('[data-period-label]').forEach(el => { el.textContent = periodLabel(); });
+    document.querySelectorAll('#admPeriod [data-days]').forEach(btn => btn.classList.toggle('active', +btn.dataset.days === days));
+    // Sidebar badges: what needs a look (security alerts of the day, server errors, bot silent)
+    const sum = arr => (arr || []).reduce((x, y) => x + y, 0);
+    setBadge('navBadgeSecurity', securityAlerts(24), securityAlerts(24) > 50);
+    setBadge('navBadgeTech', sum(data.health.s500), true);
+    setBadge('navBadgeBot', b.bot_online ? 0 : '!', true);
+}
+
+function setBadge(id, value, severe) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.hidden = !value;
+    el.textContent = typeof value === 'number' ? HG.fmt(value) : value;
+    el.classList.toggle('is-ko', !!severe);
 }
 
 function renderTraffic() {
     const t = data.traffic;
-    const n = trafficRange;
-    lineChart('trafficChart', t.labels.slice(-n), [
-        area(T('Pages vues', 'Page views'), t.views.slice(-n), '#717cf8'),
-        area(T('Visiteurs uniques', 'Unique visitors'), t.uniques.slice(-n), '#a78bfa'),
+    lineChart('trafficChart', t.labels, [
+        area(T('Pages vues', 'Page views'), t.views, '#717cf8'),
+        area(T('Visiteurs uniques', 'Unique visitors'), t.uniques, '#3fd1a0'),
     ]);
-    const total = t.views.slice(-n).reduce((a, b) => a + b, 0);
-    const uniq = t.uniques.slice(-n).reduce((a, b) => a + b, 0);
+    const total = t.views.reduce((a, b) => a + b, 0);
+    const uniq = t.uniques.reduce((a, b) => a + b, 0);
     document.getElementById('trafficSummary').textContent = `${HG.fmt(total)} ${T('pages vues', 'page views')} · ${HG.fmt(uniq)} ${T('visiteurs-jour', 'visitor-days')}`;
+}
+
+function deltaText(value, label) {
+    if (value === null || value === undefined) return T('pas encore de période à comparer', 'no previous period yet');
+    return `<span class="${value >= 0 ? 'adm-delta-up' : 'adm-delta-down'}">${pct(value)}</span> ${label}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -161,42 +198,68 @@ function sectionOverview() {
     const o = data.overview, b = data.bot, c = data.commands, h = data.health, a = b.audience;
     const sum = arr => (arr || []).reduce((x, y) => x + y, 0);
     const errors500 = sum(h.s500);
+    const alerts = securityAlerts(24);
+    const failing = (data.security.checkup || []).filter(x => !x.ok).length;
+    const health = [
+        ['tab-bot', b.bot_online ? 'ok' : 'ko', b.bot_online ? T('Bot en ligne', 'Bot online') : T('Bot silencieux', 'Bot silent'),
+            b.presence_age_min === null ? T('aucun relevé', 'no snapshot') : `${T('relevé', 'snapshot')} ${ago(b.presence_age_min)}`],
+        ['tab-security', alerts > 50 ? 'ko' : alerts ? 'warn' : 'ok', T('{n} alerte(s) de sécurité', '{n} security alert(s)', { n: HG.fmt(alerts) }), T('dernières 24 h', 'last 24 h')],
+        ['tab-tech', errors500 ? 'ko' : 'ok', T('{n} erreur(s) serveur', '{n} server error(s)', { n: HG.fmt(errors500) }), periodLabel()],
+        ['tab-security', failing ? 'warn' : 'ok', failing ? T('{n} réglage(s) à revoir', '{n} setting(s) to check', { n: failing }) : T('Configuration saine', 'Healthy configuration'),
+            T('check-up de sécurité', 'security check-up')],
+        ['tab-bot', b.orphans ? 'warn' : 'ok', T('{n} session(s) orpheline(s)', '{n} orphan session(s)', { n: HG.fmt(b.orphans) }), T('vocal ouvert depuis plus de 24 h', 'voice open for over 24 h')],
+    ];
+    const strip = document.getElementById('overviewHealth');
+    strip.innerHTML = health.map(([tab, tone, title, sub]) => `
+        <button type="button" class="adm-health-item is-${tone}" data-goto="${tab}"><span class="adm-health-dot"></span>
+            <span class="adm-health-text"><strong>${HG.esc(title)}</strong><span>${HG.esc(sub)}</span></span></button>`).join('');
     const tiles = [
-        ['tab-traffic', T('Visites · 7 jours', 'Visits · 7 days'), HG.fmt(o.views_7),
-            o.delta_7 === null ? T('mesure en cours de démarrage', 'tracking just started') : `${pct(o.delta_7)} ${T('vs 7 j précédents', 'vs previous 7 d')}`, ''],
-        ['tab-traffic', T('Visiteurs uniques · aujourd’hui', 'Unique visitors · today'), HG.fmt(o.uniques_today), `${T('moyenne 7 j', '7-day average')} : ${HG.fmt(o.uniques_7_avg, 1)}`, ''],
-        ['tab-accounts', T('Comptes Discord liés', 'Linked Discord accounts'), HG.fmt(o.accounts), `+${HG.fmt(o.accounts_new_week)} ${T('cette semaine', 'this week')}`, ''],
-        ['tab-profiles', T('Profils personnalisés', 'Customized profiles'), HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`, ''],
+        ['tab-traffic', T('Pages vues', 'Page views'), HG.fmt(o.views), deltaText(o.delta, T('vs période précédente', 'vs previous period'))],
+        ['tab-traffic', T('Visiteurs uniques par jour', 'Unique visitors per day'), HG.fmt(o.uniques_avg, 1), deltaText(o.uniques_delta, T('vs période précédente', 'vs previous period'))],
+        ['tab-accounts', T('Comptes Discord liés', 'Linked Discord accounts'), HG.fmt(o.accounts), `+${HG.fmt(o.accounts_new_week)} ${T('cette semaine', 'this week')}`],
+        ['tab-profiles', T('Profils personnalisés', 'Customized profiles'), HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`],
         ['tab-community', T('Membres présents', 'Members present'), a ? HG.fmt(a.unique) : '—',
-            a ? `${HG.fmt(a.silent_percent, 1)} % ${T('jamais actifs', 'never active')}` : T('en attente du bot v3.3.0', 'waiting for bot v3.3.0'), ''],
-        ['tab-community', T('Serveurs du bot', 'Bot servers'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`, ''],
-        ['tab-bot', T('Commandes · 30 jours', 'Commands · 30 days'), HG.fmt(c.total), `${HG.fmt(c.failed_percent, 1)} % ${T('d’erreurs', 'errors')}`, c.failed ? 'warn' : ''],
-        ['tab-security', T('Alertes de sécurité · 24 h', 'Security alerts · 24 h'), HG.fmt(securityAlerts(24)),
-            `${HG.fmt(securityAlerts(7))} ${T('sur 7 jours', 'in 7 days')}`, securityAlerts(24) > 50 ? 'ko' : securityAlerts(24) ? 'warn' : 'ok'],
-        ['tab-tech', T('Erreurs serveur · 30 j', 'Server errors · 30 d'), HG.fmt(errors500), `${HG.fmt(sum(h.s404))} ${T('pages introuvables', 'pages not found')}`, errors500 ? 'ko' : 'ok'],
+            a ? `${HG.fmt(a.silent_percent, 1)} % ${T('jamais actifs', 'never active')}` : T('en attente du bot v3.3.0', 'waiting for bot v3.3.0')],
+        ['tab-community', T('Serveurs du bot', 'Bot servers'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`],
+        ['tab-bot', T('Commandes', 'Commands'), HG.fmt(c.total), `${HG.fmt(c.failed_percent, 1)} % ${T('d’erreurs', 'errors')} · ${periodLabel()}`, c.failed ? 'warn' : ''],
+        ['tab-accounts', T('Comptes actifs · 7 j', 'Active accounts · 7 d'), HG.fmt(data.accounts.active7), `${HG.fmt(data.accounts.active30)} ${T('sur 30 j', 'in 30 d')}`],
     ];
     const box = document.getElementById('overviewTiles');
     box.innerHTML = tiles.map(([tab, label, value, sub, tone]) => `
         <button type="button" class="adm-tile ${tone ? 'is-' + tone : ''}" data-goto="${tab}">
             <span class="adm-stat-label">${HG.esc(label)}</span>
             <span class="adm-tile-value">${value}</span>
-            <span class="adm-stat-sub">${HG.esc(sub)}</span>
+            <span class="adm-stat-sub">${sub}</span>
             <span class="adm-tile-go">${HG.esc(TAB_LABELS[tab])}</span>
         </button>`).join('');
-    box.querySelectorAll('[data-goto]').forEach(btn => btn.addEventListener('click', () => switchGraphTab(btn.dataset.goto)));
+    document.querySelectorAll('#tab-overview [data-goto]').forEach(btn => btn.addEventListener('click', () => switchGraphTab(btn.dataset.goto)));
     const t = data.traffic;
-    lineChart('overviewChart', t.labels.slice(-30), [
-        area(T('Pages vues', 'Page views'), t.views.slice(-30), '#717cf8'),
-        area(T('Visiteurs uniques', 'Unique visitors'), t.uniques.slice(-30), '#a78bfa'),
+    lineChart('overviewChart', t.labels, [
+        area(T('Pages vues', 'Page views'), t.views, '#717cf8'),
+        area(T('Visiteurs uniques', 'Unique visitors'), t.uniques, '#3fd1a0'),
     ]);
     document.getElementById('overviewSummary').textContent =
-        `${HG.fmt(sum(t.views.slice(-30)))} ${T('pages vues', 'page views')} · ${HG.fmt(sum(t.uniques.slice(-30)))} ${T('visiteurs-jour', 'visitor-days')}`;
+        `${HG.fmt(sum(t.views))} ${T('pages vues', 'page views')} · ${HG.fmt(sum(t.uniques))} ${T('visiteurs-jour', 'visitor-days')}`;
+    const events = (data.security.recent || []).filter(e => !QUIET_KINDS.includes(e.kind)).slice(0, 8);
+    document.querySelector('#overviewEvents tbody').innerHTML = events.map(e => securityRow(e)).join('')
+        || `<tr><td class="adm-muted">${T('Rien à signaler', 'Nothing to report')}</td></tr>`;
 }
 
 function sectionTraffic() {
 
         renderTraffic();
-        const t = data.traffic;
+        const t = data.traffic, o = data.overview;
+        const dev0 = t.devices, devTotal = Math.max(1, dev0.mobile + dev0.desktop);
+        const vsPrev = T('vs période précédente', 'vs previous period');
+        const stat = (label, value, subHtml) => `<div class="adm-stat"><span class="adm-stat-label">${HG.esc(label)}</span>
+            <span class="adm-stat-value">${value}</span><span class="adm-stat-sub">${subHtml}</span></div>`;
+        document.getElementById('trafficStats').innerHTML = [
+            stat(T('Pages vues', 'Page views'), HG.fmt(o.views), deltaText(o.delta, vsPrev)),
+            stat(T('Visiteurs uniques par jour', 'Unique visitors per day'), HG.fmt(o.uniques_avg, 1), deltaText(o.uniques_delta, vsPrev)),
+            stat(T('Aujourd’hui', 'Today'), HG.fmt(o.views_today), `${HG.fmt(o.uniques_today)} ${HG.esc(T('visiteurs', 'visitors'))}`),
+            stat(T('Sur téléphone', 'On phones'), `${HG.fmt(dev0.mobile / devTotal * 100)} %`,
+                `${HG.fmt(dev0.desktop / devTotal * 100)} % ${HG.esc(T('sur ordinateur', 'on desktop'))}`),
+        ].join('');
         lineChart('hourlyChart', [...Array(24).keys()].map(h => `${h}h`), [bars(T('Pages vues', 'Page views'), t.hourly, '#717cf8')], { type: 'bar' });
         const dev = t.devices, totalDev = Math.max(1, dev.mobile + dev.desktop);
         const langs = t.langs, totalLang = Math.max(1, (langs.fr || 0) + (langs.en || 0));
@@ -238,7 +301,7 @@ function sectionCommands() {
         const c = data.commands;
         document.getElementById('commandsNotice').hidden = c.total > 0;
         renderStats(document.getElementById('commandStats'), [
-            [T('Commandes · 30 jours', 'Commands · 30 days'), HG.fmt(c.total), `${HG.fmt(c.today)} ${T("aujourd'hui", 'today')}`],
+            [`${T('Commandes', 'Commands')} · ${periodLabel()}`, HG.fmt(c.total), `${HG.fmt(c.today)} ${T("aujourd'hui", 'today')}`],
             [T('En messages privés', 'In direct messages'), HG.fmt(c.dm)],
             [T('Erreurs', 'Errors'), HG.fmt(c.failed), `${HG.fmt(c.failed_percent, 1)} %`, c.failed ? 'warn' : 'ok'],
         ]);
@@ -306,9 +369,9 @@ function sectionHealth() {
         const h = data.health;
         const r = h.analytics_refresh || {};
         renderStats(document.getElementById('healthStats'), [
-            ['404 · 30 j', HG.fmt(h.s404.reduce((a, b) => a + b, 0))],
-            ['429 · 30 j', HG.fmt(h.s429.reduce((a, b) => a + b, 0)), T('limite de requêtes atteinte', 'rate limit reached')],
-            ['500 · 30 j', HG.fmt(h.s500.reduce((a, b) => a + b, 0)), '', h.s500.some(v => v) ? 'ko' : 'ok'],
+            [`404 · ${periodLabel()}`, HG.fmt(h.s404.reduce((a, b) => a + b, 0)), T('pages introuvables', 'pages not found')],
+            [`429 · ${periodLabel()}`, HG.fmt(h.s429.reduce((a, b) => a + b, 0)), T('limite de requêtes atteinte', 'rate limit reached')],
+            [`500 · ${periodLabel()}`, HG.fmt(h.s500.reduce((a, b) => a + b, 0)), T('erreurs serveur', 'server errors'), h.s500.some(v => v) ? 'ko' : 'ok'],
             [T('Calcul de la page Analyses', 'Analytics page computation'), r.ms !== undefined ? `${HG.fmt(r.ms)} ms` : '—',
                 r.at ? `${T('dernier rafraîchissement', 'last refresh')} ${dateText(r.at)} (${T('ce worker', 'this worker')})` : T('pas encore rafraîchi sur ce worker', 'not refreshed on this worker yet'),
                 r.ms > 2000 ? 'warn' : ''],
@@ -324,8 +387,8 @@ function sectionHealth() {
         const ks = keySources[h.session_key_source] || keySources.random;
         const tiles = document.getElementById('healthStats');
         tiles.insertAdjacentHTML('beforeend', `<div class="adm-stat is-${ks[2]}"><span class="adm-stat-label">${T('Clé de session', 'Session key')}</span>
-            <span class="adm-stat-value" style="font-size:1.05rem">${HG.esc(ks[0])}</span><span class="adm-stat-sub">${HG.esc(ks[1])}</span></div>`);
-        lineChart('statusChart', h.labels, [bars('404', h.s404, '#a3a6b0'), bars('429', h.s429, '#fbbf24'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
+            <span class="adm-stat-value" style="font-size:16px">${HG.esc(ks[0])}</span><span class="adm-stat-sub">${HG.esc(ks[1])}</span></div>`);
+        lineChart('statusChart', h.labels, [bars('404', h.s404, '#5b5f6c'), bars('429', h.s429, '#f5b03b'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
 }
 
 // ---------------------------------------------------------------------------
@@ -384,11 +447,18 @@ function sectionSecurity() {
     const log = document.querySelector('#securityLog tbody');
     log.innerHTML = s.recent.map(e => securityRow(e)).join('') || `<tr><td>${T('Aucun événement enregistré', 'No event recorded')}</td></tr>`;
     const select = document.getElementById('securityKind');
+    const chosen = select.value;
+    select.querySelectorAll('option[value]:not([value=""])').forEach(o => o.remove());
     s.kinds.forEach(k => select.insertAdjacentHTML('beforeend', `<option value="${HG.esc(k.key)}">${HG.esc(k.label)}</option>`));
-    select.dispatchEvent(new Event('change'));  // redraws the custom list with the new options
-    select.addEventListener('change', () => {
-        log.querySelectorAll('tr[data-kind]').forEach(tr => { tr.classList.toggle('is-filtered', !!select.value && tr.dataset.kind !== select.value); });
+    select.value = s.kinds.some(k => k.key === chosen) ? chosen : '';
+    const filter = () => log.querySelectorAll('tr[data-kind]').forEach(tr => {
+        tr.classList.toggle('is-filtered', !!select.value && tr.dataset.kind !== select.value);
     });
+    if (!select.dataset.bound) {
+        select.dataset.bound = '1';
+        select.addEventListener('change', () => filter());
+    }
+    filter();
 
     document.querySelector('#adminLog tbody').innerHTML = s.admin_log.map(e => securityRow(e, false)).join('')
         || `<tr><td>${T('Aucun accès enregistré', 'No access recorded')}</td></tr>`;
@@ -417,26 +487,48 @@ function initTab(tabId) {
     pane.querySelectorAll('[data-list]').forEach(el => enhanceLong(el, 'li.an-rank-item'));
     pane.querySelectorAll('.adm-table-wrap').forEach(el => enhanceLong(el, 'tbody tr'));
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    Chart.defaults.color = '#a3a6b0';
-    Chart.defaults.font.family = 'Arial, sans-serif';
-    document.querySelectorAll('[data-range]').forEach(btn => btn.addEventListener('click', () => {
-        trafficRange = parseInt(btn.dataset.range, 10);
-        document.querySelectorAll('[data-range]').forEach(b => b.classList.toggle('active', b === btn));
-        if (data) renderTraffic();
-    }));
-    switchGraphTab(window.location.hash.replace('#', '') || 'tab-overview');
-    fetch('/admin/data', { credentials: 'same-origin' })
+function load(newDays, opts = {}) {
+    days = PERIODS.includes(newDays) ? newDays : 30;
+    try { localStorage.setItem('hgAdminDays', String(days)); } catch (e) {}
+    const refresh = document.getElementById('admRefresh');
+    refresh.classList.add('is-spinning');
+    return fetch(`/admin/data?days=${days}`, { credentials: 'same-origin' })
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(json => {
             data = json;
+            initializedTabs.clear();
             renderKpis();
             initTab(currentTab);
             document.querySelectorAll('.chart-loading-overlay').forEach(el => el.classList.add('loaded'));
+            if (window.history && window.history.replaceState) window.history.replaceState(null, '', `?days=${days}#${currentTab}`);
         })
         .catch(err => {
             console.error('Admin data failed:', err);
-            document.querySelectorAll('.chart-spinner-text').forEach(el => { el.textContent = T('Erreur de chargement', 'Loading error'); el.style.color = '#ef4444'; });
-        });
+            document.querySelectorAll('.chart-spinner-text').forEach(el => { el.textContent = T('Erreur de chargement', 'Loading error'); el.style.color = '#f87171'; });
+            if (opts.quiet !== true) document.getElementById('admMeta').textContent = T('Erreur de chargement', 'Loading error');
+        })
+        .finally(() => refresh.classList.remove('is-spinning'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    Chart.defaults.color = '#868a96';
+    Chart.defaults.font.family = '"IBM Plex Sans", "Segoe UI", system-ui, sans-serif';
+    Chart.defaults.font.size = 12;
+    document.querySelectorAll('.adm-nav-item[data-tab]').forEach(btn => btn.addEventListener('click', () => switchGraphTab(btn.dataset.tab)));
+    document.querySelectorAll('#admPeriod [data-days]').forEach(btn => btn.addEventListener('click', () => {
+        if (+btn.dataset.days !== days) load(+btn.dataset.days);
+    }));
+    document.getElementById('admRefresh').addEventListener('click', () => load(days));
+    document.getElementById('admMenu').addEventListener('click', () => setDrawer(!document.getElementById('admApp').classList.contains('side-open')));
+    document.getElementById('admScrim').addEventListener('click', () => setDrawer(false));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setDrawer(false); });
+
+    const fromUrl = parseInt(new URLSearchParams(window.location.search).get('days'), 10);
+    let saved = NaN;
+    try { saved = parseInt(localStorage.getItem('hgAdminDays'), 10); } catch (e) {}
+    days = PERIODS.includes(fromUrl) ? fromUrl : PERIODS.includes(saved) ? saved : 30;
+    document.querySelectorAll('#admPeriod [data-days]').forEach(btn => btn.classList.toggle('active', +btn.dataset.days === days));
+    currentTab = window.location.hash.replace('#', '') || 'tab-overview';
+    switchGraphTab(currentTab);
+    load(days);
 });

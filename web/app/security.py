@@ -32,6 +32,9 @@ RATE_LIMITS = [
 ]
 RATE_WINDOW_SECONDS = 60
 
+# Origins of browser extensions: their blocked scripts are left out of the security journal
+EXTENSION_SCHEMES = ("chrome-extension:", "moz-extension:", "safari-extension:", "safari-web-extension:", "ms-browser-extension:")
+
 # Pages with private data: never kept by a browser or proxy cache
 NO_STORE_PREFIXES = ("/admin", "/me/", "/auth/")
 # HTTPS only for 6 months (no preload list: removing a site from it takes months)
@@ -62,7 +65,8 @@ def valid_csrf(submitted: str | None) -> bool:
 def build_csp() -> str:
     directives = [
         "default-src 'self'",
-        f"script-src 'self' 'nonce-{csp_nonce()}' {SCRIPT_CDN}",
+        # 'report-sample': a report carries the first characters of the blocked script, to tell who added it
+        f"script-src 'self' 'nonce-{csp_nonce()}' 'report-sample' {SCRIPT_CDN}",
         # Templates still use inline style attributes; scripts are what CSP needs to lock down
         "style-src 'self' 'unsafe-inline'",
         f"img-src 'self' data: {IMAGE_HOSTS}",
@@ -209,9 +213,16 @@ def init_security(app) -> None:
             directive = body.get("violated-directive") or body.get("effectiveDirective") or body.get("effective-directive")
             if not directive:
                 continue  # not a CSP report
-            blocked = body.get("blocked-uri") or body.get("blockedURL") or "inline"
+            blocked = str(body.get("blocked-uri") or body.get("blockedURL") or "inline")
+            source = str(body.get("source-file") or body.get("sourceFile") or "")
+            sample = " ".join(str(body.get("script-sample") or body.get("sample") or "").split())
+            # Scripts added by the visitor's browser extensions (dark mode, password managers, ad blockers...) are
+            # blocked as they should be, but are not about the site: not journaled
+            if any(x.startswith(EXTENSION_SCHEMES) for x in (blocked, source)):
+                continue
             page = body.get("document-uri") or body.get("documentURL") or ""
-            record("csp_violation", f"{directive} : {blocked}"[:200], path=str(page)[:160])
+            detail = f"{directive} : {blocked}" + (f" · {source}" if source and source != page else "") + (f" · « {sample[:60]} »" if sample else "")
+            record("csp_violation", detail[:200], path=str(page)[:160])
         return "", 204
 
     @app.context_processor

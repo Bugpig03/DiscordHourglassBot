@@ -139,10 +139,6 @@
   "Trop de requêtes, réessayez dans quelques secondes.",
   "Too many requests, please retry in a few seconds."
  ],
- "p0037": [
-  "Statistiques internes du site et du bot.",
-  "Internal statistics of the site and the bot."
- ],
  "p0038": [
   "Vue d’ensemble",
   "Overview"
@@ -163,49 +159,13 @@
   "Technique",
   "Technical"
  ],
- "p0043": [
-  "Visites · 30 derniers jours",
-  "Visits · last 30 days"
- ],
  "p0044": [
   "Visites par jour",
   "Visits per day"
  ],
- "p0045": [
-  "Pages les plus vues · 30 j",
-  "Most viewed pages · 30 d"
- ],
- "p0046": [
-  "Sources · 30 j",
-  "Sources · 30 d"
- ],
- "p0047": [
-  "Profils les plus consultés · 30 j",
-  "Most viewed profiles · 30 d"
- ],
- "p0048": [
-  "Fiches serveur les plus consultées · 30 j",
-  "Most viewed server pages · 30 d"
- ],
- "p0049": [
-  "Heures de visite · 30 j",
-  "Visit hours · 30 d"
- ],
- "p0050": [
-  "Recherches · 30 j",
-  "Searches · 30 d"
- ],
- "p0051": [
-  "Connexions au site",
-  "Site logins"
- ],
  "p0052": [
   "Nouveaux comptes liés par semaine",
   "New linked accounts per week"
- ],
- "p0053": [
-  "Première connexion Discord sur le site.",
-  "First Discord login on the site."
  ],
  "p0054": [
   "Comptes actifs par jour",
@@ -251,10 +211,6 @@
   "Membres présents sur les serveurs",
   "Members present on the servers"
  ],
- "p0066": [
-  "Personnes uniques vues par le bot sur tous ses serveurs, y compris celles qui n’ont jamais parlé ni rejoint un vocal (chacune comptée une fois). Relevé toutes les 15 min.",
-  "Unique people seen by the bot on all its servers, including those who never talked nor joined voice (each counted once). Snapshot every 15 min."
- ],
  "p0067": [
   "Pas encore de relevé : il apparaît 15 minutes après le démarrage du bot v3.3.0.",
   "No snapshot yet: it appears 15 minutes after bot v3.3.0 starts."
@@ -283,10 +239,6 @@
   "12 derniers mois.",
   "Last 12 months."
  ],
- "p0074": [
-  "État du bot",
-  "Bot status"
- ],
  "p0075": [
   "Commandes",
   "Commands"
@@ -295,37 +247,13 @@
   "Aucune commande enregistrée pour l’instant : le suivi démarre avec la version 3.1.0 du bot.",
   "No command recorded yet: tracking starts with bot version 3.1.0."
  ],
- "p0077": [
-  "Commandes utilisées par jour · 30 j",
-  "Commands used per day · 30 d"
- ],
  "p0078": [
   "Aucun identifiant de membre n’est enregistré : seulement la commande, le serveur, les options de choix et la durée.",
   "No member identifier is stored: only the command, the server, the choice options and the duration."
  ],
- "p0079": [
-  "Commandes les plus utilisées · 30 j",
-  "Most used commands · 30 d"
- ],
- "p0080": [
-  "Serveurs les plus actifs · 30 j",
-  "Most active servers · 30 d"
- ],
- "p0081": [
-  "Options les plus choisies · 30 j",
-  "Most chosen options · 30 d"
- ],
  "p0082": [
   "Temps de réponse et erreurs",
   "Response time and errors"
- ],
- "p0083": [
-  "Santé du site",
-  "Site health"
- ],
- "p0084": [
-  "Erreurs par jour · 30 j",
-  "Errors per day · 30 d"
  ],
  "p0085": [
   "404 page introuvable, 429 limite de requêtes, 500 erreur serveur.",
@@ -334,14 +262,6 @@
  "p0086": [
   "Adresses 404 les plus fréquentes",
   "Most frequent 404 paths"
- ],
- "p0087": [
-  "Base de données",
-  "Database"
- ],
- "p0088": [
-  "Taille des tables",
-  "Table sizes"
  ],
  "p0089": [
   "Statistiques vocales et textuelles de vos serveurs Discord : temps en vocal, messages, classements, badges et graphiques.",
@@ -1123,26 +1043,6 @@
   "visiteurs-jour",
   "visitor-days"
  ],
- "p0291": [
-  "Visites · 7 jours",
-  "Visits · 7 days"
- ],
- "p0292": [
-  "mesure en cours de démarrage",
-  "tracking just started"
- ],
- "p0293": [
-  "vs 7 j précédents",
-  "vs previous 7 d"
- ],
- "p0294": [
-  "Visiteurs uniques · aujourd’hui",
-  "Unique visitors · today"
- ],
- "p0295": [
-  "moyenne 7 j",
-  "7-day average"
- ],
  "p0296": [
   "Comptes Discord liés",
   "Linked Discord accounts"
@@ -1179,17 +1079,9 @@
   "actifs sur 30 j",
   "active in 30 d"
  ],
- "p0305": [
-  "Commandes · 30 jours",
-  "Commands · 30 days"
- ],
  "p0306": [
   "d’erreurs",
   "errors"
- ],
- "p0307": [
-  "Erreurs serveur · 30 j",
-  "Server errors · 30 d"
  ],
  "p0308": [
   "pages introuvables",
@@ -1437,7 +1329,7 @@
  ],
  "p0369": [
   "sur 7 jours",
-  "in 7 days"
+  "over 7 days"
  ],
  "p0370": [
   "sur 48 h",
@@ -2235,10 +2127,6 @@
   "Dernières 24 heures",
   "Last 24 hours"
  ],
- "p0583": [
-  "Événements par jour · 30 j",
-  "Events per day · 30 d"
- ],
  "p0584": [
   "Hors connexions réussies et accès admin.",
   "Successful logins and admin access left out."
@@ -2247,17 +2135,9 @@
   "Sources les plus actives · 7 j",
   "Most active sources · 7 d"
  ],
- "p0586": [
-  "IP abrégée et types d’événements (scans, 429, échecs…).",
-  "Shortened IP and event types (scans, 429, failures…)."
- ],
  "p0587": [
   "Adresses visées · 7 j",
   "Targeted paths · 7 d"
- ],
- "p0588": [
-  "Pages des événements suspects.",
-  "Pages of the suspicious events."
  ],
  "p0589": [
   "Journal",
@@ -2282,10 +2162,6 @@
  "p0594": [
   "Accès à l’admin",
   "Admin access"
- ],
- "p0595": [
-  "Alertes de sécurité · 24 h",
-  "Security alerts · 24 h"
  ],
  "p0596": [
   "sur 7 j",
@@ -2438,5 +2314,177 @@
  "p0633": [
   "Maître du Temps",
   "Timekeeper"
+ ],
+ "p0634": [
+  "Sections de l’admin",
+  "Admin sections"
+ ],
+ "p0635": [
+  "Pilotage",
+  "Overview"
+ ],
+ "p0636": [
+  "Retour au site",
+  "Back to the site"
+ ],
+ "p0637": [
+  "Chargement…",
+  "Loading…"
+ ],
+ "p0638": [
+  "Actualiser",
+  "Refresh"
+ ],
+ "p0639": [
+  "Visites",
+  "Visits"
+ ],
+ "p0640": [
+  "Derniers événements de sécurité",
+  "Latest security events"
+ ],
+ "p0641": [
+  "Pages les plus vues",
+  "Most viewed pages"
+ ],
+ "p0642": [
+  "Sources",
+  "Sources"
+ ],
+ "p0643": [
+  "Profils les plus consultés",
+  "Most viewed profiles"
+ ],
+ "p0644": [
+  "Fiches serveur les plus consultées",
+  "Most viewed server pages"
+ ],
+ "p0645": [
+  "Heures de visite",
+  "Visit hours"
+ ],
+ "p0646": [
+  "Recherches",
+  "Searches"
+ ],
+ "p0647": [
+  "Première connexion Discord sur le site, 12 dernières semaines.",
+  "First Discord login on the site, last 12 weeks."
+ ],
+ "p0648": [
+  "Personnes uniques vues par le bot sur tous ses serveurs, actives ou non. Relevé toutes les 15 min.",
+  "Unique people seen by the bot on all its servers, active or not. Snapshot every 15 min."
+ ],
+ "p0649": [
+  "Commandes utilisées par jour",
+  "Commands used per day"
+ ],
+ "p0650": [
+  "Commandes les plus utilisées",
+  "Most used commands"
+ ],
+ "p0651": [
+  "Options les plus choisies",
+  "Most chosen options"
+ ],
+ "p0652": [
+  "Erreurs par jour",
+  "Errors per day"
+ ],
+ "p0653": [
+  "Base de données · taille des tables",
+  "Database · table sizes"
+ ],
+ "p0654": [
+  "Événements par jour",
+  "Events per day"
+ ],
+ "p0655": [
+  "IP abrégée et types d’événements.",
+  "Shortened IP and event types."
+ ],
+ "p0656": [
+  "{n} j",
+  "{n} d"
+ ],
+ "p0657": [
+  "pas encore de période à comparer",
+  "no previous period yet"
+ ],
+ "p0658": [
+  "aucun relevé",
+  "no snapshot"
+ ],
+ "p0659": [
+  "{n} alerte(s) de sécurité",
+  "{n} security alert(s)"
+ ],
+ "p0660": [
+  "dernières 24 h",
+  "last 24 h"
+ ],
+ "p0661": [
+  "{n} erreur(s) serveur",
+  "{n} server error(s)"
+ ],
+ "p0662": [
+  "{n} réglage(s) à revoir",
+  "{n} setting(s) to check"
+ ],
+ "p0663": [
+  "Configuration saine",
+  "Healthy configuration"
+ ],
+ "p0664": [
+  "check-up de sécurité",
+  "security check-up"
+ ],
+ "p0665": [
+  "{n} session(s) orpheline(s)",
+  "{n} orphan session(s)"
+ ],
+ "p0666": [
+  "vocal ouvert depuis plus de 24 h",
+  "voice open for over 24 h"
+ ],
+ "p0667": [
+  "vs période précédente",
+  "vs previous period"
+ ],
+ "p0668": [
+  "Visiteurs uniques par jour",
+  "Unique visitors per day"
+ ],
+ "p0669": [
+  "Comptes actifs · 7 j",
+  "Active accounts · 7 d"
+ ],
+ "p0670": [
+  "sur 30 j",
+  "in 30 d"
+ ],
+ "p0671": [
+  "Rien à signaler",
+  "Nothing to report"
+ ],
+ "p0672": [
+  "Aujourd’hui",
+  "Today"
+ ],
+ "p0673": [
+  "visiteurs",
+  "visitors"
+ ],
+ "p0674": [
+  "Sur téléphone",
+  "On phones"
+ ],
+ "p0675": [
+  "sur ordinateur",
+  "on desktop"
+ ],
+ "p0676": [
+  "erreurs serveur",
+  "server errors"
  ]
 }

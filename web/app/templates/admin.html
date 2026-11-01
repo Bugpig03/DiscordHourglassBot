@@ -1,253 +1,243 @@
-{% extends "base.html" %}
-
-{% block title %}Admin - Hourglass{% endblock %}
-{% block meta_description %}Admin{% endblock %}
-
+<!DOCTYPE html>
+{# Admin console (v3.31.0): its own full-page layout and sober dark theme, separate from the site's Arène look.
+   Sidebar of sections on the left, top bar with the period of the whole page, data from /admin/data. #}
+<html lang="{{ current_language.html }}" data-lang="{{ current_lang }}" data-locale="{{ current_language.intl }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin · Hourglass</title>
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg', v=asset_version('icons/favicon.svg')) }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css', v=asset_version('css/pages/admin.css')) }}">
+    {% if js_i18n %}<script type="application/json" id="hgI18n">{{ js_i18n | tojson }}</script>{% endif %}
+    <script src="{{ url_for('static', filename='js/ui.js', v=asset_version('js/ui.js')) }}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+    <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+</head>
 {% macro loading() %}<div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>{% endmacro %}
+{% macro nav(tab, icon, label, badge=None) %}
+<button type="button" class="adm-nav-item" data-tab="{{ tab }}">{{ pixel_icon(icon, 16) }}<span class="adm-nav-label">{{ label }}</span>{% if badge %}<span class="adm-nav-badge" id="{{ badge }}" hidden></span>{% endif %}</button>
+{% endmacro %}
+{% macro card(title, desc=None, period=False, extra=None) %}
+<div class="an-card-head"><div><h2 class="an-card-title">{{ title }}{% if period %} <span class="adm-period-tag" data-period-label></span>{% endif %}</h2>{% if desc %}<p class="an-card-desc">{{ desc }}</p>{% endif %}</div>{{ extra or '' }}</div>
+{% endmacro %}
+<body class="adm-body">
+<div class="adm-app" id="admApp">
+    <!-- ============================ Sidebar ============================ -->
+    <aside class="adm-side" id="admSide" aria-label="{{tr('Sections de l’admin', 'Admin sections')}}">
+        <div class="adm-brand">
+            <span class="adm-brand-logo">{{ pixel_icon('hourglass', 18) }}</span>
+            <span class="adm-brand-text"><strong>Hourglass</strong><small>Admin</small></span>
+        </div>
+        <nav class="adm-nav">
+            <div class="adm-nav-group">{{tr('Pilotage', 'Overview')}}</div>
+            {{ nav('tab-overview', 'grid', tr('Vue d’ensemble', 'Overview')) }}
+            {{ nav('tab-traffic', 'globe', tr('Site web', 'Website')) }}
+            {{ nav('tab-accounts', 'user_check', tr('Comptes', 'Accounts')) }}
+            {{ nav('tab-profiles', 'palette', tr('Profils', 'Profiles')) }}
+            {{ nav('tab-community', 'users', tr('Communauté', 'Community')) }}
+            <div class="adm-nav-group">{{tr('Technique', 'Technical')}}</div>
+            {{ nav('tab-bot', 'bot', 'Bot', 'navBadgeBot') }}
+            {{ nav('tab-tech', 'wrench', tr('Technique', 'Technical'), 'navBadgeTech') }}
+            {{ nav('tab-security', 'shield', tr('Sécurité', 'Security'), 'navBadgeSecurity') }}
+        </nav>
+        <div class="adm-side-foot">
+            <a class="adm-nav-item" href="{{ url_for('home.home') }}">{{ pixel_icon('arrow_left', 16) }}<span class="adm-nav-label">{{tr('Retour au site', 'Back to the site')}}</span></a>
+        </div>
+    </aside>
+    <div class="adm-scrim" id="admScrim" hidden></div>
 
+    <!-- ============================ Main ============================ -->
+    <div class="adm-main">
+        <header class="adm-top">
+            <button type="button" class="adm-icon-btn adm-menu-btn" id="admMenu" aria-label="{{tr('Menu', 'Menu')}}">{{ pixel_icon('menu', 18) }}</button>
+            <div class="adm-top-title">
+                <h1 id="admTitle">{{tr('Vue d’ensemble', 'Overview')}}</h1>
+                <p id="admMeta">{{tr('Chargement…', 'Loading…')}}</p>
+            </div>
+            <div class="adm-top-actions">
+                <div class="adm-seg" id="admPeriod" role="group" aria-label="{{tr('Période', 'Period')}}">
+                    <button type="button" data-days="7">7 {{tr('j', 'd')}}</button>
+                    <button type="button" data-days="30">30 {{tr('j', 'd')}}</button>
+                    <button type="button" data-days="90">90 {{tr('j', 'd')}}</button>
+                </div>
+                <span class="adm-pill" id="admBotStatus"></span>
+                <button type="button" class="adm-icon-btn" id="admRefresh" aria-label="{{tr('Actualiser', 'Refresh')}}" title="{{tr('Actualiser', 'Refresh')}}">{{ pixel_icon('swap', 16) }}</button>
+            </div>
+        </header>
 
-{% block content %}
-<meta name="robots" content="noindex, nofollow">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
-<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css', v=asset_version('css/pages/admin.css')) }}">
+        <main class="adm-content">
+        <!-- ========================== Vue d'ensemble ========================== -->
+        <section id="tab-overview" class="graphs-tab-pane active">
+            <div class="adm-health" id="overviewHealth"></div>
+            <div class="adm-tiles" id="overviewTiles"></div>
+            <div class="an-grid-2 adm-grid-wide">
+                <section class="an-card">
+                    {{ card(tr('Visites', 'Visits'), period=True) }}
+                    <p class="an-card-desc" id="overviewSummary">&nbsp;</p>
+                    <div class="an-chart an-chart-md">{{ loading() }}<canvas id="overviewChart"></canvas></div>
+                </section>
+                <section class="an-card">
+                    {{ card(tr('Derniers événements de sécurité', 'Latest security events')) }}
+                    <div class="adm-table-wrap"><table class="adm-table adm-log" id="overviewEvents"><tbody><tr><td>…</td></tr></tbody></table></div>
+                </section>
+            </div>
+        </section>
 
-<div class="an-head adm-head">
-    <div>
-        <h1 class="an-title">Admin</h1>
-        <p class="an-sub" id="admMeta">{{tr('Statistiques internes du site et du bot.', 'Internal statistics of the site and the bot.')}}</p>
-    </div>
-    <span class="adm-bot-status" id="admBotStatus"></span>
-</div>
-
-<div class="graphs-tabs-wrapper">
-    <div class="graphs-tabs adm-tabs" role="tablist">
-        <button class="graphs-tab-btn active" data-tab="tab-overview" data-call="switchGraphTab" data-arg="tab-overview"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="grid"><path d="M0 0h4v1h-4zM5 0h4v1h-4zM0 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM5 2h4v1h-4zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h4v1h-4zM5 4h4v1h-4zM5 5h1v1h-1zM8 5h1v1h-1zM0 6h4v1h-4zM5 6h1v1h-1zM8 6h1v1h-1zM0 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM8 7h1v1h-1zM0 8h4v1h-4zM5 8h4v1h-4z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Vue d’ensemble', 'Overview')}}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-traffic" data-call="switchGraphTab" data-arg="tab-traffic"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="globe"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM8 2h1v1h-1zM0 3h9v1h-9zM0 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM8 4h1v1h-1zM0 5h9v1h-9zM0 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Site web', 'Website')}}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-accounts" data-call="switchGraphTab" data-arg="tab-accounts"><svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="user_check"><path d="M2 0h3v1h-3zM1 1h5v1h-5zM1 2h5v1h-5zM2 3h3v1h-3zM8 3h1v1h-1zM7 4h2v1h-2zM1 5h4v1h-4zM6 5h2v1h-2zM0 6h7v1h-7zM0 7h6v1h-6z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Comptes', 'Accounts')}}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-profiles" data-call="switchGraphTab" data-arg="tab-profiles">{{ pixel_icon('palette', 15) }}<span class="tab-text"><span class="tab-title">{{tr('Profils', 'Profiles')}}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community"><svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Communauté', 'Community')}}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-bot" data-call="switchGraphTab" data-arg="tab-bot"><svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="bot"><path d="M4 0h1v1h-1zM1 1h7v1h-7zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h2v1h-2zM3 3h1v1h-1zM5 3h1v1h-1zM7 3h2v1h-2zM1 4h1v1h-1zM7 4h1v1h-1zM1 5h1v1h-1zM3 5h3v1h-3zM7 5h1v1h-1zM1 6h7v1h-7zM2 7h1v1h-1zM6 7h1v1h-1z"/></svg><span class="tab-text"><span class="tab-title">Bot</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-tech" data-call="switchGraphTab" data-arg="tab-tech"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="wrench"><path d="M5 0h1v1h-1zM7 0h1v1h-1zM5 1h1v1h-1zM7 1h2v1h-2zM5 2h3v1h-3zM4 3h3v1h-3zM3 4h3v1h-3zM2 5h3v1h-3zM1 6h3v1h-3zM0 7h3v1h-3zM1 8h1v1h-1z"/></svg><span class="tab-text"><span class="tab-title">{{tr('Technique', 'Technical')}}</span></span></button>
-        <button class="graphs-tab-btn" data-tab="tab-security" data-call="switchGraphTab" data-arg="tab-security">{{ pixel_icon('shield', 15) }}<span class="tab-text"><span class="tab-title">{{tr('Sécurité', 'Security')}}</span></span></button>
-    </div>
-</div>
-
-<!-- ========================== Vue d'ensemble ========================== -->
-<div id="tab-overview" class="graphs-tab-pane active">
-    <div class="adm-tiles" id="overviewTiles"></div>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Visites · 30 derniers jours', 'Visits · last 30 days')}}</h2>
-            <p class="an-card-desc" id="overviewSummary">&nbsp;</p></div></div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="overviewChart"></canvas></div>
-    </section>
-</div>
-
-<!-- ============================== Site web ============================== -->
-<div id="tab-traffic" class="graphs-tab-pane">
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head">
-            <div>
-                <h2 class="an-card-title">{{tr('Visites par jour', 'Visits per day')}}</h2>
+        <!-- ============================== Site web ============================== -->
+        <section id="tab-traffic" class="graphs-tab-pane">
+            <div class="adm-stats" id="trafficStats"></div>
+            <section class="an-card">
+                {{ card(tr('Visites par jour', 'Visits per day'), period=True) }}
                 <p class="an-card-desc" id="trafficSummary">&nbsp;</p>
+                <div class="an-chart an-chart-md">{{ loading() }}<canvas id="trafficChart"></canvas></div>
+            </section>
+            <div class="an-grid-2">
+                <section class="an-card">{{ card(tr('Pages les plus vues', 'Most viewed pages'), period=True) }}<ol class="an-rank" data-list="traffic.pages">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Sources', 'Sources'), period=True) }}<ol class="an-rank" data-list="traffic.referrers">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Profils les plus consultés', 'Most viewed profiles'), period=True) }}<ol class="an-rank" data-list="traffic.top_profiles">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Fiches serveur les plus consultées', 'Most viewed server pages'), period=True) }}<ol class="an-rank" data-list="traffic.top_servers">{{ loading() }}</ol></section>
+                <section class="an-card">
+                    {{ card(tr('Heures de visite', 'Visit hours'), period=True) }}
+                    <div class="adm-splits" id="trafficSplits"></div>
+                    <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
+                </section>
+                <section class="an-card">{{ card(tr('Recherches', 'Searches'), period=True) }}<ol class="an-rank" data-list="traffic.searches">{{ loading() }}</ol></section>
             </div>
-            <div class="granularity-toggle-group" role="group">
-                <button type="button" class="granularity-btn active" data-range="30">30 {{tr('jours', 'days')}}</button>
-                <button type="button" class="granularity-btn" data-range="90">90 {{tr('jours', 'days')}}</button>
+        </section>
+
+        <!-- ============================== Comptes ============================== -->
+        <section id="tab-accounts" class="graphs-tab-pane">
+            <div class="adm-stats" id="accountStats"></div>
+            <div class="an-grid-2">
+                <section class="an-card">
+                    {{ card(tr('Nouveaux comptes liés par semaine', 'New linked accounts per week'), tr('Première connexion Discord sur le site, 12 dernières semaines.', 'First Discord login on the site, last 12 weeks.')) }}
+                    <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="weeksChart"></canvas></div>
+                </section>
+                <section class="an-card">
+                    {{ card(tr('Comptes actifs par jour', 'Active accounts per day'), tr('Membres connectés qui ont utilisé le site ce jour-là.', 'Logged-in members who used the site that day.'), period=True) }}
+                    <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="activeChart"></canvas></div>
+                </section>
             </div>
-        </div>
-        <div class="an-chart an-chart-md">{{ loading() }}<canvas id="trafficChart"></canvas></div>
-    </section>
+            <section class="an-card">
+                {{ card(tr('Dernières connexions', 'Latest logins')) }}
+                <div class="adm-table-wrap"><table class="adm-table" id="recentLogins"><tbody><tr><td>…</td></tr></tbody></table></div>
+            </section>
+        </section>
 
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{tr('Pages les plus vues · 30 j', 'Most viewed pages · 30 d')}}</h2></div>
-            <ol class="an-rank" data-list="traffic.pages">{{ loading() }}</ol>
-        </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{tr('Sources · 30 j', 'Sources · 30 d')}}</h2></div>
-            <ol class="an-rank" data-list="traffic.referrers">{{ loading() }}</ol>
-        </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{tr('Profils les plus consultés · 30 j', 'Most viewed profiles · 30 d')}}</h2></div>
-            <ol class="an-rank" data-list="traffic.top_profiles">{{ loading() }}</ol>
-        </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{tr('Fiches serveur les plus consultées · 30 j', 'Most viewed server pages · 30 d')}}</h2></div>
-            <ol class="an-rank" data-list="traffic.top_servers">{{ loading() }}</ol>
-        </section>
-    </div>
-
-    <div class="an-grid-2 adm-gap">
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head">
-                <h2 class="an-card-title">{{tr('Heures de visite · 30 j', 'Visit hours · 30 d')}}</h2>
-                <div class="adm-splits" id="trafficSplits"></div>
+        <!-- ============================== Profils ============================== -->
+        <section id="tab-profiles" class="graphs-tab-pane">
+            <div class="adm-stats" id="customStats"></div>
+            <div class="an-grid-2">
+                <section class="an-card">{{ card(tr('Couleurs', 'Colors')) }}<ol class="an-rank" data-list="customization.accents">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Type de bannière', 'Banner type')) }}<ol class="an-rank" data-list="customization.banner_modes">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Bannières de la galerie', 'Gallery banners')) }}<ol class="an-rank" data-list="customization.banners">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Couleurs de fond', 'Background colors')) }}<ol class="an-rank" data-list="customization.backgrounds">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Badges en vitrine', 'Featured badges')) }}<ol class="an-rank" data-list="customization.badges">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Records épinglés', 'Pinned records')) }}<ol class="an-rank" data-list="customization.records">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Blocs masqués aux visiteurs', 'Blocks hidden from visitors')) }}<ol class="an-rank" data-list="customization.hidden">{{ loading() }}</ol></section>
             </div>
-            <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
         </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{tr('Recherches · 30 j', 'Searches · 30 d')}}</h2></div>
-            <ol class="an-rank" data-list="traffic.searches">{{ loading() }}</ol>
+
+        <!-- ============================ Communauté ============================ -->
+        <section id="tab-community" class="graphs-tab-pane">
+            <p class="adm-notice" id="audienceNotice" hidden>{{tr('Pas encore de relevé : il apparaît 15 minutes après le démarrage du bot v3.3.0.', 'No snapshot yet: it appears 15 minutes after bot v3.3.0 starts.')}}</p>
+            <div class="adm-stats" id="audienceStats"></div>
+            <div class="an-grid-2">
+                <section class="an-card">
+                    {{ card(tr('Membres présents sur les serveurs', 'Members present on the servers'), tr('Personnes uniques vues par le bot sur tous ses serveurs, actives ou non. Relevé toutes les 15 min.', 'Unique people seen by the bot on all its servers, active or not. Snapshot every 15 min.'), period=True) }}
+                    <div class="an-chart an-chart-sm" id="audienceChartWrap">{{ loading() }}<canvas id="audienceChart"></canvas></div>
+                </section>
+                <section class="an-card">
+                    {{ card(tr('Serveurs : arrivées et départs du bot', 'Servers: bot joins and leaves'), tr('12 derniers mois.', 'Last 12 months.')) }}
+                    <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="serversChart"></canvas></div>
+                </section>
+                <section class="an-card">
+                    {{ card(tr('30 derniers membres arrivés', 'Last 30 members to arrive'), tr('Première activité vue par Hourglass, et le serveur où elle a eu lieu.', 'First activity seen by Hourglass, and the server where it happened.')) }}
+                    <div class="adm-table-wrap"><table class="adm-table" id="recentMembers"><tbody><tr><td>…</td></tr></tbody></table></div>
+                </section>
+                <section class="an-card">
+                    {{ card(tr('30 derniers serveurs arrivés', 'Last 30 servers to arrive'), tr('Date d’ajout du bot, et départ éventuel.', 'When the bot was added, and left if it did.')) }}
+                    <div class="adm-table-wrap"><table class="adm-table" id="recentServers"><tbody><tr><td>…</td></tr></tbody></table></div>
+                </section>
+            </div>
         </section>
+
+        <!-- ================================ Bot ================================ -->
+        <section id="tab-bot" class="graphs-tab-pane">
+            <div class="adm-stats" id="botStats"></div>
+            <h2 class="adm-section-title">{{tr('Commandes', 'Commands')}}</h2>
+            <p class="adm-notice" id="commandsNotice" hidden>{{tr("Aucune commande enregistrée pour l’instant : le suivi démarre avec la version 3.1.0 du bot.", "No command recorded yet: tracking starts with bot version 3.1.0.")}}</p>
+            <div class="adm-stats" id="commandStats"></div>
+            <section class="an-card">
+                {{ card(tr("Commandes utilisées par jour", "Commands used per day"), tr("Aucun identifiant de membre n’est enregistré : seulement la commande, le serveur, les options de choix et la durée.", "No member identifier is stored: only the command, the server, the choice options and the duration."), period=True) }}
+                <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="commandsChart"></canvas></div>
+            </section>
+            <div class="an-grid-2">
+                <section class="an-card">{{ card(tr("Commandes les plus utilisées", "Most used commands"), period=True) }}<ol class="an-rank" data-list="commands.top">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr("Serveurs les plus actifs", "Most active servers"), period=True) }}<ol class="an-rank" data-list="commands.servers">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr("Options les plus choisies", "Most chosen options"), period=True) }}<ol class="an-rank" data-list="commands.options">{{ loading() }}</ol></section>
+                <section class="an-card">
+                    {{ card(tr("Temps de réponse et erreurs", "Response time and errors"), period=True) }}
+                    <div class="adm-table-wrap"><table class="adm-table" id="commandPerf"><tbody><tr><td>…</td></tr></tbody></table></div>
+                </section>
+            </div>
+        </section>
+
+        <!-- ============================= Technique ============================= -->
+        <section id="tab-tech" class="graphs-tab-pane">
+            <div class="adm-stats" id="healthStats"></div>
+            <div class="an-grid-2">
+                <section class="an-card">
+                    {{ card(tr('Erreurs par jour', 'Errors per day'), tr('404 page introuvable, 429 limite de requêtes, 500 erreur serveur.', '404 not found, 429 rate limited, 500 server error.'), period=True) }}
+                    <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="statusChart"></canvas></div>
+                </section>
+                <section class="an-card">{{ card(tr('Adresses 404 les plus fréquentes', 'Most frequent 404 paths'), period=True) }}<ol class="an-rank" data-list="health.top_404">{{ loading() }}</ol></section>
+            </div>
+            <section class="an-card">
+                {{ card(tr('Base de données · taille des tables', 'Database · table sizes')) }}
+                <p class="an-card-desc" id="dbSize">&nbsp;</p>
+                <div class="adm-table-wrap"><table class="adm-table" id="dbTables"><tbody><tr><td>…</td></tr></tbody></table></div>
+            </section>
+        </section>
+
+        <!-- ============================= Sécurité ============================= -->
+        <section id="tab-security" class="graphs-tab-pane">
+            <p class="adm-notice" id="securityNotice" hidden>{{tr('Journal de sécurité indisponible : la table web_security_events n’a pas pu être créée (voir les logs du site).', 'Security journal unavailable: the web_security_events table could not be created (see the site logs).')}}</p>
+            <h2 class="adm-section-title">{{tr('Dernières 24 heures', 'Last 24 hours')}}</h2>
+            <div class="adm-stats" id="securityStats"></div>
+            <div class="an-grid-2 adm-grid-wide">
+                <section class="an-card">
+                    {{ card(tr('Événements par jour', 'Events per day'), tr('Hors connexions réussies et accès admin.', 'Successful logins and admin access left out.'), period=True) }}
+                    <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="securityChart"></canvas></div>
+                </section>
+                <section class="an-card">
+                    {{ card(tr('Check-up de la configuration', 'Configuration check-up'), tr('Lu sur le site en marche, à chaque ouverture de la page.', 'Read from the running site each time the page opens.')) }}
+                    <ul class="adm-checkup" id="securityCheckup"></ul>
+                </section>
+            </div>
+            <div class="an-grid-2">
+                <section class="an-card">{{ card(tr('Sources les plus actives · 7 j', 'Most active sources · 7 d'), tr('IP abrégée et types d’événements.', 'Shortened IP and event types.')) }}<ol class="an-rank" data-list="security.top_ips">{{ loading() }}</ol></section>
+                <section class="an-card">{{ card(tr('Adresses visées · 7 j', 'Targeted paths · 7 d')) }}<ol class="an-rank" data-list="security.top_paths">{{ loading() }}</ol></section>
+            </div>
+            <section class="an-card">
+                <div class="an-card-head">
+                    <div><h2 class="an-card-title">{{tr('Journal', 'Journal')}}</h2><p class="an-card-desc" id="securityRetention">&nbsp;</p></div>
+                    <select class="adm-select" id="securityKind" aria-label="{{tr('Type d’événement', 'Event type')}}">
+                        <option value="">{{tr('Tous les événements', 'All events')}}</option>
+                    </select>
+                </div>
+                <div class="adm-table-wrap"><table class="adm-table adm-log" id="securityLog"><tbody><tr><td>…</td></tr></tbody></table></div>
+            </section>
+            <section class="an-card">
+                {{ card(tr('Accès à l’admin', 'Admin access')) }}
+                <div class="adm-table-wrap"><table class="adm-table adm-log" id="adminLog"><tbody><tr><td>…</td></tr></tbody></table></div>
+            </section>
+        </section>
+        </main>
     </div>
 </div>
-
-<!-- ============================== Comptes ============================== -->
-<div id="tab-accounts" class="graphs-tab-pane">
-    <h2 class="adm-section-title">{{tr('Connexions au site', 'Site logins')}}</h2>
-    <div class="adm-stats" id="accountStats"></div>
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Nouveaux comptes liés par semaine', 'New linked accounts per week')}}</h2>
-                <p class="an-card-desc">{{tr('Première connexion Discord sur le site.', 'First Discord login on the site.')}}</p></div></div>
-            <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="weeksChart"></canvas></div>
-        </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Comptes actifs par jour', 'Active accounts per day')}}</h2>
-                <p class="an-card-desc">{{tr('Membres connectés qui ont utilisé le site ce jour-là.', 'Logged-in members who used the site that day.')}}</p></div></div>
-            <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="activeChart"></canvas></div>
-        </section>
-    </div>
-    <section class="gray-box small-border-radius an-card adm-gap">
-        <div class="an-card-head"><h2 class="an-card-title">{{tr('Dernières connexions', 'Latest logins')}}</h2></div>
-        <div class="adm-table-wrap"><table class="adm-table" id="recentLogins"><tbody><tr><td>…</td></tr></tbody></table></div>
-    </section>
-</div>
-
-<!-- ============================== Profils ============================== -->
-<div id="tab-profiles" class="graphs-tab-pane">
-    <div class="adm-stats" id="customStats"></div>
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Couleurs', 'Colors')}}</h2></div><ol class="an-rank" data-list="customization.accents">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Type de bannière', 'Banner type')}}</h2></div><ol class="an-rank" data-list="customization.banner_modes">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Bannières de la galerie', 'Gallery banners')}}</h2></div><ol class="an-rank" data-list="customization.banners">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Couleurs de fond', 'Background colors')}}</h2></div><ol class="an-rank" data-list="customization.backgrounds">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Badges en vitrine', 'Featured badges')}}</h2></div><ol class="an-rank" data-list="customization.badges">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Records épinglés', 'Pinned records')}}</h2></div><ol class="an-rank" data-list="customization.records">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr('Blocs masqués aux visiteurs', 'Blocks hidden from visitors')}}</h2></div><ol class="an-rank" data-list="customization.hidden">{{ loading() }}</ol></section>
-    </div>
-</div>
-
-<!-- ============================ Communauté ============================ -->
-<div id="tab-community" class="graphs-tab-pane">
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Membres présents sur les serveurs', 'Members present on the servers')}}</h2>
-            <p class="an-card-desc">{{tr('Personnes uniques vues par le bot sur tous ses serveurs, y compris celles qui n’ont jamais parlé ni rejoint un vocal (chacune comptée une fois). Relevé toutes les 15 min.', 'Unique people seen by the bot on all its servers, including those who never talked nor joined voice (each counted once). Snapshot every 15 min.')}}</p></div></div>
-        <p class="adm-notice" id="audienceNotice" hidden>{{tr('Pas encore de relevé : il apparaît 15 minutes après le démarrage du bot v3.3.0.', 'No snapshot yet: it appears 15 minutes after bot v3.3.0 starts.')}}</p>
-        <div class="adm-stats" id="audienceStats"></div>
-        <div class="an-chart an-chart-sm" id="audienceChartWrap">{{ loading() }}<canvas id="audienceChart"></canvas></div>
-    </section>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Serveurs : arrivées et départs du bot', 'Servers: bot joins and leaves')}}</h2>
-            <p class="an-card-desc">{{tr('12 derniers mois.', 'Last 12 months.')}}</p></div></div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="serversChart"></canvas></div>
-    </section>
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('30 derniers membres arrivés', 'Last 30 members to arrive')}}</h2>
-                <p class="an-card-desc">{{tr('Première activité vue par Hourglass, et le serveur où elle a eu lieu.', 'First activity seen by Hourglass, and the server where it happened.')}}</p></div></div>
-            <div class="adm-table-wrap"><table class="adm-table" id="recentMembers"><tbody><tr><td>…</td></tr></tbody></table></div>
-        </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('30 derniers serveurs arrivés', 'Last 30 servers to arrive')}}</h2>
-                <p class="an-card-desc">{{tr('Date d’ajout du bot, et départ éventuel.', 'When the bot was added, and left if it did.')}}</p></div></div>
-            <div class="adm-table-wrap"><table class="adm-table" id="recentServers"><tbody><tr><td>…</td></tr></tbody></table></div>
-        </section>
-    </div>
-</div>
-
-<!-- ================================ Bot ================================ -->
-<div id="tab-bot" class="graphs-tab-pane">
-    <h2 class="adm-section-title">{{tr('État du bot', 'Bot status')}}</h2>
-    <div class="adm-stats" id="botStats"></div>
-    <h2 class="adm-section-title">{{tr('Commandes', 'Commands')}}</h2>
-    <p class="adm-notice" id="commandsNotice" hidden>{{tr("Aucune commande enregistrée pour l’instant : le suivi démarre avec la version 3.1.0 du bot.", "No command recorded yet: tracking starts with bot version 3.1.0.")}}</p>
-    <div class="adm-stats" id="commandStats"></div>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr("Commandes utilisées par jour · 30 j", "Commands used per day · 30 d")}}</h2>
-            <p class="an-card-desc">{{tr("Aucun identifiant de membre n’est enregistré : seulement la commande, le serveur, les options de choix et la durée.", "No member identifier is stored: only the command, the server, the choice options and the duration.")}}</p></div></div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="commandsChart"></canvas></div>
-    </section>
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr("Commandes les plus utilisées · 30 j", "Most used commands · 30 d")}}</h2></div><ol class="an-rank" data-list="commands.top">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr("Serveurs les plus actifs · 30 j", "Most active servers · 30 d")}}</h2></div><ol class="an-rank" data-list="commands.servers">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card"><div class="an-card-head"><h2 class="an-card-title">{{tr("Options les plus choisies · 30 j", "Most chosen options · 30 d")}}</h2></div><ol class="an-rank" data-list="commands.options">{{ loading() }}</ol></section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{tr("Temps de réponse et erreurs", "Response time and errors")}}</h2></div>
-            <div class="adm-table-wrap"><table class="adm-table" id="commandPerf"><tbody><tr><td>…</td></tr></tbody></table></div>
-        </section>
-    </div>
-</div>
-
-<!-- ============================= Technique ============================= -->
-<div id="tab-tech" class="graphs-tab-pane">
-    <h2 class="adm-section-title">{{tr('Santé du site', 'Site health')}}</h2>
-    <div class="adm-stats" id="healthStats"></div>
-    <div class="an-grid-2">
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Erreurs par jour · 30 j', 'Errors per day · 30 d')}}</h2>
-            <p class="an-card-desc">{{tr('404 page introuvable, 429 limite de requêtes, 500 erreur serveur.', '404 not found, 429 rate limited, 500 server error.')}}</p></div></div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="statusChart"></canvas></div>
-    </section>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><h2 class="an-card-title">{{tr('Adresses 404 les plus fréquentes', 'Most frequent 404 paths')}}</h2></div>
-        <ol class="an-rank" data-list="health.top_404">{{ loading() }}</ol>
-    </section>
-    </div>
-    <h2 class="adm-section-title">{{tr('Base de données', 'Database')}}</h2>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Taille des tables', 'Table sizes')}}</h2><p class="an-card-desc" id="dbSize">&nbsp;</p></div></div>
-        <div class="adm-table-wrap"><table class="adm-table" id="dbTables"><tbody><tr><td>…</td></tr></tbody></table></div>
-    </section>
-</div>
-
-<!-- ============================= Sécurité ============================= -->
-<div id="tab-security" class="graphs-tab-pane">
-    <p class="adm-notice" id="securityNotice" hidden>{{tr('Journal de sécurité indisponible : la table web_security_events n’a pas pu être créée (voir les logs du site).', 'Security journal unavailable: the web_security_events table could not be created (see the site logs).')}}</p>
-    <h2 class="adm-section-title">{{tr('Dernières 24 heures', 'Last 24 hours')}}</h2>
-    <div class="adm-stats" id="securityStats"></div>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Événements par jour · 30 j', 'Events per day · 30 d')}}</h2>
-            <p class="an-card-desc">{{tr('Hors connexions réussies et accès admin.', 'Successful logins and admin access left out.')}}</p></div></div>
-        <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="securityChart"></canvas></div>
-    </section>
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Sources les plus actives · 7 j', 'Most active sources · 7 d')}}</h2>
-                <p class="an-card-desc">{{tr('IP abrégée et types d’événements (scans, 429, échecs…).', 'Shortened IP and event types (scans, 429, failures…).')}}</p></div></div>
-            <ol class="an-rank" data-list="security.top_ips">{{ loading() }}</ol>
-        </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Adresses visées · 7 j', 'Targeted paths · 7 d')}}</h2>
-                <p class="an-card-desc">{{tr('Pages des événements suspects.', 'Pages of the suspicious events.')}}</p></div></div>
-            <ol class="an-rank" data-list="security.top_paths">{{ loading() }}</ol>
-        </section>
-    </div>
-    <section class="gray-box small-border-radius an-card">
-        <div class="an-card-head">
-            <div><h2 class="an-card-title">{{tr('Journal', 'Journal')}}</h2>
-                <p class="an-card-desc" id="securityRetention">&nbsp;</p></div>
-            <select class="top-select adm-kind-filter" id="securityKind" aria-label="{{tr('Type d’événement', 'Event type')}}">
-                <option value="">{{tr('Tous les événements', 'All events')}}</option>
-            </select>
-        </div>
-        <div class="adm-table-wrap"><table class="adm-table adm-log" id="securityLog"><tbody><tr><td>…</td></tr></tbody></table></div>
-    </section>
-    <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><div><h2 class="an-card-title">{{tr('Check-up de la configuration', 'Configuration check-up')}}</h2>
-                <p class="an-card-desc">{{tr('Lu sur le site en marche, à chaque ouverture de la page.', 'Read from the running site each time the page opens.')}}</p></div></div>
-            <ul class="adm-checkup" id="securityCheckup"></ul>
-        </section>
-        <section class="gray-box small-border-radius an-card">
-            <div class="an-card-head"><h2 class="an-card-title">{{tr('Accès à l’admin', 'Admin access')}}</h2></div>
-            <div class="adm-table-wrap"><table class="adm-table adm-log" id="adminLog"><tbody><tr><td>…</td></tr></tbody></table></div>
-        </section>
-    </div>
-</div>
-
 <script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/admin.js', v=asset_version('js/pages/admin.js')) }}" defer></script>
-{% endblock %}
+</body>
+</html>

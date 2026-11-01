@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
  
+## Version 3.31.0 - Nouvelle Console Admin - 01/11/2026
+- **L'admin devient une console pleine page**, séparée du thème Arène du site : thème sombre sobre, police IBM Plex Sans, coins légèrement arrondis, sans coins coupés ni titres en majuscules, chiffres alignés. Le blurple du site reste la seule couleur d'accent ; vert, orange et rouge ne servent qu'aux états.
+- **Volet vertical à gauche** avec les sections regroupées (Pilotage : Vue d'ensemble, Site web, Comptes, Profils, Communauté ; Technique : Bot, Technique, Sécurité), un lien de retour au site, et des pastilles sur ce qui demande un coup d'œil : alertes de sécurité du jour, erreurs serveur, bot silencieux. Sur téléphone et tablette, le volet devient un menu coulissant.
+- **Barre du haut** : titre de la section, heure de mise à jour, état du bot, bouton Actualiser et **période de toute la page (7, 30 ou 90 jours)**. `/admin/data?days=N` calcule les listes, graphiques et totaux sur la période choisie ; la période est gardée dans l'adresse et d'une visite à l'autre.
+- **Vue d'ensemble** : bandeau d'état (bot, alertes de sécurité, erreurs serveur, check-up de configuration, sessions orphelines), huit chiffres clés avec la comparaison à la période précédente, courbe des visites et derniers événements de sécurité.
+- **Site web** : quatre chiffres clés en tête (pages vues et visiteurs avec leur évolution, aujourd'hui, part du téléphone).
+
+## Version 3.30.1 - Rapports CSP Plus Utiles - 01/11/2026
+- Les violations CSP du journal de sécurité venaient de scripts ajoutés par les extensions du navigateur (le site lui-même n'a que des scripts autorisés). La CSP demande maintenant un extrait du script bloqué (`'report-sample'`), affiché dans le journal avec son fichier d'origine pour savoir qui l'a ajouté.
+- Les rapports dont le script vient d'une extension (`chrome-extension:`, `moz-extension:`, `safari-web-extension:`…) ne sont plus enregistrés.
+
 ## Version 3.30.0 - Badges Classement et Activité Définitivement Acquis - 01/11/2026
 - **Meilleure place et meilleurs 30 jours sauvegardés** pour chaque membre, dans une nouvelle table du site `user_best_records` (migration `2026-11-01_web_v3.30.0_user_best_records.sql`, aussi créée au démarrage). Les badges ne sont toujours pas stockés : seulement ces deux records, avec leur date.
   - Meilleure place au classement vocal global, avec le premier jour où elle a été atteinte et les heures de vocal à ce moment.

@@ -22,6 +22,9 @@ from app.i18n import current_lang, day_month, month_year
 admin_bp = Blueprint("admin", __name__)
 
 ADMIN_CACHE_SECONDS = 60
+# Period of the whole admin page (lists, charts, totals), chosen in its top bar: days
+ADMIN_PERIODS = (7, 30, 90)
+DEFAULT_PERIOD = 30
 PAGE_LABELS = {
     "home": ("Accueil", "Home"), "members": ("Membres", "Members"), "servers": ("Serveurs", "Servers"),
     "profile": ("Profils", "Profiles"), "server": ("Fiches serveur", "Server pages"), "graphs": ("Analyses", "Analytics"),
@@ -46,9 +49,11 @@ def admin_data():
     lang = current_lang()
     flush_audience(settle_all=False)  # include the last minute of this worker
     security_log.flush()
-    data = dict(cache.get_or_set(("admin", lang), ADMIN_CACHE_SECONDS, lambda: compute_admin_data(lang)))
+    days = request.args.get("days", type=int)
+    days = days if days in ADMIN_PERIODS else DEFAULT_PERIOD
+    data = dict(cache.get_or_set(("admin", lang, days), ADMIN_CACHE_SECONDS, lambda: compute_admin_data(lang, days)))
     # Security: never cached, and the configuration check-up reads this very request (proxy headers, HTTPS)
-    data["security"] = compute_security(lang)
+    data["security"] = compute_security(lang, days)
     return jsonify(data)
 
 
@@ -111,30 +116,31 @@ def _names(kind: str, ids: list[str]) -> dict[str, dict]:
 # Data
 # ------------------------------------------------------------------------------
 
-def compute_admin_data(lang: str = "fr") -> dict:
+def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
+    """Everything the admin page shows over the last `days` days (and the previous `days` for the comparisons)."""
     fr = lang == "fr"
     today = datetime.now(timezone.utc).date()
-    d30, d90 = _days(30), _days(90)
+    win, span = _days(days), _days(days * 2)
 
     # ---------------- Traffic ----------------
-    views = _rows("SELECT day, SUM(views) FROM web_pageviews_daily WHERE day >= %s GROUP BY day", (d90[0],))
-    uniques = _rows("SELECT day, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY day", (d90[0],))
-    views_s, uniques_s = _series(views, d90), _series(uniques, d90)
+    views = _rows("SELECT day, SUM(views) FROM web_pageviews_daily WHERE day >= %s GROUP BY day", (span[0],))
+    uniques = _rows("SELECT day, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY day", (span[0],))
+    views_s, uniques_s = _series(views, span), _series(uniques, span)
 
     def period(series, n, offset=0):
         end = len(series) - offset
         return sum(series[max(0, end - n):end])
 
-    pages = _rows("SELECT page_key, SUM(views) FROM web_pageviews_daily WHERE day >= %s GROUP BY page_key ORDER BY 2 DESC", (d30[0],))
-    referrers = _rows("SELECT domain, SUM(views) FROM web_referrers_daily WHERE day >= %s GROUP BY domain ORDER BY 2 DESC LIMIT 50", (d30[0],))
-    hourly = dict(_rows("SELECT hour, SUM(views) FROM web_hourly_views WHERE day >= %s GROUP BY hour", (d30[0],)))
-    devices = _rows("SELECT is_mobile, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY is_mobile", (d30[0],))
-    langs = _rows("SELECT lang, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY lang", (d30[0],))
-    searches = _rows("SELECT term, SUM(hits) FROM web_searches_daily WHERE day >= %s GROUP BY term ORDER BY 2 DESC LIMIT 100", (d30[0],))
+    pages = _rows("SELECT page_key, SUM(views) FROM web_pageviews_daily WHERE day >= %s GROUP BY page_key ORDER BY 2 DESC", (win[0],))
+    referrers = _rows("SELECT domain, SUM(views) FROM web_referrers_daily WHERE day >= %s GROUP BY domain ORDER BY 2 DESC LIMIT 50", (win[0],))
+    hourly = dict(_rows("SELECT hour, SUM(views) FROM web_hourly_views WHERE day >= %s GROUP BY hour", (win[0],)))
+    devices = _rows("SELECT is_mobile, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY is_mobile", (win[0],))
+    langs = _rows("SELECT lang, COUNT(*) FROM web_visitors_daily WHERE day >= %s GROUP BY lang", (win[0],))
+    searches = _rows("SELECT term, SUM(hits) FROM web_searches_daily WHERE day >= %s GROUP BY term ORDER BY 2 DESC LIMIT 100", (win[0],))
 
     def top_entities(kind):
         # Rows recorded before v3.16.0 may hold a username or an id for the same member: merge them by target
-        rows = _rows("SELECT entity_id, SUM(views) FROM web_entity_views_daily WHERE kind = %s AND day >= %s GROUP BY entity_id ORDER BY 2 DESC LIMIT 200", (kind, d30[0]))
+        rows = _rows("SELECT entity_id, SUM(views) FROM web_entity_views_daily WHERE kind = %s AND day >= %s GROUP BY entity_id ORDER BY 2 DESC LIMIT 200", (kind, win[0]))
         names = _names(kind, [r[0] for r in rows])
         merged: dict[str, dict] = {}
         for entity_id, views in rows:
@@ -146,9 +152,9 @@ def compute_admin_data(lang: str = "fr") -> dict:
 
     device_counts = {bool(k): int(v) for k, v in devices}
     traffic = {
-        "labels": [_day_label(d, lang) for d in d90],
-        "views": views_s,
-        "uniques": uniques_s,
+        "labels": [_day_label(d, lang) for d in win],
+        "views": views_s[-days:],
+        "uniques": uniques_s[-days:],
         "pages": [{"name": PAGE_LABELS.get(k, (k, k))[0 if fr else 1], "value": int(v)} for k, v in pages],
         "top_profiles": top_entities("profile"),
         "top_servers": top_entities("server"),
@@ -166,9 +172,9 @@ def compute_admin_data(lang: str = "fr") -> dict:
     weeks = _rows(
         "SELECT DATE_TRUNC('week', first_login_at)::date, COUNT(*) FROM web_accounts "
         "WHERE first_login_at >= %s GROUP BY 1 ORDER BY 1", (datetime.utcnow() - timedelta(weeks=12),))
-    active_daily = _rows("SELECT day, COUNT(*) FROM web_logins_daily WHERE day >= %s GROUP BY day", (d30[0],))
+    active_daily = _rows("SELECT day, COUNT(*) FROM web_logins_daily WHERE day >= %s GROUP BY day", (win[0],))
     active7 = int(_one("SELECT COUNT(DISTINCT user_id) FROM web_logins_daily WHERE day >= %s", (today - timedelta(days=6),)))
-    active30 = int(_one("SELECT COUNT(DISTINCT user_id) FROM web_logins_daily WHERE day >= %s", (d30[0],)))
+    active30 = int(_one("SELECT COUNT(DISTINCT user_id) FROM web_logins_daily WHERE day >= %s", (win[0],)))
     recent = _rows(
         "SELECT a.user_id, COALESCE(u.username, a.username), COALESCE(u.avatar, a.avatar), a.last_login_at, a.login_count, "
         "a.first_login_at FROM web_accounts a "
@@ -181,7 +187,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
         "active7": active7,
         "active30": active30,
         "weeks": {"labels": [_day_label(w, lang) for w, _ in weeks], "values": [int(n) for _, n in weeks]},
-        "active_daily": {"labels": [_day_label(d, lang) for d in d30], "values": _series(active_daily, d30)},
+        "active_daily": {"labels": [_day_label(d, lang) for d in win], "values": _series(active_daily, win)},
         "recent": [
             {"name": name or str(uid), "avatar": avatar, "url": url_for("user_profile.profile", username=uid),
              "last": last.isoformat(timespec="minutes") if last else None, "count": int(count),
@@ -283,7 +289,7 @@ def compute_admin_data(lang: str = "fr") -> dict:
     snap = _rows("SELECT recorded_at, unique_members, unique_online, memberships, servers, known_members "
                  "FROM bot_member_snapshots ORDER BY recorded_at DESC LIMIT 1")
     snap_days = _rows("SELECT recorded_at::date, MAX(unique_members), MAX(known_members) FROM bot_member_snapshots "
-                      "WHERE recorded_at >= %s GROUP BY 1 ORDER BY 1", (d30[0],))
+                      "WHERE recorded_at >= %s GROUP BY 1 ORDER BY 1", (win[0],))
     audience = None
     if snap:
         at, unique, online, memberships, servers_listed, known = snap[0]
@@ -323,46 +329,46 @@ def compute_admin_data(lang: str = "fr") -> dict:
     }
 
     # ---------------- Site health ----------------
-    status_rows = _rows("SELECT day, status, SUM(hits) FROM web_status_daily WHERE day >= %s GROUP BY day, status", (d30[0],))
+    status_rows = _rows("SELECT day, status, SUM(hits) FROM web_status_daily WHERE day >= %s GROUP BY day, status", (win[0],))
     by_status = {s: {} for s in (404, 429, 500)}
     for day, status, hits in status_rows:
         by_status.setdefault(int(status), {})[day] = int(hits)
-    top_404 = _rows("SELECT path_key, SUM(hits) FROM web_status_daily WHERE status = 404 AND day >= %s GROUP BY path_key ORDER BY 2 DESC LIMIT 50", (d30[0],))
+    top_404 = _rows("SELECT path_key, SUM(hits) FROM web_status_daily WHERE status = 404 AND day >= %s GROUP BY path_key ORDER BY 2 DESC LIMIT 50", (win[0],))
     from app.routes.graphs import LAST_REFRESH
     from app import config as app_config
     health = {
-        "labels": [_day_label(d, lang) for d in d30],
-        "s404": [by_status[404].get(d, 0) for d in d30],
-        "s429": [by_status[429].get(d, 0) for d in d30],
-        "s500": [by_status[500].get(d, 0) for d in d30],
+        "labels": [_day_label(d, lang) for d in win],
+        "s404": [by_status[404].get(d, 0) for d in win],
+        "s429": [by_status[429].get(d, 0) for d in win],
+        "s500": [by_status[500].get(d, 0) for d in win],
         "top_404": [{"name": p, "value": int(n)} for p, n in top_404],
         "analytics_refresh": dict(LAST_REFRESH),
         "session_key_source": app_config.SECRET_KEY_SOURCE,
     }
 
     # ---------------- Bot commands (table written by the bot since bot v3.1.0) ----------------
-    cmd_daily = _rows("SELECT created_at::date, COUNT(*) FROM bot_command_events WHERE created_at >= %s GROUP BY 1", (d30[0],))
+    cmd_daily = _rows("SELECT created_at::date, COUNT(*) FROM bot_command_events WHERE created_at >= %s GROUP BY 1", (win[0],))
     cmd_top = _rows(
         "SELECT command, COUNT(*), SUM(CASE WHEN success THEN 0 ELSE 1 END), "
         "ROUND(AVG(duration_ms)), PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms) "
-        "FROM bot_command_events WHERE created_at >= %s GROUP BY command ORDER BY 2 DESC", (d30[0],))
+        "FROM bot_command_events WHERE created_at >= %s GROUP BY command ORDER BY 2 DESC", (win[0],))
     cmd_servers = _rows(
         "SELECT e.server_id, s.servername, s.avatar, COUNT(*) FROM bot_command_events e LEFT JOIN servers s ON s.server_id = e.server_id "
-        "WHERE e.created_at >= %s AND e.server_id IS NOT NULL GROUP BY e.server_id, s.servername, s.avatar ORDER BY 4 DESC LIMIT 50", (d30[0],))
+        "WHERE e.created_at >= %s AND e.server_id IS NOT NULL GROUP BY e.server_id, s.servername, s.avatar ORDER BY 4 DESC LIMIT 50", (win[0],))
     cmd_options = _rows(
-        "SELECT options, COUNT(*) FROM bot_command_events WHERE created_at >= %s AND options <> '' GROUP BY options ORDER BY 2 DESC LIMIT 50", (d30[0],))
-    cmd_dm = int(_one("SELECT COUNT(*) FROM bot_command_events WHERE created_at >= %s AND server_id IS NULL", (d30[0],)))
+        "SELECT options, COUNT(*) FROM bot_command_events WHERE created_at >= %s AND options <> '' GROUP BY options ORDER BY 2 DESC LIMIT 50", (win[0],))
+    cmd_dm = int(_one("SELECT COUNT(*) FROM bot_command_events WHERE created_at >= %s AND server_id IS NULL", (win[0],)))
     cmd_total = sum(int(r[1]) for r in cmd_top)
     cmd_failed = sum(int(r[2] or 0) for r in cmd_top)
     dm_label = "refusée en DM" if fr else "refused in DM"
     commands = {
         "total": cmd_total,
-        "today": _series(cmd_daily, d30)[-1],
+        "today": _series(cmd_daily, win)[-1],
         "failed": cmd_failed,
         "failed_percent": round(cmd_failed / cmd_total * 100, 1) if cmd_total else 0,
         "dm": cmd_dm,
-        "labels": [_day_label(d, lang) for d in d30],
-        "daily": _series(cmd_daily, d30),
+        "labels": [_day_label(d, lang) for d in win],
+        "daily": _series(cmd_daily, win),
         "top": [{"name": f"/{c}", "value": int(n)} for c, n, _, _, _ in cmd_top],
         "perf": [{"name": f"/{c}", "count": int(n), "failed": int(f or 0), "avg_ms": int(a or 0), "p95_ms": int(p or 0)} for c, n, f, a, p in cmd_top],
         "servers": [{"name": name or str(sid), "avatar": avatar, "url": url_for("server_profile.server", server_id=sid), "value": int(n)}
@@ -373,14 +379,14 @@ def compute_admin_data(lang: str = "fr") -> dict:
     return {
         "commands": commands,
         "overview": {
-            "views_today": views_s[-1], "views_7": period(views_s, 7), "views_7_prev": period(views_s, 7, 7),
-            "views_30": period(views_s, 30), "views_30_prev": period(views_s, 30, 30),
-            "uniques_today": uniques_s[-1], "uniques_7_avg": round(period(uniques_s, 7) / 7, 1),
+            "days": days,
+            "views_today": views_s[-1], "views": period(views_s, days), "views_prev": period(views_s, days, days),
+            "uniques_today": uniques_s[-1], "uniques_avg": round(period(uniques_s, days) / days, 1),
+            "uniques_delta": _delta(period(uniques_s, days), period(uniques_s, days, days)),
             "accounts": accounts_total, "accounts_new_week": new_week,
             "customized": customized, "customized_percent": customization["customized_percent"],
             "servers_present": bot["servers_present"], "servers_active30": bot["servers_active30"],
-            "delta_7": _delta(period(views_s, 7), period(views_s, 7, 7)),
-            "delta_30": _delta(period(views_s, 30), period(views_s, 30, 30)),
+            "delta": _delta(period(views_s, days), period(views_s, days, days)),
             "tracking_since": str(_one("SELECT MIN(day) FROM web_pageviews_daily", default="")) or None,
         },
         "traffic": traffic,
@@ -429,17 +435,17 @@ def _config_checkup(fr: bool) -> list[dict]:
     return items
 
 
-def compute_security(lang: str = "fr") -> dict:
+def compute_security(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
     fr = lang == "fr"
     now = datetime.now(timezone.utc).replace(tzinfo=None)
-    d30 = _days(30)
+    win = _days(days)
     labels = {k: (fr_l if fr else en_l) for k, (fr_l, en_l, _) in security_log.KINDS.items()}
     severity = {k: sev for k, (_, _, sev) in security_log.KINDS.items()}
 
     def totals(since):
         return {k: int(n) for k, n in _rows("SELECT kind, SUM(hits) FROM web_security_events WHERE at >= %s GROUP BY kind", (since,))}
 
-    daily = _rows("SELECT at::date, kind, SUM(hits) FROM web_security_events WHERE at >= %s GROUP BY 1, 2", (d30[0],))
+    daily = _rows("SELECT at::date, kind, SUM(hits) FROM web_security_events WHERE at >= %s GROUP BY 1, 2", (win[0],))
     by_kind = {}
     for day, kind, n in daily:
         by_kind.setdefault(kind, {})[day] = int(n)
@@ -470,8 +476,8 @@ def compute_security(lang: str = "fr") -> dict:
         "kinds": [{"key": k, "label": labels[k], "severity": severity[k]} for k in security_log.KINDS],
         "totals_24h": totals(now - timedelta(hours=24)),
         "totals_7d": totals(since7),
-        "labels": [_day_label(d, lang) for d in d30],
-        "daily": {k: [v.get(d, 0) for d in d30] for k, v in by_kind.items()},
+        "labels": [_day_label(d, lang) for d in win],
+        "daily": {k: [v.get(d, 0) for d in win] for k, v in by_kind.items()},
         "top_ips": [{"name": f"{ip} · " + ", ".join(labels.get(k, k) for k in (kinds or "").split(",") if k), "value": int(n)}
                     for ip, n, kinds in top_ips],
         "top_paths": [{"name": p, "value": int(n)} for p, n in top_paths],
