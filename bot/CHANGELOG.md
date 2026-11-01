@@ -1,5 +1,10 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.5.1 - Serveurs Quittés Pendant une Absence - 01/11/2026
+
+- **Serveurs comptés à tort comme présents** : un serveur qui retire le bot pendant que celui-ci est hors ligne (redémarrage, mise à jour, panne) n'envoie jamais d'événement de départ, et restait marqué « bot présent » dans la base (51 dans l'admin pour 26 serveurs réels). À chaque connexion, le bot compare désormais la base à la liste de serveurs envoyée par Discord et marque les autres comme partis (date de départ = moment de la correction). La base de l'admin et le chiffre de top.gg concordent.
+- **Panne d'un serveur chez Discord** : un serveur temporairement indisponible n'est plus pris pour un départ (il était marqué comme parti jusqu'à son retour).
+
 ## Version 3.5.0 - Nombre de Serveurs sur top.gg - 01/11/2026
 
 - **Le bot envoie son nombre de serveurs à top.gg**, qui l'affiche sur sa page (il restait à 0 : top.gg ne peut pas le voir tout seul). Premier envoi une minute après le démarrage, puis toutes les 30 minutes ; jamais de 0 envoyé pendant une reconnexion.

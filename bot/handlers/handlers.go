@@ -28,6 +28,24 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 	// Nombre de serveurs affiché sur top.gg (si TOPGG_TOKEN est défini), toutes les 30 minutes
 	topgg.Start(s)
 
+	// La liste de READY est la vérité de Discord (serveurs indisponibles compris) : les serveurs qui ont retiré le
+	// bot pendant qu'il était hors ligne ne sont plus comptés comme présents
+	present := make([]int64, 0, len(r.Guilds))
+	for _, g := range r.Guilds {
+		if id, err := strconv.ParseInt(g.ID, 10, 64); err == nil {
+			present = append(present, id)
+		}
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if fixed, err := h.DB.MarkAbsentServers(ctx, present); err != nil {
+			log.Printf("⚠️ Réconciliation des serveurs impossible: %v", err)
+		} else if fixed > 0 {
+			log.Printf("🧹 %d serveur(s) quitté(s) pendant une absence du bot marqué(s) comme partis", fixed)
+		}
+	}()
+
 	// Demander le cache complet des membres et présences pour chaque serveur
 	for _, g := range s.State.Guilds {
 		_ = s.RequestGuildMembers(g.ID, "", 0, "", true)
@@ -421,6 +439,11 @@ func (h *BotHandler) OnGuildCreate(s *discordgo.Session, g *discordgo.GuildCreat
 // OnGuildDelete est déclenché quand le bot est retiré d'un serveur (kické, banni ou quitte)
 func (h *BotHandler) OnGuildDelete(s *discordgo.Session, g *discordgo.GuildDelete) {
 	if g.Guild == nil {
+		return
+	}
+	// Panne passagère du serveur chez Discord : le bot y est toujours, il ne faut pas le marquer comme parti
+	if g.Unavailable {
+		log.Printf("⏳ [GUILD] Serveur %s temporairement indisponible (panne Discord) - toujours compté", g.ID)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

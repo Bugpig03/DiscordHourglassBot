@@ -103,6 +103,22 @@ func (db *DB) UpsertServer(ctx context.Context, serverID int64, servername, avat
 	return err
 }
 
+// MarkAbsentServers retire la marque « bot présent » des serveurs absents de la liste envoyée par Discord à la
+// connexion (READY) : ceux qui ont retiré le bot pendant qu'il était hors ligne n'envoient jamais de GUILD_DELETE
+// et restaient comptés comme présents. Renvoie le nombre de serveurs corrigés.
+func (db *DB) MarkAbsentServers(ctx context.Context, presentIDs []int64) (int64, error) {
+	if len(presentIDs) == 0 {
+		return 0, nil // liste vide : on ne touche à rien plutôt que de tout marquer absent
+	}
+	tag, err := db.Pool.Exec(ctx, `
+		UPDATE servers SET is_bot_present = FALSE, left_at = COALESCE(left_at, NOW())
+		WHERE is_bot_present AND NOT (server_id = ANY($1))`, presentIDs)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
+}
+
 // SetServerBotPresence met à jour l'état de présence du bot sur un serveur
 func (db *DB) SetServerBotPresence(ctx context.Context, serverID int64, isPresent bool) error {
 	var query string
