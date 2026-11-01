@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"hourglass-bot/database"
+	"hourglass-bot/topgg"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -23,6 +24,9 @@ func New(db *database.DB) *BotHandler {
 // OnReady est déclenché quand le bot se connecte à Discord
 func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 	log.Printf("🤖 Bot connecté en tant que %s#%s sur %d serveur(s)", s.State.User.Username, s.State.User.Discriminator, len(s.State.Guilds))
+
+	// Nombre de serveurs affiché sur top.gg (si TOPGG_TOKEN est défini), toutes les 30 minutes
+	topgg.Start(s)
 
 	// Demander le cache complet des membres et présences pour chaque serveur
 	for _, g := range s.State.Guilds {

@@ -1,5 +1,11 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.5.0 - Nombre de Serveurs sur top.gg - 01/11/2026
+
+- **Le bot envoie son nombre de serveurs à top.gg**, qui l'affiche sur sa page (il restait à 0 : top.gg ne peut pas le voir tout seul). Premier envoi une minute après le démarrage, puis toutes les 30 minutes ; jamais de 0 envoyé pendant une reconnexion.
+- Nécessite la variable d'environnement **`TOPGG_TOKEN`** : le jeton de la page **Integrations & API** du projet sur top.gg (pas un webhook). Sans elle, rien n'est envoyé. Le jeton est envoyé tel quel, puis avec le préfixe `Bearer` si top.gg le refuse (jetons de la nouvelle interface). Un envoi refusé (jeton faux, top.gg indisponible) est seulement noté dans les logs du bot.
+- Nouveau paquet `topgg`, avec un test sur un faux serveur (`go test ./topgg/`).
+
 ## Version 3.4.0 - Cartes dans la Langue du Membre - 28/10/2026
 
 - **Les cartes suivent la langue Discord** du membre qui lance la commande : le bot envoie sa langue au site (`lang`), qui dessine la carte dans la nouvelle DA Arène (site v3.26.0).

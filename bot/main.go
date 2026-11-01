@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	log.Println("🚀 Démarrage de Hourglass Bot v3.4.0 (Go Edition)...")
+	log.Println("🚀 Démarrage de Hourglass Bot v3.5.0 (Go Edition)...")
 
 	// 1. Chargement de la configuration
 	cfg, err := config.LoadConfig()
