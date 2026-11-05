@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta, timezone
 from flask import Blueprint, current_app, jsonify, render_template, request, url_for
 
 from app.admin import admin_required
+from app.auth import discord_credentials_status
 from app.analytics_tracking import flush as flush_audience
 from app import security_log
 from app.cache import cache
@@ -497,6 +498,7 @@ def _config_checkup(fr: bool) -> list[dict]:
     ip_ok = proxy_ip or not request.remote_addr or client_ip() == request.remote_addr
     csp_report_only = os.environ.get("CSP_REPORT_ONLY", "false").lower() in ("1", "true", "yes")
     admins = len(Config.ADMIN_USER_IDS)
+    discord_status = discord_credentials_status()
     # (label, ok, text when ok, text when not)
     checks = [
         (t("Clé de session", "Session key"), source in ("env", "discord", "database"), key_text, key_text),
@@ -525,6 +527,14 @@ def _config_checkup(fr: bool) -> list[dict]:
         (t("Connexion Discord", "Discord login"), bool(Config.DISCORD_CLIENT_SECRET),
          t("Par code : le jeton Discord ne passe jamais par le navigateur.", "By code: the Discord token never goes through the browser."),
          t("Mode implicite, moins sûr : définir DISCORD_CLIENT_SECRET.", "Implicit mode, less safe: set DISCORD_CLIENT_SECRET.")),
+        # Asked to Discord itself (every 10 min): a wrong secret makes every login fail with "invalid_client"
+        (t("Identifiants Discord", "Discord credentials"), discord_status != "invalid",
+         t("Acceptés par Discord.", "Accepted by Discord.") if discord_status == "ok" else
+         t("Non vérifiés (Discord injoignable ou secret absent).", "Not checked (Discord unreachable or no secret)."),
+         t("Refusés par Discord (invalid_client) : plus personne ne peut se connecter. Recopier le Client Secret du "
+           "Developer Portal (OAuth2) dans DISCORD_CLIENT_SECRET, puis redémarrer le site.",
+           "Refused by Discord (invalid_client): nobody can log in. Copy the Client Secret from the Developer Portal "
+           "(OAuth2) into DISCORD_CLIENT_SECRET, then restart the site.")),
         (t("IP des visiteurs", "Visitor IP"), ip_ok,
          t(f"Transmise par le proxy (vue ici : {seen_ip}).", f"Passed on by the proxy (seen here: {seen_ip})."),
          t("Le proxy n'envoie pas X-Real-IP : tous les visiteurs ont la même IP pour les limites.",

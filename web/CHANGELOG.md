@@ -1,5 +1,11 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.34.1 - Identifiants Discord Vérifiés - 05/11/2026
+- **Connexions refusées par Discord (« invalid_client »)** : Discord refusait le couple identifiant / secret de l'application (`DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`), donc toute nouvelle connexion échouait avec « Impossible de valider la session auprès de Discord ». Ce n'est pas un bug du site : le secret configuré ne correspond plus à celui du Developer Portal. Pour éviter que ça se reproduise sans qu'on le voie :
+  - **Check-up de l'admin** (onglet Sécurité) : nouvelle ligne « Identifiants Discord », vérifiée auprès de Discord lui-même toutes les 10 minutes. En rouge, elle dit quoi faire.
+  - Les espaces, retours à la ligne ou guillemets collés autour de `DISCORD_CLIENT_ID` et `DISCORD_CLIENT_SECRET` sont retirés, car ils provoquent la même erreur.
+- **Changer le secret Discord ne déconnecte plus personne** : quand la clé des sessions était dérivée de `DISCORD_CLIENT_SECRET`, elle est maintenant enregistrée en base au démarrage. Un nouveau secret ne change donc plus la clé.
+
 ## Version 3.34.0 - Nouvelle Page Versus, 100 XP par Vote et Connexion Discord Plus Fiable - 05/11/2026
 ### Page Versus repensée
 - **Arène** : les deux adversaires face à face, chacun sur sa moitié, avec sa **bannière de profil** en fond (ou son avatar flouté) teintée de sa couleur, bleu à gauche, rouge à droite. Grand avatar, nom, titre et niveau, rang et heures en vocal. Le gagnant a une couronne et un contour doré, le perdant est légèrement atténué.

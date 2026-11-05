@@ -206,6 +206,31 @@ def _token_is_ours(access_token: str) -> bool:
         return False
 
 
+def discord_credentials_status() -> str:
+    """Whether Discord accepts the site's DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET: "ok", "invalid" or "unknown".
+
+    Asked with the client_credentials grant (no member involved), at most every 10 minutes (admin check-up).
+    "invalid" is what makes every login fail with "invalid_client" (secret reset in the Developer Portal).
+    """
+    from app.cache import cache
+
+    def ask():
+        client_id = str(current_app.config.get("DISCORD_CLIENT_ID", Config.DISCORD_CLIENT_ID))
+        client_secret = current_app.config.get("DISCORD_CLIENT_SECRET", Config.DISCORD_CLIENT_SECRET)
+        if not client_secret:
+            return "unknown"
+        try:
+            resp = requests.post(DISCORD_OAUTH_TOKEN_URL, data={"grant_type": "client_credentials", "scope": "identify"},
+                                 auth=(client_id, client_secret), timeout=8)
+        except requests.RequestException:
+            return "unknown"
+        if resp.status_code == 200:
+            return "ok"
+        return "invalid" if resp.status_code == 401 else "unknown"
+
+    return cache.get_or_set(("discord_credentials",), 600, ask)
+
+
 def _discord_get(url: str, headers: dict) -> requests.Response:
     """GET on the Discord API, tried a second time after a short rate limit (429 with a wait of 3 s at most)."""
     resp = requests.get(url, headers=headers, timeout=10)

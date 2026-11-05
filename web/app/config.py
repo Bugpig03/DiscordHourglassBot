@@ -43,8 +43,10 @@ def load_app_version() -> tuple[str, str]:
 SECRET_KEY_SOURCE = "random"
 
 
-def _database_secret_key() -> str | None:
+def _database_secret_key(candidate: str | None = None) -> str | None:
     """Session key kept in web_settings: created once, then read by every Gunicorn worker and every restart.
+
+    candidate: the key to store when there is none yet (a random one otherwise). The key already stored wins.
 
     All workers must end up with the SAME key, or a member is logged in on some pages and not on others.
     The 4 workers start together: concurrent CREATE TABLE IF NOT EXISTS can fail in PostgreSQL (unique
@@ -71,7 +73,7 @@ def _database_secret_key() -> str | None:
                 except psycopg2.Error:
                     pass  # another worker created it at the same moment
                 cur.execute("INSERT INTO web_settings (key, value) VALUES ('session_secret', %s) ON CONFLICT (key) DO NOTHING",
-                            (secrets.token_hex(32),))
+                            (candidate or secrets.token_hex(32),))
                 cur.execute("SELECT value FROM web_settings WHERE key = 'session_secret'")
                 row = cur.fetchone()
                 if row and row[0]:
@@ -140,8 +142,12 @@ def load_secret_key() -> str:
 
     client_secret = os.environ.get("DISCORD_CLIENT_SECRET")
     if client_secret:
-        SECRET_KEY_SOURCE = "discord"
-        return hashlib.sha256(f"hourglass-session:{client_secret}".encode()).hexdigest()
+        # Kept in the database right away: the key then survives a new Discord secret (reset in the Developer
+        # Portal), which would otherwise log every member out
+        derived = hashlib.sha256(f"hourglass-session:{client_secret}".encode()).hexdigest()
+        stored = _database_secret_key(candidate=derived)
+        SECRET_KEY_SOURCE = "database" if stored else "discord"
+        return stored or derived
 
     stored = _database_secret_key()
     if stored:
@@ -203,6 +209,7 @@ class Config:
     APP_VERSION, APP_VERSION_DATE = load_app_version()
 
     # Discord OAuth2 Configuration (Official Hourglass Bot: 1210665993328926750)
-    DISCORD_CLIENT_ID = os.environ.get("DISCORD_CLIENT_ID", "1210665993328926750")
-    DISCORD_CLIENT_SECRET = os.environ.get("DISCORD_CLIENT_SECRET", "")
+    # Stripped: a space, line break or quotes pasted with the value make Discord answer "invalid_client"
+    DISCORD_CLIENT_ID = os.environ.get("DISCORD_CLIENT_ID", "1210665993328926750").strip().strip("\"'")
+    DISCORD_CLIENT_SECRET = os.environ.get("DISCORD_CLIENT_SECRET", "").strip().strip("\"'")
     DISCORD_REDIRECT_URI = os.environ.get("DISCORD_REDIRECT_URI", "")
