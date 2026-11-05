@@ -1,5 +1,9 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.35.1 - Pages des Badges sur Tous les Workers - 05/11/2026
+- **Page d'un badge en 404 une fois sur quatre** : au premier démarrage, les 4 workers du site créaient les nouvelles tables en même temps. PostgreSQL refuse alors un `CREATE TABLE IF NOT EXISTS` lancé en parallèle (`IntegrityError`), et le worker perdant désactivait la page jusqu'à son redémarrage. Les tables sont maintenant créées avec plusieurs essais. Un worker qui échoue malgré tout réessaie au plus une fois par minute, au lieu de rester désactivé. Reproduit en local avec 4 processus simultanés : 15 échecs sur 20 avant, 0 sur 20 après.
+- Même protection pour les tables des records (badges Classement et Activité), des votes top.gg et du journal de sécurité. Elles existent déjà en production et n'étaient pas touchées, mais une future table neuve ne pourra plus perdre cette course.
+
 ## Version 3.35.0 - Pages des Badges - 05/11/2026
 - **Nouvelle page par badge** (`/badge/<id>`), qu'on ouvre en cliquant sur un badge d'un profil : dans la vitrine, sur le nom d'un badge de l'onglet Badges, ou sur un de ses paliers (la page s'ouvre alors filtrée sur ce palier). Elle n'est pas dans le menu.
   - **Rareté des paliers** : pour chacun des 7 paliers, combien de membres l'ont atteint (ou mieux) et quel pourcentage ils représentent, puis le premier à l'avoir eu et à quelle date, ou combien l'avaient déjà avant octobre 2024. Cliquer sur un palier filtre la liste.

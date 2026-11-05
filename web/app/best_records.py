@@ -18,7 +18,7 @@ from datetime import date, datetime, timedelta, timezone
 from peewee import DatabaseError
 
 from app.cache import cache
-from app.database import db
+from app.database import create_tables, db
 
 log = logging.getLogger(__name__)
 
@@ -109,14 +109,25 @@ def _has_bot_column() -> bool:
     return bool(row)
 
 
+_retry_at = 0.0  # when a worker that could not create the table tries again
+RETRY_SECONDS = 60
+
+
 def ensure_table() -> None:
-    global _enabled
-    try:
-        with db.connection_context():
-            db.execute_sql(TABLE)
-    except DatabaseError as e:
-        _enabled = False
-        log.warning("Best records disabled (table unavailable, run the web migrations): %s", e)
+    """Create the table (retried: the 4 workers start together and race on CREATE TABLE IF NOT EXISTS)."""
+    global _enabled, _retry_at
+    error = create_tables([TABLE])
+    _enabled = error is None
+    if error is not None:
+        _retry_at = time.monotonic() + RETRY_SECONDS
+        log.warning("Best records unavailable for now (table could not be created, retried in %d s): %s", RETRY_SECONDS, error)
+
+
+def _available() -> bool:
+    """True once the table exists; a worker that lost the startup race tries again (at most once a minute)."""
+    if not _enabled and time.monotonic() >= _retry_at:
+        ensure_table()
+    return _enabled
 
 
 def refresh(force: bool = False) -> bool:
@@ -124,7 +135,7 @@ def refresh(force: bool = False) -> bool:
 
     Returns True when this worker did the work (False: another one holds the lock or did it less than an hour ago).
     """
-    if not _enabled:
+    if not _available():
         return False
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     today = now.date()
@@ -154,7 +165,7 @@ def refresh(force: bool = False) -> bool:
 
 def get_best_records(user_id: int | str) -> dict | None:
     """The member's records (cached 5 min), or None when none is known yet."""
-    if not _enabled or not str(user_id).isdigit():
+    if not _available() or not str(user_id).isdigit():
         return None
 
     def load():
@@ -181,7 +192,8 @@ def init_best_records(app) -> None:
     """Create the table now; the history backfill and the hourly refresh run in a background thread."""
     global _thread_started
     ensure_table()
-    if not _enabled or _thread_started or app.config.get("TESTING"):
+    # The thread starts even if the table is missing now: refresh() creates it once possible
+    if _thread_started or app.config.get("TESTING"):
         return
     _thread_started = True
 

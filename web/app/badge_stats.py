@@ -20,7 +20,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from peewee import DatabaseError
 
-from app.database import db
+from app.database import create_tables, db
 from app.functions import LEGACY_IMPORT_AT, get_bot_user_ids
 from app.gamification import BADGE_DEFS, _family_badge, badge_values, xp_for_level, XP_PER_VOTE
 
@@ -49,20 +49,23 @@ THRESHOLDS = {d[0]: d[7] for d in BADGE_DEFS}
 
 _enabled = True
 _thread_started = False
+_retry_at = 0.0  # when a worker that could not create the tables tries again
+RETRY_SECONDS = 60
 
 
 def ensure_tables() -> None:
-    global _enabled
-    try:
-        with db.connection_context():
-            for sql in TABLES:
-                db.execute_sql(sql)
-    except DatabaseError as e:
-        _enabled = False
-        log.warning("Badge pages disabled (tables unavailable, run the web migrations): %s", e)
+    global _enabled, _retry_at
+    error = create_tables(TABLES)
+    _enabled = error is None
+    if error is not None:
+        _retry_at = time.monotonic() + RETRY_SECONDS
+        log.warning("Badge pages unavailable for now (tables could not be created, retried in %d s): %s", RETRY_SECONDS, error)
 
 
 def enabled() -> bool:
+    """True once the tables exist; a worker that lost the startup race tries again (at most once a minute)."""
+    if not _enabled and time.monotonic() >= _retry_at:
+        ensure_tables()
     return _enabled
 
 
@@ -328,7 +331,7 @@ def _longest_run(days: set) -> int:
 
 def refresh(force: bool = False) -> bool:
     """Recompute every member's tiers and days. True when this worker did it (False: locked or done < 1 h ago)."""
-    if not _enabled:
+    if not enabled():
         return False
     from psycopg2.extras import execute_values
 
@@ -375,7 +378,8 @@ def init_badge_stats(app) -> None:
     """Create the tables now; the first fill and the hourly refresh run in a background thread."""
     global _thread_started
     ensure_tables()
-    if not _enabled or _thread_started or app.config.get("TESTING"):
+    # The thread starts even if the tables are missing now: refresh() creates them once possible
+    if _thread_started or app.config.get("TESTING"):
         return
     _thread_started = True
 

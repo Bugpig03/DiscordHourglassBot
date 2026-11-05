@@ -19,7 +19,7 @@ from datetime import datetime, timedelta, timezone
 from flask import request
 from peewee import DatabaseError
 
-from app.database import db
+from app.database import create_tables, db
 
 log = logging.getLogger(__name__)
 
@@ -68,14 +68,11 @@ _enabled = True
 
 def ensure_table() -> None:
     global _enabled
-    try:
-        with db.connection_context():
-            db.execute_sql(TABLE)
-            for sql in INDEXES:
-                db.execute_sql(sql)
-    except DatabaseError as e:
+    # Retried: the 4 workers start together and race on CREATE TABLE IF NOT EXISTS for a new table
+    error = create_tables([TABLE, *INDEXES])
+    if error is not None:
         _enabled = False
-        log.warning("Security journal disabled (table unavailable, run the web migrations): %s", e)
+        log.warning("Security journal disabled (table unavailable, run the web migrations): %s", error)
 
 
 def short_ip(ip: str | None) -> str | None:

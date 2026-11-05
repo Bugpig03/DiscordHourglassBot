@@ -11,6 +11,7 @@ from peewee import (
     AutoField,
     CompositeKey,
     BooleanField,
+    DatabaseError,
     TextField
 )
 from app.config import Config
@@ -29,6 +30,28 @@ db = PooledPostgresqlDatabase(
     timeout=10,
     options="-c timezone=UTC",
 )
+
+
+def create_tables(statements, attempts: int = 6) -> Exception | None:
+    """Run CREATE TABLE / INDEX IF NOT EXISTS statements; None when done, the last error otherwise.
+
+    The 4 Gunicorn workers start together: concurrent CREATE ... IF NOT EXISTS can fail in PostgreSQL (unique
+    violation on pg_type or pg_class) for all but one of them, so each statement is retried after a short pause
+    (by then the table exists and the statement does nothing).
+    """
+    import time
+
+    error = None
+    for attempt in range(attempts):
+        try:
+            with db.connection_context():
+                for sql in statements:
+                    db.execute_sql(sql)
+            return None
+        except DatabaseError as e:
+            error = e
+            time.sleep(0.2 * (attempt + 1))
+    return error
 
 
 class BaseModel(Model):
