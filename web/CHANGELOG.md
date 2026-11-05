@@ -1,5 +1,19 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.35.0 - Pages des Badges - 05/11/2026
+- **Nouvelle page par badge** (`/badge/<id>`), qu'on ouvre en cliquant sur un badge d'un profil : dans la vitrine, sur le nom d'un badge de l'onglet Badges, ou sur un de ses paliers (la page s'ouvre alors filtrée sur ce palier). Elle n'est pas dans le menu.
+  - **Rareté des paliers** : pour chacun des 7 paliers, combien de membres l'ont atteint (ou mieux) et quel pourcentage ils représentent, puis le premier à l'avoir eu et à quelle date, ou combien l'avaient déjà avant octobre 2024. Cliquer sur un palier filtre la liste.
+  - **Détenteurs** : triés du meilleur au moins bon, avec le palier, la valeur (heures, messages, place…) et la date d'obtention du palier actuel. Chaque ligne se déplie sur la **date de chacun des 7 paliers**. Recherche par pseudo, pagination.
+  - **Derniers débloqués** (les 20 derniers paliers franchis) et **Presque** (les membres à 80 % ou plus du palier suivant).
+  - **Filtre par serveur** : ne montrer que les membres d'un serveur. Les badges restent ceux de tous les serveurs.
+- **Dates d'obtention reconstituées depuis l'historique**, badge par badge :
+  - le jour où le cumul a franchi le seuil (vocal, messages, niveau, polyvalence), la fenêtre de 30 jours (activité), la série de jours actifs, l'arrivée sur le N-ième serveur, la première activité plus N jours (fidélité), le premier jour à cette place d'après les relevés quotidiens (classement), le N-ième vote (soutien) ;
+  - avant le 05/10/2024, l'ancien bot ne gardait que les totaux : un palier déjà atteint à cette date est noté « avant oct. 2024 » plutôt qu'une fausse date ;
+  - un palier que l'historique ne peut pas dater garde le jour où il a été vu pour la première fois.
+- **Recalcul toutes les heures** par un seul worker, avec le code des badges du profil lui-même : les paliers de la page sont toujours ceux du profil. Vérifié sur tous les membres (9 350 paliers identiques). Le calcul complet prend moins d'une seconde. Deux nouvelles tables du site, `user_badge_values` et `user_badge_tiers`, sont créées au démarrage (migration `2026-11-05_web_v3.35.0_badge_stats.sql`).
+- **Confidentialité** : les membres au profil privé, ou qui cachent leurs badges, sont comptés dans la rareté mais ne sont nommés nulle part (liste, premier détenteur, derniers débloqués, presque). Les bots et applications sont exclus.
+- Traduit dans les 12 langues, adapté au téléphone.
+
 ## Version 3.34.3 - Ménage de l'Ancienne Page Versus - 05/11/2026
 - **Styles de l'ancienne page Versus retirés** (remplacée en v3.34.0 par `css/pages/versus.css`) : 62 classes qui ne servaient plus nulle part (cartes de combattants, jauges, tableau de score…). Cela représente 137 règles en moins dans `styles.css` et `arene.css`, et 17 listes de sélecteurs allégées. Le haut de la page (recherche, échange, serveurs en commun) garde ses styles. Aucun changement visible.
 

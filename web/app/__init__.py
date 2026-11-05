@@ -22,11 +22,13 @@ from app.routes.api import api_bp
 from app.routes.hovercard import hovercard_bp
 from app.routes.cards import cards_bp
 from app.routes.versus import versus_bp
+from app.routes.badges import badges_bp
 from app.routes.customize import customize_bp
 from app.routes.admin import admin_bp
 from app.analytics_tracking import init_tracking
 from app.security_log import init_security_log
 from app.best_records import init_best_records
+from app.badge_stats import init_badge_stats
 from app.topgg_votes import init_topgg_votes
 from app.admin import is_admin
 from app.profile_settings import ensure_table as ensure_profile_settings_table
@@ -79,6 +81,7 @@ def create_app():
     init_security_log(app)
     # Best rank and best 30 days of every member, so the Ranking and Activity badges never go down
     init_best_records(app)
+    init_badge_stats(app)
     # top.gg votes: webhook /webhooks/topgg and hourly catch-up of the vote history
     init_topgg_votes(app)
 
@@ -310,6 +313,7 @@ def create_app():
     app.register_blueprint(hovercard_bp)
     app.register_blueprint(cards_bp)
     app.register_blueprint(versus_bp)
+    app.register_blueprint(badges_bp)
     app.register_blueprint(customize_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(auth_bp)

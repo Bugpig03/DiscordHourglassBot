@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% from "partials/pagination.html" import pagination with context %}
+
+{% block title %}{{ tr('Badge {name} - Hourglass', 'Badge {name} - Hourglass', name=badge.name) }}{% endblock %}
+{% block meta_description %}{{ tr('{name} : {what}. Qui a chaque palier, de Bronze à Mythique, et depuis quand.', '{name}: {what}. Who holds each tier, from Bronze to Mythic, and since when.', name=badge.name, what=badge.what) }}{% endblock %}
+
+{% macro member(m, sub=None) %}
+<a class="bg-member" href="{{ url_for('user_profile.profile', username=m.user_id) }}" data-hover="user:{{ m.user_id }}">
+    <img src="{{ m.avatar or url_for('static', filename='images/base_avatar_big.png') }}" data-fallback="{{ url_for('static', filename='images/base_avatar_big.png') }}" alt="">
+    <span class="bg-member-text"><span class="bg-member-name text-overflow">{{ m.name }}</span>{% if sub %}<span class="bg-member-sub">{{ sub }}</span>{% endif %}</span>
+</a>
+{% endmacro %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/badge.css', v=asset_version('css/pages/badge.css')) }}">
+
+<div class="bg-page">
+    <!-- Badge header and scope -->
+    <section class="bg-hero{% if rarest %} rarity-{{ rarest.key }}{% endif %}">
+        <div class="bg-hero-icon">{{ badge.icon | safe }}</div>
+        <div class="bg-hero-text">
+            <span class="bg-hero-kicker">{{ tr('Badge', 'Badge') }}</span>
+            <h1 class="bg-hero-title">{{ badge.name }}</h1>
+            <p class="bg-hero-what">{{ badge.what }} · {{ tr('{n} membres suivis', '{n} tracked members', n=members | thousands_fr) }}</p>
+        </div>
+        <form class="bg-scope" method="get" action="{{ url_for('badges.badge_page', badge_id=badge.id) }}">
+            <label class="bg-scope-label" for="bgServer">{{ tr('Serveur', 'Server') }}</label>
+            <select id="bgServer" name="srv" class="bg-select" data-autosubmit>
+                <option value="">{{ tr('Tous les serveurs', 'All servers') }}</option>
+                {% for s in servers %}<option value="{{ s.id }}" {% if s.id == server_id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+            </select>
+            {% if tier_filter > 1 %}<input type="hidden" name="tier" value="{{ tier_filter }}">{% endif %}
+            <noscript><button type="submit" class="bg-btn">{{ tr('Voir', 'Show') }}</button></noscript>
+        </form>
+    </section>
+
+    {% if not updated %}
+    <p class="bg-notice">{{ tr('Premier calcul des badges en cours : la page se remplit dans quelques minutes.', 'First badge computation in progress: the page fills in within a few minutes.') }}</p>
+    {% endif %}
+
+    <!-- Rarity: members who reached each tier -->
+    <section class="bg-card">
+        <header class="bg-card-head">
+            <h2 class="bg-card-title">{{ pixel_icon('chart', 17) }}<span>{{ tr('Rareté des paliers', 'Tier rarity') }}</span></h2>
+            <p class="bg-card-desc">{{ tr('Membres qui ont atteint chaque palier (ou mieux). Cliquer sur un palier filtre la liste.', 'Members who reached each tier (or better). Click a tier to filter the list.') }}</p>
+        </header>
+        <div class="bg-rarity">
+            {% for r in rarity %}
+            <a class="bg-tier rarity-{{ r.key }}{% if r.n == tier_filter %} is-active{% endif %}{% if not r.count %} is-empty{% endif %}"
+               href="{{ url_for('badges.badge_page', badge_id=badge.id, tier=r.n if r.n > 1 else None, srv=server_id) }}#bgHolders">
+                <span class="bg-tier-name">{{ r.label }}</span>
+                <span class="bg-tier-threshold">{{ r.threshold }}</span>
+                <span class="bg-tier-count">{{ r.count | thousands_fr }}</span>
+                <span class="bg-tier-percent">{{ r.percent | num(1) }} %</span>
+                <span class="bg-tier-bar"><i style="width: {{ [r.percent, 100] | min }}%;"></i></span>
+                <span class="bg-tier-first">
+                    {% if r.before %}{{ tr('{n} avant oct. 2024', '{n} before Oct 2024', n=r.before) }}
+                    {% elif r.first %}{{ tr('1er : {name}, le {day}', '1st: {name}, on {day}', name=r.first.name, day=r.first.day) }}
+                    {% elif r.count %}{{ tr('Détenteurs masqués', 'Hidden holders') }}
+                    {% else %}{{ tr('Personne pour l’instant', 'Nobody yet') }}{% endif %}
+                </span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="bg-columns">
+        <!-- Holders of the chosen tier or better -->
+        <section class="bg-card bg-holders" id="bgHolders">
+            <header class="bg-card-head">
+                <div>
+                    <h2 class="bg-card-title">{{ pixel_icon('users', 17) }}<span>{{ tr('Détenteurs', 'Holders') }} · {{ tiers[tier_filter - 1].label }}{% if tier_filter < 7 %} {{ tr('ou mieux', 'or better') }}{% endif %}</span></h2>
+                    <p class="bg-card-desc">{{ tr('{n} membres', '{n} members', n=listed_count | thousands_fr) }}{% if hidden_count %} · {{ tr('{n} autres ont caché leurs badges', '{n} more keep their badges hidden', n=hidden_count) if hidden_count > 1 else tr('1 autre a caché ses badges', '1 more keeps their badges hidden') }}{% endif %}</p>
+                </div>
+                <form class="bg-search" method="get" action="{{ url_for('badges.badge_page', badge_id=badge.id) }}#bgHolders">
+                    {% if server_id %}<input type="hidden" name="srv" value="{{ server_id }}">{% endif %}
+                    {% if tier_filter > 1 %}<input type="hidden" name="tier" value="{{ tier_filter }}">{% endif %}
+                    <input type="search" name="q" value="{{ search }}" class="bg-search-input" placeholder="{{ tr('Chercher un membre…', 'Find a member…') }}" aria-label="{{ tr('Chercher un membre', 'Find a member') }}">
+                </form>
+            </header>
+            {% if holders %}
+            <ol class="bg-list" start="{{ (page - 1) * 25 + 1 }}">
+                {% for h in holders %}
+                <li class="bg-row">
+                    <details>
+                        <summary>
+                            <span class="bg-row-rank">{{ (page - 1) * 25 + loop.index }}</span>
+                            {{ member(h) }}
+                            <span class="bg-chip rarity-{{ h.tier.key }}">{{ h.tier.label }}</span>
+                            <span class="bg-row-value">{{ h.value }}</span>
+                            <span class="bg-row-day">{{ h.reached if h.reached_before else tr('depuis le {day}', 'since {day}', day=h.reached) }}</span>
+                            <span class="bg-row-more" aria-hidden="true">{{ pixel_icon('chevron_down', 12) }}</span>
+                        </summary>
+                        <ol class="bg-timeline" aria-label="{{ tr('Date de chaque palier', 'Day of each tier') }}">
+                            {% for t in h.timeline %}
+                            <li class="bg-step rarity-{{ t.key }}{% if not t.done %} is-locked{% endif %}">
+                                <span class="bg-step-name">{{ t.label }}</span>
+                                <span class="bg-step-day">{{ t.day if t.done else t.threshold }}</span>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                    </details>
+                </li>
+                {% endfor %}
+            </ol>
+            {{ pagination(page, total_pages) }}
+            {% else %}
+            <p class="bg-empty">{{ tr('Aucun membre à ce palier pour l’instant.', 'No member at this tier yet.') if not search else tr('Aucun membre ne correspond.', 'No matching member.') }}</p>
+            {% endif %}
+        </section>
+
+        <aside class="bg-side">
+            <!-- Latest tiers reached -->
+            <section class="bg-card">
+                <header class="bg-card-head"><h2 class="bg-card-title">{{ pixel_icon('zap', 17) }}<span>{{ tr('Derniers débloqués', 'Latest unlocks') }}</span></h2></header>
+                {% if recent %}
+                <ul class="bg-feed">
+                    {% for r in recent %}
+                    <li>{{ member(r, r.day) }}<span class="bg-chip rarity-{{ r.tier.key }}">{{ r.tier.label }}</span></li>
+                    {% endfor %}
+                </ul>
+                {% else %}<p class="bg-empty">{{ tr('Rien de débloqué depuis octobre 2024.', 'Nothing unlocked since October 2024.') }}</p>{% endif %}
+            </section>
+
+            <!-- About to climb -->
+            <section class="bg-card">
+                <header class="bg-card-head">
+                    <h2 class="bg-card-title">{{ pixel_icon('trend', 17) }}<span>{{ tr('Presque', 'Almost there') }}</span></h2>
+                    <p class="bg-card-desc">{{ tr('À 80 % ou plus du palier suivant.', 'At 80 % or more of the next tier.') }}</p>
+                </header>
+                {% if almost %}
+                <ul class="bg-feed">
+                    {% for a in almost %}
+                    <li>
+                        {{ member(a, a.value) }}
+                        <span class="bg-almost rarity-{{ a.next.key }}">
+                            <span class="bg-almost-label">{{ a.next.label }} · {{ a.progress | num(0) }} %</span>
+                            <span class="bg-almost-bar"><i style="width: {{ a.progress }}%;"></i></span>
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}<p class="bg-empty">{{ tr('Personne n’est sur le point de monter.', 'Nobody is about to climb.') }}</p>{% endif %}
+            </section>
+        </aside>
+    </div>
+
+    <p class="bg-foot">
+        {{ tr('Recalculé toutes les heures', 'Refreshed every hour') }}{% if updated %} · {{ tr('dernière mise à jour : {d}', 'last update: {d}', d=updated | date_heure_localized) }}{% endif %}.
+        {{ tr('Avant le 5 octobre 2024, l’ancien bot ne gardait que les totaux : les paliers déjà atteints à cette date sont notés « avant oct. 2024 ».', 'Before 5 October 2024, the old bot only kept totals: tiers already reached by then show as “before Oct 2024”.') }}
+        {{ tr('Les membres au profil privé sont comptés mais pas nommés.', 'Members with a private profile are counted but not named.') }}
+    </p>
+</div>
+
+<script src="{{ url_for('static', filename='js/pages/badge.js', v=asset_version('js/pages/badge.js')) }}" defer></script>
+{% endblock %}

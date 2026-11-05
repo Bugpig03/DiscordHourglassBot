@@ -1042,3 +1042,12 @@
 .bd-rarity.rarity-rare, .bd-tier.rarity-rare { --rarity: 79, 163, 255; }
 .bd-rarity.rarity-epic, .bd-tier.rarity-epic { --rarity: 192, 132, 252; }
 .bd-rarity.rarity-legendary, .bd-tier.rarity-legendary { --rarity: 251, 191, 36; }
+
+/* v3.35.0: a badge opens its page (who holds each tier and since when) */
+a.profile-showcase-item { color: inherit; text-decoration: none; cursor: pointer; }
+a.profile-showcase-item:hover { filter: brightness(1.12); }
+.bd-family-link { color: inherit; text-decoration: none; }
+.bd-family-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.bd-tier-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.bd-tier:has(.bd-tier-link) { cursor: pointer; }
+.bd-tier:has(.bd-tier-link:focus-visible) { outline: 2px solid rgb(var(--rarity)); outline-offset: 2px; }

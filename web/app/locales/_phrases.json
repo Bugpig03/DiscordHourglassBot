@@ -2910,5 +2910,137 @@
  "p0789": [
   "Serveurs enregistrés",
   "Registered servers"
+ ],
+ "p0790": [
+  "avant oct. 2024",
+  "before Oct 2024"
+ ],
+ "p0791": [
+  "Badge {name} - Hourglass",
+  "Badge {name} - Hourglass"
+ ],
+ "p0792": [
+  "{name} : {what}. Qui a chaque palier, de Bronze à Mythique, et depuis quand.",
+  "{name}: {what}. Who holds each tier, from Bronze to Mythic, and since when."
+ ],
+ "p0793": [
+  "Badge",
+  "Badge"
+ ],
+ "p0794": [
+  "{n} membres suivis",
+  "{n} tracked members"
+ ],
+ "p0795": [
+  "Voir",
+  "Show"
+ ],
+ "p0796": [
+  "Rareté des paliers",
+  "Tier rarity"
+ ],
+ "p0797": [
+  "Membres qui ont atteint chaque palier (ou mieux). Cliquer sur un palier filtre la liste.",
+  "Members who reached each tier (or better). Click a tier to filter the list."
+ ],
+ "p0798": [
+  "{n} avant oct. 2024",
+  "{n} before Oct 2024"
+ ],
+ "p0799": [
+  "1er : {name}, le {day}",
+  "1st: {name}, on {day}"
+ ],
+ "p0800": [
+  "Détenteurs masqués",
+  "Hidden holders"
+ ],
+ "p0801": [
+  "Personne pour l’instant",
+  "Nobody yet"
+ ],
+ "p0802": [
+  "Détenteurs",
+  "Holders"
+ ],
+ "p0803": [
+  "ou mieux",
+  "or better"
+ ],
+ "p0804": [
+  "{n} autres ont caché leurs badges",
+  "{n} more keep their badges hidden"
+ ],
+ "p0805": [
+  "1 autre a caché ses badges",
+  "1 more keeps their badges hidden"
+ ],
+ "p0806": [
+  "Chercher un membre…",
+  "Find a member…"
+ ],
+ "p0807": [
+  "Chercher un membre",
+  "Find a member"
+ ],
+ "p0808": [
+  "depuis le {day}",
+  "since {day}"
+ ],
+ "p0809": [
+  "Date de chaque palier",
+  "Day of each tier"
+ ],
+ "p0810": [
+  "Aucun membre à ce palier pour l’instant.",
+  "No member at this tier yet."
+ ],
+ "p0811": [
+  "Aucun membre ne correspond.",
+  "No matching member."
+ ],
+ "p0812": [
+  "Derniers débloqués",
+  "Latest unlocks"
+ ],
+ "p0813": [
+  "Rien de débloqué depuis octobre 2024.",
+  "Nothing unlocked since October 2024."
+ ],
+ "p0814": [
+  "Presque",
+  "Almost there"
+ ],
+ "p0815": [
+  "À 80 % ou plus du palier suivant.",
+  "At 80 % or more of the next tier."
+ ],
+ "p0816": [
+  "Personne n’est sur le point de monter.",
+  "Nobody is about to climb."
+ ],
+ "p0817": [
+  "Recalculé toutes les heures",
+  "Refreshed every hour"
+ ],
+ "p0818": [
+  "dernière mise à jour : {d}",
+  "last update: {d}"
+ ],
+ "p0819": [
+  "Avant le 5 octobre 2024, l’ancien bot ne gardait que les totaux : les paliers déjà atteints à cette date sont notés « avant oct. 2024 ».",
+  "Before 5 October 2024, the old bot only kept totals: tiers already reached by then show as “before Oct 2024”."
+ ],
+ "p0820": [
+  "Les membres au profil privé sont comptés mais pas nommés.",
+  "Members with a private profile are counted but not named."
+ ],
+ "p0821": [
+  "{badge} · {tier} : voir les détenteurs",
+  "{badge} · {tier}: see the holders"
+ ],
+ "p0822": [
+  "Premier calcul des badges en cours : la page se remplit dans quelques minutes.",
+  "First badge computation in progress: the page fills in within a few minutes."
  ]
 }

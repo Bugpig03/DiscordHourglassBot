@@ -45,6 +45,7 @@ PAGE_KEYS = {
     "server_profile.server": "server",
     "graphs.graphs": "graphs",
     "versus.versus": "versus",
+    "badges.badge_page": "badges",
     "home.supports": "help",
     "home.privacy": "privacy",
     "home.terms": "terms",

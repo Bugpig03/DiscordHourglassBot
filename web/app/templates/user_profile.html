@@ -145,13 +145,13 @@
             <div class="profile-vitrine-label">{{ tr('Badges', 'Badges') }} {{ hidden_tag('showcase') }}</div>
             <div class="profile-showcase" aria-label="{{tr('Badges mis en avant', 'Featured badges')}}">
                 {% for badge in showcase %}
-                <div class="profile-showcase-item rarity-{{ badge.rarity }}" data-tip="{{ badge.description }}">
+                <a class="profile-showcase-item rarity-{{ badge.rarity }}" href="{{ url_for('badges.badge_page', badge_id=badge.id) }}" data-tip="{{ badge.description }}">
                     <span class="profile-showcase-icon">{{ badge.icon | safe }}</span>
                     <span class="profile-showcase-text">
                         <span class="profile-showcase-name">{{ badge.name }}</span>
                         <span class="profile-showcase-rarity">{{ badge.tier_label }}</span>
                     </span>
-                </div>
+                </a>
                 {% endfor %}
             </div>
         </div>
@@ -728,13 +728,15 @@
         <section class="gray-box small-border-radius bd-family {% if fam.complete %}is-complete{% endif %}" data-unlocked="{{ fam.unlocked }}" data-total="{{ fam.total }}">
             <header class="bd-family-head">
                 <span class="bd-family-icon">{{ fam.icon | safe }}</span>
-                <h3 class="bd-family-name">{{ fam.label }}</h3>
+                {# The badge page: who holds each tier and since when #}
+                <h3 class="bd-family-name"><a class="bd-family-link" href="{{ url_for('badges.badge_page', badge_id=fam.key) }}">{{ fam.label }}</a></h3>
                 <span class="bd-family-count">{{ fam.unlocked }}/{{ fam.total }}</span>
                 <span class="bd-family-tier rarity-{{ fam.tier_key }}">{{ fam.tier_label }}</span>
             </header>
             <ol class="bd-track">
                 {% for tier in fam.tiers %}
-                <li class="bd-tier is-{{ tier.state }} rarity-{{ tier.rarity }}" data-state="{{ tier.state }}" data-tip="{{ tier.description }}" tabindex="0">
+                <li class="bd-tier is-{{ tier.state }} rarity-{{ tier.rarity }}" data-state="{{ tier.state }}" data-tip="{{ tier.description }}">
+                    <a class="bd-tier-link" href="{{ url_for('badges.badge_page', badge_id=fam.key, tier=loop.index if loop.index > 1 else None) }}" aria-label="{{ tr('{badge} · {tier} : voir les détenteurs', '{badge} · {tier}: see the holders', badge=fam.label, tier=tier.name) }}"></a>
                     <span class="bd-tier-icon">
                         {{ tier.icon | safe }}
                         {% if tier.state == 'unlocked' %}<span class="bd-tier-check" aria-hidden="true"><svg width="10" height="10" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="check"><path d="M8 1h1v1h-1zM7 2h2v1h-2zM6 3h2v1h-2zM0 4h1v1h-1zM5 4h2v1h-2zM0 5h2v1h-2zM4 5h2v1h-2zM1 6h4v1h-4zM2 7h2v1h-2z"/></svg></span>{% endif %}

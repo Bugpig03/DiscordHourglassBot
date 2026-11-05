@@ -122,7 +122,24 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
     levelled up through 7 tiers: Bronze, Silver, Gold, Platinum, Diamond, Legend, Mythic. tier is 0 until the
     first one is reached; the tier color is the badge color everywhere (see TIERS).
     """
+    values, records = badge_values(stats)
+    badges = []
+    for definition in BADGE_DEFS:
+        badge = _family_badge(definition, values[definition[0]], lang)
+        note = _record_text(definition[0], records, lang) if records else None
+        if note:
+            badge["record"] = note
+            badge["description"] = f"{badge['description']} {note}"
+        badges.append(badge)
+    return badges
 
+
+def badge_values(stats: dict[str, Any]) -> tuple[dict[str, Any], dict | None]:
+    """What each badge measures for the member ({badge id: value}) and their stored records.
+
+    Shared by the profile (calculate_user_badges) and the badge pages (badge_stats), so both always give the
+    same tier. Every figure can be given in stats; what is missing is read for the member.
+    """
     try:
         total_seconds = float(stats.get("total_seconds") or 0)
     except (ValueError, TypeError):
@@ -206,16 +223,7 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
                 values["rank"] = (rank, max(total_hours, best_hours))
         if records.get("best_30d_hours"):
             values["activity"] = max(last_30d_hours, float(records["best_30d_hours"]))
-
-    badges = []
-    for definition in BADGE_DEFS:
-        badge = _family_badge(definition, values[definition[0]], lang)
-        note = _record_text(definition[0], records, lang) if records else None
-        if note:
-            badge["record"] = note
-            badge["description"] = f"{badge['description']} {note}"
-        badges.append(badge)
-    return badges
+    return values, records
 
 
 def member_votes(user_id) -> int:
