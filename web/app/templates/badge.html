@@ -122,8 +122,10 @@
                             <span class="bg-row-rank">{{ (page - 1) * 25 + loop.index }}</span>
                             {{ member(h) }}
                             <span class="bg-chip rarity-{{ h.tier.key }}">{{ h.tier.label }}</span>
-                            <span class="bg-row-value">{{ h.value }}</span>
-                            <span class="bg-row-day">{{ h.reached if h.reached_before else tr('depuis le {day}', 'since {day}', day=h.reached) }}</span>
+                            <span class="bg-row-info">
+                                <span class="bg-row-value">{{ h.value }}</span>
+                                <span class="bg-row-day">{{ h.reached if h.reached_before else tr('depuis le {day}', 'since {day}', day=h.reached) }}</span>
+                            </span>
                             <span class="bg-row-more" aria-hidden="true">{{ pixel_icon('chevron_down', 12) }}</span>
                         </summary>
                         <ol class="bg-timeline" aria-label="{{ tr('Date de chaque palier', 'Day of each tier') }}">

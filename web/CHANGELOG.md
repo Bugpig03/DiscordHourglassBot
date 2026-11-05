@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.36.1 - Page des Badges sans Chevauchements et Interrupteurs Arène - 05/11/2026
+- **Interrupteurs** (personnalisation du profil, onglet Confidentialité ; « Afficher les bots » de la page Membres) : la pastille ronde dans un rail carré faisait bizarre. Le rail et la pastille sont maintenant des **carrés en biais**, avec le même angle que les boutons et les étiquettes du site. Quand l'option est activée, la pastille glisse à droite sur fond violet. Au clavier, la mise au point s'affiche par un liseré clair, car le contour classique était masqué par la forme.
+- **Cases à cocher des records** (onglet Vitrine) : celles du navigateur, rondes et bleues, sont remplacées par le même carré en biais, avec une coche quand le record est choisi.
+- **Aperçu sur téléphone, onglet Vitrine** : l'aperçu fixé en haut affichait l'en-tête du profil en plus de la vitrine et prenait près de la moitié de l'écran (47 %). Il ne montre plus que la vitrine, la seule partie qui change dans cet onglet (28 %). Les onglets Apparence et Confidentialité ne changent pas (21 %).
+- **Valeurs qui chevauchaient la date** dans la liste des détenteurs (« 29 114 messages » écrit par-dessus « depuis le… ») : la colonne avait une largeur fixe, trop étroite pour les grands nombres. La valeur et la date sont maintenant dans une même colonne, la valeur au-dessus et la date en dessous. Une valeur longue, comme celle de la Polyvalence (heures + messages), passe à la ligne au lieu de déborder.
+- **Noms des paliers coupés dans la frise dépliée** (« MYTHIQUE », « PLATINE »…) : chaque palier prend au moins la largeur de son nom, et la frise passe sur une deuxième ligne quand la place manque.
+- Contrôlé automatiquement, avec les plus longues valeurs et les plus longs pseudos, de 1440 à 320 px de large, en français, en allemand et en russe : plus aucun élément ne se superpose ni ne déborde.
+
 ## Version 3.36.0 - Menu des Badges et Paliers à Débloquer - 05/11/2026
 - **Menu des 10 badges** sur la gauche des pages de badges. On passe de l'un à l'autre en gardant le serveur choisi, et chacun affiche le nombre de membres qui l'ont débloqué. Il reste visible pendant le défilement. Sur téléphone, il devient un bandeau qu'on fait défiler de côté, centré sur le badge ouvert.
 - **Paliers à débloquer** : nouveau bloc sous le titre, avec ce que demande chacun des 7 paliers (« Bronze : 1 h », « Mythique : 2 500 h + 25 000 messages »…) et une phrase qui explique ce qui compte pour ce badge. Par exemple, pour le Classement, la meilleure place jamais atteinte, et une place perdue ensuite ne fait pas redescendre le palier.

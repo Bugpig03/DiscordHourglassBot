@@ -597,6 +597,14 @@
     .cz-preview-vitrine .profile-vitrine-head {
         display: none;
     }
+    /* Showcase tab: the pinned preview shows the showcase alone (the header does not change there), so it
+       stays small enough to leave room for the settings */
+    .cz-layout[data-panel="highlights"] .cz-preview .profile-hero {
+        display: none;
+    }
+    .cz-layout[data-panel="highlights"] .cz-preview-vitrine {
+        margin-top: 0;
+    }
 }
 @media (max-width: 600px) {
     .cz-panel {
