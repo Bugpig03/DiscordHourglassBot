@@ -8,7 +8,7 @@
     // Panels that light up in their own color on hover (arene.css "motion"): their diagonals are drawn even
     // without a border, transparent at rest and colored on hover like the inset outline
     const GLOW = '.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, '
-        + '.legal-card, .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card';
+        + '.legal-card, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card';
 
     const visible = (cs, side) => parseFloat(cs[`border${side}Width`]) > 0
         && cs[`border${side}Style`] !== 'none'

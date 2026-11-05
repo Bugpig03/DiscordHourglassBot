@@ -69,7 +69,6 @@ html body .hg-card-title,
 html body .legal-title,
 html body .legal-card-title,
 html body .versus-title,
-html body .versus-metrics-title,
 html body .podium-card-title,
 html body .common-servers-title,
 html body .modal-title,
@@ -98,7 +97,6 @@ html body .an-card-title,
 html body .hg-card-title,
 html body .podium-card-title,
 html body .legal-card-title,
-html body .versus-metrics-title,
 html body .common-servers-title,
 html body .profile-records-title,
 html body .adm-section-title {
@@ -122,9 +120,6 @@ html body .an-rank-value,
 html body .an-rank-pos,
 html body .adm-stat-value,
 html body .adm-tile-value,
-html body .score-number,
-html body .score-digit,
-html body .metric-side-val,
 html body .user-level-num,
 html body .profile-record-value,
 html body .ratio-pct,
@@ -136,8 +131,6 @@ html body .page-link {
 
 html body .dashboard-kpi-val,
 html body .home-stats-value,
-html body .score-number,
-html body .score-digit,
 html body .user-level-num,
 html body .podium-rank,
 html body .rank {
@@ -154,8 +147,6 @@ html body .home-section-badge,
 html body .badge-rarity-pill,
 html body .hg-badge,
 html body .an-badge,
-html body .metrics-count-badge,
-html body .fighter-player-tag,
 html body .search-group-title,
 html body .snippet-label,
 html body .versus-input-label,
@@ -366,8 +357,6 @@ html body .dashboard-chart-box,
 html body .dashboard-section-wrap,
 html body .legal-card,
 html body .versus-selector-box,
-html body .versus-metrics-container,
-html body .versus-chart-card,
 html body .versus-common-servers-wrapper,
 html body .cz-panel,
 html body .user-level-card,
@@ -395,8 +384,6 @@ html body .an-card,
 html body .hg-card,
 html body .dashboard-chart-box,
 html body .legal-card,
-html body .versus-chart-card,
-html body .versus-metrics-container,
 html body .user-level-card,
 html body .dashboard-kpi-card,
 html body .home-stats-box,
@@ -407,7 +394,6 @@ html body .xp-guide-item,
 html body .heatmap-month-card,
 html body .companion-card,
 html body .profile-record,
-html body .versus-fighter-card,
 html body .dashboard-hero {
   clip-path: var(--cut-m);
 }
@@ -437,8 +423,7 @@ html body .versus-icon-badge,
 html body .cz-row-head-icon,
 html body .cz-list-icon,
 html body .profile-record-icon,
-html body .profile-showcase-icon,
-html body .metric-category-icon {
+html body .profile-showcase-icon {
   border-radius: 0;
   clip-path: var(--cut-s);
   box-shadow: none;
@@ -447,7 +432,6 @@ html body .dashboard-kpi-pill,
 html body .home-section-badge,
 html body .hg-badge,
 html body .an-badge,
-html body .metrics-count-badge,
 html body .badge-rarity-pill,
 html body .user-level-tag,
 html body .server-pill,
@@ -456,8 +440,6 @@ html body .legal-badge-updated,
 html body .active-server-badge,
 html body .dashboard-hero-badge,
 html body .tab-badge,
-html body .fighter-badge,
-html body .fighter-player-tag,
 html body .search-item-badge,
 html body .layout-pane-tag,
 html body .layout-hidden-tag,
@@ -746,7 +728,6 @@ html body .top-tab-btn.active svg { color: #fff; stroke: currentColor; }
 html body .podium-item,
 html body .an-rank-item,
 html body .search-result-item,
-html body .versus-metric-row,
 html body .hover-row,
 html body .cz-list-item,
 html body .cz-row,
@@ -783,14 +764,12 @@ html body .user-level-tag {
 html body .an-rank-bar,
 html body .user-xp-bar-bg,
 html body .badge-progress-bar,
-html body .gauge-bar,
 html body .bd-summary-bar,
 html body .bd-track {
   border-radius: 0;
 }
 html body .user-xp-bar-fill,
-html body .badge-progress-fill,
-html body .gauge-fill { border-radius: 0; }
+html body .badge-progress-fill { border-radius: 0; }
 
 /* --------------------------------------------------------------- badges */
 html body .badge-card {
@@ -823,23 +802,7 @@ html body .podium-item:first-child::after {
   0%, 60% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
-
-/* --------------------------------------------------------------- versus */
-html body .versus-fighter-card { border-radius: 0; border: 0; background: var(--ar-panel); box-shadow: none; }
-html body .versus-fighter-card.fighter-winner { box-shadow: none; border-top: 3px solid var(--ar-gold); }
-html body .versus-neon-badge {
-  border-radius: 0;
-  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-  background: var(--ar-bg-2);
-  box-shadow: none;
-  font-family: var(--ar-display);
-  font-style: italic;
-}
 html body .versus-swap-btn { border-radius: 0; clip-path: var(--cut-s); }
-html body .duel-outcome-pill,
-html body .fighter-champion-ribbon { border-radius: 0; clip-path: var(--slant); font-family: var(--ar-display); text-transform: uppercase; letter-spacing: 0.06em; }
-html body .fighter-name,
-html body .fighter-name a { font-family: var(--ar-display); text-transform: uppercase; letter-spacing: 0.03em; }
 
 /* --------------------------------------------------------------- search modal */
 html body .global-search-backdrop { background: rgba(8, 9, 12, 0.72); backdrop-filter: none; -webkit-backdrop-filter: none; }
@@ -1004,14 +967,6 @@ html body .profile-streak-icon { border-radius: 0; clip-path: var(--cut-s); }
 
 /* Versus */
 html body .top-tabs { border-radius: 0; clip-path: var(--cut-s); }
-html body .fighter-score-display { border-radius: 0; clip-path: var(--cut-s); }
-html body .metric-center-label {
-  border-radius: 0;
-  clip-path: var(--slant);
-  font-family: var(--ar-display);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
 
 /* Customization page */
 html body .cz-panel-intro,
@@ -1337,12 +1292,10 @@ html body .ar-cut[data-cut-br="glow"]::after { border-bottom: 1px solid transpar
 html body .ar-cut[data-cut-tl]::before,
 html body .ar-cut[data-cut-br]::after { transition: border-color 0.18s ease; }
 /* Hover glow (section "motion"): the cut corners take the color of the inset outline, so it runs all around */
-html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
-  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card).ar-cut:is([data-cut-tl="glow"], [data-cut-tl-soft]):hover::before {
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card).ar-cut:is([data-cut-tl="glow"], [data-cut-tl-soft]):hover::before {
   border-top-color: color-mix(in srgb, var(--tone, var(--ar-accent)) 55%, transparent);
 }
-html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
-  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card).ar-cut:is([data-cut-br="glow"], [data-cut-br-soft]):hover::after {
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card).ar-cut:is([data-cut-br="glow"], [data-cut-br-soft]):hover::after {
   border-bottom-color: color-mix(in srgb, var(--tone, var(--ar-accent)) 55%, transparent);
 }
 
@@ -1557,12 +1510,10 @@ html body div.gray-box.link:has(.rank-badge.rank-1) :is(.small-pp, .big-pp) { bo
 
 /* ---------- 6. motion: panels light up in their own color on hover, live dots pulse
    (the key figures counting up are in js/countup.js) */
-html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
-  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card) {
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card) {
   transition: background-color 0.18s ease, box-shadow 0.18s ease;
 }
-html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card,
-  .versus-metrics-container, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card):hover {
+html body :is(.an-card, .dashboard-chart-box, .dashboard-podium-card, .dashboard-kpi-card, .home-stats-box, .profile-record, .legal-card, .adm-tile, .xp-guide-item, .companion-card, .heatmap-month-card):hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone, var(--ar-accent)) 55%, transparent),
     inset 0 0 26px color-mix(in srgb, var(--tone, var(--ar-accent)) 12%, transparent);
 }
@@ -1668,7 +1619,6 @@ html body .hg-split-item { grid-template-columns: 10px minmax(0, 1fr) auto 56px;
 /* Smallest text stays readable (10 px minimum) */
 html body .app-badge { font-size: 0.66rem; }
 html body .user-level-sub { font-size: 0.64rem; }
-html body :is(.fighter-player-tag, .fighter-badge, .score-text, .fighter-champion-ribbon span) { font-size: max(0.68rem, 10.5px); }
 
 /* Touch targets on phones: fields and links at least about 36 px high */
 @media (max-width: 600px) {
@@ -1677,7 +1627,6 @@ html body :is(.fighter-player-tag, .fighter-badge, .score-text, .fighter-champio
   html body .page-search-enter-kbd { min-height: 32px; min-width: 32px; }
   html body .an-rank-name { padding-block: 7px; }
   html body .an-more { min-height: 36px; display: inline-flex; align-items: center; }
-  html body .fighter-name a { display: inline-block; padding-block: 6px; }
 }
 
 /* Home podiums on very small phones: tighter row so the names keep their room */

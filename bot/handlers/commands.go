@@ -217,10 +217,13 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 
 // sendCard posts a card drawn by the website with a short message; when the website cannot provide it
 // (CARD_TOKEN missing, website down, no data) the command answers with text instead.
+// The link of the message gets no Discord preview: the website's preview is the same card a second time
+// (often for another scope: global under a server card). The card itself is an attachment, still shown.
 func sendCard(s *discordgo.Session, i *discordgo.InteractionCreate, png []byte, err error, fileName, content string, fallback func() string) {
 	if err == nil && len(png) > 0 {
 		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 			Content: content,
+			Flags:   discordgo.MessageFlagsSuppressEmbeds,
 			Files: []*discordgo.File{
 				{Name: fileName, ContentType: "image/png", Reader: bytes.NewReader(png)},
 			},
@@ -230,7 +233,7 @@ func sendCard(s *discordgo.Session, i *discordgo.InteractionCreate, png []byte, 
 	if err != nil && !errors.Is(err, card.ErrDisabled) && !errors.Is(err, card.ErrNotFound) {
 		log.Printf("Card %s unavailable, answering with text: %v", fileName, err)
 	}
-	_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{Content: fallback()})
+	_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{Content: fallback(), Flags: discordgo.MessageFlagsSuppressEmbeds})
 }
 
 // fallbackContext gives the text answer its own short deadline (the card request may have used the command's).

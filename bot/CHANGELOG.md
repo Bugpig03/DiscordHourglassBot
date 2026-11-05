@@ -1,5 +1,12 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.7.2 - Plus de Carte en Double et Bibliothèque Discord à Jour - 05/11/2026
+
+- **Carte affichée deux fois** sous `/stats`, `/allstats`, `/versus`, `/server`, `/top` et `/alltop` : le lien du message (« Voir le profil complet sur hourglassbot.net ») faisait apparaître l'aperçu Discord du site, c'est-à-dire la même carte une deuxième fois, et souvent pour une autre portée (la carte globale sous une carte de serveur). Les messages à carte du bot sont maintenant envoyés sans aperçu de lien. Le lien reste cliquable, la carte s'affiche comme avant, et les aperçus continuent de fonctionner quand un membre colle un lien lui-même.
+
+- **discordgo passe de la v0.28.1 à la v0.29.0** (mai 2025, la plus récente). Elle reconnaît les nouveaux composants de messages de Discord (Components V2 : conteneurs, sections, galeries…). Avant, un message qui en contenait, envoyé par un autre bot ou une application, n'était pas lu : le log affichait `error unmarshalling MESSAGE_UPDATE event, unknown component type: 17` et l'évènement était ignoré. Les messages de ce type sont donc de nouveau comptés, et l'erreur disparaît des logs.
+  - Les changements incompatibles de cette version (`UserUpdate`, `Activity.ApplicationID`, une constante des journaux d'audit) ne concernent rien de ce qu'utilise le bot. `go vet` et les tests passent.
+
 ## Version 3.7.1 - Commande /version, Déploiement Automatique et Présence en Personnes Uniques - 05/11/2026
 
 - **Commande `/version`**, discrète : seuls les administrateurs d'un serveur la voient dans la liste des commandes, elle n'est pas dans `/help`, et la réponse n'est visible que par celui qui la lance. Elle affiche la version du bot, la date de compilation de l'image, le commit (lien GitHub), depuis quand le bot tourne, le nombre de serveurs et la version de Go, pour vérifier qu'une mise à jour est bien arrivée.

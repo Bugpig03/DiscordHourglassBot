@@ -1,5 +1,8 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.34.3 - Ménage de l'Ancienne Page Versus - 05/11/2026
+- **Styles de l'ancienne page Versus retirés** (remplacée en v3.34.0 par `css/pages/versus.css`) : 62 classes qui ne servaient plus nulle part (cartes de combattants, jauges, tableau de score…). Cela représente 137 règles en moins dans `styles.css` et `arene.css`, et 17 listes de sélecteurs allégées. Le haut de la page (recherche, échange, serveurs en commun) garde ses styles. Aucun changement visible.
+
 ## Version 3.34.2 - Libellés de l'Accueil - 05/11/2026
 - **Accueil** : les tuiles « Utilisateurs uniques » et « Serveurs uniques » deviennent **« Utilisateurs enregistrés »** et **« Serveurs enregistrés »**, car elles comptent tout ce qu'Hourglass a enregistré depuis le début. La pastille de la première passe de « 684 personnes sur les serveurs » à **« 684 personnes actuellement »**. Traduit dans les 12 langues.
 
