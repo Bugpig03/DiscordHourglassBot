@@ -3042,5 +3042,57 @@
  "p0822": [
   "Premier calcul des badges en cours : la page se remplit dans quelques minutes.",
   "First badge computation in progress: the page fills in within a few minutes."
+ ],
+ "p0823": [
+  "Les badges",
+  "Badges"
+ ],
+ "p0824": [
+  "{n} membres l’ont débloqué",
+  "{n} members unlocked it"
+ ],
+ "p0825": [
+  "Paliers à débloquer",
+  "Tiers to unlock"
+ ],
+ "p0826": [
+  "Toutes les heures passées en vocal, sur tous les serveurs suivis.",
+  "Every hour spent in voice, on every tracked server."
+ ],
+ "p0827": [
+  "Tous les messages envoyés dans les salons textuels suivis.",
+  "Every message sent in the tracked text channels."
+ ],
+ "p0828": [
+  "Le niveau global : 1 XP par minute en vocal, 1 XP par message et 100 XP par vote sur top.gg.",
+  "The global level: 1 XP per voice minute, 1 XP per message and 100 XP per top.gg vote."
+ ],
+ "p0829": [
+  "La meilleure place jamais atteinte au classement vocal global. Une place perdue ensuite ne fait pas redescendre le palier.",
+  "The best spot ever reached in the global voice ranking. Losing it later never takes the tier away."
+ ],
+ "p0830": [
+  "Le nombre de serveurs suivis par Hourglass sur lesquels le membre a été actif.",
+  "How many servers tracked by Hourglass the member has been active on."
+ ],
+ "p0831": [
+  "Le nombre de jours depuis la première activité vue par Hourglass.",
+  "Days since the first activity seen by Hourglass."
+ ],
+ "p0832": [
+  "Le meilleur total de vocal sur 30 jours glissants. Le record reste acquis, même après un mois calme.",
+  "The best voice total over 30 sliding days. The record stays, even after a quiet month."
+ ],
+ "p0833": [
+  "La plus longue série de jours actifs d’affilée (vocal ou messages). La série record reste acquise.",
+  "The longest run of active days in a row (voice or messages). The record run stays."
+ ],
+ "p0834": [
+  "Les deux à la fois : des heures en vocal et des messages, chaque palier demande les deux seuils.",
+  "Both at once: voice hours and messages, each tier asks for both thresholds."
+ ],
+ "p0835": [
+  "Les votes pour Hourglass sur top.gg, un toutes les 12 heures (un vote du week-end compte une fois).",
+  "Votes for Hourglass on top.gg, one every 12 hours (a weekend vote counts once)."
  ]
 }

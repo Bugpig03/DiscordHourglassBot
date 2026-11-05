@@ -734,5 +734,18 @@
  "p0819": "Antes de 5 de outubro de 2024, o antigo bot só guardava os totais: os níveis já alcançados nessa data aparecem como «antes de out. 2024».",
  "p0820": "Membros com perfil privado são contados, mas não nomeados.",
  "p0821": "{badge} · {tier}: ver os detentores",
- "p0822": "Primeiro cálculo dos emblemas em andamento: a página será preenchida em alguns minutos."
+ "p0822": "Primeiro cálculo dos emblemas em andamento: a página será preenchida em alguns minutos.",
+ "p0823": "Os emblemas",
+ "p0824": "{n} membros o desbloquearam",
+ "p0825": "Níveis a desbloquear",
+ "p0826": "Todas as horas passadas em voz, em todos os servidores acompanhados.",
+ "p0827": "Todas as mensagens enviadas nos canais de texto acompanhados.",
+ "p0828": "O nível global: 1 XP por minuto em voz, 1 XP por mensagem e 100 XP por voto no top.gg.",
+ "p0829": "A melhor posição já alcançada no ranking global de voz. Perdê-la depois não tira o nível.",
+ "p0830": "Em quantos servidores acompanhados pelo Hourglass o membro teve atividade.",
+ "p0831": "Dias desde a primeira atividade vista pelo Hourglass.",
+ "p0832": "O melhor total de voz em 30 dias corridos. O recorde fica, mesmo depois de um mês tranquilo.",
+ "p0833": "A maior sequência de dias ativos seguidos (voz ou mensagens). A sequência recorde fica.",
+ "p0834": "Os dois ao mesmo tempo: horas em voz e mensagens, cada nível pede os dois limites.",
+ "p0835": "Os votos no Hourglass no top.gg, um a cada 12 horas (um voto de fim de semana conta uma vez)."
 }

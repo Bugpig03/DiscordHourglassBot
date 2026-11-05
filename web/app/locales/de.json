@@ -734,5 +734,18 @@
  "p0819": "Vor dem 5. Oktober 2024 speicherte der alte Bot nur Gesamtwerte: Stufen, die an diesem Tag bereits erreicht waren, stehen als „vor Okt. 2024“.",
  "p0820": "Mitglieder mit privatem Profil werden gezählt, aber nicht genannt.",
  "p0821": "{badge} · {tier}: Inhaber anzeigen",
- "p0822": "Erste Berechnung der Abzeichen läuft: Die Seite füllt sich in wenigen Minuten."
+ "p0822": "Erste Berechnung der Abzeichen läuft: Die Seite füllt sich in wenigen Minuten.",
+ "p0823": "Die Abzeichen",
+ "p0824": "{n} Mitglieder haben es freigeschaltet",
+ "p0825": "Freizuschaltende Stufen",
+ "p0826": "Alle im Sprachkanal verbrachten Stunden, auf allen erfassten Servern.",
+ "p0827": "Alle in den erfassten Textkanälen gesendeten Nachrichten.",
+ "p0828": "Das globale Level: 1 XP pro Minute im Sprachkanal, 1 XP pro Nachricht und 100 XP pro top.gg-Stimme.",
+ "p0829": "Der beste je erreichte Platz in der globalen Sprachrangliste. Ihn später zu verlieren nimmt die Stufe nicht weg.",
+ "p0830": "Auf wie vielen von Hourglass erfassten Servern das Mitglied aktiv war.",
+ "p0831": "Tage seit der ersten von Hourglass gesehenen Aktivität.",
+ "p0832": "Der beste Sprachkanal-Wert über 30 gleitende Tage. Der Rekord bleibt, auch nach einem ruhigen Monat.",
+ "p0833": "Die längste Serie aktiver Tage am Stück (Sprachkanal oder Nachrichten). Die Rekordserie bleibt.",
+ "p0834": "Beides zugleich: Stunden im Sprachkanal und Nachrichten, jede Stufe verlangt beide Schwellen.",
+ "p0835": "Die Stimmen für Hourglass auf top.gg, eine alle 12 Stunden (eine Wochenendstimme zählt einmal)."
 }

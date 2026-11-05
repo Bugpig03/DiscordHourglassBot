@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.36.0 - Menu des Badges et Paliers à Débloquer - 05/11/2026
+- **Menu des 10 badges** sur la gauche des pages de badges. On passe de l'un à l'autre en gardant le serveur choisi, et chacun affiche le nombre de membres qui l'ont débloqué. Il reste visible pendant le défilement. Sur téléphone, il devient un bandeau qu'on fait défiler de côté, centré sur le badge ouvert.
+- **Paliers à débloquer** : nouveau bloc sous le titre, avec ce que demande chacun des 7 paliers (« Bronze : 1 h », « Mythique : 2 500 h + 25 000 messages »…) et une phrase qui explique ce qui compte pour ce badge. Par exemple, pour le Classement, la meilleure place jamais atteinte, et une place perdue ensuite ne fait pas redescendre le palier.
+- Traduit dans les 12 langues.
+
 ## Version 3.35.1 - Pages des Badges sur Tous les Workers - 05/11/2026
 - **Page d'un badge en 404 une fois sur quatre** : au premier démarrage, les 4 workers du site créaient les nouvelles tables en même temps. PostgreSQL refuse alors un `CREATE TABLE IF NOT EXISTS` lancé en parallèle (`IntegrityError`), et le worker perdant désactivait la page jusqu'à son redémarrage. Les tables sont maintenant créées avec plusieurs essais. Un worker qui échoue malgré tout réessaie au plus une fois par minute, au lieu de rester désactivé. Reproduit en local avec 4 processus simultanés : 15 échecs sur 20 avant, 0 sur 20 après.
 - Même protection pour les tables des records (badges Classement et Activité), des votes top.gg et du journal de sécurité. Elles existent déjà en production et n'étaient pas touchées, mais une future table neuve ne pourra plus perdre cette course.

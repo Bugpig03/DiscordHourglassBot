@@ -15,6 +15,24 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/badge.css', v=asset_version('css/pages/badge.css')) }}">
 
 <div class="bg-page">
+<div class="bg-layout">
+    <!-- The 10 badges: switch from one page to another, in the same server scope -->
+    <nav class="bg-nav" aria-label="{{ tr('Les badges', 'Badges') }}">
+        <span class="bg-nav-title">{{ tr('Les badges', 'Badges') }}</span>
+        <ul class="bg-nav-list">
+            {% for b in nav %}
+            <li>
+                <a class="bg-nav-item{% if b.id == badge.id %} is-active{% endif %}" href="{{ url_for('badges.badge_page', badge_id=b.id, srv=server_id) }}"{% if b.id == badge.id %} aria-current="page"{% endif %}>
+                    <span class="bg-nav-icon">{{ b.icon | safe }}</span>
+                    <span class="bg-nav-name">{{ b.name }}</span>
+                    <span class="bg-nav-count" title="{{ tr('{n} membres l’ont débloqué', '{n} members unlocked it', n=b.holders) }}">{{ b.holders | thousands_fr }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+
+<div class="bg-main">
     <!-- Badge header and scope -->
     <section class="bg-hero{% if rarest %} rarity-{{ rarest.key }}{% endif %}">
         <div class="bg-hero-icon">{{ badge.icon | safe }}</div>
@@ -37,6 +55,23 @@
     {% if not updated %}
     <p class="bg-notice">{{ tr('Premier calcul des badges en cours : la page se remplit dans quelques minutes.', 'First badge computation in progress: the page fills in within a few minutes.') }}</p>
     {% endif %}
+
+    <!-- Tiers to unlock: what each one asks -->
+    <section class="bg-card bg-unlock">
+        <header class="bg-card-head">
+            <h2 class="bg-card-title">{{ pixel_icon('award', 17) }}<span>{{ tr('Paliers à débloquer', 'Tiers to unlock') }}</span></h2>
+            {% if badge.how %}<p class="bg-card-desc">{{ badge.how }}</p>{% endif %}
+        </header>
+        <ol class="bg-ladder">
+            {% for t in tiers %}
+            <li class="bg-rung rarity-{{ t.key }}">
+                <span class="bg-rung-step">{{ t.n }}</span>
+                <span class="bg-rung-name">{{ t.label }}</span>
+                <span class="bg-rung-goal">{{ t.threshold }}</span>
+            </li>
+            {% endfor %}
+        </ol>
+    </section>
 
     <!-- Rarity: members who reached each tier -->
     <section class="bg-card">
@@ -150,6 +185,8 @@
         {{ tr('Avant le 5 octobre 2024, l’ancien bot ne gardait que les totaux : les paliers déjà atteints à cette date sont notés « avant oct. 2024 ».', 'Before 5 October 2024, the old bot only kept totals: tiers already reached by then show as “before Oct 2024”.') }}
         {{ tr('Les membres au profil privé sont comptés mais pas nommés.', 'Members with a private profile are counted but not named.') }}
     </p>
+</div>{# /.bg-main #}
+</div>{# /.bg-layout #}
 </div>
 
 <script src="{{ url_for('static', filename='js/pages/badge.js', v=asset_version('js/pages/badge.js')) }}" defer></script>

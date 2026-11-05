@@ -74,6 +74,43 @@ def _order(kind: str) -> str:
     return "v.tier DESC, v.value DESC"
 
 
+def label(fr: str, en: str) -> tuple[str, str]:
+    """A French / English pair of a data table (found by scripts/i18n_extract.py, like tr())."""
+    return fr, en
+
+
+# What counts for each badge, in a sentence (shown with the tiers to unlock)
+HOW = {
+    "voice": label("Toutes les heures passées en vocal, sur tous les serveurs suivis.", "Every hour spent in voice, on every tracked server."),
+    "messages": label("Tous les messages envoyés dans les salons textuels suivis.", "Every message sent in the tracked text channels."),
+    "level": label("Le niveau global : 1 XP par minute en vocal, 1 XP par message et 100 XP par vote sur top.gg.",
+                   "The global level: 1 XP per voice minute, 1 XP per message and 100 XP per top.gg vote."),
+    "rank": label("La meilleure place jamais atteinte au classement vocal global. Une place perdue ensuite ne fait pas redescendre le palier.",
+                  "The best spot ever reached in the global voice ranking. Losing it later never takes the tier away."),
+    "servers": label("Le nombre de serveurs suivis par Hourglass sur lesquels le membre a été actif.", "How many servers tracked by Hourglass the member has been active on."),
+    "loyalty": label("Le nombre de jours depuis la première activité vue par Hourglass.", "Days since the first activity seen by Hourglass."),
+    "activity": label("Le meilleur total de vocal sur 30 jours glissants. Le record reste acquis, même après un mois calme.",
+                      "The best voice total over 30 sliding days. The record stays, even after a quiet month."),
+    "streak": label("La plus longue série de jours actifs d’affilée (vocal ou messages). La série record reste acquise.",
+                    "The longest run of active days in a row (voice or messages). The record run stays."),
+    "hybrid": label("Les deux à la fois : des heures en vocal et des messages, chaque palier demande les deux seuils.",
+                    "Both at once: voice hours and messages, each tier asks for both thresholds."),
+    "votes": label("Les votes pour Hourglass sur top.gg, un toutes les 12 heures (un vote du week-end compte une fois).",
+                   "Votes for Hourglass on top.gg, one every 12 hours (a weekend vote counts once)."),
+}
+
+
+def _nav(server_id: int | None, lang: str) -> list[dict]:
+    """The 10 badges of the side menu, with how many members hold each one in the scope."""
+    def load():
+        where, params = _scope(server_id)
+        return dict(db.execute_sql(f"SELECT v.badge, COUNT(*) FROM user_badge_values v WHERE v.tier > 0{where} GROUP BY v.badge",
+                                   params).fetchall())
+    counts = cache.get_or_set(("badge_nav", server_id), CACHE_SECONDS, load)
+    return [{"id": d[0], "name": tr(d[1], d[2], lang), "icon": str(pixel_svg(d[5], 18)), "holders": int(counts.get(d[0], 0))}
+            for d in DEFS.values()]
+
+
 def _summary(badge: str, server_id: int | None) -> dict:
     """Counts per tier and the members in scope (cached 5 min; the tables change once an hour)."""
     def load():
@@ -196,7 +233,9 @@ def badge_page(badge_id: str):
 
     return render_template(
         "badge.html",
-        badge={"id": key, "name": tr(name_fr, name_en, lang), "what": tr(what_fr, what_en, lang), "icon": str(pixel_svg(icon, 34))},
+        badge={"id": key, "name": tr(name_fr, name_en, lang), "what": tr(what_fr, what_en, lang), "icon": str(pixel_svg(icon, 34)),
+               "how": tr(*HOW[key], lang) if key in HOW else ""},
+        nav=_nav(server_id, lang),
         tiers=tiers, rarity=rarity, rarest=rarest, members=members, holders=holders, listed_count=len(listed),
         hidden_count=len(rows) - len(listed), tier_filter=tier_filter, page=page, total_pages=total_pages,
         recent=recent, almost=almost, servers=servers, server_id=server_id, search=search,

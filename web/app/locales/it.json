@@ -734,5 +734,18 @@
  "p0819": "Prima del 5 ottobre 2024 il vecchio bot conservava solo i totali: i livelli già raggiunti a quella data sono indicati come «prima di ott. 2024».",
  "p0820": "I membri con profilo privato sono contati ma non nominati.",
  "p0821": "{badge} · {tier}: vedi i detentori",
- "p0822": "Primo calcolo dei badge in corso: la pagina si riempirà tra qualche minuto."
+ "p0822": "Primo calcolo dei badge in corso: la pagina si riempirà tra qualche minuto.",
+ "p0823": "I badge",
+ "p0824": "{n} membri l’hanno sbloccato",
+ "p0825": "Livelli da sbloccare",
+ "p0826": "Tutte le ore passate in vocale, su tutti i server seguiti.",
+ "p0827": "Tutti i messaggi inviati nei canali testuali seguiti.",
+ "p0828": "Il livello globale: 1 XP per minuto in vocale, 1 XP per messaggio e 100 XP per voto su top.gg.",
+ "p0829": "La migliore posizione mai raggiunta nella classifica vocale globale. Perderla in seguito non toglie il livello.",
+ "p0830": "Su quanti server seguiti da Hourglass il membro è stato attivo.",
+ "p0831": "Giorni dalla prima attività vista da Hourglass.",
+ "p0832": "Il miglior totale in vocale su 30 giorni mobili. Il record resta, anche dopo un mese tranquillo.",
+ "p0833": "La serie più lunga di giorni attivi di fila (vocale o messaggi). La serie record resta.",
+ "p0834": "Entrambi insieme: ore in vocale e messaggi, ogni livello chiede le due soglie.",
+ "p0835": "I voti per Hourglass su top.gg, uno ogni 12 ore (un voto del weekend conta una volta)."
 }

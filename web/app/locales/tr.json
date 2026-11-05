@@ -734,5 +734,18 @@
  "p0819": "5 Ekim 2024'ten önce eski bot yalnızca toplamları tutuyordu: o tarihte zaten ulaşılmış seviyeler «Eki 2024 öncesi» olarak gösterilir.",
  "p0820": "Gizli profilli üyeler sayılır ama adları gösterilmez.",
  "p0821": "{badge} · {tier}: sahipleri gör",
- "p0822": "Rozetler ilk kez hesaplanıyor: sayfa birkaç dakika içinde dolacak."
+ "p0822": "Rozetler ilk kez hesaplanıyor: sayfa birkaç dakika içinde dolacak.",
+ "p0823": "Rozetler",
+ "p0824": "{n} üye bunu açtı",
+ "p0825": "Açılacak seviyeler",
+ "p0826": "Takip edilen tüm sunucularda sesli kanalda geçirilen tüm saatler.",
+ "p0827": "Takip edilen yazı kanallarında gönderilen tüm mesajlar.",
+ "p0828": "Genel seviye: sesli kanalda dakika başına 1 XP, mesaj başına 1 XP ve top.gg oyu başına 100 XP.",
+ "p0829": "Genel sesli sıralamada ulaşılan en iyi yer. Sonradan kaybetmek seviyeyi geri almaz.",
+ "p0830": "Üyenin Hourglass tarafından takip edilen kaç sunucuda aktif olduğu.",
+ "p0831": "Hourglass'ın gördüğü ilk etkinlikten bu yana geçen gün sayısı.",
+ "p0832": "Kayan 30 günde en iyi sesli toplam. Rekor, sakin bir aydan sonra bile kalır.",
+ "p0833": "Art arda en uzun aktif gün serisi (sesli veya mesaj). Rekor seri kalır.",
+ "p0834": "İkisi birden: sesli kanalda saat ve mesaj, her seviye iki eşiği de ister.",
+ "p0835": "top.gg'de Hourglass'a verilen oylar, 12 saatte bir (hafta sonu oyu bir kez sayılır)."
 }

@@ -734,5 +734,18 @@
  "p0819": "Przed 5 października 2024 stary bot zapisywał tylko sumy: poziomy osiągnięte już tego dnia są oznaczone jako „przed paź. 2024”.",
  "p0820": "Członkowie z prywatnym profilem są liczeni, ale nie wymieniani.",
  "p0821": "{badge} · {tier}: zobacz posiadaczy",
- "p0822": "Trwa pierwsze obliczanie odznak: strona wypełni się za kilka minut."
+ "p0822": "Trwa pierwsze obliczanie odznak: strona wypełni się za kilka minut.",
+ "p0823": "Odznaki",
+ "p0824": "Odblokowało ją {n} członków",
+ "p0825": "Poziomy do odblokowania",
+ "p0826": "Wszystkie godziny spędzone na kanałach głosowych, na wszystkich śledzonych serwerach.",
+ "p0827": "Wszystkie wiadomości wysłane na śledzonych kanałach tekstowych.",
+ "p0828": "Poziom globalny: 1 XP za minutę na głosowym, 1 XP za wiadomość i 100 XP za głos na top.gg.",
+ "p0829": "Najlepsze miejsce kiedykolwiek osiągnięte w globalnym rankingu głosowym. Utrata go później nie odbiera poziomu.",
+ "p0830": "Na ilu serwerach śledzonych przez Hourglass członek był aktywny.",
+ "p0831": "Dni od pierwszej aktywności zauważonej przez Hourglass.",
+ "p0832": "Najlepsza suma na głosowym w ciągu 30 kolejnych dni. Rekord zostaje, nawet po spokojnym miesiącu.",
+ "p0833": "Najdłuższa seria aktywnych dni z rzędu (głosowy lub wiadomości). Rekordowa seria zostaje.",
+ "p0834": "Oba naraz: godziny na głosowym i wiadomości, każdy poziom wymaga obu progów.",
+ "p0835": "Głosy na Hourglass na top.gg, jeden co 12 godzin (głos weekendowy liczy się raz)."
 }
