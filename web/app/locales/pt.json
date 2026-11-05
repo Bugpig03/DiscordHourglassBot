@@ -62,7 +62,7 @@
  "home.invite_btn": "Convidar o bot no Discord",
  "home.total_voice_time": "Tempo total em voz",
  "home.recorded_messages": "Mensagens registradas",
- "home.unique_users": "Usuários únicos",
+ "home.unique_users": "Usuários registrados",
  "top.period_label": "Período:",
  "top.sort_label": "Ordenar por:",
  "top.server_label": "Servidor:",
@@ -699,5 +699,7 @@
  "p0734": "Duelo: {h1} h contra {h2} h em voz · nível {l1} contra {l2}",
  "p0735": "Empate {a} : {b}",
  "p0736": "{name} vence o duelo {a} : {b}",
- "p0737": "{h1} h contra {h2} h em voz"
+ "p0737": "{h1} h contra {h2} h em voz",
+ "p0788": "{n} pessoas agora",
+ "p0789": "Servidores registrados"
 }

@@ -62,7 +62,7 @@
  "home.invite_btn": "Zaproś bota na Discordzie",
  "home.total_voice_time": "Łączny czas głosowy",
  "home.recorded_messages": "Zapisane wiadomości",
- "home.unique_users": "Unikalni użytkownicy",
+ "home.unique_users": "Zarejestrowani użytkownicy",
  "top.period_label": "Okres:",
  "top.sort_label": "Sortuj według:",
  "top.server_label": "Serwer:",
@@ -699,5 +699,7 @@
  "p0734": "Pojedynek: {h1} h kontra {h2} h na głosowym · poziom {l1} kontra {l2}",
  "p0735": "Remis {a} : {b}",
  "p0736": "{name} wygrywa pojedynek {a} : {b}",
- "p0737": "{h1} h kontra {h2} h na głosowym"
+ "p0737": "{h1} h kontra {h2} h na głosowym",
+ "p0788": "{n} osób obecnie",
+ "p0789": "Zarejestrowane serwery"
 }

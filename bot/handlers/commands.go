@@ -123,7 +123,15 @@ var Commands = []*discordgo.ApplicationCommand{
 		Name:        "vote",
 		Description: "Vote for Hourglass on top.gg, and see your votes.",
 	},
+	{
+		// Hidden: only members with the Administrator permission see it, and /help does not list it
+		Name:                     "version",
+		Description:              "Running bot version and build date.",
+		DefaultMemberPermissions: &adminOnly,
+	},
 }
+
+var adminOnly int64 = discordgo.PermissionAdministrator
 
 func (h *BotHandler) RegisterSlashCommands(s *discordgo.Session) {
 	_, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", Commands)
@@ -170,6 +178,12 @@ func (h *BotHandler) OnInteractionCreate(s *discordgo.Session, i *discordgo.Inte
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
+		return
+	}
+
+	// Answered at once, visible to the member only (no database, no deferral needed)
+	if data.Name == "version" {
+		h.handleVersion(s, i)
 		return
 	}
 

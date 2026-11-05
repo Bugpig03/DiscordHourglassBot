@@ -19,8 +19,13 @@ RUN go mod download
 # Copier l'intégralité du code source
 COPY . .
 
+# Version, date de build et commit affichés par /version (passés par GitHub Actions ; build local : valeurs du code)
+ARG BOT_VERSION=""
+ARG BUILD_DATE=""
+ARG GIT_COMMIT=""
+
 # Compilation binaire statique optimisée pour Linux
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o hourglass-bot main.go
+RUN LDFLAGS="-s -w" &&     if [ -n "$BOT_VERSION" ]; then LDFLAGS="$LDFLAGS -X hourglass-bot/handlers.Version=$BOT_VERSION"; fi &&     if [ -n "$BUILD_DATE" ]; then LDFLAGS="$LDFLAGS -X hourglass-bot/handlers.BuildDate=$BUILD_DATE"; fi &&     if [ -n "$GIT_COMMIT" ]; then LDFLAGS="$LDFLAGS -X hourglass-bot/handlers.Commit=$GIT_COMMIT"; fi &&     CGO_ENABLED=0 GOOS=linux go build -ldflags="$LDFLAGS" -o hourglass-bot main.go
 
 # Stage 2: Runtime image minimale
 FROM alpine:3.20

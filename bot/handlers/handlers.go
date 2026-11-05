@@ -289,6 +289,23 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 	}
 }
 
+// uniquePresence counts each member once with their status (members absent from the presences are offline).
+func uniquePresence(members map[string]struct{}, statusByUser map[string]discordgo.Status) (online, idle, dnd, offline int) {
+	for id := range members {
+		switch statusByUser[id] {
+		case discordgo.StatusOnline:
+			online++
+		case discordgo.StatusIdle:
+			idle++
+		case discordgo.StatusDoNotDisturb:
+			dnd++
+		default:
+			offline++
+		}
+	}
+	return
+}
+
 // recordPresenceSnapshot enregistre un point d'historique 48h pour chaque serveur et pour le global
 func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -302,6 +319,7 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	// Unique people across every server (admin page): a member present on several servers counts once
 	members := make(map[string]struct{})
 	online := make(map[string]struct{})
+	statusByUser := make(map[string]discordgo.Status)
 	bots := make(map[int64]struct{}) // bots and apps present on the servers, flagged in users (website)
 	memberships, listedServers := 0, 0
 
@@ -329,6 +347,7 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		for _, p := range guild.Presences {
 			if p.User != nil && p.Status != discordgo.StatusOffline && p.Status != "" {
 				online[p.User.ID] = struct{}{}
+				statusByUser[p.User.ID] = p.Status // the same on every server
 			}
 		}
 		online, idle, dnd := 0, 0, 0
@@ -368,6 +387,13 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		if err := h.DB.MarkBots(ctx, ids); err != nil {
 			log.Printf("⚠️ [BOTS] Repérage des bots impossible: %v", err)
 		}
+	}
+
+	// The global history counts people, like the "unique members" of the website: someone on several servers
+	// once, bots and apps left out (the per-server sums above counted both). Without member lists (intent
+	// missing), the sums stay.
+	if len(members) > 0 {
+		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(members, statusByUser)
 	}
 
 	if len(s.State.Guilds) > 0 {

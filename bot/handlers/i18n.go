@@ -178,6 +178,11 @@ var messages = map[string]map[string]string{
 		"ja": "投票ありがとうございます！次の投票は %s。",
 		"ko": "투표해 주셔서 고마워요! 다음 투표는 %s.",
 	},
+	// /version (admins only): French and English, the other languages get English
+	"version_build":   {"en": "Built", "fr": "Compilé le"},
+	"version_local":   {"en": "local build", "fr": "build local"},
+	"version_started": {"en": "Started", "fr": "Démarré"},
+	"version_servers": {"en": "Servers", "fr": "Serveurs"},
 	"vote_ready": {
 		"en": "You can vote now!",
 		"fr": "Tu peux voter maintenant !",

@@ -62,7 +62,7 @@
  "home.invite_btn": "Bot auf Discord einladen",
  "home.total_voice_time": "Gesamte Sprachzeit",
  "home.recorded_messages": "Erfasste Nachrichten",
- "home.unique_users": "Einzelne Nutzer",
+ "home.unique_users": "Erfasste Nutzer",
  "top.period_label": "Zeitraum:",
  "top.sort_label": "Sortieren nach:",
  "top.server_label": "Server:",
@@ -699,5 +699,7 @@
  "p0734": "Duell: {h1} h gegen {h2} h im Sprachkanal · Level {l1} gegen {l2}",
  "p0735": "Unentschieden {a} : {b}",
  "p0736": "{name} gewinnt das Duell {a} : {b}",
- "p0737": "{h1} h gegen {h2} h im Sprachkanal"
+ "p0737": "{h1} h gegen {h2} h im Sprachkanal",
+ "p0788": "{n} Personen aktuell",
+ "p0789": "Erfasste Server"
 }

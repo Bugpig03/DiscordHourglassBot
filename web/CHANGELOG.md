@@ -1,5 +1,8 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.34.2 - Libellés de l'Accueil - 05/11/2026
+- **Accueil** : les tuiles « Utilisateurs uniques » et « Serveurs uniques » deviennent **« Utilisateurs enregistrés »** et **« Serveurs enregistrés »**, car elles comptent tout ce qu'Hourglass a enregistré depuis le début. La pastille de la première passe de « 684 personnes sur les serveurs » à **« 684 personnes actuellement »**. Traduit dans les 12 langues.
+
 ## Version 3.34.1 - Identifiants Discord Vérifiés - 05/11/2026
 - **Connexions refusées par Discord (« invalid_client »)** : Discord refusait le couple identifiant / secret de l'application (`DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`), donc toute nouvelle connexion échouait avec « Impossible de valider la session auprès de Discord ». Ce n'est pas un bug du site : le secret configuré ne correspond plus à celui du Developer Portal. Pour éviter que ça se reproduise sans qu'on le voie :
   - **Check-up de l'admin** (onglet Sécurité) : nouvelle ligne « Identifiants Discord », vérifiée auprès de Discord lui-même toutes les 10 minutes. En rouge, elle dit quoi faire.

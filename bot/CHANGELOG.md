@@ -1,5 +1,16 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.7.1 - Commande /version, Déploiement Automatique et Présence en Personnes Uniques - 05/11/2026
+
+- **Commande `/version`**, discrète : seuls les administrateurs d'un serveur la voient dans la liste des commandes, elle n'est pas dans `/help`, et la réponse n'est visible que par celui qui la lance. Elle affiche la version du bot, la date de compilation de l'image, le commit (lien GitHub), depuis quand le bot tourne, le nombre de serveurs et la version de Go, pour vérifier qu'une mise à jour est bien arrivée.
+  - La version, la date et le commit sont inscrits dans le programme à la compilation (Dockerfile, arguments `BOT_VERSION`, `BUILD_DATE` et `GIT_COMMIT` passés par GitHub Actions). Le log de démarrage les affiche aussi.
+- **Déploiement automatique** (workflow `deploy-hourglassbot.yml`) : à chaque tag `bot-v*`, `go vet` et les tests passent d'abord, puis l'image est compilée avec un cache des couches Docker (bien plus rapide d'une version à l'autre) et publiée sur Docker Hub. Le webhook du dépôt Docker Hub `bugpig/hourglass_bot` prévient Portainer, qui recrée le conteneur.
+
+- **Le graphique de présence global compte maintenant des personnes**, comme la tuile « personnes sur les serveurs » de l'accueil. Il additionnait les membres de chaque serveur : quelqu'un sur 3 serveurs comptait 3 fois, et les bots étaient inclus (977 au total pour 684 personnes réelles). Chaque membre compte désormais une fois, avec son statut (en ligne, absent, ne pas déranger, hors ligne), et les bots et applications sont exclus.
+  - Les points enregistrés avant la mise à jour gardent l'ancien calcul : le graphique de 48 h montre un palier au moment du déploiement, qui disparaît au bout de 48 h.
+  - Si les listes de membres ne sont pas disponibles (intent manquant), l'ancien calcul reste utilisé.
+  - Les compteurs de présence d'un serveur seul ne changent pas.
+
 ## Version 3.7.0 - Logs Recopiés en Base - 01/11/2026
 
 - **Les logs du bot sont aussi écrits dans la table `bot_logs`**, que la page admin du site affiche (section « Logs du bot », site v3.33.0). La sortie du conteneur, donc Portainer, reste identique.

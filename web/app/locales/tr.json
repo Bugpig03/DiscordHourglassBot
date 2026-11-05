@@ -62,7 +62,7 @@
  "home.invite_btn": "Botu Discord'a davet et",
  "home.total_voice_time": "Toplam ses süresi",
  "home.recorded_messages": "Kaydedilen mesajlar",
- "home.unique_users": "Tekil kullanıcılar",
+ "home.unique_users": "Kayıtlı kullanıcılar",
  "top.period_label": "Dönem:",
  "top.sort_label": "Sırala:",
  "top.server_label": "Sunucu:",
@@ -699,5 +699,7 @@
  "p0734": "Düello: sesli kanalda {h1} sa'e karşı {h2} sa · seviye {l1}'e karşı {l2}",
  "p0735": "Beraberlik {a} : {b}",
  "p0736": "Düelloyu {name} kazanıyor {a} : {b}",
- "p0737": "Sesli kanalda {h1} sa'e karşı {h2} sa"
+ "p0737": "Sesli kanalda {h1} sa'e karşı {h2} sa",
+ "p0788": "Şu anda {n} kişi",
+ "p0789": "Kayıtlı sunucular"
 }

@@ -6,13 +6,31 @@ on:
       # Se déclenche dès que tu pousses un tag pour le bot (ex: bot-v3.0.0)
       - 'bot-v*.*.*'
 
+# Deux tags poussés coup sur coup : le second attend le premier (pas deux déploiements en même temps)
+concurrency:
+  group: deploy-hourglass-bot
+  cancel-in-progress: false
+
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4
+
+      # Les tests passent avant toute publication : une version cassée n'arrive jamais sur le serveur
+      - name: Installer Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bot/go.mod
+          cache-dependency-path: bot/go.sum
+
+      - name: Vérifier et tester le bot
+        working-directory: bot
+        run: |
+          go vet ./...
+          go test ./...
 
       - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -34,6 +52,7 @@ jobs:
             type=match,pattern=bot-v(.*),group=1
             type=raw,value=latest
 
+      # Cache des couches Docker entre deux versions (dépendances Go déjà téléchargées) : build bien plus rapide
       - name: Compiler et publier l'image Docker
         uses: docker/build-push-action@v5
         with:
@@ -42,3 +61,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Affichés par la commande /version du bot
+          build-args: |
+            BOT_VERSION=${{ steps.meta.outputs.version }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            GIT_COMMIT=${{ github.sha }}
+          cache-from: type=gha,scope=hourglass-bot
+          cache-to: type=gha,mode=max,scope=hourglass-bot
+      # Le redéploiement est déclenché par le webhook du dépôt Docker Hub bugpig/hourglass_bot (vers Portainer)

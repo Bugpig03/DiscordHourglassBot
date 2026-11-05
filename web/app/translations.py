@@ -125,7 +125,7 @@ TRANSLATIONS = {
         "home.all_time_badge": "Depuis l'origine",
         "home.total_voice_time": "Temps total en vocal",
         "home.recorded_messages": "Messages enregistrés",
-        "home.unique_users": "Utilisateurs uniques",
+        "home.unique_users": "Utilisateurs enregistrés",
         "home.activity_profiles": "Profils d'activité",
         "home.active_servers": "Serveurs actifs",
 
@@ -620,7 +620,7 @@ TRANSLATIONS = {
         "home.all_time_badge": "All-time",
         "home.total_voice_time": "Total voice time",
         "home.recorded_messages": "Recorded messages",
-        "home.unique_users": "Unique users",
+        "home.unique_users": "Registered users",
         "home.activity_profiles": "Activity profiles",
         "home.active_servers": "Active servers",
 

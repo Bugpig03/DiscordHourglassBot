@@ -62,7 +62,7 @@
  "home.invite_btn": "Invita il bot su Discord",
  "home.total_voice_time": "Tempo totale in vocale",
  "home.recorded_messages": "Messaggi registrati",
- "home.unique_users": "Utenti unici",
+ "home.unique_users": "Utenti registrati",
  "top.period_label": "Periodo:",
  "top.sort_label": "Ordina per:",
  "top.server_label": "Server:",
@@ -699,5 +699,7 @@
  "p0734": "Duello: {h1} h contro {h2} h in vocale · livello {l1} contro {l2}",
  "p0735": "Pareggio {a} : {b}",
  "p0736": "{name} vince il duello {a} : {b}",
- "p0737": "{h1} h contro {h2} h in vocale"
+ "p0737": "{h1} h contro {h2} h in vocale",
+ "p0788": "{n} persone ora",
+ "p0789": "Server registrati"
 }

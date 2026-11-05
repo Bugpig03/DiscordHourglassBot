@@ -2479,10 +2479,6 @@
   "récupérables",
   "reclaimable"
  ],
- "p0680": [
-  "Serveurs uniques",
-  "Unique servers"
- ],
  "p0681": [
   "{n} avec le bot actuellement",
   "{n} with the bot right now"
@@ -2622,10 +2618,6 @@
  "p0715": [
   "{n} dernières lignes · dernière le {d}",
   "Last {n} lines · latest on {d}"
- ],
- "p0716": [
-  "{n} personnes sur les serveurs",
-  "{n} people on the servers"
  ],
  "p0717": [
   "Estimation : avant octobre 2024, le bot ne gardait que les totaux",
@@ -2910,5 +2902,13 @@
  "p0787": [
   "Envois refusés car trop lourds (au-delà de la taille permise) : souvent un robot ou une tentative d’abus.",
   "Uploads refused for being too large (over the allowed size): often a bot or an abuse attempt."
+ ],
+ "p0788": [
+  "{n} personnes actuellement",
+  "{n} people right now"
+ ],
+ "p0789": [
+  "Serveurs enregistrés",
+  "Registered servers"
  ]
 }

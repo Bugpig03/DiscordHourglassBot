@@ -62,7 +62,7 @@
  "home.invite_btn": "Discord에 봇 초대하기",
  "home.total_voice_time": "총 음성 시간",
  "home.recorded_messages": "기록된 메시지",
- "home.unique_users": "고유 사용자",
+ "home.unique_users": "등록된 사용자",
  "top.period_label": "기간:",
  "top.sort_label": "정렬:",
  "top.server_label": "서버:",
@@ -699,5 +699,7 @@
  "p0734": "대결: 음성 {h1}시간 대 {h2}시간 · 레벨 {l1} 대 {l2}",
  "p0735": "무승부 {a} : {b}",
  "p0736": "{name} 승리 {a} : {b}",
- "p0737": "음성 {h1}시간 대 {h2}시간"
+ "p0737": "음성 {h1}시간 대 {h2}시간",
+ "p0788": "현재 {n}명",
+ "p0789": "등록된 서버"
 }

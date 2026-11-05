@@ -62,7 +62,7 @@
  "home.invite_btn": "Discord にボットを招待",
  "home.total_voice_time": "総ボイス時間",
  "home.recorded_messages": "記録されたメッセージ",
- "home.unique_users": "ユニークユーザー",
+ "home.unique_users": "登録ユーザー",
  "top.period_label": "期間:",
  "top.sort_label": "並び替え:",
  "top.server_label": "サーバー:",
@@ -699,5 +699,7 @@
  "p0734": "対決：ボイス{h1}時間 対 {h2}時間 · レベル{l1} 対 {l2}",
  "p0735": "引き分け {a} : {b}",
  "p0736": "{name}の勝ち {a} : {b}",
- "p0737": "ボイス{h1}時間 対 {h2}時間"
+ "p0737": "ボイス{h1}時間 対 {h2}時間",
+ "p0788": "現在{n}人",
+ "p0789": "登録サーバー"
 }
