@@ -103,7 +103,8 @@
         clearTimeout(hideTimer);
         hideTimer = setTimeout(hide, 2500);
     }, { passive: true });
-    window.addEventListener('scroll', hide, { passive: true });
+    // Any scroll hides it, the page's or a panel's (the admin and the long lists scroll inside their own box)
+    document.addEventListener('scroll', hide, { passive: true, capture: true });
 })();
 
 // Tabbed pages: the tab buttons are announced as tabs

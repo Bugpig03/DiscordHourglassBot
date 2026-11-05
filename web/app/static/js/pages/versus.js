@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     pointBackgroundColor: '#717cf8',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
-                    pointRadius: 4,
+                    pointRadius: 0,
                     pointHoverRadius: 6,
                     borderWidth: 2.8,
                 },
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     pointBackgroundColor: '#f43f5e',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
-                    pointRadius: 4,
+                    pointRadius: 0,
                     pointHoverRadius: 6,
                     borderWidth: 2.8,
                 }

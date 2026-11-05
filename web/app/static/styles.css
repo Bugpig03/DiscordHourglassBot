@@ -3031,6 +3031,24 @@ footer {
   border: 1px solid rgba(168, 85, 247, 0.35);
 }
 
+.xp-guide-icon-box.pink {
+  color: #ff6b8a;
+  background: rgba(255, 107, 138, 0.15);
+  border: 1px solid rgba(255, 107, 138, 0.3);
+}
+
+.xp-guide-chip.pink {
+  background: rgba(255, 107, 138, 0.15);
+  color: #ff6b8a;
+  border: 1px solid rgba(255, 107, 138, 0.35);
+}
+
+.xp-guide-link {
+  color: #ff6b8a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .xp-guide-desc {
   font-size: 0.85rem;
   color: #a3a6b0;

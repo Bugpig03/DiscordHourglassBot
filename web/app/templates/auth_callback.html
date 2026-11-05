@@ -48,8 +48,12 @@ document.addEventListener("DOMContentLoaded", function() {
     {% endif %}
 
     {% if error %}
+    // Popup: the page behind shows the error message (closing alone left the member unsure what happened)
     if (window.opener && !window.opener.closed) {
-        window.close();
+        try {
+            window.opener.postMessage({ type: "DISCORD_AUTH_ERROR", error: {{ error|tojson }} }, window.location.origin);
+        } catch (e) {}
+        setTimeout(function() { window.close(); }, 250);
         return;
     }
     window.location.href = "{{ url_for('auth.login', error=error) }}";

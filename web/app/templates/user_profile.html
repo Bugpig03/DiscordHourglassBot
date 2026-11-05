@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
 {% block title %}{{ t('user_profile.title', username=stats.username) }}{% endblock %}
-{% block meta_description %}{{ tr('Niveau {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.', 'Level {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num, badges=gamification.unlocked_count, total=gamification.total_badges) }}{% endblock %}
-{% block og_image %}{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png', _external=True) }}{% endblock %}
+{# A private profile shows visitors its level and totals only: its badges stay out of the preview too #}
+{% block meta_description %}{% if layout.visible.tab_badges %}{{ tr('Niveau {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.', 'Level {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num, badges=gamification.unlocked_count, total=gamification.total_badges) }}{% else %}{{ tr('Niveau {level} · {hours} h en vocal · {messages} messages sur Hourglass.', 'Level {level} · {hours} h in voice · {messages} messages on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num) }}{% endif %}{% endblock %}
+{# Preview image: the member's stat card (the same one the bot posts), large under the text #}
+{% block og_image %}{{ url_for('cards.og_member_card', user_id=stats.user_id, lang=current_lang, _external=True) }}{% endblock %}
+{% block og_card %}summary_large_image{% endblock %}
+{% block theme_color %}{{ theme.accent_hex }}{% endblock %}
 
 
 {% block content %}
@@ -106,7 +110,7 @@
             </div>
             <div class="profile-level-body">
                 <div class="profile-level-line">
-                    <span><strong>{{ t('profile.level_badge', level=gamification.xp_info.level) }}</strong> <span class="gray">· {{ gamification.xp_info.total_xp | thousands_fr }} XP</span></span>
+                    <span><strong>{{ t('profile.level_badge', level=gamification.xp_info.level) }}</strong> <span class="gray"{% if gamification.xp_info.vote_xp %} data-tip="{{ tr('Dont {n} XP de votes sur top.gg', 'Including {n} XP from top.gg votes', n=gamification.xp_info.vote_xp | thousands_fr) }}"{% endif %}>· {{ gamification.xp_info.total_xp | thousands_fr }} XP</span></span>
                     <span class="gray profile-level-next"><span class="profile-level-target">{{ t('profile.next_level_label', target=(gamification.xp_info.next_level_target_xp | thousands_fr)) }} · </span><span class="user-level-pct">{{ gamification.xp_info.progress_percent | num(1) }} %</span></span>
                 </div>
                 <div class="user-xp-bar-bg">

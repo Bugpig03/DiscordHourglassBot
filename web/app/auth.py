@@ -2,6 +2,7 @@
 
 import os
 import secrets
+import time
 import urllib.parse
 import requests
 from flask import (
@@ -205,11 +206,25 @@ def _token_is_ours(access_token: str) -> bool:
         return False
 
 
+def _discord_get(url: str, headers: dict) -> requests.Response:
+    """GET on the Discord API, tried a second time after a short rate limit (429 with a wait of 3 s at most)."""
+    resp = requests.get(url, headers=headers, timeout=10)
+    if resp.status_code == 429:
+        try:
+            wait = float(resp.headers.get("Retry-After") or resp.json().get("retry_after") or 1)
+        except (ValueError, AttributeError):
+            wait = 1.0
+        if wait <= 3:
+            time.sleep(max(wait, 0.2))
+            resp = requests.get(url, headers=headers, timeout=10)
+    return resp
+
+
 def _authenticate_with_discord_token(access_token: str) -> bool:
     """Fetch user profile and guild memberships directly from Discord API and save to session."""
     auth_headers = {"Authorization": f"Bearer {access_token}"}
     try:
-        user_resp = requests.get(f"{DISCORD_API_BASE}/users/@me", headers=auth_headers, timeout=10)
+        user_resp = _discord_get(f"{DISCORD_API_BASE}/users/@me", auth_headers)
         if user_resp.status_code != 200:
             current_app.logger.error(f"Failed to fetch user from Discord: status {user_resp.status_code}")
             security_event("login_fail", f"Discord /users/@me : HTTP {user_resp.status_code}", path=request.path)
@@ -233,7 +248,7 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
         # Retrieve guilds user belongs to
         guild_ids = []
         try:
-            guilds_resp = requests.get(f"{DISCORD_API_BASE}/users/@me/guilds", headers=auth_headers, timeout=10)
+            guilds_resp = _discord_get(f"{DISCORD_API_BASE}/users/@me/guilds", auth_headers)
             if guilds_resp.status_code == 200:
                 guilds_json = guilds_resp.json()
                 guild_ids = [int(g["id"]) for g in guilds_json if "id" in g]
@@ -251,29 +266,36 @@ def _authenticate_with_discord_token(access_token: str) -> bool:
         except Exception:
             pass
 
-        # A fresh session for the account: keys left by a previous visitor of this browser go, and the CSRF token
-        # is renewed (the OAuth keys still needed by the callback stay)
-        for key in [k for k in session.keys() if k not in ("oauth_state", "oauth_next_url", "oauth_is_popup")]:
-            session.pop(key, None)
-
-        # Store authenticated user session (permanent 60-day cookie)
-        session.permanent = True
-        session["user"] = {
+        user = {
             "id": user_id,
             "username": user_json.get("username", "DiscordUser"),
             "global_name": user_json.get("global_name"),
             "avatar": avatar_url,
         }
-        session["guild_ids"] = guild_ids
-
-        # Discord banner and profile color, offered as profile customization options
-        remember_discord_identity(user_id, user_json.get("banner"), user_json.get("accent_color"))
-        record_login(user_id, user_json.get("username"), avatar_url)
-        security_event("login_ok", user_json.get("username"), user_id=user_id, path=request.path)
-        return True
     except Exception as e:
         current_app.logger.error(f"Error authenticating with Discord token: {e}")
+        security_event("login_fail", f"erreur interne : {type(e).__name__}", path=request.path)
         return False
+
+    # Everything is known: the session is written in one go, never half-way.
+    # A fresh session for the account: keys left by a previous visitor of this browser go, and the CSRF token
+    # is renewed (the OAuth keys still needed by the callback stay)
+    for key in [k for k in session.keys() if k not in ("oauth_state", "oauth_next_url", "oauth_is_popup")]:
+        session.pop(key, None)
+
+    # Store authenticated user session (permanent 60-day cookie)
+    session.permanent = True
+    session["user"] = user
+    session["guild_ids"] = guild_ids
+
+    # Discord banner and profile color, offered as profile customization options; neither blocks the login
+    try:
+        remember_discord_identity(user_id, user_json.get("banner"), user_json.get("accent_color"))
+        record_login(user_id, user_json.get("username"), avatar_url)
+    except Exception as e:
+        current_app.logger.warning(f"Could not record the login of {user_id}: {e}")
+    security_event("login_ok", user_json.get("username"), user_id=user_id, path=request.path)
+    return True
 
 
 # ==============================================================================
@@ -286,9 +308,18 @@ def login():
     next_url = _safe_redirect_target(
         request.args.get("next") or session.get("oauth_next_url") or request.referrer or "/"
     )
-    session["oauth_next_url"] = next_url
-
     error_code = request.args.get("error")
+
+    # An error page reached while the login worked anyway (callback opened twice by the phone, the second
+    # one failing): the member is sent on instead of being shown an error about a session that is fine
+    if error_code and is_authenticated():
+        return redirect(next_url)
+
+    # Written only when it changes: this page must not send back a cookie that would replace the one
+    # a login finishing at the same moment has just set
+    if session.get("oauth_next_url") != next_url:
+        session["oauth_next_url"] = next_url
+
     error_message = None
     if error_code in ("access_denied", "access-denied"):
         error_message = tr("Connexion annulée : vous avez refusé l'autorisation sur Discord.", "Login cancelled: you declined the authorization on Discord.")
@@ -356,11 +387,16 @@ def callback():
     code = request.args.get("code")
 
     # 1. Authorization Code Grant (Discord provided ?code=...)
+    # A failure leaves the session untouched: when the phone opens this page twice, the failing copy (code
+    # already used) must not send back a cookie replacing the one the successful copy has just set
     if code:
         state = request.args.get("state")
-        expected_state = session.pop("oauth_state", None)
+        expected_state = session.get("oauth_state")
 
         if not state or not expected_state or not secrets.compare_digest(str(state), expected_state):
+            # Page reloaded after a login that worked (its state is spent): nothing to redo
+            if is_authenticated():
+                return _login_done(next_url, is_popup)
             security_event("login_fail", "state invalide (code)", path=request.path)
             if is_popup:
                 return render_template("auth_callback.html", next_url=next_url, is_popup=True, error="invalid_state")
@@ -385,17 +421,24 @@ def callback():
                 token_json = token_resp.json()
                 access_token = token_json.get("access_token")
                 if access_token and _authenticate_with_discord_token(access_token):
+                    session.pop("oauth_state", None)
                     destination = session.pop("oauth_next_url", "/")
-                    if is_popup:
-                        session.pop("oauth_is_popup", None)
-                        return render_template("auth_callback.html", next_url=destination, is_popup=True, auto_close=True)
-                    return redirect(destination)
+                    session.pop("oauth_is_popup", None)
+                    return _login_done(destination, is_popup)
             if token_resp.status_code != 200:
-                security_event("login_fail", f"échange du code refusé : HTTP {token_resp.status_code}", path=request.path)
+                reason = ""
+                try:
+                    reason = str(token_resp.json().get("error") or "")[:40]
+                except ValueError:
+                    pass
+                security_event("login_fail", f"échange du code refusé : HTTP {token_resp.status_code} {reason}".strip(),
+                               path=request.path)
         except Exception as e:
             current_app.logger.error(f"Discord OAuth2 code exchange error: {e}")
             security_event("login_fail", f"échange du code : {type(e).__name__}", path=request.path)
 
+        if is_authenticated():
+            return _login_done(next_url, is_popup)
         if is_popup:
             return render_template("auth_callback.html", next_url=next_url, is_popup=True, error="token_failed")
         return redirect(url_for("auth.login", error="token_failed"))
@@ -403,6 +446,13 @@ def callback():
     # 2. Implicit Grant: Discord returned #access_token=... in URL fragment.
     # Render callback page which will read the fragment in JS and POST to /auth/token-login.
     return render_template("auth_callback.html", next_url=next_url, is_popup=is_popup)
+
+
+def _login_done(destination: str, is_popup: bool):
+    """Logged in: the popup closes itself (the page behind reloads), a full-page login goes on to its destination."""
+    if is_popup:
+        return render_template("auth_callback.html", next_url=destination, is_popup=True, auto_close=True)
+    return redirect(destination)
 
 
 @auth_bp.route("/token-login", methods=["POST"])

@@ -1,5 +1,46 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.34.0 - Nouvelle Page Versus, 100 XP par Vote et Connexion Discord Plus Fiable - 05/11/2026
+### Page Versus repensée
+- **Arène** : les deux adversaires face à face, chacun sur sa moitié, avec sa **bannière de profil** en fond (ou son avatar flouté) teintée de sa couleur, bleu à gauche, rouge à droite. Grand avatar, nom, titre et niveau, rang et heures en vocal. Le gagnant a une couronne et un contour doré, le perdant est légèrement atténué.
+- **Au centre** : emblème VS, score en grand (4 : 2), verdict « bugpigo gagne le duel » ou « Égalité parfaite », et une barre qui montre la part des catégories gagnées. Le score n'est plus répété dans chaque carte.
+- **Duel par catégorie** : pour chaque catégorie, les deux valeurs de part et d'autre, l'**avance du gagnant** (« +55,5 h », « 4 places devant ») et une barre partagée entre les deux couleurs, avec un repère au milieu ; la part du perdant est atténuée. Valeurs au format de la langue (1 436,1 h).
+- **Correctif du classement** : la barre du rang donnait la plus grande part au moins bien classé (#6 contre #2). Elle est maintenant répartie selon 1 / rang : le meilleur classement a la plus grande part.
+- **Courbe** : sans les points sur chaque mois, plus lisible ; mêmes couleurs que l'arène.
+- **Téléphone** : score et verdict en haut, puis les deux adversaires côte à côte, et chaque catégorie sur trois lignes (nom, valeurs, barre). Traduit dans les 12 langues.
+
+### Admin : chaque chiffre expliqué
+- **Au survol d'une case chiffrée** (ou au toucher sur téléphone, ou avec le clavier), une phrase dit ce qu'elle compte et d'où vient le chiffre. Par exemple : « Moyenne par jour des visiteurs différents, comptés sans cookie… », ou « Sessions vocales jamais refermées depuis plus de 24 h… ».
+  - Ça couvre toutes les sections : vue d'ensemble (bandeau d'état et tuiles), site web, comptes, profils, communauté et votes, bot et commandes, technique, sécurité.
+  - Le libellé des cases qui ont une explication est souligné en pointillé.
+- **Infobulles** : elles s'affichent maintenant aussi sur la page admin, qui ne chargeait pas leur style. Sur tout le site, elles se ferment quand on fait défiler un panneau, et pas seulement la page.
+
+### Aperçus de liens (Discord et autres)
+- **Grande image** sous l'aperçu d'un profil, d'une fiche serveur ou d'un duel entre membres : la même carte que celle du bot (avatar, bannière, niveau, heures, rang…). Nouvelles adresses publiques `/og/member/<id>.png`, `/og/server/<id>.png` et `/og/versus/<id1>/<id2>.png`, dessinées à la demande, gardées 10 minutes, limitées à 30 requêtes par minute.
+- **Couleur de l'aperçu** : la barre le long de l'aperçu Discord prend le violet Hourglass au lieu du fond sombre du site (invisible), et la couleur choisie par le membre sur son profil.
+- **Liens Versus** : titre « bugpigo vs eluen · Versus - Hourglass » et description du duel (heures en vocal et niveaux des deux membres ; le gagnant et le score pour un duel de serveurs), au lieu de l'aperçu générique.
+- **Langue** : les robots d'aperçu ne disent pas quelle langue ils veulent, les aperçus étaient donc toujours en français. L'adresse affichée porte désormais `?lang=` pour toutes les langues sauf le français : un lien copié s'affiche dans la langue de celui qui le partage. Un visiteur garde toujours sa propre langue, le paramètre n'est lu que par les robots.
+- **Profils privés** : la description de l'aperçu ne donne plus le nombre de badges, et la carte publique (aperçu et cartes SVG à intégrer) n'affiche plus la vitrine de badges quand le membre la cache aux visiteurs. Les cartes postées par le bot ne changent pas.
+
+### Votes et XP
+- **Chaque vote pour Hourglass sur top.gg rapporte 100 XP** (autant que 100 minutes en vocal ; un vote toutes les 12 heures). Les votes comptent pour le **niveau global**, partout où il apparaît : profil, page Membres (tri par XP et par niveau, sur la période choisie), recherche, cartes au survol, cartes du bot, Versus, liste des membres d'une fiche serveur. Ils ne comptent pas dans les chiffres propres à un serveur (classement d'un serveur, carte ou Versus limités à un serveur), un vote n'appartenant à aucun serveur.
+- **Profil** : au survol du total d'XP, « Dont 300 XP de votes sur top.gg ».
+- **Page Aide** : nouveau bloc « Votes pour Hourglass · +100 XP / vote » dans le système d'expérience, avec le lien pour voter. Traduit dans les 12 langues.
+
+### Correctifs
+- **Graphiques « par mois » : énorme pic en octobre 2024 sur les membres et serveurs plus anciens**. Quand le bot est passé au suivi détaillé, le 05/10/2024, les totaux de l'ancien bot ont été repris en une seule session vocale (et un seul lot de messages) par membre et par serveur, datée de ce jour-là : tout ce qui précédait apparaissait en octobre 2024, et rien avant. Ces totaux sont maintenant répartis sur les mois qu'ils couvrent, depuis l'arrivée du membre sur chaque serveur, comme le faisait déjà la courbe « Cumulé ». Le total ne change pas.
+  - Ces mois sont des **estimations** (l'ancien bot ne gardait que les totaux) : barres atténuées et détourées, avec « Estimation : avant octobre 2024, le bot ne gardait que les totaux » au survol. Elles ne comptent pas dans la moyenne, ni dans le record « Meilleur mois ».
+  - Profils, fiches serveur et page Analyses. Traduit dans les 12 langues.
+- **Accueil, tuile « Utilisateurs uniques »** : la pastille du dessous affiche le **nombre réel de personnes présentes sur les serveurs du bot**, actives ou non (« 12 345 personnes sur les serveurs »), au lieu du nombre de profils enregistrés (une ligne par membre et par serveur, qui comptait plusieurs fois un même membre). C'est le chiffre « Membres uniques » de l'admin, relevé par le bot toutes les 15 minutes ; tant qu'aucun relevé n'existe, l'ancien texte reste affiché. Traduit dans les 12 langues.
+- **« Impossible de valider la session auprès de Discord » alors que la connexion avait marché** : sur téléphone, la page de retour de Discord pouvait s'ouvrir deux fois (passage par l'appli Discord, rechargement). La 2ᵉ ouverture échouait, son code ayant déjà servi, et renvoyait un cookie sans le compte, qui remplaçait celui de la connexion réussie. Désormais :
+  - une connexion qui échoue ne touche plus au cookie de session ;
+  - une page de retour rechargée ou une page d'erreur atteinte alors qu'on est connecté envoie vers la page prévue, sans message d'erreur.
+- **Connexion par la fenêtre popup (ordinateur)** : en cas d'échec, la fenêtre se fermait sans rien dire et on restait sur la page, déconnecté. La page affiche maintenant le message d'erreur.
+- **Plus de connexion à moitié faite** : la session n'est écrite qu'une fois toutes les informations de Discord reçues. L'enregistrement de la connexion en base (statistiques de l'admin, bannière Discord) ne peut plus faire échouer la connexion.
+- **Limite de requêtes Discord** : une réponse « trop de requêtes » de Discord avec une attente de 3 secondes au plus est réessayée une fois au lieu d'échouer.
+- **Journal de sécurité** : une erreur interne pendant la connexion y est maintenant notée (« erreur interne : … »), et un refus de Discord indique sa raison (par exemple `invalid_grant`, code déjà utilisé ou expiré).
+- Aucun membre connecté n'est déconnecté par cette mise à jour.
+
 ## Version 3.33.0 - Tri par Votes et Logs du Bot dans l'Admin - 01/11/2026
 - **Page Membres : tri « Plus de votes »**. Classe les membres par votes pour Hourglass sur top.gg, sur la période choisie (24 h à Toujours), avec le rang et sa progression comme les autres tris. Chaque ligne affiche alors ses votes ; sur petit téléphone, cette puce remplace celle des heures.
 - **Analyses, onglet Communauté** :

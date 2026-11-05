@@ -334,13 +334,15 @@ def _compute_user_ranking(period: str, server_id: str) -> list[dict]:
             for user in query
         ]
 
-    # Compute XP and level for all users
+    # Compute XP and level for all users; the votes of the period count on the all-servers ranking only
     _add_previous(results, "user_id", period, server_id)
+    votes = _vote_counts(period) if server_id == "all" else {}
     for r in results:
-        xp_info = calculate_user_xp_and_level(r["seconds"], r["messages"])
+        cur, prev = votes.get(int(r["user_id"]), (0, 0))
+        xp_info = calculate_user_xp_and_level(r["seconds"], r["messages"], cur)
         r["xp"] = xp_info["total_xp"]
         r["level"] = xp_info["level"]
-        r["prev_xp"] = calculate_user_xp_and_level(r["prev_seconds"], r["prev_messages"])["total_xp"]
+        r["prev_xp"] = calculate_user_xp_and_level(r["prev_seconds"], r["prev_messages"], prev)["total_xp"]
 
     return results
 

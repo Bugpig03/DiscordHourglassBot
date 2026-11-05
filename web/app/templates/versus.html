@@ -1,13 +1,60 @@
 {% extends "base.html" %}
 
-{% block title %}{{ t('versus.title') }}{% endblock %}
+{% block title %}{% if comparison %}{{ tr('{a} vs {b} · Versus - Hourglass', '{a} vs {b} · Versus - Hourglass', a=(entity1.username or entity1.name), b=(entity2.username or entity2.name)) }}{% else %}{{ t('versus.title') }}{% endif %}{% endblock %}
+{# Link previews of a duel: who wins, the score and the voice time of both #}
+{# Member duels: the preview image (the bot's duel card, 5 rounds) shows the winner and its own score, so the text
+   does not give the page's score (7 categories) next to it #}
+{% block meta_description %}{% if comparison and tab == 'users' %}{{ tr('Duel : {h1} h contre {h2} h en vocal · niveau {l1} contre {l2}', 'Duel: {h1} h vs {h2} h in voice · level {l1} vs {l2}', h1=entity1.hours | num(1), h2=entity2.hours | num(1), l1=entity1.level, l2=entity2.level) }}{% if selected_server %} · {{ selected_server.name }}{% endif %}{% elif comparison %}{% set n1 = entity1.username or entity1.name %}{% set n2 = entity2.username or entity2.name %}{% if comparison.overall_winner == 'tie' %}{{ tr('Égalité {a} : {b}', 'Tie {a} : {b}', a=comparison.score1, b=comparison.score2) }}{% else %}{{ tr('{name} gagne le duel {a} : {b}', '{name} wins the duel {a} : {b}', name=(n1 if comparison.overall_winner == '1' else n2), a=comparison.score1, b=comparison.score2) }}{% endif %} · {{ tr('{h1} h contre {h2} h en vocal', '{h1} h vs {h2} h in voice', h1=entity1.hours | num(1), h2=entity2.hours | num(1)) }}{% if selected_server %} · {{ selected_server.name }}{% endif %}{% else %}{{ t('versus.subtitle') }}{% endif %}{% endblock %}
+{% block og_url %}{{ request.url }}{% endblock %}
+{% block og_image %}{% if comparison and tab == 'users' %}{{ url_for('cards.og_versus_card', user1=entity1.id, user2=entity2.id, server=srv_val or None, lang=current_lang, _external=True) }}{% elif comparison %}{{ (entity1 if comparison.overall_winner != '2' else entity2).avatar or url_for('static', filename='icons/icon-512.png', _external=True) }}{% else %}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{% endif %}{% endblock %}
+{% block og_card %}{% if comparison and tab == 'users' %}summary_large_image{% else %}summary{% endif %}{% endblock %}
 
 {% block content %}
+{% macro fighter(e, n, name, w, tab) %}
+{% set won = w == n|string %}
+{% set fallback = url_for('static', filename='images/base_avatar_big.png') if tab == 'users' else url_for('static', filename='icons/server.png') %}
+<div class="vs-side vs-side-{{ n }}{% if won %} is-winner{% elif w != 'tie' %} is-loser{% endif %}">
+    {% if e.banner %}<div class="vs-side-bg" style="background-image: url('{{ e.banner }}');"></div>
+    {% elif e.avatar %}<div class="vs-side-bg is-avatar" style="background-image: url('{{ e.avatar }}');"></div>{% endif %}
+    <div class="vs-side-body">
+        <div class="vs-avatar-wrap">
+            {% if won %}<span class="vs-crown" title="{{ t('versus.winner_badge') }}">{{ pixel_icon('crown', 20) }}</span>{% endif %}
+            <img src="{{ e.avatar or fallback }}" data-fallback="{{ fallback }}" alt="" class="vs-avatar{% if tab == 'servers' %} is-server{% endif %}">
+            <span class="vs-tag">{{ n }}</span>
+        </div>
+        <div class="vs-name text-overflow">
+            {% if tab == 'users' %}
+                <a href="{{ url_for('user_profile.profile', username=e.id or e.username) }}" title="{{ name }}">{{ name }}</a>{{ bot_tag(e.id) }}
+            {% else %}
+                <a href="{{ url_for('server_profile.server', server_id=e.id) }}" title="{{ name }}">{{ name }}</a>
+            {% endif %}
+        </div>
+        <div class="vs-subtitle">
+            {% if tab == 'users' %}
+                <span class="vs-title-name">{{ e.tier_name }}</span> · {{ tr('Niveau {n}', 'Level {n}', n=e.level) }}
+            {% else %}
+                {{ tr('{n} membres', '{n} members', n=e.members_count | thousands_fr) }}
+            {% endif %}
+        </div>
+        {% set total = e.total_user if tab == 'users' else e.total_server %}
+        <div class="vs-chips">
+            <span class="vs-chip">{{ pixel_icon('trophy', 12) }}<b>#{{ e.rank if e.rank else '–' }}</b>{% if e.rank and total %}<small>/ {{ total | thousands_fr }}</small>{% endif %}</span>
+            <span class="vs-chip">{{ pixel_icon('clock', 12) }}<b>{{ e.hours | num(1) }} h</b></span>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro metric_value(m, v) %}{% if m.key == 'rank' %}{{ '#' ~ v if v else '–' }}{% elif m.unit == 'h' %}{{ v | num(1) }} h{% elif v is number %}{{ v | thousands_fr }}{% else %}{{ v }}{% endif %}{% endmacro %}
+
+{% macro metric_lead(m) %}{% if m.key == 'rank' %}{{ tr('{n} places devant', '{n} spots ahead', n=m.diff | thousands_fr) if m.diff > 1 else tr('1 place devant', '1 spot ahead') }}{% elif m.unit == 'h' %}+{{ m.diff | num(1) }} h{% else %}+{{ m.diff | thousands_fr }}{% endif %}{% endmacro %}
+
 <!-- Chart.js & Adapter -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 <script type="application/json" id="versusChartData">{{ chart_json|safe_json }}</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/versus.css', v=asset_version('css/pages/versus.css')) }}">
 
 <div class="versus-container">
     <!-- Header Hero -->
@@ -210,214 +257,79 @@
             </div>
         {% endif %}
 
-        <!-- Face-to-Face Arena Presentation -->
-        <div class="versus-arena">
-            <!-- Fighter 1 Card -->
-            <div class="versus-fighter-card fighter-1 {% if comparison.overall_winner == '1' %}fighter-winner{% endif %}">
-                {% if comparison.overall_winner == '1' %}
-                    <div class="fighter-champion-ribbon">
-                        <span>{{ pixel_icon('trophy', 13) }} {{ t('versus.winner_badge') }}</span>
-                    </div>
-                {% endif %}
+        <!-- Arena: both sides face to face, the score in the middle -->
+        {% set w = comparison.overall_winner %}
+        {% set name1 = entity1.username if tab == 'users' else entity1.name %}
+        {% set name2 = entity2.username if tab == 'users' else entity2.name %}
+        <section class="vs-arena" data-winner="{{ w }}">
+            {{ fighter(entity1, 1, name1, w, tab) }}
 
-                <div class="fighter-avatar-wrapper">
-                    <img src="{{ entity1.avatar or fallback_avatar }}" alt="Avatar 1" class="fighter-avatar">
-                    <div class="fighter-player-tag tag-1">1</div>
+            <div class="vs-core">
+                <div class="vs-emblem" aria-hidden="true"><span>VS</span></div>
+                <div class="vs-score" role="img" aria-label="{{ tr('Score : {a} à {b}', 'Score: {a} to {b}', a=comparison.score1, b=comparison.score2) }}">
+                    <span class="vs-score-1{% if w == '1' %} is-win{% endif %}">{{ comparison.score1 }}</span>
+                    <span class="vs-score-sep">:</span>
+                    <span class="vs-score-2{% if w == '2' %} is-win{% endif %}">{{ comparison.score2 }}</span>
                 </div>
-
-                <div class="fighter-name text-overflow">
-                    {% if tab == 'users' %}
-                        <a href="{{ url_for('user_profile.profile', username=entity1.id or entity1.username) }}" class="link-clean" title="{{ entity1.username }}">{{ entity1.username }}</a>{{ bot_tag(entity1.id) }}
+                <div class="vs-verdict vs-verdict-{{ w }}">
+                    {% if w == 'tie' %}
+                        {{ pixel_icon('scale', 13) }}<span>{{ t('versus.overall_tie_title') }}</span>
                     {% else %}
-                        <a href="{{ url_for('server_profile.server', server_id=entity1.id) }}" class="link-clean" title="{{ entity1.name }}">{{ entity1.name }}</a>
+                        {{ pixel_icon('crown', 13) }}<span>{{ tr('{name} gagne le duel', '{name} wins the duel', name=name1 if w == '1' else name2) }}</span>
                     {% endif %}
                 </div>
-
-                <div class="fighter-meta">
-                    {% if tab == 'users' %}
-                        <span class="fighter-badge fighter-rank-badge">
-                            {% if entity1.rank %}
-                                #{{ entity1.rank }} <span class="rank-total">/ {{ entity1.total_user }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </span>
-                        <span class="fighter-badge fighter-level-badge">Lv. {{ entity1.level }}</span>
-                    {% else %}
-                        <span class="fighter-badge fighter-rank-badge">#{{ entity1.rank if entity1.rank else '-' }}</span>
-                        <span class="fighter-badge fighter-members-badge">{{ entity1.members_count }} {{ t('top.users_unit') }}</span>
-                    {% endif %}
-                </div>
-
-                <div class="fighter-score-display display-1">
-                    <span class="score-number">{{ comparison.score1 }}</span>
-                    <span class="score-text">{{ t('versus.victory_singular') if comparison.score1 <= 1 else t('versus.victory_plural') }}</span>
+                <div class="vs-tug" style="--share: {{ comparison.share1 }}%;" aria-hidden="true"><span></span></div>
+                <div class="vs-tug-caption">
+                    {{ tr('{n} catégories', '{n} categories', n=comparison.total_categories) }}{% if comparison.ties %} · {{ tr('{n} égalités', '{n} ties', n=comparison.ties) if comparison.ties > 1 else tr('1 égalité', '1 tie') }}{% endif %}
                 </div>
             </div>
 
-            <!-- Central Clash Pillar -->
-            <div class="versus-center-pillar">
-                <div class="versus-neon-badge">
-                    <span>VS</span>
+            {{ fighter(entity2, 2, name2, w, tab) }}
+        </section>
+
+        <!-- Category by category -->
+        <section class="vs-card">
+            <header class="vs-card-head">
+                <h2 class="vs-card-title">{{ pixel_icon('chart', 18) }}<span>{{ tr('Duel par catégorie', 'Head-to-head by category') }}</span></h2>
+                <div class="vs-legend">
+                    <span class="vs-legend-1"><i></i><span class="text-overflow">{{ name1 }}</span></span>
+                    <span class="vs-legend-2"><i></i><span class="text-overflow">{{ name2 }}</span></span>
                 </div>
-
-                <!-- Match Scoreboard -->
-                <div class="duel-scoreboard">
-                    <span class="score-digit digit-1 {% if comparison.overall_winner == '1' %}win{% endif %}">{{ comparison.score1 }}</span>
-                    <span class="score-sep">-</span>
-                    <span class="score-digit digit-2 {% if comparison.overall_winner == '2' %}win{% endif %}">{{ comparison.score2 }}</span>
-                </div>
-
-                <!-- Outcome Badge -->
-                <div class="duel-outcome-wrapper">
-                    {% if comparison.overall_winner == '1' %}
-                        <div class="duel-outcome-pill winner-pill-1">
-                            <span>{{ pixel_icon('crown', 14) }} {{ t('versus.overall_winner_title', name=entity1.username if tab == 'users' else entity1.name) }}</span>
-                        </div>
-                    {% elif comparison.overall_winner == '2' %}
-                        <div class="duel-outcome-pill winner-pill-2">
-                            <span>{{ pixel_icon('crown', 14) }} {{ t('versus.overall_winner_title', name=entity2.username if tab == 'users' else entity2.name) }}</span>
-                        </div>
-                    {% else %}
-                        <div class="duel-outcome-pill tie-pill">
-                            <span>{{ pixel_icon('scale', 14) }} {{ t('versus.overall_tie_title') }}</span>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Fighter 2 Card -->
-            <div class="versus-fighter-card fighter-2 {% if comparison.overall_winner == '2' %}fighter-winner{% endif %}">
-                {% if comparison.overall_winner == '2' %}
-                    <div class="fighter-champion-ribbon">
-                        <span>{{ pixel_icon('trophy', 13) }} {{ t('versus.winner_badge') }}</span>
-                    </div>
-                {% endif %}
-
-                <div class="fighter-avatar-wrapper">
-                    <img src="{{ entity2.avatar or fallback_avatar }}" alt="Avatar 2" class="fighter-avatar">
-                    <div class="fighter-player-tag tag-2">2</div>
-                </div>
-
-                <div class="fighter-name text-overflow">
-                    {% if tab == 'users' %}
-                        <a href="{{ url_for('user_profile.profile', username=entity2.id or entity2.username) }}" class="link-clean" title="{{ entity2.username }}">{{ entity2.username }}</a>{{ bot_tag(entity2.id) }}
-                    {% else %}
-                        <a href="{{ url_for('server_profile.server', server_id=entity2.id) }}" class="link-clean" title="{{ entity2.name }}">{{ entity2.name }}</a>
-                    {% endif %}
-                </div>
-
-                <div class="fighter-meta">
-                    {% if tab == 'users' %}
-                        <span class="fighter-badge fighter-rank-badge">
-                            {% if entity2.rank %}
-                                #{{ entity2.rank }} <span class="rank-total">/ {{ entity2.total_user }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </span>
-                        <span class="fighter-badge fighter-level-badge">Lv. {{ entity2.level }}</span>
-                    {% else %}
-                        <span class="fighter-badge fighter-rank-badge">#{{ entity2.rank if entity2.rank else '-' }}</span>
-                        <span class="fighter-badge fighter-members-badge">{{ entity2.members_count }} {{ t('top.users_unit') }}</span>
-                    {% endif %}
-                </div>
-
-                <div class="fighter-score-display display-2">
-                    <span class="score-number">{{ comparison.score2 }}</span>
-                    <span class="score-text">{{ t('versus.victory_singular') if comparison.score2 <= 1 else t('versus.victory_plural') }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Metric Duel Breakdown List -->
-        <div class="gray-box small-border-radius versus-metrics-container">
-            <div class="versus-metrics-title-row">
-                <h3 class="versus-metrics-title">{{ pixel_icon('chart', 18) }} {{tr('Comparatif détaillé des métriques', 'Detailed Metric Breakdown')}}</h3>
-                <span class="metrics-count-badge">{{ comparison.metrics|length }} {{tr('catégories', 'categories')}}</span>
-            </div>
-
-            <div class="versus-metrics-list">
+            </header>
+            <div class="vs-rows">
                 {% for m in comparison.metrics %}
-                    <div class="versus-metric-row">
-                        <div class="metric-row-header">
-                            <!-- Left Fighter Value -->
-                            <div class="metric-side-val side-left {% if m.winner == '1' %}is-winner{% endif %}">
-                                {% if m.winner == '1' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">{{ pixel_icon('crown', 14) }}</span>{% endif %}
-                                <span class="val-number">
-                                    {% if m.unit == 'h' %}
-                                        {{ m.v1 }} h
-                                    {% elif m.key == 'rank' %}
-                                        #{{ m.v1 if m.v1 else '-' }}
-                                    {% elif m.v1 is number %}
-                                        {{ m.v1 | thousands_fr }}
-                                    {% else %}
-                                        {{ m.v1 }}
-                                    {% endif %}
-                                </span>
-                            </div>
-
-                            <!-- Central Metric Title & Icon -->
-                            <div class="metric-center-label">
-                                <span class="metric-category-icon">
-                                    {{ pixel_icon({'hours': 'clock', 'messages': 'chat', 'level': 'star', 'activity_30d': 'zap', 'rank': 'trophy',
-                                                   'badges': 'award', 'servers': 'globe', 'members': 'users'}.get(m.key, 'chart'), 14) }}
-                                </span>
-                                <span class="metric-category-name">{{ t(m.label_key) }}</span>
-                            </div>
-
-                            <!-- Right Fighter Value -->
-                            <div class="metric-side-val side-right {% if m.winner == '2' %}is-winner{% endif %}">
-                                <span class="val-number">
-                                    {% if m.unit == 'h' %}
-                                        {{ m.v2 }} h
-                                    {% elif m.key == 'rank' %}
-                                        #{{ m.v2 if m.v2 else '-' }}
-                                    {% elif m.v2 is number %}
-                                        {{ m.v2 | thousands_fr }}
-                                    {% else %}
-                                        {{ m.v2 }}
-                                    {% endif %}
-                                </span>
-                                {% if m.winner == '2' %}<span class="metric-win-crown" title="{{ t('versus.winner_badge') }}">{{ pixel_icon('crown', 14) }}</span>{% endif %}
-                            </div>
+                    <div class="vs-row" data-winner="{{ m.winner }}">
+                        <div class="vs-val vs-val-1">
+                            <span class="vs-val-num">{{ metric_value(m, m.v1) }}</span>
+                            {% if m.winner == '1' and m.diff %}<span class="vs-lead">{{ metric_lead(m) }}</span>{% endif %}
                         </div>
-
-                        <!-- Duel Gauge Bar -->
-                        <div class="metric-gauge-wrapper">
-                            <div class="gauge-bar gauge-bar-left">
-                                <div class="gauge-fill fill-1 {% if m.winner == '1' %}win-fill{% endif %}" style="width: {{ m.pct1 }}%;"></div>
-                            </div>
-                            <div class="gauge-divider-pin"></div>
-                            <div class="gauge-bar gauge-bar-right">
-                                <div class="gauge-fill fill-2 {% if m.winner == '2' %}win-fill{% endif %}" style="width: {{ m.pct2 }}%;"></div>
-                            </div>
+                        <div class="vs-label">
+                            {{ pixel_icon({'hours': 'clock', 'messages': 'chat', 'level': 'star', 'activity_30d': 'zap', 'rank': 'trophy',
+                                           'badges': 'award', 'servers': 'globe', 'members': 'users'}.get(m.key, 'chart'), 14) }}
+                            <span>{{ t(m.label_key) }}</span>
                         </div>
+                        <div class="vs-val vs-val-2">
+                            {% if m.winner == '2' and m.diff %}<span class="vs-lead">{{ metric_lead(m) }}</span>{% endif %}
+                            <span class="vs-val-num">{{ metric_value(m, m.v2) }}</span>
+                        </div>
+                        <div class="vs-bar" style="--p1: {{ m.pct1 }}%;" aria-hidden="true"><span class="vs-bar-1"></span><span class="vs-bar-2"></span></div>
                     </div>
                 {% endfor %}
             </div>
-        </div>
+        </section>
 
-        <!-- Superimposed Chart Section -->
-        <div class="gray-box small-border-radius versus-chart-card">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+        <!-- Voice hours over time, both curves on one chart -->
+        <section class="vs-card">
+            <header class="vs-card-head">
                 <div>
-                    <div class="medium-bold-text" style="color: #ffffff; font-size: 1.25rem;">
-                        {% if selected_server %}
-                            {{ pixel_icon('trend', 18) }} {{ t('versus.chart_title_users') }} ({{ selected_server.name }})
-                        {% elif tab == 'users' %}
-                            {{ pixel_icon('trend', 18) }} {{ t('versus.chart_title_users') }}
-                        {% else %}
-                            {{ pixel_icon('trend', 18) }} {{ t('versus.chart_title_servers') }}
-                        {% endif %}
-                    </div>
-                    <div class="small-text gray" style="margin-top: 4px;">{{ t('versus.chart_desc') }}</div>
+                    <h2 class="vs-card-title">{{ pixel_icon('trend', 18) }}<span>{{ t('versus.chart_title_users') if tab == 'users' else t('versus.chart_title_servers') }}{% if selected_server %} · {{ selected_server.name }}{% endif %}</span></h2>
+                    <p class="vs-card-desc">{{ t('versus.chart_desc') }}</p>
                 </div>
-            </div>
+            </header>
             <div class="versus-chart-wrapper">
                 <canvas id="versusChart"></canvas>
             </div>
-        </div>
+        </section>
 
     {% else %}
         <!-- Empty State / No Match -->

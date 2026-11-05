@@ -20,7 +20,7 @@ from app.functions import (
     get_user_count_by_server_id,
     is_bot_user,
 )
-from app.gamification import calculate_user_badges, calculate_user_xp_and_level
+from app.gamification import calculate_user_badges, calculate_user_xp_and_level, member_votes
 from app.profile_records import featured_badges
 from app.profile_settings import get_profile_settings, resolve_layout, resolve_profile_theme
 from app.i18n import current_lang, tr
@@ -41,7 +41,7 @@ def _user_card(user_id: int, lang: str) -> dict | None:
     if not user:
         return None
     stats = load_user_profile_stats(user_id, user.username or tr("Membre {id}", "Member {id}", lang, id=user_id), can_view_presence=False)
-    xp = calculate_user_xp_and_level(stats["total_seconds"], stats["total_message"] or 0)
+    xp = calculate_user_xp_and_level(stats["total_seconds"], stats["total_message"] or 0, member_votes(user_id))
     settings = get_profile_settings(user_id)
     theme = resolve_profile_theme(user_id, settings)
     layout = resolve_layout(settings, is_owner=False)

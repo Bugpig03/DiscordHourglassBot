@@ -3,6 +3,8 @@
 - /internal/card/<kind>.png: PNG images for the Discord bot, protected by the CARD_TOKEN shared secret
   (header X-Card-Token). Disabled (404) while CARD_TOKEN is not configured.
 - /api/card/...: the same cards as embeddable SVG (public, rate limited like the rest of /api/card/).
+- /og/...: the same cards as PNG for link previews (og:image of profiles, server pages and duels; public,
+  rate limited, cached 10 minutes). Discord and other previews cannot show SVG.
 
 Every card takes ?lang= (the Discord locale of the member who ran the command, or a site language code);
 English by default, see builders.card_lang for the languages the cards can draw.
@@ -20,6 +22,7 @@ cards_bp = Blueprint("cards", __name__)
 log = logging.getLogger(__name__)
 
 PNG_CACHE_SECONDS = 120
+OG_CACHE_SECONDS = 600
 
 
 def _lang() -> str:
@@ -115,13 +118,13 @@ def _user_or_404(identifier: str) -> int:
 @cards_bp.route("/api/card/user/<username>")
 @cards_bp.route("/api/card/allstats/<username>")
 def svg_member_card(username: str):
-    return _svg(lambda: builders.member_card(_user_or_404(username), lang=_lang()))
+    return _svg(lambda: builders.member_card(_user_or_404(username), lang=_lang(), public=True))
 
 
 @cards_bp.route("/api/card/user/<username>/server/<int:server_id>")
 @cards_bp.route("/api/card/stats/<username>/<int:server_id>")
 def svg_member_server_card(username: str, server_id: int):
-    return _svg(lambda: builders.member_card(_user_or_404(username), server_id, _lang()))
+    return _svg(lambda: builders.member_card(_user_or_404(username), server_id, _lang(), public=True))
 
 
 @cards_bp.route("/api/card/versus/<user1>/<user2>")
@@ -152,3 +155,34 @@ def svg_server_card(server_id: int):
 @cards_bp.route("/api/card/aide")
 def svg_help_card():
     return _svg(lambda: builders.help_card(_lang()), max_age=3600)
+
+
+# ---------------------------------------------------------------------------
+# PNG for link previews (og:image)
+# ---------------------------------------------------------------------------
+def _og_png(key: tuple, build) -> Response:
+    try:
+        png = builders.card_cache.get_or_set(("og_png",) + key, OG_CACHE_SECONDS, lambda: to_png(build()))
+    except builders.CardNotFound:
+        abort(404)
+    resp = Response(png, mimetype="image/png")
+    resp.headers["Cache-Control"] = f"public, max-age={OG_CACHE_SECONDS}"
+    return resp
+
+
+@cards_bp.route("/og/member/<int:user_id>.png")
+def og_member_card(user_id: int):
+    lang = _lang()
+    return _og_png(("member", user_id, lang), lambda: builders.member_card(user_id, lang=lang, public=True))
+
+
+@cards_bp.route("/og/server/<int:server_id>.png")
+def og_server_card(server_id: int):
+    lang = _lang()
+    return _og_png(("server", server_id, lang), lambda: builders.server_card(server_id, lang))
+
+
+@cards_bp.route("/og/versus/<int:user1>/<int:user2>.png")
+def og_versus_card(user1: int, user2: int):
+    lang, server_id = _lang(), _int_arg("server")
+    return _og_png(("versus", user1, user2, server_id, lang), lambda: builders.versus_card(user1, user2, server_id, lang))

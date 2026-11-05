@@ -52,12 +52,14 @@ def normalize_lang(value: str | None) -> str | None:
 def detect_lang() -> str:
     """Language of a visitor without a saved choice: the first supported language of the browser.
 
-    No Accept-Language header (search engines, link previews) keeps French, as before. A browser that asks
-    only for unsupported languages gets English, more widely understood than French.
+    No Accept-Language header (search engines, link previews such as Discord's): the ?lang= of the link, added
+    to the address bar by base.js for every language but French, otherwise French as before. A browser that asks
+    only for unsupported languages gets English, more widely understood than French. People always send the
+    header, so a ?lang= in a link never overrides their own language.
     """
     header = request.accept_languages
     if not header:
-        return DEFAULT_LANG
+        return normalize_lang(request.args.get("lang")) or DEFAULT_LANG
     for value, _quality in header:
         code = normalize_lang(value)
         if code:

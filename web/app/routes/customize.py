@@ -4,7 +4,7 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from app.auth import get_current_user
 from app.database import Users
-from app.gamification import calculate_user_xp_and_level, calculate_user_badges
+from app.gamification import calculate_user_xp_and_level, calculate_user_badges, member_votes
 from app.profile_records import (
     DEFAULT_PINNED_RECORDS,
     MAX_FEATURED_BADGES,
@@ -57,7 +57,7 @@ def customize_profile():
         saved = save_profile_settings(user_id, values)
         return redirect(url_for("customize.customize_profile", saved=1 if saved else 0))
 
-    xp = calculate_user_xp_and_level(stats["total_seconds"], stats["total_message"]) if stats else None
+    xp = calculate_user_xp_and_level(stats["total_seconds"], stats["total_message"], member_votes(user_id)) if stats else None
     records = {}
     if stats:
         charts = load_user_charts_data(user_id, servers, lang=lang)

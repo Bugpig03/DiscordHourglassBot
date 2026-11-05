@@ -88,7 +88,7 @@
                 }];
                 if (summary) summary.textContent = `${T('Total', 'Total')} : ${fmtMetric(metric, values[values.length - 1] || 0)}`;
             } else {
-                const complete = series.partial && values.length > 1 ? values.slice(0, -1) : values;
+                const complete = HG.measuredValues(values, series);
                 const avg = complete.reduce((a, b) => a + b, 0) / Math.max(1, complete.length);
                 const total = values.reduce((a, b) => a + b, 0);
                 const per = state.period === 'month' ? T('mois', 'month') : T('jour', 'day');
@@ -137,6 +137,7 @@
             }));
             if (!cumul) {
                 HG.setPartial(chart, series.partial);
+                HG.setEstimated(chart, series.estimated);
                 chart.update();
             }
         }

@@ -112,9 +112,10 @@ function enhanceLong(box, itemSelector) {
     update();
 }
 
+// Items: [label, value, sub, tone, tip]; the tip says in a sentence what the figure counts (shown on hover)
 function renderStats(el, items) {
-    el.innerHTML = items.map(([label, value, sub, tone]) => `
-        <div class="adm-stat ${tone ? 'is-' + tone : ''}">
+    el.innerHTML = items.map(([label, value, sub, tone, tip]) => `
+        <div class="adm-stat ${tone ? 'is-' + tone : ''}"${tipAttr(tip)}>
             <span class="adm-stat-label">${HG.esc(label)}</span>
             <span class="adm-stat-value">${value}</span>
             ${sub ? `<span class="adm-stat-sub">${HG.esc(sub)}</span>` : ''}
@@ -138,6 +139,9 @@ function lineChart(id, labels, datasets, opts = {}) {
         },
     });
 }
+
+// data-tip attribute (ui.js tooltip: hover, keyboard focus and tap); tabindex lets the keyboard reach it
+const tipAttr = tip => (tip ? ` data-tip="${HG.esc(tip)}" tabindex="0"` : '');
 
 const area = (label, values, color) => ({ label, data: values, borderColor: color, backgroundColor: color + '33', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0 });
 const bars = (label, values, color) => ({ label, data: values, backgroundColor: color, borderRadius: 4 });
@@ -195,6 +199,24 @@ const TAB_LABELS = {
     'tab-security': T('Sécurité', 'Security'),
 };
 
+// Descriptions of the figures shown in more than one place
+const TIP_VIEWS = T('Pages du site affichées sur la période choisie (robots, images et API exclus), comparées à la période précédente de même durée.',
+              'Site pages shown over the chosen period (bots, images and API left out), compared with the previous period of the same length.');
+const TIP_UNIQUES = T('Moyenne par jour des visiteurs différents, comptés sans cookie (empreinte anonyme renouvelée chaque jour). Quelqu’un qui revient 3 jours compte 3 fois.',
+              'Average number of different visitors per day, counted without cookies (anonymous fingerprint renewed daily). Someone coming back on 3 days counts 3 times.');
+const TIP_ACCOUNTS = T('Membres qui se sont connectés au moins une fois au site avec leur compte Discord.',
+    'Members who logged in to the site with their Discord account at least once.');
+const TIP_CUSTOMIZED = T('Comptes liés qui ont changé au moins un réglage de leur profil : couleur, bannière, fond, vitrine, records épinglés, serveur favori, blocs masqués ou mode privé.',
+    'Linked accounts that changed at least one profile setting: color, banner, background, showcase, pinned records, favorite server, hidden blocks or private mode.');
+const TIP_UNIQUE_MEMBERS = T('Personnes différentes sur tous les serveurs du bot, actives ou non, comptées une seule fois même sur plusieurs serveurs. Relevé du bot toutes les 15 minutes.',
+    'Different people on all the bot’s servers, active or not, counted once even on several servers. Bot snapshot every 15 minutes.');
+const TIP_SERVERS = T('Serveurs où le bot est actuellement. « Actifs » : au moins un message ou une session vocale enregistrée sur les 30 derniers jours.',
+    'Servers the bot is in right now. “Active”: at least one message or voice session recorded over the last 30 days.');
+const TIP_COMMANDS = T('Commandes slash du bot utilisées sur la période, et la part qui a échoué (erreur ou délai dépassé).',
+    'Bot slash commands used over the period, and the share that failed (error or timeout).');
+const TIP_ACTIVE7 = T('Comptes liés qui ont utilisé le site en étant connectés au moins un jour sur les 7 derniers (30 derniers pour le chiffre du dessous).',
+    'Linked accounts that used the site while logged in on at least one of the last 7 days (last 30 for the figure below).');
+
 function sectionOverview() {
     const o = data.overview, b = data.bot, c = data.commands, h = data.health, a = b.audience;
     const sum = arr => (arr || []).reduce((x, y) => x + y, 0);
@@ -203,31 +225,41 @@ function sectionOverview() {
     const failing = (data.security.checkup || []).filter(x => !x.ok).length;
     const health = [
         ['tab-bot', b.bot_online ? 'ok' : 'ko', b.bot_online ? T('Bot en ligne', 'Bot online') : T('Bot silencieux', 'Bot silent'),
-            b.presence_age_min === null ? T('aucun relevé', 'no snapshot') : `${T('relevé', 'snapshot')} ${ago(b.presence_age_min)}`],
-        ['tab-security', alerts > 50 ? 'ko' : alerts ? 'warn' : 'ok', T('{n} alerte(s) de sécurité', '{n} security alert(s)', { n: HG.fmt(alerts) }), T('dernières 24 h', 'last 24 h')],
-        ['tab-tech', errors500 ? 'ko' : 'ok', T('{n} erreur(s) serveur', '{n} server error(s)', { n: HG.fmt(errors500) }), periodLabel()],
+            b.presence_age_min === null ? T('aucun relevé', 'no snapshot') : `${T('relevé', 'snapshot')} ${ago(b.presence_age_min)}`,
+            T('Le bot enregistre qui est en ligne toutes les 15 minutes. Sans relevé depuis plus de 30 minutes, il est sans doute arrêté ou déconnecté.',
+              'The bot records who is online every 15 minutes. With no snapshot for over 30 minutes, it is probably stopped or disconnected.')],
+        ['tab-security', alerts > 50 ? 'ko' : alerts ? 'warn' : 'ok', T('{n} alerte(s) de sécurité', '{n} security alert(s)', { n: HG.fmt(alerts) }), T('dernières 24 h', 'last 24 h'),
+            T('Événements suspects des dernières 24 h : connexions échouées, scans de robots, limites de requêtes, accès admin refusés… Les connexions réussies ne comptent pas.',
+              'Suspicious events of the last 24 h: failed logins, bot scans, rate limits, refused admin access… Successful logins are left out.')],
+        ['tab-tech', errors500 ? 'ko' : 'ok', T('{n} erreur(s) serveur', '{n} server error(s)', { n: HG.fmt(errors500) }), periodLabel(),
+            T('Pages du site qui ont planté (erreur 500) sur la période : un bug à corriger, le détail est dans les logs du site.',
+              'Site pages that crashed (error 500) over the period: a bug to fix, the details are in the site logs.')],
         ['tab-security', failing ? 'warn' : 'ok', failing ? T('{n} réglage(s) à revoir', '{n} setting(s) to check', { n: failing }) : T('Configuration saine', 'Healthy configuration'),
-            T('check-up de sécurité', 'security check-up')],
-        ['tab-bot', b.orphans ? 'warn' : 'ok', T('{n} session(s) orpheline(s)', '{n} orphan session(s)', { n: HG.fmt(b.orphans) }), T('vocal ouvert depuis plus de 24 h', 'voice open for over 24 h')],
+            T('check-up de sécurité', 'security check-up'),
+            T('Réglages du site vérifiés à chaque ouverture (clé de session, HTTPS, connexion Discord…). Le détail est dans l’onglet Sécurité.',
+              'Site settings checked each time the page opens (session key, HTTPS, Discord login…). Details are in the Security tab.')],
+        ['tab-bot', b.orphans ? 'warn' : 'ok', T('{n} session(s) orpheline(s)', '{n} orphan session(s)', { n: HG.fmt(b.orphans) }), T('vocal ouvert depuis plus de 24 h', 'voice open for over 24 h'),
+            T('Sessions vocales jamais refermées depuis plus de 24 h : le bot a sans doute manqué un départ (redémarrage, coupure). Elles gonflent le temps en vocal.',
+              'Voice sessions still open after more than 24 h: the bot probably missed someone leaving (restart, outage). They inflate voice time.')],
     ];
     const strip = document.getElementById('overviewHealth');
-    strip.innerHTML = health.map(([tab, tone, title, sub]) => `
-        <button type="button" class="adm-health-item is-${tone}" data-goto="${tab}"><span class="adm-health-dot"></span>
+    strip.innerHTML = health.map(([tab, tone, title, sub, tip]) => `
+        <button type="button" class="adm-health-item is-${tone}" data-goto="${tab}"${tipAttr(tip)}><span class="adm-health-dot"></span>
             <span class="adm-health-text"><strong>${HG.esc(title)}</strong><span>${HG.esc(sub)}</span></span></button>`).join('');
     const tiles = [
-        ['tab-traffic', T('Pages vues', 'Page views'), HG.fmt(o.views), deltaText(o.delta, T('vs période précédente', 'vs previous period'))],
-        ['tab-traffic', T('Visiteurs uniques par jour', 'Unique visitors per day'), HG.fmt(o.uniques_avg, 1), deltaText(o.uniques_delta, T('vs période précédente', 'vs previous period'))],
-        ['tab-accounts', T('Comptes Discord liés', 'Linked Discord accounts'), HG.fmt(o.accounts), `+${HG.fmt(o.accounts_new_week)} ${T('cette semaine', 'this week')}`],
-        ['tab-profiles', T('Profils personnalisés', 'Customized profiles'), HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`],
+        ['tab-traffic', T('Pages vues', 'Page views'), HG.fmt(o.views), deltaText(o.delta, T('vs période précédente', 'vs previous period')), '', TIP_VIEWS],
+        ['tab-traffic', T('Visiteurs uniques par jour', 'Unique visitors per day'), HG.fmt(o.uniques_avg, 1), deltaText(o.uniques_delta, T('vs période précédente', 'vs previous period')), '', TIP_UNIQUES],
+        ['tab-accounts', T('Comptes Discord liés', 'Linked Discord accounts'), HG.fmt(o.accounts), `+${HG.fmt(o.accounts_new_week)} ${T('cette semaine', 'this week')}`, '', TIP_ACCOUNTS],
+        ['tab-profiles', T('Profils personnalisés', 'Customized profiles'), HG.fmt(o.customized), `${HG.fmt(o.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`, '', TIP_CUSTOMIZED],
         ['tab-community', T('Membres présents', 'Members present'), a ? HG.fmt(a.unique) : '—',
-            a ? `${HG.fmt(a.silent_percent, 1)} % ${T('jamais actifs', 'never active')}` : T('en attente du bot v3.3.0', 'waiting for bot v3.3.0')],
-        ['tab-community', T('Serveurs du bot', 'Bot servers'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`],
-        ['tab-bot', T('Commandes', 'Commands'), HG.fmt(c.total), `${HG.fmt(c.failed_percent, 1)} % ${T('d’erreurs', 'errors')} · ${periodLabel()}`, c.failed ? 'warn' : ''],
-        ['tab-accounts', T('Comptes actifs · 7 j', 'Active accounts · 7 d'), HG.fmt(data.accounts.active7), `${HG.fmt(data.accounts.active30)} ${T('sur 30 j', 'in 30 d')}`],
+            a ? `${HG.fmt(a.silent_percent, 1)} % ${T('jamais actifs', 'never active')}` : T('en attente du bot v3.3.0', 'waiting for bot v3.3.0'), '', TIP_UNIQUE_MEMBERS],
+        ['tab-community', T('Serveurs du bot', 'Bot servers'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`, '', TIP_SERVERS],
+        ['tab-bot', T('Commandes', 'Commands'), HG.fmt(c.total), `${HG.fmt(c.failed_percent, 1)} % ${T('d’erreurs', 'errors')} · ${periodLabel()}`, c.failed ? 'warn' : '', TIP_COMMANDS],
+        ['tab-accounts', T('Comptes actifs · 7 j', 'Active accounts · 7 d'), HG.fmt(data.accounts.active7), `${HG.fmt(data.accounts.active30)} ${T('sur 30 j', 'in 30 d')}`, '', TIP_ACTIVE7],
     ];
     const box = document.getElementById('overviewTiles');
-    box.innerHTML = tiles.map(([tab, label, value, sub, tone]) => `
-        <button type="button" class="adm-tile ${tone ? 'is-' + tone : ''}" data-goto="${tab}">
+    box.innerHTML = tiles.map(([tab, label, value, sub, tone, tip]) => `
+        <button type="button" class="adm-tile ${tone ? 'is-' + tone : ''}" data-goto="${tab}"${tipAttr(tip)}>
             <span class="adm-stat-label">${HG.esc(label)}</span>
             <span class="adm-tile-value">${value}</span>
             <span class="adm-stat-sub">${sub}</span>
@@ -252,14 +284,18 @@ function sectionTraffic() {
         const t = data.traffic, o = data.overview;
         const dev0 = t.devices, devTotal = Math.max(1, dev0.mobile + dev0.desktop);
         const vsPrev = T('vs période précédente', 'vs previous period');
-        const stat = (label, value, subHtml) => `<div class="adm-stat"><span class="adm-stat-label">${HG.esc(label)}</span>
+        const stat = (label, value, subHtml, tip) => `<div class="adm-stat"${tipAttr(tip)}><span class="adm-stat-label">${HG.esc(label)}</span>
             <span class="adm-stat-value">${value}</span><span class="adm-stat-sub">${subHtml}</span></div>`;
         document.getElementById('trafficStats').innerHTML = [
-            stat(T('Pages vues', 'Page views'), HG.fmt(o.views), deltaText(o.delta, vsPrev)),
-            stat(T('Visiteurs uniques par jour', 'Unique visitors per day'), HG.fmt(o.uniques_avg, 1), deltaText(o.uniques_delta, vsPrev)),
-            stat(T('Aujourd’hui', 'Today'), HG.fmt(o.views_today), `${HG.fmt(o.uniques_today)} ${HG.esc(T('visiteurs', 'visitors'))}`),
+            stat(T('Pages vues', 'Page views'), HG.fmt(o.views), deltaText(o.delta, vsPrev), TIP_VIEWS),
+            stat(T('Visiteurs uniques par jour', 'Unique visitors per day'), HG.fmt(o.uniques_avg, 1), deltaText(o.uniques_delta, vsPrev), TIP_UNIQUES),
+            stat(T('Aujourd’hui', 'Today'), HG.fmt(o.views_today), `${HG.fmt(o.uniques_today)} ${HG.esc(T('visiteurs', 'visitors'))}`,
+                T('Pages vues et visiteurs différents depuis minuit (heure UTC, soit 1 h ou 2 h du matin en France).',
+                  'Page views and different visitors since midnight (UTC time).')),
             stat(T('Sur téléphone', 'On phones'), `${HG.fmt(dev0.mobile / devTotal * 100)} %`,
-                `${HG.fmt(dev0.desktop / devTotal * 100)} % ${HG.esc(T('sur ordinateur', 'on desktop'))}`),
+                `${HG.fmt(dev0.desktop / devTotal * 100)} % ${HG.esc(T('sur ordinateur', 'on desktop'))}`,
+                T('Part des visiteurs de la période venus d’un téléphone ou d’une tablette, d’après leur navigateur.',
+                  'Share of the period’s visitors on a phone or tablet, from their browser.')),
         ].join('');
         lineChart('hourlyChart', [...Array(24).keys()].map(h => `${h}h`), [bars(T('Pages vues', 'Page views'), t.hourly, '#717cf8')], { type: 'bar' });
         const dev = t.devices, totalDev = Math.max(1, dev.mobile + dev.desktop);
@@ -273,10 +309,15 @@ function sectionAccounts() {
 
         const a = data.accounts;
         renderStats(document.getElementById('accountStats'), [
-            [T('Comptes liés au moins une fois', 'Accounts linked at least once'), HG.fmt(a.total), `${HG.fmt(a.linked_percent, 1)} % ${T('des', 'of the')} ${HG.fmt(a.members_total)} ${T('membres suivis', 'tracked members')}`],
-            [T('Nouveaux cette semaine', 'New this week'), HG.fmt(a.new_week)],
-            [T('Actifs · 7 jours', 'Active · 7 days'), HG.fmt(a.active7)],
-            [T('Actifs · 30 jours', 'Active · 30 days'), HG.fmt(a.active30)],
+            [T('Comptes liés au moins une fois', 'Accounts linked at least once'), HG.fmt(a.total), `${HG.fmt(a.linked_percent, 1)} % ${T('des', 'of the')} ${HG.fmt(a.members_total)} ${T('membres suivis', 'tracked members')}`, '',
+                T('Membres qui se sont connectés au moins une fois au site avec Discord. Le pourcentage les compare aux membres que le bot a déjà vus actifs (vocal ou messages).',
+                  'Members who logged in to the site with Discord at least once. The percentage compares them with the members the bot has seen active (voice or messages).')],
+            [T('Nouveaux cette semaine', 'New this week'), HG.fmt(a.new_week), '', '',
+                T('Comptes connectés au site pour la toute première fois ces 7 derniers jours.', 'Accounts that logged in to the site for the very first time in the last 7 days.')],
+            [T('Actifs · 7 jours', 'Active · 7 days'), HG.fmt(a.active7), '', '',
+                T('Comptes liés qui ont utilisé le site en étant connectés au moins un jour sur les 7 derniers.', 'Linked accounts that used the site while logged in on at least one of the last 7 days.')],
+            [T('Actifs · 30 jours', 'Active · 30 days'), HG.fmt(a.active30), '', '',
+                T('Comptes liés qui ont utilisé le site en étant connectés au moins un jour sur les 30 derniers.', 'Linked accounts that used the site while logged in on at least one of the last 30 days.')],
         ]);
         lineChart('weeksChart', a.weeks.labels, [bars(T('Nouveaux comptes', 'New accounts'), a.weeks.values, '#a78bfa')], { type: 'bar' });
         lineChart('activeChart', a.active_daily.labels, [area(T('Comptes actifs', 'Active accounts'), a.active_daily.values, '#34d399')]);
@@ -291,9 +332,12 @@ function sectionCustomization() {
 
         const c = data.customization;
         renderStats(document.getElementById('customStats'), [
-            [T('Profils personnalisés', 'Customized profiles'), HG.fmt(c.customized), `${HG.fmt(c.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`],
-            [T('Profils privés', 'Private profiles'), HG.fmt(c.private)],
-            [T('Serveur favori choisi', 'Favorite server set'), HG.fmt(c.favorite)],
+            [T('Profils personnalisés', 'Customized profiles'), HG.fmt(c.customized), `${HG.fmt(c.customized_percent, 1)} % ${T('des comptes liés', 'of linked accounts')}`, '', TIP_CUSTOMIZED],
+            [T('Profils privés', 'Private profiles'), HG.fmt(c.private), '', '',
+                T('Membres qui ont mis leur profil en privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.',
+                  'Members who made their profile private: visitors only see the header, level and totals.')],
+            [T('Serveur favori choisi', 'Favorite server set'), HG.fmt(c.favorite), '', '',
+                T('Membres qui ont choisi un serveur favori, mis en avant sur leur profil.', 'Members who picked a favorite server, shown on their profile.')],
         ]);
 }
 
@@ -302,9 +346,14 @@ function sectionCommands() {
         const c = data.commands;
         document.getElementById('commandsNotice').hidden = c.total > 0;
         renderStats(document.getElementById('commandStats'), [
-            [`${T('Commandes', 'Commands')} · ${periodLabel()}`, HG.fmt(c.total), `${HG.fmt(c.today)} ${T("aujourd'hui", 'today')}`],
-            [T('En messages privés', 'In direct messages'), HG.fmt(c.dm)],
-            [T('Erreurs', 'Errors'), HG.fmt(c.failed), `${HG.fmt(c.failed_percent, 1)} %`, c.failed ? 'warn' : 'ok'],
+            [`${T('Commandes', 'Commands')} · ${periodLabel()}`, HG.fmt(c.total), `${HG.fmt(c.today)} ${T("aujourd'hui", 'today')}`, '',
+                T('Commandes slash du bot utilisées sur la période, tous serveurs confondus (et celles d’aujourd’hui en dessous).',
+                  'Bot slash commands used over the period, all servers together (and today’s below).')],
+            [T('En messages privés', 'In direct messages'), HG.fmt(c.dm), '', '',
+                T('Commandes utilisées en message privé avec le bot, hors de tout serveur.', 'Commands used in a direct message with the bot, outside any server.')],
+            [T('Erreurs', 'Errors'), HG.fmt(c.failed), `${HG.fmt(c.failed_percent, 1)} %`, c.failed ? 'warn' : 'ok',
+                T('Commandes qui ont échoué (erreur ou délai dépassé) : le membre a vu un message d’erreur. Le détail est dans les logs du bot.',
+                  'Commands that failed (error or timeout): the member saw an error message. Details are in the bot logs.')],
         ]);
         lineChart('commandsChart', c.labels, [bars(T('Commandes', 'Commands'), c.daily, '#717cf8')], { type: 'bar' });
         document.querySelector('#commandPerf tbody').innerHTML = c.perf.map(r => `<tr><td><code>${HG.esc(r.name)}</code></td>
@@ -317,12 +366,22 @@ function sectionBotStatus() {
 
         const b = data.bot;
         renderStats(document.getElementById('botStats'), [
-            [T('Serveurs où le bot est présent', 'Servers with the bot'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_left)} ${T('quittés', 'left')} · ${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`],
-            [T('Membres suivis', 'Tracked members'), HG.fmt(b.members_total)],
-            [T('En vocal maintenant', 'In voice now'), HG.fmt(b.voice_now), `${HG.fmt(b.messages_24h)} ${T('messages sur 24 h', 'messages in 24 h')}`],
+            [T('Serveurs où le bot est présent', 'Servers with the bot'), HG.fmt(b.servers_present), `${HG.fmt(b.servers_left)} ${T('quittés', 'left')} · ${HG.fmt(b.servers_active30)} ${T('actifs sur 30 j', 'active in 30 d')}`, '',
+                T('Serveurs où le bot est actuellement, ceux qu’il a quittés, et ceux avec au moins un message ou une session vocale sur 30 jours.',
+                  'Servers the bot is in right now, those it left, and those with at least one message or voice session over 30 days.')],
+            [T('Membres suivis', 'Tracked members'), HG.fmt(b.members_total), '', '',
+                T('Membres que le bot a vus actifs au moins une fois (vocal ou messages) : ceux qui ont un profil Hourglass.',
+                  'Members the bot has seen active at least once (voice or messages): those with a Hourglass profile.')],
+            [T('En vocal maintenant', 'In voice now'), HG.fmt(b.voice_now), `${HG.fmt(b.messages_24h)} ${T('messages sur 24 h', 'messages in 24 h')}`, '',
+                T('Sessions vocales en cours sur tous les serveurs, et messages comptés ces 24 dernières heures.',
+                  'Voice sessions in progress on every server, and messages counted over the last 24 hours.')],
             [T('Dernier relevé du bot', 'Last bot snapshot'), dateText(b.last_presence),
-                b.presence_age_min === null ? '' : ago(b.presence_age_min), b.bot_online ? 'ok' : 'ko'],
-            [T('Sessions vocales orphelines', 'Orphan voice sessions'), HG.fmt(b.orphans), T('ouvertes depuis plus de 24 h', 'open for more than 24 h'), b.orphans ? 'warn' : 'ok'],
+                b.presence_age_min === null ? '' : ago(b.presence_age_min), b.bot_online ? 'ok' : 'ko',
+                T('Le bot enregistre qui est en ligne toutes les 15 minutes. Sans relevé depuis plus de 30 minutes, il est sans doute arrêté ou déconnecté.',
+                  'The bot records who is online every 15 minutes. With no snapshot for over 30 minutes, it is probably stopped or disconnected.')],
+            [T('Sessions vocales orphelines', 'Orphan voice sessions'), HG.fmt(b.orphans), T('ouvertes depuis plus de 24 h', 'open for more than 24 h'), b.orphans ? 'warn' : 'ok',
+                T('Sessions vocales jamais refermées depuis plus de 24 h : le bot a sans doute manqué un départ (redémarrage, coupure). Elles gonflent le temps en vocal.',
+                  'Voice sessions still open after more than 24 h: the bot probably missed someone leaving (restart, outage). They inflate voice time.')],
         ]);
 }
 
@@ -335,10 +394,15 @@ function sectionVotes() {
         ? T('À définir dans le .env du site : {v} (webhook en temps réel et historique des votes).', 'To set in the site .env: {v} (real-time webhook and vote history).', { v: missing.join(', ') })
         : '';
     renderStats(document.getElementById('voteStats'), [
-        [`${T('Votes', 'Votes')} · ${periodLabel()}`, HG.fmt(v.period), `${HG.fmt(v.voters)} ${T('votant(s)', 'voter(s)')}`],
-        [T('Ce mois-ci', 'This month'), HG.fmt(v.month)],
-        [T('Votes en cours', 'Active votes'), HG.fmt(v.active), T('membres qui ont voté depuis moins de 12 h', 'members who voted less than 12 h ago')],
-        [T('Total enregistré', 'Total recorded'), HG.fmt(v.total)],
+        [`${T('Votes', 'Votes')} · ${periodLabel()}`, HG.fmt(v.period), `${HG.fmt(v.voters)} ${T('votant(s)', 'voter(s)')}`, '',
+            T('Votes pour Hourglass sur top.gg pendant la période, et le nombre de membres différents qui ont voté.',
+              'Votes for Hourglass on top.gg over the period, and how many different members voted.')],
+        [T('Ce mois-ci', 'This month'), HG.fmt(v.month), '', '',
+            T('Votes depuis le 1er du mois : top.gg classe les bots sur les votes du mois en cours.', 'Votes since the 1st of the month: top.gg ranks bots on the current month’s votes.')],
+        [T('Votes en cours', 'Active votes'), HG.fmt(v.active), T('membres qui ont voté depuis moins de 12 h', 'members who voted less than 12 h ago'), '',
+            T('Membres dont le vote compte encore : un vote dure 12 heures, ensuite ils peuvent revoter.', 'Members whose vote still counts: a vote lasts 12 hours, then they can vote again.')],
+        [T('Total enregistré', 'Total recorded'), HG.fmt(v.total), '', '',
+            T('Tous les votes enregistrés depuis le début : chacun rapporte 100 XP et compte pour le badge Soutien.', 'Every vote recorded since the start: each one gives 100 XP and counts for the Supporter badge.')],
     ]);
     lineChart('votesChart', v.labels, [bars(T('Votes', 'Votes'), v.daily, '#ff6b8a')], { type: 'bar' });
 }
@@ -352,11 +416,19 @@ function sectionCommunity() {
         document.getElementById('audienceChartWrap').hidden = !a;
         if (a) {
             renderStats(document.getElementById('audienceStats'), [
-                [T('Membres uniques', 'Unique members'), HG.fmt(a.unique), `${T('relevé', 'snapshot')} ${dateText(a.at)}`],
-                [T('En ligne', 'Online'), HG.fmt(a.online), `${HG.fmt(a.unique ? a.online / a.unique * 100 : 0, 1)} %`],
-                [T('Jamais actifs', 'Never active'), HG.fmt(a.silent), `${HG.fmt(a.silent_percent, 1)} % ${T('n’ont jamais parlé ni rejoint un vocal', 'never talked nor joined voice')}`, a.silent_percent > 50 ? 'warn' : ''],
-                [T('Déjà actifs', 'Already active'), HG.fmt(a.known), T('ont un profil Hourglass', 'have a Hourglass profile')],
-                [T('Serveurs par membre', 'Servers per member'), HG.fmt(a.per_member, 2), `${HG.fmt(a.memberships)} ${T('appartenances sur', 'memberships on')} ${HG.fmt(a.servers)} ${T('serveurs', 'servers')}`],
+                [T('Membres uniques', 'Unique members'), HG.fmt(a.unique), `${T('relevé', 'snapshot')} ${dateText(a.at)}`, '', TIP_UNIQUE_MEMBERS],
+                [T('En ligne', 'Online'), HG.fmt(a.online), `${HG.fmt(a.unique ? a.online / a.unique * 100 : 0, 1)} %`, '',
+                    T('Parmi eux, ceux qui étaient en ligne, absents ou occupés sur Discord au moment du relevé (pas forcément sur le serveur).',
+                      'Among them, those online, idle or busy on Discord at the time of the snapshot (not necessarily on the server).')],
+                [T('Jamais actifs', 'Never active'), HG.fmt(a.silent), `${HG.fmt(a.silent_percent, 1)} % ${T('n’ont jamais parlé ni rejoint un vocal', 'never talked nor joined voice')}`, a.silent_percent > 50 ? 'warn' : '',
+                    T('Membres présents sur les serveurs que le bot n’a jamais vus écrire ni rejoindre un vocal : ils n’ont pas de profil Hourglass.',
+                      'Members on the servers the bot never saw write or join voice: they have no Hourglass profile.')],
+                [T('Déjà actifs', 'Already active'), HG.fmt(a.known), T('ont un profil Hourglass', 'have a Hourglass profile'), '',
+                    T('Membres présents qui ont déjà écrit ou été en vocal au moins une fois : ils ont un profil sur le site.',
+                      'Members on the servers who already wrote or joined voice at least once: they have a profile on the site.')],
+                [T('Serveurs par membre', 'Servers per member'), HG.fmt(a.per_member, 2), `${HG.fmt(a.memberships)} ${T('appartenances sur', 'memberships on')} ${HG.fmt(a.servers)} ${T('serveurs', 'servers')}`, '',
+                    T('Nombre moyen de serveurs du bot dont chaque personne fait partie. Au-dessus de 1, beaucoup de membres sont sur plusieurs serveurs à la fois.',
+                      'Average number of the bot’s servers each person is in. Above 1, many members are on several servers at once.')],
             ]);
             lineChart('audienceChart', a.labels, [
                 area(T('Membres uniques', 'Unique members'), a.unique_daily, '#717cf8'),
@@ -391,12 +463,19 @@ function sectionHealth() {
         const h = data.health;
         const r = h.analytics_refresh || {};
         renderStats(document.getElementById('healthStats'), [
-            [`404 · ${periodLabel()}`, HG.fmt(h.s404.reduce((a, b) => a + b, 0)), T('pages introuvables', 'pages not found')],
-            [`429 · ${periodLabel()}`, HG.fmt(h.s429.reduce((a, b) => a + b, 0)), T('limite de requêtes atteinte', 'rate limit reached')],
-            [`500 · ${periodLabel()}`, HG.fmt(h.s500.reduce((a, b) => a + b, 0)), T('erreurs serveur', 'server errors'), h.s500.some(v => v) ? 'ko' : 'ok'],
+            [`404 · ${periodLabel()}`, HG.fmt(h.s404.reduce((a, b) => a + b, 0)), T('pages introuvables', 'pages not found'), '',
+                T('Adresses demandées qui n’existent pas : liens cassés, profils supprimés, ou robots qui testent des pages au hasard. La liste est dessous.',
+                  'Requested addresses that do not exist: broken links, removed profiles, or bots probing random pages. The list is below.')],
+            [`429 · ${periodLabel()}`, HG.fmt(h.s429.reduce((a, b) => a + b, 0)), T('limite de requêtes atteinte', 'rate limit reached'), '',
+                T('Requêtes refusées parce qu’une même adresse IP en envoyait trop en une minute (protection contre les abus).',
+                  'Requests refused because one IP address sent too many in a minute (abuse protection).')],
+            [`500 · ${periodLabel()}`, HG.fmt(h.s500.reduce((a, b) => a + b, 0)), T('erreurs serveur', 'server errors'), h.s500.some(v => v) ? 'ko' : 'ok',
+                T('Pages du site qui ont planté : un bug à corriger, le détail est dans les logs du site.', 'Site pages that crashed: a bug to fix, the details are in the site logs.')],
             [T('Calcul de la page Analyses', 'Analytics page computation'), r.ms !== undefined ? `${HG.fmt(r.ms)} ms` : '—',
                 r.at ? `${T('dernier rafraîchissement', 'last refresh')} ${dateText(r.at)} (${T('ce worker', 'this worker')})` : T('pas encore rafraîchi sur ce worker', 'not refreshed on this worker yet'),
-                r.ms > 2000 ? 'warn' : ''],
+                r.ms > 2000 ? 'warn' : '',
+                T('Temps pour recalculer toutes les données de la page Analyses, fait en arrière-plan par chacun des 4 workers. Au-delà de 2 s, la base commence à peiner.',
+                  'Time to recompute all the Analytics page data, done in the background by each of the 4 workers. Over 2 s, the database starts to struggle.')],
         ]);
         // Session key: anything but a stored key means members are logged out when the container is recreated
         const keySources = {
@@ -408,7 +487,9 @@ function sectionHealth() {
         };
         const ks = keySources[h.session_key_source] || keySources.random;
         const tiles = document.getElementById('healthStats');
-        tiles.insertAdjacentHTML('beforeend', `<div class="adm-stat is-${ks[2]}"><span class="adm-stat-label">${T('Clé de session', 'Session key')}</span>
+        const keyTip = T('Clé qui signe les cookies de connexion. Si elle change (mise à jour du conteneur, redémarrage), tous les membres sont déconnectés.',
+            'Key that signs the login cookies. If it changes (container update, restart), every member is logged out.');
+        tiles.insertAdjacentHTML('beforeend', `<div class="adm-stat is-${ks[2]}"${tipAttr(keyTip)}><span class="adm-stat-label">${T('Clé de session', 'Session key')}</span>
             <span class="adm-stat-value" style="font-size:16px">${HG.esc(ks[0])}</span><span class="adm-stat-sub">${HG.esc(ks[1])}</span></div>`);
         lineChart('statusChart', h.labels, [bars('404', h.s404, '#5b5f6c'), bars('429', h.s429, '#f5b03b'), bars('500', h.s500, '#f87171')], { type: 'bar', stacked: true });
 }
@@ -448,20 +529,40 @@ function sectionSecurity() {
     document.getElementById('securityNotice').hidden = s.enabled;
     const t24 = s.totals_24h, t7 = s.totals_7d;
     const n = (k, src = t24) => src[k] || 0;
-    const tile = (kind, label, warnAt = 1, koAt = Infinity) =>
-        [label, HG.fmt(n(kind)), `${HG.fmt(n(kind, t7))} ${T('sur 7 j', 'in 7 d')}`, n(kind) >= koAt ? 'ko' : n(kind) >= warnAt ? 'warn' : 'ok'];
+    const tile = (kind, label, warnAt = 1, koAt = Infinity, tip = '') =>
+        [label, HG.fmt(n(kind)), `${HG.fmt(n(kind, t7))} ${T('sur 7 j', 'in 7 d')}`, n(kind) >= koAt ? 'ko' : n(kind) >= warnAt ? 'warn' : 'ok', tip];
+    // Figures of the last 24 h, the 7 days under them
     renderStats(document.getElementById('securityStats'), [
-        tile('login_fail', T('Connexions échouées', 'Failed logins'), 5, 30),
-        [T('Connexions réussies', 'Successful logins'), HG.fmt(n('login_ok')), `${HG.fmt(n('login_ok', t7))} ${T('sur 7 j', 'in 7 d')}`, ''],
-        tile('scan', T('Scans de robots', 'Bot scans'), 20, 500),
-        tile('rate_limited', T('Limites de requêtes (429)', 'Rate limits (429)'), 10, 200),
-        tile('admin_denied', T('Accès admin refusés', 'Admin access denied'), 1, 20),
-        tile('csrf_fail', T('Formulaires refusés (CSRF)', 'Forms refused (CSRF)'), 1, 10),
-        tile('card_token_fail', T('Jetons de carte invalides', 'Invalid card tokens'), 1, 1),
-        tile('webhook_fail', T('Webhooks top.gg refusés', 'top.gg webhooks refused'), 1, 5),
-        tile('csp_violation', T('Violations CSP', 'CSP violations'), 1, 50),
-        tile('server_error', T('Erreurs serveur (500)', 'Server errors (500)'), 1, 10),
-        tile('too_large', T('Requêtes trop grosses', 'Requests too large'), 1, 20),
+        tile('login_fail', T('Connexions échouées', 'Failed logins'), 5, 30,
+            T('Connexions Discord qui n’ont pas abouti (24 h) : autorisation refusée, code expiré, Discord indisponible… La raison est dans le journal.',
+              'Discord logins that did not go through (24 h): authorization declined, expired code, Discord unavailable… The reason is in the journal.')),
+        [T('Connexions réussies', 'Successful logins'), HG.fmt(n('login_ok')), `${HG.fmt(n('login_ok', t7))} ${T('sur 7 j', 'in 7 d')}`, '',
+            T('Connexions Discord au site réussies ces 24 dernières heures.', 'Successful Discord logins to the site over the last 24 hours.')],
+        tile('scan', T('Scans de robots', 'Bot scans'), 20, 500,
+            T('Robots qui testent des adresses connues de failles (/wp-admin, /.env…). Normal sur Internet : ces pages n’existent pas ici.',
+              'Bots probing addresses of known flaws (/wp-admin, /.env…). Normal on the Internet: these pages do not exist here.')),
+        tile('rate_limited', T('Limites de requêtes (429)', 'Rate limits (429)'), 10, 200,
+            T('Requêtes refusées parce qu’une même adresse IP en envoyait trop en une minute.', 'Requests refused because one IP address sent too many in a minute.')),
+        tile('admin_denied', T('Accès admin refusés', 'Admin access denied'), 1, 20,
+            T('Quelqu’un qui n’est pas admin a essayé d’ouvrir une page de l’admin (il a vu une page introuvable).',
+              'Someone who is not an admin tried to open an admin page (they saw a not found page).')),
+        tile('csrf_fail', T('Formulaires refusés (CSRF)', 'Forms refused (CSRF)'), 1, 10,
+            T('Formulaire envoyé sans le jeton de sécurité de la page : souvent une page restée ouverte longtemps, parfois une tentative depuis un autre site.',
+              'Form sent without the page’s security token: often a page left open for a long time, sometimes an attempt from another site.')),
+        tile('card_token_fail', T('Jetons de carte invalides', 'Invalid card tokens'), 1, 1,
+            T('Demandes de cartes PNG réservées au bot avec un jeton faux ou absent : quelqu’un se fait passer pour le bot.',
+              'Requests for the bot-only PNG cards with a wrong or missing token: someone posing as the bot.')),
+        tile('webhook_fail', T('Webhooks top.gg refusés', 'top.gg webhooks refused'), 1, 5,
+            T('Votes reçus sans la bonne signature top.gg (faux vote ou secret mal réglé) : ils ne sont pas comptés.',
+              'Votes received without the right top.gg signature (fake vote or wrong secret): they are not counted.')),
+        tile('csp_violation', T('Violations CSP', 'CSP violations'), 1, 50,
+            T('Scripts ou images bloqués par la politique de sécurité du navigateur : souvent une extension, parfois une ressource oubliée dans la liste autorisée.',
+              'Scripts or images blocked by the browser security policy: often an extension, sometimes a resource missing from the allowed list.')),
+        tile('server_error', T('Erreurs serveur (500)', 'Server errors (500)'), 1, 10,
+            T('Pages du site qui ont planté : un bug à corriger, le détail est dans les logs du site.', 'Site pages that crashed: a bug to fix, the details are in the site logs.')),
+        tile('too_large', T('Requêtes trop grosses', 'Requests too large'), 1, 20,
+            T('Envois refusés car trop lourds (au-delà de la taille permise) : souvent un robot ou une tentative d’abus.',
+              'Uploads refused for being too large (over the allowed size): often a bot or an abuse attempt.')),
     ]);
     const kinds = s.kinds.filter(k => !QUIET_KINDS.includes(k.key) && (s.daily[k.key] || []).some(v => v));
     lineChart('securityChart', s.labels,

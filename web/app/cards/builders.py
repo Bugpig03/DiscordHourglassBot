@@ -29,10 +29,12 @@ from app.functions import (
     get_user_rank_in_server,
     get_user_raw_join_date,
 )
-from app.gamification import BADGE_DEFS, calculate_user_badges, calculate_user_xp_and_level
+from app.gamification import BADGE_DEFS, calculate_user_badges, calculate_user_xp_and_level, member_votes
 from app.i18n import format_number, normalize_lang, tr
 from app.profile_records import featured_badges
-from app.profile_settings import BACKGROUND_HEX, DEFAULT_ACCENT, PALETTE_HEX, discord_accent_hex, effective_banner_mode, get_profile_settings
+from app.profile_settings import (
+    BACKGROUND_HEX, DEFAULT_ACCENT, PALETTE_HEX, discord_accent_hex, effective_banner_mode, get_profile_settings, resolve_layout,
+)
 
 W = 1200
 M = 48            # outer margin
@@ -139,13 +141,14 @@ def _tier_paint(badge: dict) -> str:
 # ---------------------------------------------------------------------------
 # 1. Member card (/stats on a server, /allstats everywhere)
 # ---------------------------------------------------------------------------
-def member_card(user_id: int, server_id: int | None = None, lang: str = "en") -> str:
+def member_card(user_id: int, server_id: int | None = None, lang: str = "en", public: bool = False) -> str:
+    """Member card; public=True (website embeds and link previews) follows the profile's privacy settings."""
     lang = card_lang(lang)
-    key = ("card_member", int(user_id), server_id, lang)
-    return card_cache.get_or_set(key, CARD_CACHE_SECONDS, lambda: _member_card(int(user_id), server_id, lang))
+    key = ("card_member", int(user_id), server_id, lang, public)
+    return card_cache.get_or_set(key, CARD_CACHE_SECONDS, lambda: _member_card(int(user_id), server_id, lang, public))
 
 
-def _member_card(user_id: int, server_id: int | None, lang: str) -> str:
+def _member_card(user_id: int, server_id: int | None, lang: str, public: bool = False) -> str:
     from app.routes.user_profile import load_user_profile_stats  # the profile page's own figures
 
     user = Users.get_or_none(Users.user_id == user_id)
@@ -174,9 +177,13 @@ def _member_card(user_id: int, server_id: int | None, lang: str) -> str:
         scope = tr("Tous les serveurs", "All servers", lang)
         rank_caption = tr("Rang global", "Global rank", lang)
 
-    xp = calculate_user_xp_and_level(seconds, messages)
+    # Votes belong to no server: they only add to the global card
+    xp = calculate_user_xp_and_level(seconds, messages, 0 if server_id else member_votes(user_id))
     # Badges belong to the member (global figures), like the showcase of the profile page
     showcase = featured_badges(calculate_user_badges(profile, lang=lang), theme["featured"])
+    # A badge showcase hidden from visitors (or a private profile) stays off the public cards
+    if public and not resolve_layout(get_profile_settings(user_id), is_owner=False)["visible"]["showcase"]:
+        showcase = []
 
     banner = theme["banner"]
     top = 210 if banner else 140          # vertical center of the avatar

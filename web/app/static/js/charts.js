@@ -49,6 +49,24 @@
         return !!chart.$hgPartial && index === chart.data.labels.length - 1;
     }
 
+    /* Estimated months: before October 2024 the old bot only kept totals, spread over the months they
+       cover. The first n bars are drawn hatched-faded. A chart opts in with HG.setEstimated(chart, n). */
+    HG.setEstimated = function (chart, count) {
+        chart.$hgEstimated = count || 0;
+    };
+
+    function isEstimatedIndex(chart, index) {
+        return index < (chart.$hgEstimated || 0);
+    }
+
+    // Values of the complete, measured periods only (average of the per-period charts)
+    HG.measuredValues = function (values, series) {
+        const end = series.partial && values.length > 1 ? values.length - 1 : values.length;
+        const start = Math.min(series.estimated || 0, end);
+        const measured = values.slice(start, end);
+        return measured.length ? measured : values.slice(0, end);
+    };
+
     function fade(color, alpha) {
         const hex = color.replace('#', '');
         if (!/^[0-9a-f]{6}$/i.test(hex)) return color;
@@ -59,9 +77,10 @@
     // Bar dataset options: HG.partialBar('#717cf8') -> { backgroundColor, borderColor, borderWidth }
     HG.partialBar = function (color) {
         return {
-            backgroundColor: (ctx) => (isPartialIndex(ctx.chart, ctx.dataIndex) ? fade(color, 0.3) : color),
-            borderColor: (ctx) => (isPartialIndex(ctx.chart, ctx.dataIndex) ? color : 'transparent'),
-            borderWidth: (ctx) => (isPartialIndex(ctx.chart, ctx.dataIndex) ? 2 : 0),
+            backgroundColor: (ctx) => (isPartialIndex(ctx.chart, ctx.dataIndex) ? fade(color, 0.3)
+                : isEstimatedIndex(ctx.chart, ctx.dataIndex) ? fade(color, 0.35) : color),
+            borderColor: (ctx) => (isPartialIndex(ctx.chart, ctx.dataIndex) || isEstimatedIndex(ctx.chart, ctx.dataIndex) ? color : 'transparent'),
+            borderWidth: (ctx) => (isPartialIndex(ctx.chart, ctx.dataIndex) ? 2 : isEstimatedIndex(ctx.chart, ctx.dataIndex) ? 1 : 0),
         };
     };
 
@@ -73,6 +92,9 @@
     // Tooltip footer shared by every chart: flags the running period
     Chart.defaults.plugins.tooltip.callbacks.footer = function (items) {
         const item = items && items[0];
+        if (item && isEstimatedIndex(item.chart, item.dataIndex)) {
+            return HG.tr('Estimation : avant octobre 2024, le bot ne gardait que les totaux', 'Estimate: before October 2024, the bot only kept totals');
+        }
         if (!item || !isPartialIndex(item.chart, item.dataIndex)) return '';
         if (item.chart.$hgPartial === 'month') {
             return HG.tr('Mois en cours : données partielles', 'Current month: data still coming in');

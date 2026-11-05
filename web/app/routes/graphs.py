@@ -313,10 +313,14 @@ def compute_graphs_data(lang: str = "fr") -> dict:
         get_daily_hours_progression(days=30), "total_hours",
         get_daily_messages_progression(days=30), "total_messages", "date", carry=True,
     )
+    monthly_hours, monthly_msgs = get_monthly_hours_diff(), get_monthly_messages_diff()
     m_dates, m_hours, m_msgs = _aligned(
-        get_monthly_hours_diff(), "hours_this_month",
-        get_monthly_messages_diff(), "messages_this_month", "month", carry=False,
+        monthly_hours, "hours_this_month",
+        monthly_msgs, "messages_this_month", "month", carry=False,
     )
+    # Leading months holding the spread totals of the old bot (estimates, drawn apart)
+    estimated = {r["month"] for r in monthly_hours + monthly_msgs if r.get("estimated")}
+    m_estimated = next((i for i, d in enumerate(m_dates) if d not in estimated), len(m_dates))
     c_dates, c_hours, c_msgs = _aligned(
         get_first_of_month_hours_sum(), "total_hours",
         get_first_of_month_messages_sum(), "total_messages", "month", carry=True,
@@ -334,6 +338,7 @@ def compute_graphs_data(lang: str = "fr") -> dict:
             "hours": m_hours,
             "messages": m_msgs,
             "partial": get_partial_period([{"month": d} for d in m_dates], "month"),
+            "estimated": m_estimated,
         },
         "month_cumul": {"labels": [_month_label(d, lang) for d in c_dates], "hours": c_hours, "messages": c_msgs},
     }

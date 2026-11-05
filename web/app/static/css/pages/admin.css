@@ -326,6 +326,11 @@ code { font-family: var(--mono); font-size: 0.86em; color: var(--accent-hi); }
 .adm-tile { cursor: pointer; }
 .adm-tile:hover { border-color: var(--line-2); background: var(--panel-2); }
 .adm-stat-label { color: var(--muted); font-size: 12px; font-weight: 500; }
+/* A figure with a description (data-tip, shown on hover, focus or tap): dotted label, help cursor */
+:is(.adm-stat, .adm-tile, .adm-health-item)[data-tip] { cursor: help; }
+:is(.adm-stat, .adm-tile)[data-tip] .adm-stat-label { text-decoration: underline dotted rgba(255, 255, 255, 0.28); text-underline-offset: 3px; }
+.adm-tile[data-tip], .adm-health-item[data-tip] { cursor: pointer; }
+.adm-stat[data-tip]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .adm-tile-value,
 .adm-stat-value {
     color: var(--text);
@@ -561,3 +566,22 @@ a.an-rank-name:hover { color: var(--accent-hi); }
     .chart-spinner-ring, .adm-icon-btn.is-spinning svg { animation: none; }
     .adm-side { transition: none; }
 }
+
+/* Tooltip of the figures (ui.js data-tip): the admin page does not load styles.css, which styles it elsewhere */
+.hg-tooltip {
+    position: fixed;
+    z-index: 1000;
+    max-width: min(320px, calc(100vw - 16px));
+    padding: 8px 11px;
+    background: #101116;
+    border: 1px solid rgba(113, 124, 248, 0.35);
+    color: var(--fg, #e3e5e8);
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.45;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+.hg-tooltip.visible { opacity: 1; }

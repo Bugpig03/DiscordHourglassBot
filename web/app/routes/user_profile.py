@@ -22,6 +22,7 @@ from app.functions import (
     get_first_of_month_messages_sum,
     get_monthly_hours_diff,
     get_monthly_messages_diff,
+    estimated_months,
     get_daily_hours_progression,
     get_daily_messages_progression,
     get_daily_hours_diff,
@@ -39,7 +40,7 @@ from app.functions import (
 from app.gamification import calculate_user_xp_and_level, calculate_user_badges, build_badge_overview
 from app.cache import cache
 from app.auth import can_view_user_sessions, can_view_user_presence
-from app.topgg_votes import VOTE_URL, user_votes
+from app.topgg_votes import VOTE_URL, user_votes, vote_totals
 from app.profile_settings import get_profile_settings, resolve_profile_theme, resolve_layout
 from app.profile_records import query_record_sources, build_records, pinned_records, featured_badges
 from app.i18n import current_lang, tr, day_month, month_year
@@ -107,8 +108,9 @@ def profile(username: str):
         if len(matching_users) > 1 and not request.args.get("user_id"):
             lang = current_lang()
             users_list = []
+            votes = vote_totals()
             for u in matching_users:
-                xp_info = calculate_user_xp_and_level(u.total_seconds, u.total_messages)
+                xp_info = calculate_user_xp_and_level(u.total_seconds, u.total_messages, votes.get(int(u.user_id), 0))
                 users_list.append({
                     "user_id": str(u.user_id),
                     "username": u.username,
@@ -150,7 +152,7 @@ def profile(username: str):
     )
 
     # Real-time gamification: XP, level, and badges without DB writes
-    xp_info = calculate_user_xp_and_level(stats["total_seconds"], stats["total_message"])
+    xp_info = calculate_user_xp_and_level(stats["total_seconds"], stats["total_message"], user_votes(user_id)["total"])
     badges = calculate_user_badges(stats, lang=lang)
     unlocked_count = sum(1 for b in badges if b["unlocked"])
 
@@ -311,6 +313,7 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
         ],
         "hours": [row["hours_this_month"] for row in monthly_diff_data],
         "partial": get_partial_period(monthly_diff_data, "month"),
+        "estimated": estimated_months(monthly_diff_data),
     })
 
     # 3b. Daily voice hours deltas (last 30 days)

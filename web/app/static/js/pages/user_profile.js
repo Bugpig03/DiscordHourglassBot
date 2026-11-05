@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const hc = readJson('userHoursProgressionData') || {}, mc = readJson('userMessagesProgressionData') || {};
         const hcd = readJson('userHoursDailyProgressionData') || {}, mcd = readJson('userMessagesDailyProgressionData') || {};
         HG.trendCard(trendCard, {
-            month: { labels: hm.labels, hours: hm.hours, messages: mm.messages, partial: hm.partial },
+            month: { labels: hm.labels, hours: hm.hours, messages: mm.messages, partial: hm.partial, estimated: hm.estimated },
             day: { labels: hd.labels, hours: hd.hours, messages: md.messages, partial: hd.partial },
             month_cumul: { labels: hc.labels, hours: hc.hours, messages: mc.messages },
             day_cumul: { labels: hcd.labels, hours: hcd.hours, messages: mcd.messages },

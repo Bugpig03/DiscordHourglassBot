@@ -116,6 +116,22 @@ def user_votes(user_id) -> dict:
     return cache.get_or_set(("topgg_votes", int(user_id)), CACHE_SECONDS, load)
 
 
+def vote_totals() -> dict:
+    """{user_id: votes since the start}, every member at once (search, disambiguation, server members)."""
+    if not _enabled:
+        return {}
+
+    def load():
+        try:
+            rows = db.execute_sql("SELECT user_id, COUNT(*) FROM topgg_votes GROUP BY user_id").fetchall()
+        except DatabaseError:
+            db.rollback()
+            return {}
+        return {int(uid): int(n) for uid, n in rows}
+
+    return cache.get_or_set(("topgg_votes", "totals"), CACHE_SECONDS, load)
+
+
 def vote_counts(start: datetime | None, prev_start: datetime | None, prev_end: datetime) -> dict:
     """{user_id: (votes since start, votes between prev_start and prev_end)} for the members page (sort by votes).
     A start of None counts every vote."""

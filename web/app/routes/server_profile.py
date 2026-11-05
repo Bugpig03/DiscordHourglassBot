@@ -6,6 +6,7 @@ from flask import Blueprint, abort, g, make_response, render_template, request, 
 from peewee import JOIN, fn
 from app.database import Users, Stats, VoiceSessions, Servers, UserPresence
 from app.gamification import calculate_user_xp_and_level
+from app.topgg_votes import vote_totals
 from app.functions import (
     get_user_timezone,
     get_servername_by_server_id,
@@ -21,6 +22,7 @@ from app.functions import (
     get_first_of_month_messages_sum,
     get_monthly_hours_diff,
     get_monthly_messages_diff,
+    estimated_months,
     get_daily_hours_progression,
     get_daily_messages_progression,
     get_daily_hours_diff,
@@ -249,6 +251,7 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
             for p in UserPresence.select(UserPresence.user_id, UserPresence.status).where(UserPresence.user_id.in_(user_ids))
         }
 
+    votes = vote_totals()  # the level shown is the member's global one
     result = []
     for rank, row in enumerate(filtered, start=1):
         default_username = tr("Membre {id}", "Member {id}", lang, id=row['user_id'])
@@ -256,7 +259,7 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
         seconds = row["seconds"] or 0
         messages = row["messages"] or 0
         g_sec, g_msg = global_map.get(row["user_id"], (seconds, messages))
-        xp_info = calculate_user_xp_and_level(g_sec, g_msg)
+        xp_info = calculate_user_xp_and_level(g_sec, g_msg, votes.get(int(row["user_id"]), 0))
 
         result.append({
             "rank": rank,
@@ -328,6 +331,7 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
         ],
         "hours": [row["hours_this_month"] for row in monthly_diff_data],
         "partial": get_partial_period(monthly_diff_data, "month"),
+        "estimated": estimated_months(monthly_diff_data),
     })
 
     # 3b. Daily voice hours deltas (last 30 days)

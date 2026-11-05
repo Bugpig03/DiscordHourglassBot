@@ -838,6 +838,96 @@ def _messages_by_month(server_id: int | None = None, user_id: int | None = None)
     return _memo_month_totals(("messages", server_id, user_id), compute)
 
 
+# When voice_sessions and message_events were created (5 Oct 2024), the totals of the old bot were imported as
+# one zero-length session and one message batch per member and server, all at this instant. The per-month charts
+# spread them over the months before (from the member's first day on that server), as the cumulative curves do,
+# instead of showing them as one huge October 2024.
+LEGACY_IMPORT_AT = datetime(2024, 10, 5, 22, 57, 4, 176743)
+
+
+def _legacy_import_rows(kind: str, server_id: int | None, user_id: int | None) -> list[tuple[int, datetime]]:
+    """(amount, first day on the server) of every imported total in scope: seconds ("voice") or messages."""
+    from app.database import db
+    if kind == "voice":
+        sql = ("SELECT v.duration_seconds, s.date_creation FROM voice_sessions v LEFT JOIN stats s "
+               "ON s.user_id = v.user_id AND s.server_id = v.server_id "
+               "WHERE v.joined_at = %s AND v.left_at = v.joined_at AND v.duration_seconds > 0")
+        prefix = "v"
+    else:
+        sql = ("SELECT m.count, s.date_creation FROM message_events m LEFT JOIN stats s "
+               "ON s.user_id = m.user_id AND s.server_id = m.server_id WHERE m.created_at = %s AND m.count > 0")
+        prefix = "m"
+    params: list = [LEGACY_IMPORT_AT]
+    if server_id:
+        sql += f" AND {prefix}.server_id = %s"
+        params.append(int(server_id))
+    if user_id:
+        sql += f" AND {prefix}.user_id = %s"
+        params.append(int(user_id))
+    try:
+        return [(int(amount), start) for amount, start in db.execute_sql(sql, params).fetchall()]
+    except Exception:
+        db.rollback()
+        return []
+
+
+def _spread_legacy_import(kind: str, server_id: int | None, user_id: int | None) -> dict[str, float]:
+    """Imported totals spread over the months between each first day and the import, in proportion to time.
+
+    Returns {month "YYYY-MM-01": amount}; empty when nothing was imported in this scope.
+    """
+    end = LEGACY_IMPORT_AT
+    months: dict[str, float] = {}
+    for amount, start in _legacy_import_rows(kind, server_id, user_id):
+        if not start or start >= end:
+            months[end.strftime("%Y-%m-01")] = months.get(end.strftime("%Y-%m-01"), 0) + amount
+            continue
+        span = (end - start).total_seconds()
+        cursor = start
+        while cursor < end:
+            next_month = datetime(cursor.year + cursor.month // 12, cursor.month % 12 + 1, 1)
+            part_end = min(next_month, end)
+            key = cursor.strftime("%Y-%m-01")
+            months[key] = months.get(key, 0) + amount * (part_end - cursor).total_seconds() / span
+            cursor = part_end
+    return months
+
+
+def _with_legacy_spread(rows: list[dict], value_key: str, kind: str, server_id, user_id, scale: float, digits) -> list[dict]:
+    """Per-month rows with the imported totals moved from October 2024 to the months they cover.
+
+    Months holding a share of the import are flagged "estimated" (the old bot only kept totals).
+    """
+    spread = _spread_legacy_import(kind, server_id, user_id)
+    if not spread:
+        for row in rows:
+            row[value_key] = round(row[value_key], digits) if digits else int(round(row[value_key]))
+        return rows
+    by_month = {r["month"]: r for r in rows}
+    import_month = LEGACY_IMPORT_AT.strftime("%Y-%m-01")
+    imported = sum(spread.values())
+    if import_month in by_month:
+        row = by_month[import_month]
+        row[value_key] = max(0, row[value_key] - imported / scale)
+    for month, amount in spread.items():
+        row = by_month.setdefault(month, {"month": month, value_key: 0})
+        row[value_key] += amount / scale
+        row["estimated"] = True
+    for row in by_month.values():
+        row[value_key] = round(row[value_key], digits) if digits else int(round(row[value_key]))
+    return sorted(by_month.values(), key=lambda r: r["month"])
+
+
+def estimated_months(rows: list[dict]) -> int:
+    """How many leading months of a per-month series are estimates (charts draw them apart)."""
+    count = 0
+    for row in rows:
+        if not row.get("estimated"):
+            break
+        count += 1
+    return count
+
+
 def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = None) -> list[dict]:
     """Calculate the incremental hours spent each month directly from VoiceSessions."""
     query = _voice_seconds_by_month(server_id, user_id)
@@ -845,10 +935,11 @@ def get_monthly_hours_diff(server_id: int | None = None, user_id: int | None = N
     result = [
         {
             "month": row.month_start.strftime("%Y-%m-%d"),
-            "hours_this_month": round((row.total_seconds or 0) / 3600.0, 1)
+            "hours_this_month": (row.total_seconds or 0) / 3600.0
         }
         for row in query
     ]
+    result = _with_legacy_spread(result, "hours_this_month", "voice", server_id, user_id, 3600.0, 1)
 
     # Add active sessions for current month
     today_month_str = datetime.now().strftime("%Y-%m-01")
@@ -939,6 +1030,7 @@ def get_monthly_messages_diff(server_id: int | None = None, user_id: int | None 
         }
         for row in query
     ]
+    result = _with_legacy_spread(result, "messages_this_month", "messages", server_id, user_id, 1, 0)
     return sorted(result, key=lambda x: x["month"])
 
 

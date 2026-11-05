@@ -54,10 +54,12 @@ def home():
 @home_bp.route("/supports", methods=["GET"])
 def supports():
     """Render the project support and help information page (commands, XP, titles and badge tiers)."""
-    from app.gamification import badge_ladders, title_ladder
+    from app.gamification import XP_PER_VOTE, badge_ladders, title_ladder
     from app.i18n import current_lang
+    from app.topgg_votes import VOTE_URL
     lang = current_lang()
-    return render_template("supports.html", titles=title_ladder(lang), badge_ladders=badge_ladders(lang))
+    return render_template("supports.html", titles=title_ladder(lang), badge_ladders=badge_ladders(lang),
+                           xp_per_vote=XP_PER_VOTE, vote_url=VOTE_URL)
 
 
 @home_bp.route("/confidentialite", methods=["GET"])
@@ -77,6 +79,19 @@ def terms():
     return render_template("terms.html")
 
 
+def _people_on_servers() -> int | None:
+    """Different people on the servers that have the bot, active or not (latest bot snapshot, every 15 min).
+
+    Same figure as "Membres uniques" in the admin; None before bot v3.3.0 wrote its first snapshot.
+    """
+    try:
+        row = db.execute_sql("SELECT unique_members FROM bot_member_snapshots ORDER BY recorded_at DESC LIMIT 1").fetchone()
+    except Exception:
+        db.rollback()
+        return None
+    return int(row[0]) if row else None
+
+
 def load_dashboard_stats() -> dict:
     """Collect global metrics: 30-day activity delta, all-time totals, database storage sizes, and last snapshot timestamp."""
     lang = current_lang()
@@ -84,6 +99,7 @@ def load_dashboard_stats() -> dict:
     # All-time totals
     nb_users = Users.select().count()
     nb_profiles = Stats.select().count()
+    nb_people = _people_on_servers()
     nb_servers = Servers.select().count()  # every server Hourglass has ever tracked
     nb_servers_present = Servers.select().where(Servers.is_bot_present == True).count()  # noqa: E712
     nb_messages = Stats.select(fn.SUM(Stats.messages)).scalar() or 0
@@ -133,6 +149,7 @@ def load_dashboard_stats() -> dict:
         # All-time global metrics
         "nb_users": nb_users,
         "nb_profiles": nb_profiles,
+        "nb_people": nb_people,
         "nb_servers": nb_servers,
         "nb_servers_present": nb_servers_present,
         "nb_messages": nb_messages,

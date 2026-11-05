@@ -1,6 +1,20 @@
 /* Site-wide script (navbar, global search, Discord login popup) extracted from templates/base.html; Jinja values come from #hgBaseConfig. */
 const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent);
 
+// Link previews (Discord…) send no language: the address bar carries ?lang= for every language but French
+// (the previews' default), so a copied link previews in the language of whoever shares it. Only robots read
+// it: a visitor's own browser language always wins.
+(function keepLangInAddress() {
+    if (/^\/(auth|admin|set_language)/.test(location.pathname)) return;
+    const url = new URL(location.href);
+    const lang = BASE_CFG.current_lang;
+    const wanted = lang && lang !== 'fr' ? lang : null;
+    if (url.searchParams.get('lang') === wanted) return;
+    if (wanted) url.searchParams.set('lang', wanted);
+    else url.searchParams.delete('lang');
+    try { history.replaceState(history.state, '', url); } catch (e) { /* sandboxed frame */ }
+})();
+
         document.addEventListener('DOMContentLoaded', () => {
             const toggle = document.getElementById('mobileNavToggle');
             const menu = document.getElementById('appNavMenu');
@@ -145,8 +159,11 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
         }
 
         window.addEventListener('message', function(event) {
-            if (event.origin === window.location.origin && event.data && event.data.type === 'DISCORD_AUTH_SUCCESS') {
+            if (event.origin !== window.location.origin || !event.data) return;
+            if (event.data.type === 'DISCORD_AUTH_SUCCESS') {
                 window.location.reload();
+            } else if (event.data.type === 'DISCORD_AUTH_ERROR' && typeof event.data.error === 'string') {
+                window.location.href = '/auth/login?error=' + encodeURIComponent(event.data.error.slice(0, 64));
             }
         });
 

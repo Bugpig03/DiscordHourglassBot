@@ -28,7 +28,8 @@ from app.functions import (
     get_first_of_month_hours_sum,
     ConvertSecondsToTime,
 )
-from app.gamification import calculate_user_xp_and_level, calculate_user_badges
+from app.gamification import calculate_user_xp_and_level, calculate_user_badges, member_votes
+from app.profile_settings import get_profile_settings, resolve_profile_theme
 from app.routes.server_profile import load_users_from_server
 from app.i18n import current_lang, tr
 
@@ -289,13 +290,17 @@ def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None =
 
     badges = calculate_user_badges(stats_dict, lang=lang)
     unlocked_badges = sum(b["tier"] for b in badges)  # tiers reached, 7 per badge
-    xp_info = calculate_user_xp_and_level(tot_sec, tot_msg)
+    # Votes belong to no server: they only count in the global comparison
+    xp_info = calculate_user_xp_and_level(tot_sec, tot_msg, 0 if server_id else member_votes(uid))
 
+    theme = resolve_profile_theme(uid, get_profile_settings(uid))
     return {
         "type": "user",
         "id": str(uid),
         "username": uname,
         "avatar": get_user_avatar_url(uid),
+        "banner": theme["banner_url"],
+        "title_group": xp_info["title_group"],
         "rank": rank,
         "total_user": total_scope_users,
         "seconds": tot_sec,
@@ -353,144 +358,82 @@ def load_server_versus_data(server: Servers, lang: str = "fr") -> dict:
     }
 
 
-def compare_user_metrics(u1: dict, u2: dict) -> dict:
-    """Evaluate metric comparisons between two users and declare category winners."""
-    metrics = []
+def _compare(key: str, label_key: str, v1, v2, higher_is_better: bool = True, is_float: bool = False, unit: str = "") -> dict:
+    """One category of the duel: winner, gap, and the share of the bar each side holds.
 
-    def make_comp(key, label_key, v1, v2, higher_is_better=True, is_float=False, unit=""):
-        if higher_is_better:
-            if v1 > v2:
-                w = "1"
-            elif v2 > v1:
-                w = "2"
-            else:
-                w = "tie"
+    For a rank (lower is better) the bar is shared in proportion to 1 / rank, so the better spot holds the
+    larger part; a missing rank counts as last.
+    """
+    numeric = isinstance(v1, (int, float)) and isinstance(v2, (int, float))
+    if higher_is_better:
+        a, b = (v1 or 0), (v2 or 0)
+        w = "1" if a > b else "2" if b > a else "tie"
+        share_a, share_b = a, b
+    else:
+        a = v1 if isinstance(v1, int) and v1 > 0 else None
+        b = v2 if isinstance(v2, int) and v2 > 0 else None
+        if a and b:
+            w = "1" if a < b else "2" if b < a else "tie"
         else:
-            num1 = v1 if isinstance(v1, int) else 999999
-            num2 = v2 if isinstance(v2, int) else 999999
-            if num1 < num2:
-                w = "1"
-            elif num2 < num1:
-                w = "2"
-            else:
-                w = "tie"
+            w = "1" if a else "2" if b else "tie"
+        share_a, share_b = (1 / a if a else 0), (1 / b if b else 0)
+    total = share_a + share_b
+    pct1 = round(share_a / total * 100, 1) if total > 0 else 50.0
+    diff = abs(v1 - v2) if numeric else 0
+    return {
+        "key": key,
+        "label_key": label_key,
+        "v1": v1,
+        "v2": v2,
+        "diff": round(diff, 1) if is_float else diff,
+        "pct1": pct1,
+        "pct2": round(100.0 - pct1, 1),
+        "winner": w,
+        "unit": unit,
+        "lower_is_better": not higher_is_better,
+    }
 
-        tot = (v1 + v2) if (isinstance(v1, (int, float)) and isinstance(v2, (int, float))) else 0
-        pct1 = round((v1 / tot) * 100, 1) if tot > 0 else 50.0
-        pct2 = round(100.0 - pct1, 1)
 
-        diff = abs(v1 - v2) if isinstance(v1, (int, float)) and isinstance(v2, (int, float)) else 0
-        if is_float:
-            diff = round(diff, 1)
-
-        return {
-            "key": key,
-            "label_key": label_key,
-            "v1": v1,
-            "v2": v2,
-            "diff": diff,
-            "pct1": pct1,
-            "pct2": pct2,
-            "winner": w,
-            "unit": unit,
-        }
-
-    is_server = u1.get("is_server_scoped", False)
-
-    metrics.append(make_comp("hours", "versus.stat_voice", u1["hours"], u2["hours"], is_float=True, unit="h"))
-    metrics.append(make_comp("messages", "versus.stat_messages", u1["messages"], u2["messages"]))
-    metrics.append(make_comp("level", "versus.stat_level", u1["level"], u2["level"]))
-    metrics.append(make_comp("activity_30d", "versus.stat_activity_30d", u1["activity_30d_hours"], u2["activity_30d_hours"], is_float=True, unit="h"))
-    rank_label = "versus.stat_server_rank" if is_server else "versus.stat_rank"
-    metrics.append(make_comp("rank", rank_label, u1["rank"], u2["rank"], higher_is_better=False))
-    metrics.append(make_comp("badges", "versus.stat_badges", u1["unlocked_badges"], u2["unlocked_badges"]))
-    if not is_server:
-        metrics.append(make_comp("servers", "versus.stat_servers", u1["servers_count"], u2["servers_count"]))
-
+def _scoreboard(metrics: list[dict]) -> dict:
     score1 = sum(1 for m in metrics if m["winner"] == "1")
     score2 = sum(1 for m in metrics if m["winner"] == "2")
-
-    if score1 > score2:
-        overall_winner = "1"
-    elif score2 > score1:
-        overall_winner = "2"
-    else:
-        overall_winner = "tie"
-
     return {
         "metrics": metrics,
         "score1": score1,
         "score2": score2,
+        "ties": len(metrics) - score1 - score2,
         "total_categories": len(metrics),
-        "overall_winner": overall_winner,
+        "overall_winner": "1" if score1 > score2 else "2" if score2 > score1 else "tie",
+        # Share of the categories won, for the bar under the score (a tie leaves it in the middle)
+        "share1": round(score1 / (score1 + score2) * 100, 1) if score1 + score2 else 50.0,
     }
+
+
+def compare_user_metrics(u1: dict, u2: dict) -> dict:
+    """Evaluate metric comparisons between two users and declare category winners."""
+    is_server = u1.get("is_server_scoped", False)
+    metrics = [
+        _compare("hours", "versus.stat_voice", u1["hours"], u2["hours"], is_float=True, unit="h"),
+        _compare("messages", "versus.stat_messages", u1["messages"], u2["messages"]),
+        _compare("level", "versus.stat_level", u1["level"], u2["level"]),
+        _compare("activity_30d", "versus.stat_activity_30d", u1["activity_30d_hours"], u2["activity_30d_hours"], is_float=True, unit="h"),
+        _compare("rank", "versus.stat_server_rank" if is_server else "versus.stat_rank", u1["rank"], u2["rank"], higher_is_better=False),
+        _compare("badges", "versus.stat_badges", u1["unlocked_badges"], u2["unlocked_badges"]),
+    ]
+    if not is_server:
+        metrics.append(_compare("servers", "versus.stat_servers", u1["servers_count"], u2["servers_count"]))
+    return _scoreboard(metrics)
 
 
 def compare_server_metrics(s1: dict, s2: dict) -> dict:
     """Evaluate metric comparisons between two servers and declare category winners."""
-    metrics = []
-
-    def make_comp(key, label_key, v1, v2, higher_is_better=True, is_float=False, unit=""):
-        if higher_is_better:
-            if v1 > v2:
-                w = "1"
-            elif v2 > v1:
-                w = "2"
-            else:
-                w = "tie"
-        else:
-            num1 = v1 if isinstance(v1, int) else 999999
-            num2 = v2 if isinstance(v2, int) else 999999
-            if num1 < num2:
-                w = "1"
-            elif num2 < num1:
-                w = "2"
-            else:
-                w = "tie"
-
-        tot = (v1 + v2) if (isinstance(v1, (int, float)) and isinstance(v2, (int, float))) else 0
-        pct1 = round((v1 / tot) * 100, 1) if tot > 0 else 50.0
-        pct2 = round(100.0 - pct1, 1)
-
-        diff = abs(v1 - v2) if isinstance(v1, (int, float)) and isinstance(v2, (int, float)) else 0
-        if is_float:
-            diff = round(diff, 1)
-
-        return {
-            "key": key,
-            "label_key": label_key,
-            "v1": v1,
-            "v2": v2,
-            "diff": diff,
-            "pct1": pct1,
-            "pct2": pct2,
-            "winner": w,
-            "unit": unit,
-        }
-
-    metrics.append(make_comp("hours", "versus.stat_voice", s1["hours"], s2["hours"], is_float=True, unit="h"))
-    metrics.append(make_comp("messages", "versus.stat_messages", s1["messages"], s2["messages"]))
-    metrics.append(make_comp("activity_30d", "versus.stat_activity_30d", s1["activity_30d_hours"], s2["activity_30d_hours"], is_float=True, unit="h"))
-    metrics.append(make_comp("members", "versus.stat_members", s1["members_count"], s2["members_count"]))
-    metrics.append(make_comp("rank", "versus.stat_rank", s1["rank"], s2["rank"], higher_is_better=False))
-
-    score1 = sum(1 for m in metrics if m["winner"] == "1")
-    score2 = sum(1 for m in metrics if m["winner"] == "2")
-
-    if score1 > score2:
-        overall_winner = "1"
-    elif score2 > score1:
-        overall_winner = "2"
-    else:
-        overall_winner = "tie"
-
-    return {
-        "metrics": metrics,
-        "score1": score1,
-        "score2": score2,
-        "total_categories": len(metrics),
-        "overall_winner": overall_winner,
-    }
+    return _scoreboard([
+        _compare("hours", "versus.stat_voice", s1["hours"], s2["hours"], is_float=True, unit="h"),
+        _compare("messages", "versus.stat_messages", s1["messages"], s2["messages"]),
+        _compare("activity_30d", "versus.stat_activity_30d", s1["activity_30d_hours"], s2["activity_30d_hours"], is_float=True, unit="h"),
+        _compare("members", "versus.stat_members", s1["members_count"], s2["members_count"]),
+        _compare("rank", "versus.stat_rank", s1["rank"], s2["rank"], higher_is_better=False),
+    ])
 
 
 def build_versus_chart_json(name1: str, curve1: list[dict], name2: str, curve2: list[dict]) -> str:

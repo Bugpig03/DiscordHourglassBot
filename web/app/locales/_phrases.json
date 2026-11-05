@@ -851,14 +851,6 @@
   "Aucun badge dans ce filtre.",
   "No badge in this filter."
  ],
- "p0245": [
-  "Comparatif détaillé des métriques",
-  "Detailed Metric Breakdown"
- ],
- "p0246": [
-  "catégories",
-  "categories"
- ],
  "p0247": [
   "Total cumulé",
   "Running total"
@@ -2630,5 +2622,293 @@
  "p0715": [
   "{n} dernières lignes · dernière le {d}",
   "Last {n} lines · latest on {d}"
+ ],
+ "p0716": [
+  "{n} personnes sur les serveurs",
+  "{n} people on the servers"
+ ],
+ "p0717": [
+  "Estimation : avant octobre 2024, le bot ne gardait que les totaux",
+  "Estimate: before October 2024, the bot only kept totals"
+ ],
+ "p0718": [
+  "Votes pour Hourglass",
+  "Votes for Hourglass"
+ ],
+ "p0719": [
+  "+{n} XP / vote",
+  "+{n} XP / vote"
+ ],
+ "p0720": [
+  "Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre niveau global (tous serveurs), pas pour celui d’un serveur, et font aussi monter le badge Soutien.",
+  "Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your global level (all servers), not for the level on one server, and also raise the Supporter badge."
+ ],
+ "p0721": [
+  "Voter sur top.gg ↗",
+  "Vote on top.gg ↗"
+ ],
+ "p0722": [
+  "Dont {n} XP de votes sur top.gg",
+  "Including {n} XP from top.gg votes"
+ ],
+ "p0723": [
+  "{n} membres",
+  "{n} members"
+ ],
+ "p0724": [
+  "{n} places devant",
+  "{n} spots ahead"
+ ],
+ "p0725": [
+  "1 place devant",
+  "1 spot ahead"
+ ],
+ "p0726": [
+  "Score : {a} à {b}",
+  "Score: {a} to {b}"
+ ],
+ "p0727": [
+  "{name} gagne le duel",
+  "{name} wins the duel"
+ ],
+ "p0728": [
+  "{n} catégories",
+  "{n} categories"
+ ],
+ "p0729": [
+  "{n} égalités",
+  "{n} ties"
+ ],
+ "p0730": [
+  "1 égalité",
+  "1 tie"
+ ],
+ "p0731": [
+  "Duel par catégorie",
+  "Head-to-head by category"
+ ],
+ "p0732": [
+  "Niveau {level} · {hours} h en vocal · {messages} messages sur Hourglass.",
+  "Level {level} · {hours} h in voice · {messages} messages on Hourglass."
+ ],
+ "p0733": [
+  "{a} vs {b} · Versus - Hourglass",
+  "{a} vs {b} · Versus - Hourglass"
+ ],
+ "p0734": [
+  "Duel : {h1} h contre {h2} h en vocal · niveau {l1} contre {l2}",
+  "Duel: {h1} h vs {h2} h in voice · level {l1} vs {l2}"
+ ],
+ "p0735": [
+  "Égalité {a} : {b}",
+  "Tie {a} : {b}"
+ ],
+ "p0736": [
+  "{name} gagne le duel {a} : {b}",
+  "{name} wins the duel {a} : {b}"
+ ],
+ "p0737": [
+  "{h1} h contre {h2} h en vocal",
+  "{h1} h vs {h2} h in voice"
+ ],
+ "p0738": [
+  "Pages du site affichées sur la période choisie (robots, images et API exclus), comparées à la période précédente de même durée.",
+  "Site pages shown over the chosen period (bots, images and API left out), compared with the previous period of the same length."
+ ],
+ "p0739": [
+  "Moyenne par jour des visiteurs différents, comptés sans cookie (empreinte anonyme renouvelée chaque jour). Quelqu’un qui revient 3 jours compte 3 fois.",
+  "Average number of different visitors per day, counted without cookies (anonymous fingerprint renewed daily). Someone coming back on 3 days counts 3 times."
+ ],
+ "p0740": [
+  "Membres qui se sont connectés au moins une fois au site avec leur compte Discord.",
+  "Members who logged in to the site with their Discord account at least once."
+ ],
+ "p0741": [
+  "Comptes liés qui ont changé au moins un réglage de leur profil : couleur, bannière, fond, vitrine, records épinglés, serveur favori, blocs masqués ou mode privé.",
+  "Linked accounts that changed at least one profile setting: color, banner, background, showcase, pinned records, favorite server, hidden blocks or private mode."
+ ],
+ "p0742": [
+  "Personnes différentes sur tous les serveurs du bot, actives ou non, comptées une seule fois même sur plusieurs serveurs. Relevé du bot toutes les 15 minutes.",
+  "Different people on all the bot’s servers, active or not, counted once even on several servers. Bot snapshot every 15 minutes."
+ ],
+ "p0743": [
+  "Serveurs où le bot est actuellement. « Actifs » : au moins un message ou une session vocale enregistrée sur les 30 derniers jours.",
+  "Servers the bot is in right now. “Active”: at least one message or voice session recorded over the last 30 days."
+ ],
+ "p0744": [
+  "Commandes slash du bot utilisées sur la période, et la part qui a échoué (erreur ou délai dépassé).",
+  "Bot slash commands used over the period, and the share that failed (error or timeout)."
+ ],
+ "p0745": [
+  "Comptes liés qui ont utilisé le site en étant connectés au moins un jour sur les 7 derniers (30 derniers pour le chiffre du dessous).",
+  "Linked accounts that used the site while logged in on at least one of the last 7 days (last 30 for the figure below)."
+ ],
+ "p0746": [
+  "Le bot enregistre qui est en ligne toutes les 15 minutes. Sans relevé depuis plus de 30 minutes, il est sans doute arrêté ou déconnecté.",
+  "The bot records who is online every 15 minutes. With no snapshot for over 30 minutes, it is probably stopped or disconnected."
+ ],
+ "p0747": [
+  "Événements suspects des dernières 24 h : connexions échouées, scans de robots, limites de requêtes, accès admin refusés… Les connexions réussies ne comptent pas.",
+  "Suspicious events of the last 24 h: failed logins, bot scans, rate limits, refused admin access… Successful logins are left out."
+ ],
+ "p0748": [
+  "Pages du site qui ont planté (erreur 500) sur la période : un bug à corriger, le détail est dans les logs du site.",
+  "Site pages that crashed (error 500) over the period: a bug to fix, the details are in the site logs."
+ ],
+ "p0749": [
+  "Réglages du site vérifiés à chaque ouverture (clé de session, HTTPS, connexion Discord…). Le détail est dans l’onglet Sécurité.",
+  "Site settings checked each time the page opens (session key, HTTPS, Discord login…). Details are in the Security tab."
+ ],
+ "p0750": [
+  "Sessions vocales jamais refermées depuis plus de 24 h : le bot a sans doute manqué un départ (redémarrage, coupure). Elles gonflent le temps en vocal.",
+  "Voice sessions still open after more than 24 h: the bot probably missed someone leaving (restart, outage). They inflate voice time."
+ ],
+ "p0751": [
+  "Pages vues et visiteurs différents depuis minuit (heure UTC, soit 1 h ou 2 h du matin en France).",
+  "Page views and different visitors since midnight (UTC time)."
+ ],
+ "p0752": [
+  "Part des visiteurs de la période venus d’un téléphone ou d’une tablette, d’après leur navigateur.",
+  "Share of the period’s visitors on a phone or tablet, from their browser."
+ ],
+ "p0753": [
+  "Membres qui se sont connectés au moins une fois au site avec Discord. Le pourcentage les compare aux membres que le bot a déjà vus actifs (vocal ou messages).",
+  "Members who logged in to the site with Discord at least once. The percentage compares them with the members the bot has seen active (voice or messages)."
+ ],
+ "p0754": [
+  "Comptes connectés au site pour la toute première fois ces 7 derniers jours.",
+  "Accounts that logged in to the site for the very first time in the last 7 days."
+ ],
+ "p0755": [
+  "Comptes liés qui ont utilisé le site en étant connectés au moins un jour sur les 7 derniers.",
+  "Linked accounts that used the site while logged in on at least one of the last 7 days."
+ ],
+ "p0756": [
+  "Comptes liés qui ont utilisé le site en étant connectés au moins un jour sur les 30 derniers.",
+  "Linked accounts that used the site while logged in on at least one of the last 30 days."
+ ],
+ "p0757": [
+  "Membres qui ont mis leur profil en privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.",
+  "Members who made their profile private: visitors only see the header, level and totals."
+ ],
+ "p0758": [
+  "Membres qui ont choisi un serveur favori, mis en avant sur leur profil.",
+  "Members who picked a favorite server, shown on their profile."
+ ],
+ "p0759": [
+  "Commandes slash du bot utilisées sur la période, tous serveurs confondus (et celles d’aujourd’hui en dessous).",
+  "Bot slash commands used over the period, all servers together (and today’s below)."
+ ],
+ "p0760": [
+  "Commandes utilisées en message privé avec le bot, hors de tout serveur.",
+  "Commands used in a direct message with the bot, outside any server."
+ ],
+ "p0761": [
+  "Commandes qui ont échoué (erreur ou délai dépassé) : le membre a vu un message d’erreur. Le détail est dans les logs du bot.",
+  "Commands that failed (error or timeout): the member saw an error message. Details are in the bot logs."
+ ],
+ "p0762": [
+  "Serveurs où le bot est actuellement, ceux qu’il a quittés, et ceux avec au moins un message ou une session vocale sur 30 jours.",
+  "Servers the bot is in right now, those it left, and those with at least one message or voice session over 30 days."
+ ],
+ "p0763": [
+  "Membres que le bot a vus actifs au moins une fois (vocal ou messages) : ceux qui ont un profil Hourglass.",
+  "Members the bot has seen active at least once (voice or messages): those with a Hourglass profile."
+ ],
+ "p0764": [
+  "Sessions vocales en cours sur tous les serveurs, et messages comptés ces 24 dernières heures.",
+  "Voice sessions in progress on every server, and messages counted over the last 24 hours."
+ ],
+ "p0765": [
+  "Votes pour Hourglass sur top.gg pendant la période, et le nombre de membres différents qui ont voté.",
+  "Votes for Hourglass on top.gg over the period, and how many different members voted."
+ ],
+ "p0766": [
+  "Votes depuis le 1er du mois : top.gg classe les bots sur les votes du mois en cours.",
+  "Votes since the 1st of the month: top.gg ranks bots on the current month’s votes."
+ ],
+ "p0767": [
+  "Membres dont le vote compte encore : un vote dure 12 heures, ensuite ils peuvent revoter.",
+  "Members whose vote still counts: a vote lasts 12 hours, then they can vote again."
+ ],
+ "p0768": [
+  "Tous les votes enregistrés depuis le début : chacun rapporte 100 XP et compte pour le badge Soutien.",
+  "Every vote recorded since the start: each one gives 100 XP and counts for the Supporter badge."
+ ],
+ "p0769": [
+  "Parmi eux, ceux qui étaient en ligne, absents ou occupés sur Discord au moment du relevé (pas forcément sur le serveur).",
+  "Among them, those online, idle or busy on Discord at the time of the snapshot (not necessarily on the server)."
+ ],
+ "p0770": [
+  "Membres présents sur les serveurs que le bot n’a jamais vus écrire ni rejoindre un vocal : ils n’ont pas de profil Hourglass.",
+  "Members on the servers the bot never saw write or join voice: they have no Hourglass profile."
+ ],
+ "p0771": [
+  "Membres présents qui ont déjà écrit ou été en vocal au moins une fois : ils ont un profil sur le site.",
+  "Members on the servers who already wrote or joined voice at least once: they have a profile on the site."
+ ],
+ "p0772": [
+  "Nombre moyen de serveurs du bot dont chaque personne fait partie. Au-dessus de 1, beaucoup de membres sont sur plusieurs serveurs à la fois.",
+  "Average number of the bot’s servers each person is in. Above 1, many members are on several servers at once."
+ ],
+ "p0773": [
+  "Adresses demandées qui n’existent pas : liens cassés, profils supprimés, ou robots qui testent des pages au hasard. La liste est dessous.",
+  "Requested addresses that do not exist: broken links, removed profiles, or bots probing random pages. The list is below."
+ ],
+ "p0774": [
+  "Requêtes refusées parce qu’une même adresse IP en envoyait trop en une minute (protection contre les abus).",
+  "Requests refused because one IP address sent too many in a minute (abuse protection)."
+ ],
+ "p0775": [
+  "Pages du site qui ont planté : un bug à corriger, le détail est dans les logs du site.",
+  "Site pages that crashed: a bug to fix, the details are in the site logs."
+ ],
+ "p0776": [
+  "Temps pour recalculer toutes les données de la page Analyses, fait en arrière-plan par chacun des 4 workers. Au-delà de 2 s, la base commence à peiner.",
+  "Time to recompute all the Analytics page data, done in the background by each of the 4 workers. Over 2 s, the database starts to struggle."
+ ],
+ "p0777": [
+  "Clé qui signe les cookies de connexion. Si elle change (mise à jour du conteneur, redémarrage), tous les membres sont déconnectés.",
+  "Key that signs the login cookies. If it changes (container update, restart), every member is logged out."
+ ],
+ "p0778": [
+  "Connexions Discord qui n’ont pas abouti (24 h) : autorisation refusée, code expiré, Discord indisponible… La raison est dans le journal.",
+  "Discord logins that did not go through (24 h): authorization declined, expired code, Discord unavailable… The reason is in the journal."
+ ],
+ "p0779": [
+  "Connexions Discord au site réussies ces 24 dernières heures.",
+  "Successful Discord logins to the site over the last 24 hours."
+ ],
+ "p0780": [
+  "Robots qui testent des adresses connues de failles (/wp-admin, /.env…). Normal sur Internet : ces pages n’existent pas ici.",
+  "Bots probing addresses of known flaws (/wp-admin, /.env…). Normal on the Internet: these pages do not exist here."
+ ],
+ "p0781": [
+  "Requêtes refusées parce qu’une même adresse IP en envoyait trop en une minute.",
+  "Requests refused because one IP address sent too many in a minute."
+ ],
+ "p0782": [
+  "Quelqu’un qui n’est pas admin a essayé d’ouvrir une page de l’admin (il a vu une page introuvable).",
+  "Someone who is not an admin tried to open an admin page (they saw a not found page)."
+ ],
+ "p0783": [
+  "Formulaire envoyé sans le jeton de sécurité de la page : souvent une page restée ouverte longtemps, parfois une tentative depuis un autre site.",
+  "Form sent without the page’s security token: often a page left open for a long time, sometimes an attempt from another site."
+ ],
+ "p0784": [
+  "Demandes de cartes PNG réservées au bot avec un jeton faux ou absent : quelqu’un se fait passer pour le bot.",
+  "Requests for the bot-only PNG cards with a wrong or missing token: someone posing as the bot."
+ ],
+ "p0785": [
+  "Votes reçus sans la bonne signature top.gg (faux vote ou secret mal réglé) : ils ne sont pas comptés.",
+  "Votes received without the right top.gg signature (fake vote or wrong secret): they are not counted."
+ ],
+ "p0786": [
+  "Scripts ou images bloqués par la politique de sécurité du navigateur : souvent une extension, parfois une ressource oubliée dans la liste autorisée.",
+  "Scripts or images blocked by the browser security policy: often an extension, sometimes a resource missing from the allowed list."
+ ],
+ "p0787": [
+  "Envois refusés car trop lourds (au-delà de la taille permise) : souvent un robot ou une tentative d’abus.",
+  "Uploads refused for being too large (over the allowed size): often a bot or an abuse attempt."
  ]
 }

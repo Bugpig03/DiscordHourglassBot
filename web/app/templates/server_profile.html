@@ -2,7 +2,8 @@
 
 {% block title %}{{ t('server_profile.title', servername=stats.servername) }}{% endblock %}
 {% block meta_description %}{{ tr('{server} : {hours} h en vocal, {messages} messages, {members} membres actifs suivis par Hourglass.', '{server}: {hours} h in voice, {messages} messages, {members} active members tracked by Hourglass.', server=stats.servername, hours=stats.total_time_hours | num(1), messages=stats.total_message | num, members=stats.users | length) }}{% endblock %}
-{% block og_image %}{{ stats.avatar_url or url_for('static', filename='icons/icon-512.png', _external=True) }}{% endblock %}
+{% block og_image %}{{ url_for('cards.og_server_card', server_id=stats.server_id, lang=current_lang, _external=True) }}{% endblock %}
+{% block og_card %}summary_large_image{% endblock %}
 
 
 {% block content %}

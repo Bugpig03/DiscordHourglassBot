@@ -98,7 +98,7 @@ function renderTrends() {
         }];
         summary.textContent = `${T('Total', 'Total')} : ${fmtValue(metric, values[values.length - 1] || 0)}`;
     } else {
-        const complete = series.partial && values.length > 1 ? values.slice(0, -1) : values;
+        const complete = HG.measuredValues(values, series);
         const avg = complete.reduce((a, b) => a + b, 0) / Math.max(1, complete.length);
         const total = values.reduce((a, b) => a + b, 0);
         const per = trendState.period === 'month' ? T('mois', 'month') : T('jour', 'day');
@@ -148,6 +148,7 @@ function renderTrends() {
     });
     if (trendState.mode !== 'cumul') {
         HG.setPartial(charts.trends, series.partial);
+        HG.setEstimated(charts.trends, series.estimated);
         charts.trends.update();
     }
 }

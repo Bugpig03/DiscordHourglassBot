@@ -26,6 +26,7 @@ RATE_LIMITS = [
     ("/webhooks/", 120),
     ("/admin", 60),
     ("/api/card/", 30),
+    ("/og/", 30),  # link preview images (drawn on demand, cached 10 minutes)
     ("/api/search", 90),
     ("/api/", 120),
     ("/auth/", 30),

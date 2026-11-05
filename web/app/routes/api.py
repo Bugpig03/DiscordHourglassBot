@@ -5,6 +5,7 @@ from peewee import fn, JOIN
 from app.analytics_tracking import record_search
 from app.database import Servers, Users, Stats
 from app.gamification import calculate_user_xp_and_level
+from app.topgg_votes import vote_totals
 
 api_bp = Blueprint("api", __name__)
 
@@ -160,8 +161,9 @@ def search_global():
             .order_by(Users.username)
             .limit(limit)
         )
+        votes = vote_totals()
         for u in matched_users:
-            xp_info = calculate_user_xp_and_level(u.total_seconds, u.total_messages)
+            xp_info = calculate_user_xp_and_level(u.total_seconds, u.total_messages, votes.get(int(u.user_id), 0))
             users_data.append({
                 "username": u.username,
                 "avatar": u.avatar or "/static/images/base_avatar_big.png",

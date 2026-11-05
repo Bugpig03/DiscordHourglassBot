@@ -30,6 +30,10 @@ def level_title(level: int) -> tuple:
     return next((t for t in reversed(LEVEL_TITLES) if level >= t[0]), LEVEL_TITLES[0])
 
 
+# Each vote for Hourglass on top.gg (one per 12 h) awards this XP, to the member's global level
+XP_PER_VOTE = 100
+
+
 def xp_for_level(level: int) -> int:
     """XP needed to reach a level (curve of calculate_user_xp_and_level)."""
     return ((max(1, level) - 1) ** 2) * 100
@@ -67,19 +71,21 @@ def badge_ladders(lang: str = "fr") -> list[dict]:
     return out
 
 
-def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict[str, Any]:
-    """Calculate user XP, level, title, and progress percentage based on voice time and messages.
-    
+def calculate_user_xp_and_level(total_seconds: int, total_messages: int, votes: int = 0) -> dict[str, Any]:
+    """Calculate user XP, level, title, and progress percentage based on voice time, messages and votes.
+
     Formula:
       - 1 minute in voice = 1 XP
       - 1 text message = 1 XP (5 XP before v3.26.0)
+      - 1 vote for Hourglass on top.gg = 100 XP (v3.34.0; global level only, votes belong to no server)
       - Level curve: quadratic progression where Level = int((XP / 100) ** 0.5) + 1
     """
     total_seconds = max(0, total_seconds or 0)
     total_messages = max(0, total_messages or 0)
+    votes = max(0, int(votes or 0))
 
-    voice_minutes = total_seconds // 60
-    total_xp = voice_minutes + total_messages
+    voice_minutes = int(total_seconds) // 60
+    total_xp = voice_minutes + int(total_messages) + votes * XP_PER_VOTE
 
     level = int((total_xp / 100) ** 0.5) + 1
     current_level_base_xp = ((level - 1) ** 2) * 100
@@ -95,6 +101,7 @@ def calculate_user_xp_and_level(total_seconds: int, total_messages: int) -> dict
     title = level_title(level)
     return {
         "total_xp": total_xp,
+        "vote_xp": votes * XP_PER_VOTE,
         "level": level,
         "title_fr": title[1],
         "title_en": title[2],
@@ -145,7 +152,7 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
     join_source = stats.get("raw_join_date") or stats.get("join_date")
 
     # Real-time level calculation from gamification engine
-    user_xp_info = calculate_user_xp_and_level(total_seconds, total_messages)
+    user_xp_info = calculate_user_xp_and_level(total_seconds, total_messages, _vote_count(stats))
     user_level = user_xp_info["level"]
 
     # Calculate days since earliest recorded activity
@@ -209,6 +216,11 @@ def calculate_user_badges(stats: dict[str, Any], lang: str = "fr") -> list[dict[
             badge["description"] = f"{badge['description']} {note}"
         badges.append(badge)
     return badges
+
+
+def member_votes(user_id) -> int:
+    """Votes of a member for Hourglass on top.gg (cached a few seconds), for their global XP."""
+    return _vote_count({"user_id": user_id})
 
 
 def _vote_count(stats: dict) -> int:

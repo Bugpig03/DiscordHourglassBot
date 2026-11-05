@@ -79,8 +79,9 @@ def query_record_sources(user_id: int) -> dict:
         .order_by(VoiceSessions.duration_seconds.desc())
         .first()
     )
-    months_voice = [m for m in get_monthly_hours_diff(user_id=user_id) if m["hours_this_month"] > 0]
-    months_msgs = [m for m in get_monthly_messages_diff(user_id=user_id) if m["messages_this_month"] > 0]
+    # Estimated months (totals of the old bot spread before October 2024) are no record
+    months_voice = [m for m in get_monthly_hours_diff(user_id=user_id) if m["hours_this_month"] > 0 and not m.get("estimated")]
+    months_msgs = [m for m in get_monthly_messages_diff(user_id=user_id) if m["messages_this_month"] > 0 and not m.get("estimated")]
     return {
         "longest": {
             "seconds": int(longest.duration_seconds or 0),

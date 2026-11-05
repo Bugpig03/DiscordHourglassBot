@@ -12,9 +12,12 @@
     <meta property="og:locale" content="{{ current_language.intl | replace('-', '_') }}">
     <meta property="og:title" content="{{ self.title() | striptags | trim }}">
     <meta property="og:description" content="{{ page_description | trim }}">
-    <meta property="og:url" content="{{ request.base_url }}">
+    <meta property="og:url" content="{% block og_url %}{{ request.base_url }}{% endblock %}">
     <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{% endblock %}">
-    <meta name="theme-color" content="#15161a">
+    {# Link previews (Discord, X…): "summary" puts the image as a thumbnail, "summary_large_image" under the text #}
+    <meta name="twitter:card" content="{% block og_card %}summary{% endblock %}">
+    {# Color of the bar along the Discord link preview (the profile's own color on a profile) #}
+    <meta name="theme-color" content="{% block theme_color %}#717cf8{% endblock %}">
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg', v=asset_version('icons/favicon.svg')) }}" type="image/svg+xml">
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon-32.png', v=asset_version('icons/favicon-32.png')) }}" type="image/png" sizes="32x32">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png', v=asset_version('icons/apple-touch-icon.png')) }}">

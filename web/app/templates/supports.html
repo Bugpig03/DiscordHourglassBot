@@ -94,6 +94,21 @@
             <p class="xp-guide-desc">{{ t('supports.xp_msg_desc') }}</p>
         </div>
 
+        <!-- Votes XP (top.gg) -->
+        <div class="xp-guide-item full-width">
+            <div class="xp-guide-header">
+                <div class="xp-guide-icon-box pink">{{ pixel_icon('heart', 20) }}</div>
+                <div class="xp-guide-meta">
+                    <div class="xp-guide-title">{{ tr('Votes pour Hourglass', 'Votes for Hourglass') }}</div>
+                    <span class="xp-guide-chip pink">{{ tr('+{n} XP / vote', '+{n} XP / vote', n=xp_per_vote) }}</span>
+                </div>
+            </div>
+            <p class="xp-guide-desc">
+                {{ tr('Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre niveau global (tous serveurs), pas pour celui d’un serveur, et font aussi monter le badge Soutien.', 'Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your global level (all servers), not for the level on one server, and also raise the Supporter badge.', n=xp_per_vote) }}
+                {% if vote_url %}<a class="xp-guide-link" href="{{ vote_url }}" target="_blank" rel="noopener">{{ tr('Voter sur top.gg ↗', 'Vote on top.gg ↗') }}</a>{% endif %}
+            </p>
+        </div>
+
         <!-- Level Curve -->
         <div class="xp-guide-item">
             <div class="xp-guide-header">
