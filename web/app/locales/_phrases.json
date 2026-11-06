@@ -3106,5 +3106,13 @@
  "p0844": [
   "Personne en vocal sur cette période.",
   "Nobody in voice over this period."
+ ],
+ "p0845": [
+  "Le plus de membres en vocal en même temps depuis le début du suivi",
+  "Most members in voice at the same time since tracking began"
+ ],
+ "p0846": [
+  "Record absolu",
+  "All-time record"
  ]
 }

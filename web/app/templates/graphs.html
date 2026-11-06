@@ -108,7 +108,8 @@
                 <p class="an-card-desc">{{tr('Nombre de membres en vocal vus par le bot sur tous les serveurs, toutes les 15 minutes.', 'Number of members in voice seen by the bot across all servers, every 15 minutes.')}}</p>
             </div>
             <div class="an-controls">
-                <span class="an-badge an-badge-green" id="badgeVoiceLive">{{tr('Pic', 'Peak')}} : --</span>
+                <span class="an-badge an-badge-gold" id="badgeVoiceRecord" title="{{tr('Le plus de membres en vocal en même temps depuis le début du suivi', 'Most members in voice at the same time since tracking began')}}" hidden></span>
+                <span class="an-badge an-badge-heat" id="badgeVoiceLive">{{tr('Pic', 'Peak')}} : --</span>
                 <div class="granularity-toggle-group" role="group" aria-label="{{tr('Période', 'Period')}}">
                     <button type="button" class="granularity-btn" data-voicelive="48h">48 h</button>
                     <button type="button" class="granularity-btn active" data-voicelive="7d">{{tr('7 jours', '7 days')}}</button>
@@ -127,7 +128,7 @@
                 <p class="an-card-desc" id="peakDesc">{{tr('Nombre moyen de membres en vocal à chaque heure de la journée.', 'Average number of members in voice at each hour of the day.')}}</p>
             </div>
             <div class="an-controls">
-                <span class="an-badge an-badge-blue" id="badgePeak">{{tr('Pic', 'Peak')}} : --</span>
+                <span class="an-badge an-badge-heat" id="badgePeak">{{tr('Pic', 'Peak')}} : --</span>
                 <div class="granularity-toggle-group" role="group" aria-label="{{tr('Mesure', 'Metric')}}">
                     <button type="button" class="granularity-btn active" data-peak="hours">{{tr('Vocal', 'Voice')}}</button>
                     <button type="button" class="granularity-btn" data-peak="messages">{{ tr('Messages', 'Messages') }}</button>
@@ -144,6 +145,9 @@
                 <i data-punch-legend="3"></i>
                 <i data-punch-legend="4"></i>
                 <i data-punch-legend="5"></i>
+                <i data-punch-legend="6"></i>
+                <i data-punch-legend="7"></i>
+                <i data-punch-legend="8"></i>
                 <span>{{tr('Très actif', 'Busiest')}}</span>
             </span>
         </div>

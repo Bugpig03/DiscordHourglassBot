@@ -168,10 +168,21 @@ function bindTrendControls() {
 // Horaires: presence over 48 h / 7 days, peak hours (one metric at a time) + day x hour grid
 // ---------------------------------------------------------------------------
 let peakMetric = 'hours';
-const PUNCH_SHADES = {
-    hours: ['rgba(113, 124, 248, 0.18)', 'rgba(113, 124, 248, 0.38)', 'rgba(113, 124, 248, 0.6)', 'rgba(113, 124, 248, 0.82)', '#717cf8'],
-    messages: ['rgba(63, 209, 160, 0.18)', 'rgba(63, 209, 160, 0.38)', 'rgba(63, 209, 160, 0.6)', 'rgba(63, 209, 160, 0.82)', '#3fd1a0'],
+// Heat scales, from quiet to busiest: the site's violet (voice) or green (messages), dark to light
+const HEAT = {
+    hours: ['#1e1b3a', '#2c2766', '#3d3591', '#5146b8', '#6b5fd6', '#8b80ea', '#b1a8f5', '#e0dbff'],
+    messages: ['#0f2a22', '#143f31', '#175642', '#1a6e53', '#1f8a67', '#35a87f', '#6fcaa2', '#bff0d9'],
 };
+
+// Position of v between the smallest and the largest non-zero value (0 = quietest, 1 = busiest): the scale
+// spans the real spread instead of 0..max, where quiet hours all fell in the same pale shade
+function heatRatio(v, lo, hi) {
+    return hi > lo ? (v - lo) / (hi - lo) : 1;
+}
+
+function heatColor(scale, r) {
+    return scale[Math.max(0, Math.min(scale.length - 1, Math.floor(r * scale.length - 1e-9)))];
+}
 
 function hourLabel(h) {
     return HG.lang === 'fr' ? `${h}h` : `${h}:00`;
@@ -183,7 +194,10 @@ function renderHourly() {
     const values = (isVoice ? d.voice_hours : d.messages_count) || [];
     const max = Math.max(0, ...values);
     const peak = max > 0 ? values.indexOf(max) : -1;
-    const color = COLORS[peakMetric];
+    const scale = HEAT[peakMetric];
+    const nonZero = values.filter(v => v > 0);
+    const lo = nonZero.length ? Math.min(...nonZero) : 0;
+    const barColor = v => (v > 0 ? heatColor(scale, heatRatio(v, lo, max)) : 'rgba(255, 255, 255, 0.06)');
     document.getElementById('badgePeak').textContent = peak >= 0
         ? `${T('Pic', 'Peak')} : ${hourLabel(peak)} – ${hourLabel((peak + 1) % 24)}`
         : `${T('Pic', 'Peak')} : --`;
@@ -200,8 +214,10 @@ function renderHourly() {
             labels: values.map((_, h) => hourLabel(h)),
             datasets: [{
                 data: values,
-                backgroundColor: values.map((v, i) => (i === peak ? color : color + '59')),
-                hoverBackgroundColor: color,
+                backgroundColor: values.map(barColor),
+                hoverBackgroundColor: values.map(v => barColor(v) + 'cc'),
+                borderColor: values.map((v, i) => (i === peak ? '#ffffff' : 'transparent')),
+                borderWidth: values.map((v, i) => (i === peak ? 1.5 : 0)),
                 borderRadius: 5,
                 borderSkipped: false,
             }],
@@ -229,13 +245,15 @@ function renderPunchcard(data) {
     const container = document.getElementById('punchcardContent');
     if (!container || !data || !data.days) return;
     const isVoice = peakMetric === 'hours';
-    const shades = PUNCH_SHADES[peakMetric];
-    document.querySelectorAll('[data-punch-legend]').forEach(el => { el.style.background = shades[Number(el.dataset.punchLegend) - 1]; });
+    const scale = HEAT[peakMetric];
+    document.querySelectorAll('[data-punch-legend]').forEach(el => { el.style.background = scale[Number(el.dataset.punchLegend) - 1]; });
     document.getElementById('punchTitle').textContent = isVoice
         ? T('Détail par jour de la semaine (vocal)', 'Detail per day of the week (voice)')
         : T('Détail par jour de la semaine (messages)', 'Detail per day of the week (messages)');
     const val = c => (isVoice ? c.voice_hours : c.messages) || 0;
-    const max = Math.max(0, ...data.days.flatMap(r => (r.hours || []).map(val)));
+    const all = data.days.flatMap(r => (r.hours || []).map(val)).filter(v => v > 0);
+    const max = all.length ? Math.max(...all) : 0;
+    const lo = all.length ? Math.min(...all) : 0;
     let html = '<div class="an-punch-grid"><div></div>';
     for (let h = 0; h < 24; h++) html += `<div class="an-punch-hour">${h % 3 === 0 ? (h < 10 ? '0' + h : h) + 'h' : ''}</div>`;
     data.days.forEach(row => {
@@ -243,8 +261,7 @@ function renderPunchcard(data) {
         html += `<div class="an-punch-day">${HG.esc(day)}</div>`;
         (row.hours || []).forEach(c => {
             const v = val(c);
-            const ratio = max > 0 ? v / max : 0;
-            const bg = ratio > 0 ? shades[Math.min(4, Math.floor(ratio * 5 - 1e-9))] : 'rgba(255, 255, 255, 0.04)';
+            const bg = v > 0 ? heatColor(scale, heatRatio(v, lo, max)) : 'rgba(255, 255, 255, 0.04)';
             const what = isVoice
                 ? T('{n} h de vocal au total', '{n} h of voice in total', { n: HG.fmt(c.voice_hours, 1) })
                 : T('{n} messages au total', '{n} messages in total', { n: HG.fmt(c.messages) });
@@ -335,6 +352,16 @@ function bindPresenceControls() {
 
 let voiceLiveRange = '7d';
 
+// Vertical gradient over the chart area, deep violet at the bottom to lavender at the top (alpha suffix for the fill)
+function heatGradient(chart, alpha) {
+    const area = chart.chartArea;
+    if (!area) return 'transparent';
+    const g = chart.ctx.createLinearGradient(0, area.bottom, 0, area.top);
+    const stops = ['#3d3591', '#5146b8', '#6b5fd6', '#8b80ea', '#b1a8f5'];
+    stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c + alpha));
+    return g;
+}
+
 // Members in voice every 15 min (rebuilt from the voice sessions), over 48 h or 7 days
 function renderVoiceLive() {
     const p = apiData.voice_live && apiData.voice_live[voiceLiveRange];
@@ -346,14 +373,22 @@ function renderVoiceLive() {
     document.getElementById('voiceLiveChart').hidden = empty;
     const label = voiceLiveRange === '7d' ? T('sur 7 jours', 'over 7 days') : T('sur 48 h', 'over 48 h');
     badge.textContent = `${T('Pic', 'Peak')} ${label} : ${empty ? '--' : HG.fmt(Math.max(...p.voice))}`;
+    const rec = apiData.voice_live && apiData.voice_live.record;
+    const recBadge = document.getElementById('badgeVoiceRecord');
+    recBadge.hidden = !rec;
+    if (rec) {
+        const when = new Date(rec.at).toLocaleString(HG.lang, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        recBadge.textContent = `${T('Record absolu', 'All-time record')} : ${HG.fmt(rec.count)} · ${when}`;
+    }
     if (empty) return;
     charts.voiceLive = new Chart(document.getElementById('voiceLiveChart'), {
         type: 'line',
         data: {
             labels: p.labels,
             datasets: [{
-                label: T('En vocal', 'In voice'), data: p.voice, borderColor: '#717cf8', backgroundColor: '#717cf833',
-                fill: true, tension: 0.25, borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 3,
+                label: T('En vocal', 'In voice'), data: p.voice,
+                borderColor: c => heatGradient(c.chart, ''), backgroundColor: c => heatGradient(c.chart, '40'),
+                pointHoverBackgroundColor: '#e0dbff', fill: true, tension: 0.25, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4,
             }],
         },
         options: {

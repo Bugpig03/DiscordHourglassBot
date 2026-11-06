@@ -1817,6 +1817,36 @@ def get_voice_history(lang: str = "fr", hours: int = 24 * 7) -> dict:
     return {"labels": [label(r[0]) for r in rows], "voice": counts, "has_data": any(counts)}
 
 
+def get_voice_record() -> dict | None:
+    """Most members in voice at the same moment since the bot logs sessions precisely (archive sessions left out).
+
+    A sweep over every join (+1) and leave (-1), leaves first at the same instant. A session still open ends now,
+    or at its last heartbeat when the bot went offline without closing it.
+    """
+    from app.database import db
+    clean_tz = sql_timezone(get_user_timezone())
+    sql = f"""
+        WITH ev AS (
+            SELECT joined_at AS t, 1 AS d FROM voice_sessions WHERE NOT COALESCE(is_legacy, FALSE)
+            UNION ALL
+            SELECT COALESCE(left_at, CASE WHEN last_heartbeat < NOW()::timestamp - INTERVAL '5 minutes'
+                                          THEN last_heartbeat ELSE NOW()::timestamp END), -1
+            FROM voice_sessions WHERE NOT COALESCE(is_legacy, FALSE)
+        )
+        SELECT n, t AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}'
+        FROM (SELECT t, SUM(d) OVER (ORDER BY t, d ROWS UNBOUNDED PRECEDING) AS n FROM ev WHERE t IS NOT NULL) r
+        ORDER BY n DESC, t LIMIT 1
+    """
+    try:
+        row = db.execute_sql(sql).fetchone()
+    except Exception:
+        db.rollback()
+        return None
+    if not row or not row[0]:
+        return None
+    return {"count": int(row[0]), "at": row[1].strftime("%Y-%m-%dT%H:%M")}
+
+
 def slice_voice_history(data: dict, points: int) -> dict:
     """The last `points` points of a get_voice_history() result (48 h = 193 points of 15 min)."""
     voice = data["voice"][-points:]

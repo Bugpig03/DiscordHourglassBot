@@ -750,5 +750,7 @@
  "p0835": "top.gg'de Hourglass'a verilen oylar, 12 saatte bir (hafta sonu oyu bir kez sayılır).",
  "p0842": "Sesli kanaldaki üyeler",
  "p0843": "Botun tüm sunucularda gördüğü sesli kanaldaki üye sayısı, 15 dakikada bir.",
- "p0844": "Bu dönemde sesli kanalda kimse yok."
+ "p0844": "Bu dönemde sesli kanalda kimse yok.",
+ "p0845": "Takip başladığından beri aynı anda sesli kanaldaki en fazla üye",
+ "p0846": "Tüm zamanların rekoru"
 }

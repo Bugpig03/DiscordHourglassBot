@@ -750,5 +750,7 @@
  "p0835": "Głosy na Hourglass na top.gg, jeden co 12 godzin (głos weekendowy liczy się raz).",
  "p0842": "Członkowie na kanałach głosowych",
  "p0843": "Liczba członków na kanałach głosowych widzianych przez bota na wszystkich serwerach, co 15 minut.",
- "p0844": "Nikt nie był na kanale głosowym w tym okresie."
+ "p0844": "Nikt nie był na kanale głosowym w tym okresie.",
+ "p0845": "Najwięcej członków jednocześnie na kanałach głosowych od początku pomiarów",
+ "p0846": "Rekord wszech czasów"
 }

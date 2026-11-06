@@ -750,5 +750,7 @@
  "p0835": "Os votos no Hourglass no top.gg, um a cada 12 horas (um voto de fim de semana conta uma vez).",
  "p0842": "Membros em voz",
  "p0843": "Número de membros em canais de voz vistos pelo bot em todos os servidores, a cada 15 minutos.",
- "p0844": "Ninguém em voz neste período."
+ "p0844": "Ninguém em voz neste período.",
+ "p0845": "Máximo de membros em voz ao mesmo tempo desde o início do acompanhamento",
+ "p0846": "Recorde absoluto"
 }

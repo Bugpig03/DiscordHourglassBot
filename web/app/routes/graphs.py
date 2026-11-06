@@ -25,6 +25,7 @@ from app.functions import (
     get_presence_history_48h,
     get_voice_history,
     slice_voice_history,
+    get_voice_record,
     get_monthly_new_users_growth,
     get_partial_period,
     get_hourly_punchcard_data,
@@ -372,7 +373,7 @@ def compute_graphs_data(lang: str = "fr") -> dict:
 
 def _voice_live(lang: str) -> dict:
     week = get_voice_history(lang=lang, hours=24 * 7)
-    return {"48h": slice_voice_history(week, 48 * 4 + 1), "7d": week}
+    return {"48h": slice_voice_history(week, 48 * 4 + 1), "7d": week, "record": get_voice_record()}
 
 
 def _visitor_lang() -> str:

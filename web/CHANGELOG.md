@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.38.0 - Record Vocal et Couleurs des Horaires - 06/11/2026
+- **Record absolu** sur le graphique « Membres en vocal » : le plus grand nombre de membres en vocal en même temps depuis le début du suivi, avec la date et l'heure. Il s'affiche en doré à côté du pic de la période.
+- **Nouvelles couleurs pour « Membres en vocal »** : la courbe bleue est remplacée par un dégradé du violet Hourglass, du violet profond en bas au lavande en haut.
+- **Heures de pointe en couleur**
+  - Chaque barre prend la nuance de son niveau d'activité, du violet sombre (calme) au lavande clair (très actif) pour le vocal, et du vert sombre au vert d'eau clair pour les messages. L'heure de pointe est entourée.
+  - La grille par jour de la semaine passe de 5 à 8 nuances, de la plus sombre à la plus claire, au lieu de simples variations de transparence.
+  - L'échelle va de l'heure la plus calme à la plus active (et non plus de 0 au maximum) : les heures calmes ne tombent plus toutes dans la même teinte pâle, et les écarts se voient beaucoup mieux.
+
 ## Version 3.37.0 - Graphique des Membres en Vocal - 06/11/2026
 - **Nouveau graphique « Membres en vocal »** dans l'onglet Horaires de la page Analyses, sous « Présence des membres ». Il montre combien de membres le bot voit en vocal sur tous les serveurs, avec un point toutes les 15 minutes.
   - Deux périodes : 48 h ou 7 jours (7 jours par défaut). Le badge indique le pic de la période.

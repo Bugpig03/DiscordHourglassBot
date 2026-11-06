@@ -750,5 +750,7 @@
  "p0835": "Die Stimmen für Hourglass auf top.gg, eine alle 12 Stunden (eine Wochenendstimme zählt einmal).",
  "p0842": "Mitglieder im Sprachkanal",
  "p0843": "Anzahl der Mitglieder im Sprachkanal, die der Bot auf allen Servern sieht, alle 15 Minuten.",
- "p0844": "In diesem Zeitraum war niemand im Sprachkanal."
+ "p0844": "In diesem Zeitraum war niemand im Sprachkanal.",
+ "p0845": "Die meisten Mitglieder gleichzeitig im Sprachkanal seit Beginn der Erfassung",
+ "p0846": "Allzeitrekord"
 }
