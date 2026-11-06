@@ -1710,10 +1710,15 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
     if server_id is not None:
         rows = last_per_hour(snapshot + " AND server_id = %s", [cutoff, int(server_id)])
     else:
-        # 1. Global snapshots (server_id IS NULL), only those counting people (bot v3.7.1+): the older ones added
-        #    up every server's members, bots and members of several servers included, and would make a cliff
-        switch = _unique_presence_since()
-        rows = last_per_hour(snapshot + " AND server_id IS NULL", [max(cutoff, switch) if switch else cutoff])
+        # 1. Global snapshots (server_id IS NULL), each server's members added up. Bot v3.7.1 to v3.7.5 counted each
+        #    person once instead (about a third lower): those snapshots are left out so the chart has no hole
+        start, end = _unique_presence_window()
+        if start is None:
+            rows = last_per_hour(snapshot + " AND server_id IS NULL", [cutoff])
+        elif end is None:
+            rows = last_per_hour(snapshot + " AND server_id IS NULL AND recorded_at < %s", [cutoff, start])
+        else:
+            rows = last_per_hour(snapshot + " AND server_id IS NULL AND (recorded_at < %s OR recorded_at >= %s)", [cutoff, start, end])
         # 2. No global snapshot: sum the servers' snapshots taken at the same moment
         if not rows:
             rows = last_per_hour(
@@ -1764,12 +1769,13 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
     }
 
 
-def _unique_presence_since() -> datetime | None:
-    """First global presence snapshot counting each person once (bot v3.7.1, deployed on 5 Nov 2026).
+def _unique_presence_window() -> tuple[datetime | None, datetime | None]:
+    """Global presence snapshots that counted each person once (bot v3.7.1 to v3.7.5, 5 to 6 Nov 2026).
 
-    Before it, the bot summed the members of every server: the total (online + idle + dnd + offline) then drops by
-    about a third at once (977 to 684). Found once in the 2 days around the switch and cached; None when the
-    history holds no such drop (nothing to hide, e.g. once the bot has purged the older snapshots after 7 days).
+    The bot otherwise adds up every server's members: the total (online + idle + dnd + offline) drops by about a
+    third when the per-person count starts (977 to 684) and climbs back when the sums return. Returns (first
+    snapshot of the low period, first snapshot after it), the end None while the sums have not returned, and
+    (None, None) when the history holds no such drop (the bot purges snapshots after 7 days).
     """
     from app.cache import cache
     from app.database import db
@@ -1777,12 +1783,20 @@ def _unique_presence_since() -> datetime | None:
     def find():
         rows = db.execute_sql(
             "SELECT recorded_at, online_count + idle_count + dnd_count + offline_count FROM presence_history "
-            "WHERE server_id IS NULL AND recorded_at BETWEEN '2026-11-05' AND '2026-11-07' ORDER BY recorded_at").fetchall()
+            "WHERE server_id IS NULL AND recorded_at BETWEEN '2026-11-05' AND '2026-11-10' ORDER BY recorded_at").fetchall()
+        start = None
         for (_, before), (at, after) in zip(rows, rows[1:]):
-            if before and after < 0.85 * before:
-                return at
-        return None
-    return cache.get_or_set(("unique_presence_since",), 3600, find)
+            if start is None and before and after < 0.85 * before:
+                start = at
+            elif start is not None and after and before < 0.85 * after:
+                return start, at
+        return start, None
+
+    found = cache.get_or_set(("unique_presence_window",), 3600, find)
+    if found[0] is not None and found[1] is None:
+        # Sums not back yet in the cached answer: look again soon instead of hiding new snapshots for an hour
+        found = cache.get_or_set(("unique_presence_window", int(datetime.now().timestamp()) // 300), 300, find)
+    return found
 
 
 BOT_IDS_CACHE_SECONDS = 300

@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.36.3 - Graphique de Présence avec les Chiffres d'Origine - 06/11/2026
+- **Le graphique « Présence des membres » global revient aux chiffres d'avant** (somme des membres de chaque serveur), en même temps que le bot v3.7.6.
+  - Les relevés pris entre le 05/11 au soir et la mise à jour du bot comptaient chaque personne une seule fois. Ils sont environ un tiers plus bas et ne sont plus affichés, pour éviter un creux dans le graphique. Le reste de l'historique, d'avant comme d'après, s'affiche normalement.
+  - La période est détectée automatiquement dans l'historique.
+
 ## Version 3.36.2 - Graphique de Présence sans la Rupture du 5 Novembre - 06/11/2026
 - **Chute brutale du graphique « Présence des membres » le 05/11 au soir** : depuis le bot v3.7.1, chaque relevé compte chaque compte une seule fois (et depuis la v3.7.3, les bots aussi, une fois chacun). Avant, il additionnait les membres de chaque serveur : Hourglass à lui seul comptait pour 49 membres « en ligne » jour et nuit, comme les autres bots présents sur plusieurs serveurs, et un membre sur 5 serveurs comptait 5 fois. La vue 7 jours mélangeait les deux méthodes, d'où la falaise et une moyenne gonflée (« 30,2 % »).
   - Le graphique global et sa moyenne n'utilisent plus que les relevés du nouveau calcul, à partir du 05/11 vers 21 h. La rupture est détectée automatiquement dans l'historique (le total passe d'environ 977 à 684 d'un relevé à l'autre).

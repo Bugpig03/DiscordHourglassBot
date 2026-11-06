@@ -307,23 +307,6 @@ func knownAccounts(members, extra map[string]struct{}, statusByUser map[string]d
 	return out
 }
 
-// uniquePresence counts each member once with their status (members absent from the presences are offline).
-func uniquePresence(members map[string]struct{}, statusByUser map[string]discordgo.Status) (online, idle, dnd, offline int) {
-	for id := range members {
-		switch statusByUser[id] {
-		case discordgo.StatusOnline:
-			online++
-		case discordgo.StatusIdle:
-			idle++
-		case discordgo.StatusDoNotDisturb:
-			dnd++
-		default:
-			offline++
-		}
-	}
-	return
-}
-
 // recordPresenceSnapshot enregistre un point d'historique 48h pour chaque serveur et pour le global
 func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -409,14 +392,11 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		}
 	}
 
-	// The global history counts people, each once: someone on several servers once, bots and apps left out
-	// (the per-server sums above counted both, Hourglass 49 times). Without any account seen, the sums stay.
+	// The global history keeps the per-server sums above (a member of 3 servers counts 3 times, bots included),
+	// as before v3.7.1. The unique people (home tile, admin) are counted below.
 	// Connected accounts come from the presences: the member lists of the cache miss many of them (people who
 	// came online after the start only arrive through their presence), so they are not required to be listed.
 	people := knownAccounts(members, nil, statusByUser, botIDs)
-	if len(people) > 0 {
-		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(people, statusByUser)
-	}
 
 	if len(s.State.Guilds) > 0 {
 		_ = h.DB.RecordPresenceHistory(ctx, nil, totalOnline, totalIdle, totalDnd, totalOffline)

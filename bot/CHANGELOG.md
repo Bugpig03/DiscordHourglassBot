@@ -1,5 +1,10 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.7.6 - Retour au Calcul de Présence d'Origine - 06/11/2026
+
+- **Le graphique de présence global reprend le calcul d'avant la v3.7.1** : il additionne les membres de chaque serveur. Un membre présent sur 3 serveurs compte 3 fois, et les bots sont inclus. Les chiffres sont plus élevés, comme avant.
+- La tuile « personnes actuellement » de l'accueil et les « membres uniques » de l'admin ne changent pas : ils comptent toujours chaque personne une seule fois, sans les bots.
+
 ## Version 3.7.5 - Présence sans les Bots - 06/11/2026
 
 - **Le graphique de présence global ne compte plus les bots et applications** (ajoutés en v3.7.3). Il compte les mêmes personnes que la tuile « personnes actuellement » de l'accueil, chacune une fois : les deux chiffres sont maintenant égaux, sans les 129 bots d'écart.
