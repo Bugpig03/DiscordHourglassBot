@@ -333,6 +333,61 @@ function bindPresenceControls() {
     });
 }
 
+let voiceLiveRange = '7d';
+
+// Members in voice every 15 min (rebuilt from the voice sessions), over 48 h or 7 days
+function renderVoiceLive() {
+    const p = apiData.voice_live && apiData.voice_live[voiceLiveRange];
+    const badge = document.getElementById('badgeVoiceLive');
+    if (charts.voiceLive) charts.voiceLive.destroy();
+    delete charts.voiceLive;
+    const empty = !p || !p.has_data;
+    document.getElementById('voiceLiveEmpty').hidden = !empty;
+    document.getElementById('voiceLiveChart').hidden = empty;
+    const label = voiceLiveRange === '7d' ? T('sur 7 jours', 'over 7 days') : T('sur 48 h', 'over 48 h');
+    badge.textContent = `${T('Pic', 'Peak')} ${label} : ${empty ? '--' : HG.fmt(Math.max(...p.voice))}`;
+    if (empty) return;
+    charts.voiceLive = new Chart(document.getElementById('voiceLiveChart'), {
+        type: 'line',
+        data: {
+            labels: p.labels,
+            datasets: [{
+                label: T('En vocal', 'In voice'), data: p.voice, borderColor: '#717cf8', backgroundColor: '#717cf833',
+                fill: true, tension: 0.25, borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 3,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: { ...TOOLTIP, callbacks: { label: c => ` ${T('En vocal', 'In voice')} : ${HG.fmt(c.parsed.y)} ${T('membres', 'members')}` } },
+            },
+            scales: {
+                // 7 days = 673 points: one tick per day, on the first point of each new date
+                x: {
+                    grid: { display: false },
+                    ticks: voiceLiveRange === '7d'
+                        ? { color: '#a3a6b0', autoSkip: false, maxRotation: 0, callback: (v, i) => dayTick(p.labels, i) }
+                        : { color: '#a3a6b0', maxTicksLimit: 12, maxRotation: 0 },
+                },
+                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', precision: 0 } },
+            },
+        },
+    });
+}
+
+function bindVoiceLiveControls() {
+    document.querySelectorAll('[data-voicelive]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            voiceLiveRange = btn.dataset.voicelive;
+            document.querySelectorAll('[data-voicelive]').forEach(b => b.classList.toggle('active', b === btn));
+            if (apiData && initializedTabs.has('tab-rhythm')) renderVoiceLive();
+        });
+    });
+}
+
 // ---------------------------------------------------------------------------
 // Communauté: growth + compact rankings with links to the full pages
 // ---------------------------------------------------------------------------
@@ -396,7 +451,7 @@ function initTab(tabId) {
     if (!apiData || initializedTabs.has(tabId)) return;
     initializedTabs.add(tabId);
     if (tabId === 'tab-trends') renderTrends();
-    else if (tabId === 'tab-rhythm') { renderPresence(); renderHourly(); }
+    else if (tabId === 'tab-rhythm') { renderPresence(); renderVoiceLive(); renderHourly(); }
     else if (tabId === 'tab-community') { renderGrowth(); document.querySelectorAll('[data-ranking]').forEach(c => renderRanking(c, 'hours')); }
 }
 
@@ -406,6 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindTrendControls();
     bindRankings();
     bindPresenceControls();
+    bindVoiceLiveControls();
     bindPeakControls();
 
     const hash = window.location.hash.replace('#', '');

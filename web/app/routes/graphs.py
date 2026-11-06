@@ -23,6 +23,8 @@ from app.functions import (
     get_top_10_users_by_messages,
     get_hourly_activity_distribution,
     get_presence_history_48h,
+    get_voice_history,
+    slice_voice_history,
     get_monthly_new_users_growth,
     get_partial_period,
     get_hourly_punchcard_data,
@@ -354,6 +356,8 @@ def compute_graphs_data(lang: str = "fr") -> dict:
         "punchcard": get_hourly_punchcard_data(),
         # Presence over 48 h and 7 days (the bot keeps 7 days of 15-minute snapshots)
         "presence": {"48h": get_presence_history_48h(lang=lang), "7d": get_presence_history_48h(lang=lang, hours=24 * 7)},
+        # Members in voice every 15 min, rebuilt from the voice sessions (one query for 7 days, 48 h sliced from it)
+        "voice_live": _voice_live(lang),
         "growth": {
             "labels": [_month_label(r["month"], lang) for r in growth],
             "new_users": [r["new_users"] for r in growth],
@@ -364,6 +368,11 @@ def compute_graphs_data(lang: str = "fr") -> dict:
             "messages": [{"id": str(r["user_id"]), "name": r["username"], "avatar": r["avatar"], "value": r["messages"]} for r in top_msgs],
         },
     }
+
+
+def _voice_live(lang: str) -> dict:
+    week = get_voice_history(lang=lang, hours=24 * 7)
+    return {"48h": slice_voice_history(week, 48 * 4 + 1), "7d": week}
 
 
 def _visitor_lang() -> str:

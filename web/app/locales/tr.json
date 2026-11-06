@@ -747,5 +747,8 @@
  "p0832": "Kayan 30 günde en iyi sesli toplam. Rekor, sakin bir aydan sonra bile kalır.",
  "p0833": "Art arda en uzun aktif gün serisi (sesli veya mesaj). Rekor seri kalır.",
  "p0834": "İkisi birden: sesli kanalda saat ve mesaj, her seviye iki eşiği de ister.",
- "p0835": "top.gg'de Hourglass'a verilen oylar, 12 saatte bir (hafta sonu oyu bir kez sayılır)."
+ "p0835": "top.gg'de Hourglass'a verilen oylar, 12 saatte bir (hafta sonu oyu bir kez sayılır).",
+ "p0842": "Sesli kanaldaki üyeler",
+ "p0843": "Botun tüm sunucularda gördüğü sesli kanaldaki üye sayısı, 15 dakikada bir.",
+ "p0844": "Bu dönemde sesli kanalda kimse yok."
 }

@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.37.0 - Graphique des Membres en Vocal - 06/11/2026
+- **Nouveau graphique « Membres en vocal »** dans l'onglet Horaires de la page Analyses, sous « Présence des membres ». Il montre combien de membres le bot voit en vocal sur tous les serveurs, avec un point toutes les 15 minutes.
+  - Deux périodes : 48 h ou 7 jours (7 jours par défaut). Le badge indique le pic de la période.
+  - Le graphique est recalculé à partir des sessions vocales enregistrées par le bot, donc l'historique des 7 derniers jours est déjà rempli.
+  - Chaque membre compte une fois, même si le bot a enregistré deux sessions qui se chevauchent. Une session restée ouverte pendant que le bot était hors ligne ne compte que jusqu'à son dernier signal.
+  - Traduit dans les 12 langues.
+
 ## Version 3.36.3 - Graphique de Présence avec les Chiffres d'Origine - 06/11/2026
 - **Le graphique « Présence des membres » global revient aux chiffres d'avant** (somme des membres de chaque serveur), en même temps que le bot v3.7.6.
   - Les relevés pris entre le 05/11 au soir et la mise à jour du bot comptaient chaque personne une seule fois. Ils sont environ un tiers plus bas et ne sont plus affichés, pour éviter un creux dans le graphique. Le reste de l'historique, d'avant comme d'après, s'affiche normalement.

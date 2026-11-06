@@ -3094,5 +3094,17 @@
  "p0835": [
   "Les votes pour Hourglass sur top.gg, un toutes les 12 heures (un vote du week-end compte une fois).",
   "Votes for Hourglass on top.gg, one every 12 hours (a weekend vote counts once)."
+ ],
+ "p0842": [
+  "Membres en vocal",
+  "Members in voice"
+ ],
+ "p0843": [
+  "Nombre de membres en vocal vus par le bot sur tous les serveurs, toutes les 15 minutes.",
+  "Number of members in voice seen by the bot across all servers, every 15 minutes."
+ ],
+ "p0844": [
+  "Personne en vocal sur cette période.",
+  "Nobody in voice over this period."
  ]
 }

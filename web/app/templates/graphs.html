@@ -104,6 +104,25 @@
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
+                <h2 class="an-card-title">{{tr('Membres en vocal', 'Members in voice')}}</h2>
+                <p class="an-card-desc">{{tr('Nombre de membres en vocal vus par le bot sur tous les serveurs, toutes les 15 minutes.', 'Number of members in voice seen by the bot across all servers, every 15 minutes.')}}</p>
+            </div>
+            <div class="an-controls">
+                <span class="an-badge an-badge-green" id="badgeVoiceLive">{{tr('Pic', 'Peak')}} : --</span>
+                <div class="granularity-toggle-group" role="group" aria-label="{{tr('Période', 'Period')}}">
+                    <button type="button" class="granularity-btn" data-voicelive="48h">48 h</button>
+                    <button type="button" class="granularity-btn active" data-voicelive="7d">{{tr('7 jours', '7 days')}}</button>
+                </div>
+            </div>
+        </div>
+        <div class="an-chart an-chart-md">{{ loading() }}<canvas id="voiceLiveChart"></canvas>
+            <p class="an-empty" id="voiceLiveEmpty" hidden>{{tr('Personne en vocal sur cette période.', 'Nobody in voice over this period.')}}</p>
+        </div>
+    </section>
+
+    <section class="gray-box small-border-radius an-card">
+        <div class="an-card-head">
+            <div>
                 <h2 class="an-card-title">{{tr('Heures de pointe', 'Peak hours')}}</h2>
                 <p class="an-card-desc" id="peakDesc">{{tr('Nombre moyen de membres en vocal à chaque heure de la journée.', 'Average number of members in voice at each hour of the day.')}}</p>
             </div>

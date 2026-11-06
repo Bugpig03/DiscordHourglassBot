@@ -747,5 +747,8 @@
  "p0832": "Der beste Sprachkanal-Wert über 30 gleitende Tage. Der Rekord bleibt, auch nach einem ruhigen Monat.",
  "p0833": "Die längste Serie aktiver Tage am Stück (Sprachkanal oder Nachrichten). Die Rekordserie bleibt.",
  "p0834": "Beides zugleich: Stunden im Sprachkanal und Nachrichten, jede Stufe verlangt beide Schwellen.",
- "p0835": "Die Stimmen für Hourglass auf top.gg, eine alle 12 Stunden (eine Wochenendstimme zählt einmal)."
+ "p0835": "Die Stimmen für Hourglass auf top.gg, eine alle 12 Stunden (eine Wochenendstimme zählt einmal).",
+ "p0842": "Mitglieder im Sprachkanal",
+ "p0843": "Anzahl der Mitglieder im Sprachkanal, die der Bot auf allen Servern sieht, alle 15 Minuten.",
+ "p0844": "In diesem Zeitraum war niemand im Sprachkanal."
 }

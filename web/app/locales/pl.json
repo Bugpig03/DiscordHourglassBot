@@ -747,5 +747,8 @@
  "p0832": "Najlepsza suma na głosowym w ciągu 30 kolejnych dni. Rekord zostaje, nawet po spokojnym miesiącu.",
  "p0833": "Najdłuższa seria aktywnych dni z rzędu (głosowy lub wiadomości). Rekordowa seria zostaje.",
  "p0834": "Oba naraz: godziny na głosowym i wiadomości, każdy poziom wymaga obu progów.",
- "p0835": "Głosy na Hourglass na top.gg, jeden co 12 godzin (głos weekendowy liczy się raz)."
+ "p0835": "Głosy na Hourglass na top.gg, jeden co 12 godzin (głos weekendowy liczy się raz).",
+ "p0842": "Członkowie na kanałach głosowych",
+ "p0843": "Liczba członków na kanałach głosowych widzianych przez bota na wszystkich serwerach, co 15 minut.",
+ "p0844": "Nikt nie był na kanale głosowym w tym okresie."
 }

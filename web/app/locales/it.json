@@ -747,5 +747,8 @@
  "p0832": "Il miglior totale in vocale su 30 giorni mobili. Il record resta, anche dopo un mese tranquillo.",
  "p0833": "La serie più lunga di giorni attivi di fila (vocale o messaggi). La serie record resta.",
  "p0834": "Entrambi insieme: ore in vocale e messaggi, ogni livello chiede le due soglie.",
- "p0835": "I voti per Hourglass su top.gg, uno ogni 12 ore (un voto del weekend conta una volta)."
+ "p0835": "I voti per Hourglass su top.gg, uno ogni 12 ore (un voto del weekend conta una volta).",
+ "p0842": "Membri in vocale",
+ "p0843": "Numero di membri in vocale visti dal bot su tutti i server, ogni 15 minuti.",
+ "p0844": "Nessuno in vocale in questo periodo."
 }

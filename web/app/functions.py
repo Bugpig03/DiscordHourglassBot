@@ -1769,6 +1769,60 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
     }
 
 
+def get_voice_history(lang: str = "fr", hours: int = 24 * 7) -> dict:
+    """Members in voice seen by the bot, every 15 min over the last `hours`, rebuilt from the voice sessions.
+
+    A point counts the people whose session covers that moment (each once, even if the bot logged two sessions).
+    A session still open counts until now while the bot keeps its heartbeat (every 30 s), and only until its last
+    heartbeat once that is more than 5 min old (bot offline, session left open). Archive sessions are left out.
+    """
+    from app.database import db
+    clean_tz = sql_timezone(get_user_timezone())
+    sql = f"""
+        WITH bounds AS (
+            SELECT NOW()::timestamp AS now_at,
+                   date_trunc('hour', NOW()::timestamp)
+                     + floor(extract(minute FROM NOW()::timestamp) / 15) * INTERVAL '15 minutes' AS last_at
+        ),
+        pts AS (
+            SELECT generate_series(last_at - %s * INTERVAL '1 hour', last_at, INTERVAL '15 minutes') AS t FROM bounds
+        ),
+        s AS (
+            SELECT v.user_id, v.joined_at,
+                   COALESCE(v.left_at, CASE WHEN v.last_heartbeat < b.now_at - INTERVAL '5 minutes'
+                                            THEN v.last_heartbeat ELSE b.now_at END) AS end_at
+            FROM voice_sessions v, bounds b
+            WHERE NOT COALESCE(v.is_legacy, FALSE)
+              AND v.joined_at <= b.now_at
+              AND (v.left_at IS NULL OR v.left_at >= b.last_at - %s * INTERVAL '1 hour')
+        )
+        SELECT p.t AT TIME ZONE 'UTC' AT TIME ZONE '{clean_tz}', COUNT(DISTINCT s.user_id)
+        FROM pts p LEFT JOIN s ON s.joined_at <= p.t AND s.end_at > p.t
+        GROUP BY p.t ORDER BY p.t
+    """
+    try:
+        rows = db.execute_sql(sql, [hours, hours]).fetchall()
+    except Exception:
+        db.rollback()
+        rows = []
+
+    def label(dt: datetime) -> str:
+        if lang == "fr":
+            return dt.strftime("%d/%m %Hh%M")
+        if lang == "en":
+            return dt.strftime("%b %d %I:%M%p")
+        return f"{day_month(dt.day, dt.month, lang)} {dt.hour}:{dt.minute:02d}"
+
+    counts = [int(r[1] or 0) for r in rows]
+    return {"labels": [label(r[0]) for r in rows], "voice": counts, "has_data": any(counts)}
+
+
+def slice_voice_history(data: dict, points: int) -> dict:
+    """The last `points` points of a get_voice_history() result (48 h = 193 points of 15 min)."""
+    voice = data["voice"][-points:]
+    return {"labels": data["labels"][-points:], "voice": voice, "has_data": any(voice)}
+
+
 def _unique_presence_window() -> tuple[datetime | None, datetime | None]:
     """Global presence snapshots that counted each person once (bot v3.7.1 to v3.7.5, 5 to 6 Nov 2026).
 

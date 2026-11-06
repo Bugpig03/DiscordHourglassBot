@@ -747,5 +747,8 @@
  "p0832": "O melhor total de voz em 30 dias corridos. O recorde fica, mesmo depois de um mês tranquilo.",
  "p0833": "A maior sequência de dias ativos seguidos (voz ou mensagens). A sequência recorde fica.",
  "p0834": "Os dois ao mesmo tempo: horas em voz e mensagens, cada nível pede os dois limites.",
- "p0835": "Os votos no Hourglass no top.gg, um a cada 12 horas (um voto de fim de semana conta uma vez)."
+ "p0835": "Os votos no Hourglass no top.gg, um a cada 12 horas (um voto de fim de semana conta uma vez).",
+ "p0842": "Membros em voz",
+ "p0843": "Número de membros em canais de voz vistos pelo bot em todos os servidores, a cada 15 minutos.",
+ "p0844": "Ninguém em voz neste período."
 }
