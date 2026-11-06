@@ -289,6 +289,24 @@ func (h *BotHandler) refreshServerPresences(s *discordgo.Session) {
 	}
 }
 
+// knownAccounts is every account seen: the listed members, the extra accounts (bots) and every connected
+// account of the presences, each once; the excluded ones (bots, for the people count) are left out.
+func knownAccounts(members, extra map[string]struct{}, statusByUser map[string]discordgo.Status, excluded map[string]struct{}) map[string]struct{} {
+	out := make(map[string]struct{}, len(members)+len(extra)+len(statusByUser))
+	for _, set := range []map[string]struct{}{members, extra} {
+		for id := range set {
+			out[id] = struct{}{}
+		}
+	}
+	for id := range statusByUser {
+		out[id] = struct{}{}
+	}
+	for id := range excluded {
+		delete(out, id)
+	}
+	return out
+}
+
 // uniquePresence counts each member once with their status (members absent from the presences are offline).
 func uniquePresence(members map[string]struct{}, statusByUser map[string]discordgo.Status) (online, idle, dnd, offline int) {
 	for id := range members {
@@ -394,15 +412,11 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	// The global history counts each account once: someone on several servers once, and each bot or app once
 	// too (the per-server sums above counted Hourglass 49 times, once per server). Without member lists
 	// (intent missing), the sums stay.
-	if len(members) > 0 {
-		accounts := make(map[string]struct{}, len(members)+len(botIDs))
-		for id := range members {
-			accounts[id] = struct{}{}
-		}
-		for id := range botIDs {
-			accounts[id] = struct{}{}
-		}
-		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(accounts, statusByUser)
+	// Connected accounts come from the presences: the member lists of the cache miss many of them (people who
+	// came online after the start only arrive through their presence), so they are not required to be listed.
+	people := knownAccounts(members, nil, statusByUser, botIDs)
+	if len(people) > 0 {
+		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(knownAccounts(members, botIDs, statusByUser, nil), statusByUser)
 	}
 
 	if len(s.State.Guilds) > 0 {
@@ -412,15 +426,16 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		log.Printf("📊 [PRESENCE] Instantané 48h enregistré (En ligne: %d, Absent: %d, DND: %d, Hors-ligne: %d)", totalOnline, totalIdle, totalDnd, totalOffline)
 	}
 
-	if len(members) > 0 {
-		snapshot := database.MemberSnapshot{UniqueMembers: len(members), Memberships: memberships, Servers: listedServers}
+	if len(people) > 0 {
+		// People only (bots and apps left out), listed members and connected ones alike
+		snapshot := database.MemberSnapshot{UniqueMembers: len(people), Memberships: memberships, Servers: listedServers}
 		for id := range online {
-			if _, isMember := members[id]; isMember {
+			if _, bot := botIDs[id]; !bot {
 				snapshot.UniqueOnline++
 			}
 		}
 		if known, err := h.DB.KnownUserIDs(ctx); err == nil {
-			for id := range members {
+			for id := range people {
 				if n, perr := strconv.ParseInt(id, 10, 64); perr == nil {
 					if _, ok := known[n]; ok {
 						snapshot.KnownMembers++
