@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// A member on two servers counts once, a bot (absent from members) does not count
+// Each account counts once with its status; an account missing from the list (left the servers) does not count
 func TestUniquePresence(t *testing.T) {
 	members := map[string]struct{}{"a": {}, "b": {}, "c": {}, "d": {}}
 	status := map[string]discordgo.Status{

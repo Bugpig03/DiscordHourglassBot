@@ -1,5 +1,11 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.36.2 - Graphique de Présence sans la Rupture du 5 Novembre - 06/11/2026
+- **Chute brutale du graphique « Présence des membres » le 05/11 au soir** : depuis le bot v3.7.1, chaque relevé compte chaque compte une seule fois (et depuis la v3.7.3, les bots aussi, une fois chacun). Avant, il additionnait les membres de chaque serveur : Hourglass à lui seul comptait pour 49 membres « en ligne » jour et nuit, comme les autres bots présents sur plusieurs serveurs, et un membre sur 5 serveurs comptait 5 fois. La vue 7 jours mélangeait les deux méthodes, d'où la falaise et une moyenne gonflée (« 30,2 % »).
+  - Le graphique global et sa moyenne n'utilisent plus que les relevés du nouveau calcul, à partir du 05/11 vers 21 h. La rupture est détectée automatiquement dans l'historique (le total passe d'environ 977 à 684 d'un relevé à l'autre).
+  - La vue 7 jours se remplit au fil des jours, et l'ancien historique disparaît de toute façon de la base au bout de 7 jours.
+  - Le graphique de présence d'un serveur seul ne change pas (pas de double compte sur un seul serveur).
+
 ## Version 3.36.1 - Page des Badges sans Chevauchements et Interrupteurs Arène - 05/11/2026
 - **Interrupteurs** (personnalisation du profil, onglet Confidentialité ; « Afficher les bots » de la page Membres) : la pastille ronde dans un rail carré faisait bizarre. Le rail et la pastille sont maintenant des **carrés en biais**, avec le même angle que les boutons et les étiquettes du site. Quand l'option est activée, la pastille glisse à droite sur fond violet. Au clavier, la mise au point s'affiche par un liseré clair, car le contour classique était masqué par la forme.
 - **Cases à cocher des records** (onglet Vitrine) : celles du navigateur, rondes et bleues, sont remplacées par le même carré en biais, avec une coche quand le record est choisi.

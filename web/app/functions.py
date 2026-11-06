@@ -1710,8 +1710,10 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
     if server_id is not None:
         rows = last_per_hour(snapshot + " AND server_id = %s", [cutoff, int(server_id)])
     else:
-        # 1. Global snapshots (server_id IS NULL)
-        rows = last_per_hour(snapshot + " AND server_id IS NULL", [cutoff])
+        # 1. Global snapshots (server_id IS NULL), only those counting people (bot v3.7.1+): the older ones added
+        #    up every server's members, bots and members of several servers included, and would make a cliff
+        switch = _unique_presence_since()
+        rows = last_per_hour(snapshot + " AND server_id IS NULL", [max(cutoff, switch) if switch else cutoff])
         # 2. No global snapshot: sum the servers' snapshots taken at the same moment
         if not rows:
             rows = last_per_hour(
@@ -1760,6 +1762,27 @@ def get_presence_history_48h(server_id: int | str | None = None, lang: str = "fr
         "avg_ratio": avg_ratio,
         "has_data": len(labels) > 0
     }
+
+
+def _unique_presence_since() -> datetime | None:
+    """First global presence snapshot counting each person once (bot v3.7.1, deployed on 5 Nov 2026).
+
+    Before it, the bot summed the members of every server: the total (online + idle + dnd + offline) then drops by
+    about a third at once (977 to 684). Found once in the 2 days around the switch and cached; None when the
+    history holds no such drop (nothing to hide, e.g. once the bot has purged the older snapshots after 7 days).
+    """
+    from app.cache import cache
+    from app.database import db
+
+    def find():
+        rows = db.execute_sql(
+            "SELECT recorded_at, online_count + idle_count + dnd_count + offline_count FROM presence_history "
+            "WHERE server_id IS NULL AND recorded_at BETWEEN '2026-11-05' AND '2026-11-07' ORDER BY recorded_at").fetchall()
+        for (_, before), (at, after) in zip(rows, rows[1:]):
+            if before and after < 0.85 * before:
+                return at
+        return None
+    return cache.get_or_set(("unique_presence_since",), 3600, find)
 
 
 BOT_IDS_CACHE_SECONDS = 300

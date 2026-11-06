@@ -11,7 +11,7 @@ import (
 // Version, BuildDate and Commit are set at build time by the Dockerfile (-ldflags -X, from the git tag and the
 // GitHub Actions run); Version keeps this value for a local build.
 var (
-	Version   = "3.7.2"
+	Version   = "3.7.3"
 	BuildDate = "" // RFC 3339, e.g. 2026-11-05T17:42:38.000Z
 	Commit    = ""
 	StartedAt = time.Now()

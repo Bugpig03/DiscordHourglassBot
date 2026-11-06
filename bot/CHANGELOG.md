@@ -1,5 +1,10 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.7.3 - Bots Comptés dans la Présence - 06/11/2026
+
+- **Le graphique de présence global compte aussi les bots et applications**, chacun une seule fois. Hourglass compte pour 1, et non plus pour 49 comme avant la v3.7.1, où il était compté une fois par serveur. Les membres présents sur plusieurs serveurs comptent toujours une fois.
+  - La tuile « personnes actuellement » de l'accueil et les « membres uniques » de l'admin restent sans les bots : ce sont des personnes.
+
 ## Version 3.7.2 - Plus de Carte en Double et Bibliothèque Discord à Jour - 05/11/2026
 
 - **Carte affichée deux fois** sous `/stats`, `/allstats`, `/versus`, `/server`, `/top` et `/alltop` : le lien du message (« Voir le profil complet sur hourglassbot.net ») faisait apparaître l'aperçu Discord du site, c'est-à-dire la même carte une deuxième fois, et souvent pour une autre portée (la carte globale sous une carte de serveur). Les messages à carte du bot sont maintenant envoyés sans aperçu de lien. Le lien reste cliquable, la carte s'affiche comme avant, et les aperçus continuent de fonctionner quand un membre colle un lien lui-même.

@@ -321,6 +321,7 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 	online := make(map[string]struct{})
 	statusByUser := make(map[string]discordgo.Status)
 	bots := make(map[int64]struct{}) // bots and apps present on the servers, flagged in users (website)
+	botIDs := make(map[string]struct{})
 	memberships, listedServers := 0, 0
 
 	for _, g := range s.State.Guilds {
@@ -339,6 +340,7 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 				if id, err := strconv.ParseInt(m.User.ID, 10, 64); err == nil {
 					bots[id] = struct{}{}
 				}
+				botIDs[m.User.ID] = struct{}{}
 				continue
 			}
 			memberships++
@@ -389,11 +391,18 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		}
 	}
 
-	// The global history counts people, like the "unique members" of the website: someone on several servers
-	// once, bots and apps left out (the per-server sums above counted both). Without member lists (intent
-	// missing), the sums stay.
+	// The global history counts each account once: someone on several servers once, and each bot or app once
+	// too (the per-server sums above counted Hourglass 49 times, once per server). Without member lists
+	// (intent missing), the sums stay.
 	if len(members) > 0 {
-		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(members, statusByUser)
+		accounts := make(map[string]struct{}, len(members)+len(botIDs))
+		for id := range members {
+			accounts[id] = struct{}{}
+		}
+		for id := range botIDs {
+			accounts[id] = struct{}{}
+		}
+		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(accounts, statusByUser)
 	}
 
 	if len(s.State.Guilds) > 0 {
