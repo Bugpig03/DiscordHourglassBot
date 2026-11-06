@@ -1,5 +1,9 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.7.5 - Présence sans les Bots - 06/11/2026
+
+- **Le graphique de présence global ne compte plus les bots et applications** (ajoutés en v3.7.3). Il compte les mêmes personnes que la tuile « personnes actuellement » de l'accueil, chacune une fois : les deux chiffres sont maintenant égaux, sans les 129 bots d'écart.
+
 ## Version 3.7.4 - Présence : Plus Personne d'Oublié - 06/11/2026
 
 - **Le graphique de présence global sous-comptait les connectés** (24 en ligne à midi, alors que deux serveurs sans membre commun en comptaient déjà 38). Depuis la v3.7.1, un connecté n'était compté que s'il figurait aussi dans la liste des membres que le bot garde en mémoire. Or cette liste, chargée au démarrage, est incomplète : quelqu'un qui se connecte ensuite n'arrive que par sa présence. Désormais, chaque compte vu dans les présences compte, qu'il soit dans la liste ou non, toujours une seule fois. Les chiffres du graphique global correspondent maintenant à ceux des fiches serveur, sans les doublons.

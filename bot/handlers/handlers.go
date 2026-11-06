@@ -409,14 +409,13 @@ func (h *BotHandler) recordPresenceSnapshot(s *discordgo.Session) {
 		}
 	}
 
-	// The global history counts each account once: someone on several servers once, and each bot or app once
-	// too (the per-server sums above counted Hourglass 49 times, once per server). Without member lists
-	// (intent missing), the sums stay.
+	// The global history counts people, each once: someone on several servers once, bots and apps left out
+	// (the per-server sums above counted both, Hourglass 49 times). Without any account seen, the sums stay.
 	// Connected accounts come from the presences: the member lists of the cache miss many of them (people who
 	// came online after the start only arrive through their presence), so they are not required to be listed.
 	people := knownAccounts(members, nil, statusByUser, botIDs)
 	if len(people) > 0 {
-		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(knownAccounts(members, botIDs, statusByUser, nil), statusByUser)
+		totalOnline, totalIdle, totalDnd, totalOffline = uniquePresence(people, statusByUser)
 	}
 
 	if len(s.State.Guilds) > 0 {
