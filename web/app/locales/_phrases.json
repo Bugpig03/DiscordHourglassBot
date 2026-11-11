@@ -519,29 +519,9 @@
   "Très actif",
   "Busiest"
  ],
- "p0158": [
-  "Nouveaux membres par mois",
-  "New members per month"
- ],
- "p0159": [
-  "Membres vus pour la première fois par le bot.",
-  "Members seen by the bot for the first time."
- ],
  "p0160": [
   "Serveurs les plus actifs",
   "Most active servers"
- ],
- "p0161": [
-  "Voir tous les serveurs",
-  "See all servers"
- ],
- "p0162": [
-  "Membres les plus actifs",
-  "Most active members"
- ],
- "p0163": [
-  "Voir le classement complet",
-  "See the full leaderboard"
  ],
  "p0164": [
   "sur 30j",
@@ -586,14 +566,6 @@
  "p0176": [
   "{server} : {hours} h en vocal, {messages} messages, {members} membres actifs suivis par Hourglass.",
   "{server}: {hours} h in voice, {messages} messages, {members} active members tracked by Hourglass."
- ],
- "p0177": [
-  "Heures de pointe, salons, sessions",
-  "Peak hours, channels, sessions"
- ],
- "p0178": [
-  "Évolution et top membres",
-  "Trends and top members"
  ],
  "p0179": [
   "Classement et présence",
@@ -706,10 +678,6 @@
  "p0206": [
   "Modifier",
   "Change"
- ],
- "p0207": [
-  "Séries, calendrier, sessions",
-  "Streaks, calendar, sessions"
  ],
  "p0208": [
   "Évolution et répartition",
@@ -886,14 +854,6 @@
  "p0255": [
   "Détail par jour de la semaine (messages)",
   "Detail per day of the week (messages)"
- ],
- "p0256": [
-  "{n} h de vocal au total",
-  "{n} h of voice in total"
- ],
- "p0257": [
-  "{n} messages au total",
-  "{n} messages in total"
  ],
  "p0258": [
   "Nombre moyen de messages envoyés à chaque heure de la journée.",
@@ -1330,10 +1290,6 @@
  "p0373": [
   "Hors ligne",
   "Offline"
- ],
- "p0374": [
-  "membres",
-  "members"
  ],
  "p0375": [
   "Nouveaux membres",
@@ -3114,5 +3070,173 @@
  "p0846": [
   "Record absolu",
   "All-time record"
+ ],
+ "p0847": [
+  "au total",
+  "in total"
+ ],
+ "p0848": [
+  "vs moyenne",
+  "vs average"
+ ],
+ "p0849": [
+  "Heure de pointe",
+  "Peak hour"
+ ],
+ "p0850": [
+  "{n} % du pic",
+  "{n} % of the peak"
+ ],
+ "p0851": [
+  "Écart : {n}",
+  "Gap: {n}"
+ ],
+ "p0852": [
+  "Course au classement",
+  "Leaderboard race"
+ ],
+ "p0853": [
+  "Le top 10 des membres en heures de vocal cumulées, mois après mois : qui a pris la tête, et quand.",
+  "The top 10 members by cumulative voice hours, month by month: who took the lead, and when."
+ ],
+ "p0854": [
+  "Lecture",
+  "Play"
+ ],
+ "p0855": [
+  "Mois affiché",
+  "Month shown"
+ ],
+ "p0858": [
+  "de vocal au total",
+  "of voice in total"
+ ],
+ "p0859": [
+  "messages au total",
+  "messages in total"
+ ],
+ "p0860": [
+  "{n} % du créneau le plus actif",
+  "{n} % of the busiest slot"
+ ],
+ "p0861": [
+  "Afficher les créneaux à partir de",
+  "Show slots from"
+ ],
+ "p0862": [
+  "à partir de {n} % du pic",
+  "from {n} % of the peak"
+ ],
+ "p0865": [
+  "Maintenant",
+  "Right now"
+ ],
+ "p0866": [
+  "{n} en vocal maintenant",
+  "{n} in voice right now"
+ ],
+ "p0867": [
+  "Pause",
+  "Pause"
+ ],
+ "p0868": [
+  "Rejouer",
+  "Replay"
+ ],
+ "p0870": [
+  "Le top 10 des membres en heures de vocal cumulées, tous serveurs confondus, mois après mois : qui a pris la tête, et quand.",
+  "The top 10 members by cumulative voice hours, across all servers, month by month: who took the lead, and when."
+ ],
+ "p0872": [
+  "Salons et sessions vocales",
+  "Channels and voice sessions"
+ ],
+ "p0873": [
+  "Évolution, heures de pointe, top",
+  "Trends, peak hours, top"
+ ],
+ "p0874": [
+  "Sections du profil",
+  "Profile sections"
+ ],
+ "p0875": [
+  "Vitrine, séries, calendrier",
+  "Showcase, streaks, calendar"
+ ],
+ "p0876": [
+  "Sections du serveur",
+  "Server sections"
+ ],
+ "p0877": [
+  "Sections des analyses",
+  "Analytics sections"
+ ],
+ "p0878": [
+  "Nouveaux membres et serveurs par mois",
+  "New members and servers per month"
+ ],
+ "p0880": [
+  "En forte progression",
+  "On the rise"
+ ],
+ "p0881": [
+  "Le plus d’heures de vocal gagnées sur les 30 derniers jours, par rapport aux 30 jours d’avant.",
+  "The most voice hours gained over the last 30 days, compared with the 30 days before."
+ ],
+ "p0882": [
+  "Nouveaux venus",
+  "Newcomers"
+ ],
+ "p0883": [
+  "Arrivés ces 30 derniers jours, classés par heures de vocal depuis leur arrivée.",
+  "Arrived in the last 30 days, ranked by voice hours since they arrived."
+ ],
+ "p0884": [
+  "nouveaux serveurs",
+  "new servers"
+ ],
+ "p0885": [
+  "Nouveaux serveurs",
+  "New servers"
+ ],
+ "p0886": [
+  "{a} h ces 30 jours, contre {b} h les 30 jours d’avant",
+  "{a} h these 30 days, against {b} h the 30 days before"
+ ],
+ "p0887": [
+  "Arrivé le {d}",
+  "Arrived on {d}"
+ ],
+ "p0888": [
+  "{a} h · avant {b} h",
+  "{a} h · before {b} h"
+ ],
+ "p0889": [
+  "depuis le {d}",
+  "since {d}"
+ ],
+ "p0890": [
+  "Personne n’a progressé ces 30 derniers jours.",
+  "Nobody rose over the last 30 days."
+ ],
+ "p0891": [
+  "Aucune arrivée ces 30 derniers jours.",
+  "No arrival in the last 30 days."
+ ],
+ "p0892": [
+  "Membres et serveurs vus pour la première fois par le bot, côte à côte pour chaque mois. Les serveurs ont leur propre axe, à droite.",
+  "Members and servers seen by the bot for the first time, side by side for each month. Servers have their own axis, on the right."
+ ],
+ "p0893": [
+  "Profil du duel : la part de chaque catégorie prise par chacun",
+  "Duel profile: the share of each category each side holds"
+ ],
+ "p0894": [
+  "Égalité",
+  "Tie"
+ ],
+ "p0895": [
+  "Avantage {name}",
+  "Edge to {name}"
  ]
 }

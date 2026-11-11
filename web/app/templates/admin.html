@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css', v=asset_version('css/pages/admin.css')) }}">
     {% if js_i18n %}<script type="application/json" id="hgI18n">{{ js_i18n | tojson }}</script>{% endif %}
     <script src="{{ url_for('static', filename='js/ui.js', v=asset_version('js/ui.js')) }}" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" defer></script>
     <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 </head>
 {% macro loading() %}<div class="chart-loading-overlay"><div class="chart-spinner-ring"></div><span class="chart-spinner-text">{{ t('graphs.loading') }}</span></div>{% endmacro %}

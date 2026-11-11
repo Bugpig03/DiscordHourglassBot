@@ -229,7 +229,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setupVersusAutocomplete('inputEntity1', 'dropdownEntity1', 'resultsEntity1', 'clearEntity1', 'groupEntity1', searchType);
     setupVersusAutocomplete('inputEntity2', 'dropdownEntity2', 'resultsEntity2', 'clearEntity2', 'groupEntity2', searchType);
 
-    // Initialize Chart.js
+    // The duel at a glance: each category as the share each side holds
+    const radarEl = document.getElementById('versusRadarData');
+    if (radarEl && document.getElementById('versusRadar')) {
+        try {
+            const r = JSON.parse(radarEl.textContent);
+            if (r.axes && r.axes.length >= 3) drawVersusRadar(r);
+        } catch (e) {
+            console.error('Versus radar:', e);
+        }
+    }
+
+    // Both curves over a shared timeline (cumulative voice hours, month by month)
     const rawDataElem = document.getElementById('versusChartData');
     if (!rawDataElem) return;
     let chartData = null;
@@ -239,99 +250,150 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     if (!chartData || !chartData.name1) return;
-
-    const ctx = document.getElementById('versusChart');
-    if (!ctx) return;
+    if (!document.getElementById('versusChart')) return;
 
     const hoursUnit = PAGE_CFG.t_top_hours_unit;
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: [
-                {
-                    label: chartData.name1,
-                    data: chartData.data1,
-                    borderColor: '#717cf8',
-                    backgroundColor: 'rgba(113, 124, 248, 0.12)',
-                    fill: true,
-                    tension: 0.32,
-                    pointBackgroundColor: '#717cf8',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    borderWidth: 2.8,
-                },
-                {
-                    label: chartData.name2,
-                    data: chartData.data2,
-                    borderColor: '#f43f5e',
-                    backgroundColor: 'rgba(244, 63, 94, 0.12)',
-                    fill: true,
-                    tension: 0.32,
-                    pointBackgroundColor: '#f43f5e',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    borderWidth: 2.8,
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false,
+    const points = list => (list || []).map(p => [new Date(p.x).getTime(), p.y]);
+    const sides = [
+        { name: chartData.name1, data: points(chartData.data1), color: '#717cf8' },
+        { name: chartData.name2, data: points(chartData.data2), color: '#f43f5e' },
+    ];
+    const count = Math.max(sides[0].data.length, sides[1].data.length);
+    const zoom = HG.zoom(count, { min: 30, compact: true, label: v => new Date(v).toLocaleDateString(HG.locale, { month: 'short', year: 'numeric' }) });
+    const monthTitle = t => new Date(t).toLocaleDateString(HG.locale, { month: 'long', year: 'numeric' });
+    HG.draw('versusChart', {
+        grid: HG.grid({ top: 40, bottom: zoom.bottom }),
+        legend: HG.legend({ textStyle: { color: '#d0d2d8', fontWeight: 'bold', fontSize: 13 } }),
+        tooltip: HG.tooltip({
+            formatter: ps => {
+                const rows = HG.sortedRows(ps, v => `${HG.fmt(v, 1)} ${hoursUnit}`);
+                const gap = rows.length === 2 ? rows[0].raw - rows[1].raw : null;
+                return HG.tipHtml(monthTitle(ps[0].value[0]), rows, {
+                    sub: gap != null && gap > 0 ? HG.tr('Écart : {n}', 'Gap: {n}', { n: `${HG.fmt(gap, 1)} ${hoursUnit}` }) : null,
+                });
             },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        color: '#d0d2d8',
-                        font: { size: 13, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 16
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(24, 25, 29, 0.94)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#e3e5e8',
-                    borderColor: 'rgba(255, 255, 255, 0.12)',
-                    borderWidth: 1,
-                    padding: 12,
-                    callbacks: {
-                        label: function(context) {
-                            return ' ' + context.dataset.label + ': ' + context.parsed.y + ' ' + hoursUnit;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: { unit: 'month' },
-                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                    ticks: {
-                        color: '#a3a6b0',
-                        maxRotation: 0,
-                        maxTicksLimit: 6,
-                        autoSkip: true
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
-                    ticks: {
-                        color: '#a3a6b0',
-                        maxTicksLimit: 6,
-                        callback: function(val) { return val + ' ' + hoursUnit; }
-                    }
-                }
-            }
-        }
+        }),
+        xAxis: HG.timeAxis({ splitNumber: 5, axisLabel: { color: HG.chartColors.muted, hideOverlap: true,
+            formatter: v => new Date(v).toLocaleDateString(HG.locale, { month: 'short', year: '2-digit' }) } }),
+        // The scale follows the period chosen with the slider (cumulative hours: a zoomed period sits far above zero)
+        yAxis: HG.valueAxis({ min: HG.fitMin, axisLabel: { formatter: v => `${HG.fmt(v)} ${hoursUnit}` } }),
+        dataZoom: zoom.dataZoom,
+        series: sides.map(s => ({
+            name: s.name, type: 'line', data: s.data, smooth: 0.32, showSymbol: false, symbolSize: 8,
+            lineStyle: { width: 2.8, color: s.color }, itemStyle: { color: s.color, borderColor: '#fff', borderWidth: 2 },
+            areaStyle: { color: HG.areaFill(s.color, 0.22) },
+            emphasis: { focus: 'series', lineStyle: { width: 3.4 } },
+            blur: { lineStyle: { opacity: 0.25 }, areaStyle: { opacity: 0.05 } },
+        })),
     });
 });
+
+
+// Short branch names: the radar sits between the two sides, where the full category titles do not fit
+const RADAR_SHORT = {
+    hours: () => HG.tr('Vocal', 'Voice'),
+    messages: () => HG.tr('Messages', 'Messages'),
+    level: () => HG.tr('Niveau', 'Level'),
+    activity_30d: () => HG.tr('30 jours', '30 days'),
+    rank: () => HG.tr('Rang', 'Rank'),
+    badges: () => HG.tr('Badges', 'Badges'),
+    servers: () => HG.tr('Serveurs', 'Servers'),
+    members: () => HG.tr('Membres', 'Members'),
+};
+
+function drawVersusRadar(r) {
+    const C = HG.chartColors;
+    const sides = [
+        { name: r.name1, color: '#717cf8', values: r.axes.map(a => a.pct1), text: a => a.v1, side: '1' },
+        { name: r.name2, color: '#f43f5e', values: r.axes.map(a => Math.round((100 - a.pct1) * 10) / 10), text: a => a.v2, side: '2' },
+    ];
+    const chart = HG.draw('versusRadar', {
+        animationDuration: 900,
+        // Our own tooltip (below): the stat of the branch under the pointer only
+        tooltip: { show: false },
+        radar: {
+            indicator: r.axes.map(a => ({ name: RADAR_SHORT[a.key] ? RADAR_SHORT[a.key]() : a.label, max: 100 })),
+            shape: 'polygon',
+            radius: '66%',
+            center: ['50%', '52%'],
+            splitNumber: 4,
+            axisName: { color: '#c9ccd3', fontWeight: 600, fontSize: 11 },
+            axisNameGap: 8,
+            splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.08)' } },
+            splitArea: { areaStyle: { color: ['rgba(255, 255, 255, 0.015)', 'rgba(255, 255, 255, 0.035)'] } },
+            axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.08)' } },
+        },
+        series: [{
+            type: 'radar',
+            symbolSize: 6,
+            // Hovering keeps both shapes in full: they are compared, not singled out
+            emphasis: { focus: 'none', lineStyle: { width: 2.6 } },
+            data: sides.map(s => ({
+                name: s.name, value: s.values,
+                lineStyle: { color: s.color, width: 2.2 }, itemStyle: { color: s.color },
+                areaStyle: { color: HG.rgba(s.color, 0.25) },
+            })),
+        }],
+    });
+    bindRadarBranches(chart, r, sides);
+}
+
+/* The branch under the pointer (or the finger): its name lights up and a tooltip gives that one stat for both
+   sides, the winning value in its side's color. Branches go anticlockwise from the top, like ECharts draws them. */
+function bindRadarBranches(chart, r, sides) {
+    if (!chart) return;
+    const box = chart.getDom();
+    const tip = document.createElement('div');
+    tip.className = 'vs-radar-tip';
+    tip.hidden = true;
+    box.appendChild(tip);
+    const names = r.axes.map(a => (RADAR_SHORT[a.key] ? RADAR_SHORT[a.key]() : a.label));
+    let current = -1;
+
+    function highlight(i) {
+        if (i === current) return;
+        current = i;
+        chart.setOption({ radar: { indicator: r.axes.map((a, k) => ({
+            name: names[k], max: 100, color: k === i ? '#ffffff' : '#c9ccd3',
+        })) } });
+    }
+
+    function branchAt(x, y) {
+        const radar = chart.getModel().getComponent('radar');
+        const cs = radar && radar.coordinateSystem;
+        if (!cs) return -1;
+        const dx = x - cs.cx, dy = cs.cy - y;
+        if (Math.hypot(dx, dy) > cs.r * 1.35) return -1;
+        const n = r.axes.length;
+        const angle = (Math.atan2(dy, dx) * 180 / Math.PI - 90 + 720) % 360;  // 0 at the top, anticlockwise
+        return Math.round(angle / (360 / n)) % n;
+    }
+
+    function show(x, y) {
+        const i = branchAt(x, y);
+        if (i < 0) return hide();
+        highlight(i);
+        const a = r.axes[i];
+        const lead = a.winner === 'tie' ? HG.tr('Égalité', 'Tie')
+            : HG.tr('Avantage {name}', 'Edge to {name}', { name: a.winner === '1' ? sides[0].name : sides[1].name });
+        tip.innerHTML = HG.tipHtml(a.label, [
+            { color: sides[0].color, name: sides[0].name, value: a.v1, dim: a.winner === '2' },
+            { color: sides[1].color, name: sides[1].name, value: a.v2, dim: a.winner === '1' },
+        ], { sub: lead });
+        tip.hidden = false;
+        const w = tip.offsetWidth, h = tip.offsetHeight;
+        const left = Math.min(Math.max(4, x + 14), box.clientWidth - w - 4);
+        const top = Math.min(Math.max(4, y - h - 10), box.clientHeight - h - 4);
+        tip.style.left = `${x + 14 + w > box.clientWidth ? Math.max(4, x - w - 14) : left}px`;
+        tip.style.top = `${top}px`;
+    }
+
+    function hide() {
+        tip.hidden = true;
+        highlight(-1);
+    }
+
+    chart.getZr().on('mousemove', e => show(e.offsetX, e.offsetY));
+    chart.getZr().on('click', e => show(e.offsetX, e.offsetY));
+    chart.getZr().on('globalout', hide);
+}

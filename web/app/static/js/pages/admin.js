@@ -9,8 +9,6 @@ let currentTab = 'tab-overview';
 let days = 30;
 const PERIODS = [7, 30, 90];
 
-const TOOLTIP = { backgroundColor: '#1d1f26', titleColor: '#e8e9ee', bodyColor: '#b6b9c3', borderColor: '#333744', borderWidth: 1, padding: 10 };
-const GRID = { color: '#22252d' };
 const periodLabel = () => T('{n} j', '{n} d', { n: days });
 
 function switchGraphTab(tabId) {
@@ -122,29 +120,42 @@ function renderStats(el, items) {
         </div>`).join('');
 }
 
+// Line and bar charts of the console: series built with area() / bars(), stacked bars with opts.stacked
 function lineChart(id, labels, datasets, opts = {}) {
-    if (charts[id]) charts[id].destroy();
-    charts[id] = new Chart(document.getElementById(id), {
-        type: opts.type || 'line',
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: datasets.length > 1, labels: { color: '#b6b9c3', usePointStyle: true, boxWidth: 8 } }, tooltip: TOOLTIP },
-            scales: {
-                x: { stacked: !!opts.stacked, grid: { display: false }, ticks: { color: '#868a96', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
-                y: { stacked: !!opts.stacked, beginAtZero: true, grid: GRID, border: { display: false }, ticks: { color: '#868a96', precision: 0 } },
+    const isBar = opts.type === 'bar';
+    const zoom = HG.zoom(labels.length, { min: 60, compact: true, label: v => v });
+    charts[id] = HG.draw(id, {
+        grid: HG.grid({ top: datasets.length > 1 ? 36 : 14, bottom: zoom.bottom }),
+        legend: datasets.length > 1 ? HG.legend() : undefined,
+        tooltip: HG.tooltip({
+            axisPointer: isBar ? HG.barPointer : undefined,
+            formatter: ps => {
+                const rows = HG.sortedRows(ps, v => HG.fmt(v));
+                const sum = rows.reduce((a, r) => a + r.raw, 0);
+                return HG.tipHtml(ps[0].axisValueLabel || ps[0].name, rows, { total: opts.stacked && rows.length > 1 ? HG.fmt(sum) : null });
             },
-        },
+        }),
+        xAxis: HG.categoryAxis(labels, { boundaryGap: isBar }),
+        yAxis: HG.valueAxis({ minInterval: 1 }),
+        dataZoom: zoom.dataZoom,
+        series: datasets.map(ds => ds.kind === 'bar' ? {
+            type: 'bar', name: ds.label, data: ds.data, stack: opts.stacked ? 'total' : undefined, barMaxWidth: 26,
+            itemStyle: { color: ds.color },
+            emphasis: { focus: datasets.length > 1 ? 'series' : 'none' },
+        } : {
+            type: 'line', name: ds.label, data: ds.data, smooth: 0.3, showSymbol: false, symbolSize: 6,
+            lineStyle: { width: 2, color: ds.color }, itemStyle: { color: ds.color }, areaStyle: { color: HG.areaFill(ds.color, 0.28) },
+            emphasis: { focus: datasets.length > 1 ? 'series' : 'none' },
+            blur: { lineStyle: { opacity: 0.25 }, areaStyle: { opacity: 0.05 } },
+        }),
     });
 }
 
 // data-tip attribute (ui.js tooltip: hover, keyboard focus and tap); tabindex lets the keyboard reach it
 const tipAttr = tip => (tip ? ` data-tip="${HG.esc(tip)}" tabindex="0"` : '');
 
-const area = (label, values, color) => ({ label, data: values, borderColor: color, backgroundColor: color + '33', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0 });
-const bars = (label, values, color) => ({ label, data: values, backgroundColor: color, borderRadius: 4 });
+const area = (label, values, color) => ({ kind: 'line', label, data: values, color });
+const bars = (label, values, color) => ({ kind: 'bar', label, data: values, color });
 
 // ---------------------------------------------------------------------------
 // Header: bot status and update time (the key figures are in the Overview tab)
@@ -711,9 +722,6 @@ function load(newDays, opts = {}) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    Chart.defaults.color = '#868a96';
-    Chart.defaults.font.family = '"IBM Plex Sans", "Segoe UI", system-ui, sans-serif';
-    Chart.defaults.font.size = 12;
     document.querySelectorAll('.adm-nav-item[data-tab]').forEach(btn => btn.addEventListener('click', () => switchGraphTab(btn.dataset.tab)));
     document.querySelectorAll('#admPeriod [data-days]').forEach(btn => btn.addEventListener('click', () => {
         if (+btn.dataset.days !== days) load(+btn.dataset.days);

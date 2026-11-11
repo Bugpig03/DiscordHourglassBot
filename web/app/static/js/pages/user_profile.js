@@ -34,8 +34,6 @@ function switchUserProfileTab(tabId) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    Chart.defaults.color = '#a3a6b0';
-    Chart.defaults.font.family = "Arial, sans-serif";
 
 
     const readJson = id => {

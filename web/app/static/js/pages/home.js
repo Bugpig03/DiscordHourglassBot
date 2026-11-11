@@ -5,117 +5,83 @@ document.addEventListener('DOMContentLoaded', function() {
     const rawDataEl = document.getElementById('homeDailyChartData');
     if (!rawDataEl) return;
     try {
-        const chartData = JSON.parse(rawDataEl.textContent);
-        const ctx = document.getElementById('homeActivityChart').getContext('2d');
-        
+        const d = JSON.parse(rawDataEl.textContent);
         const hoursLabel = HG.tr('Heures en vocal', 'Voice hours');
         const msgsLabel = HG.tr('Messages', 'Messages');
-        const dayTicks = chartData.ticks || [];
-        const lastDay = dayTicks.length - 1;
+        const dayTicks = d.ticks || [];
+        const weekend = d.weekend || [];
+        const lastDay = d.labels.length - 1;
+        const C = HG.chartColors;
+        const chart = HG.chart('homeActivityChart');
 
-        // Different marks for different units: bars for voice hours (left axis), a line for messages (right axis)
-        const homeChart = new Chart(ctx, {
-            data: {
-                labels: chartData.labels,
-                datasets: [
-                    {
-                        type: 'bar',
-                        label: hoursLabel,
-                        data: chartData.hours,
-                        ...HG.partialBar('#717cf8'),
-                        borderRadius: 4,
-                        maxBarThickness: 18,
-                        yAxisID: 'y',
-                        order: 2
-                    },
-                    {
-                        type: 'line',
-                        label: msgsLabel,
-                        data: chartData.messages,
-                        borderColor: '#3fd1a0',
-                        backgroundColor: '#3fd1a0',
-                        borderWidth: 2.4,
-                        tension: 0.35,
-                        fill: false,
-                        pointRadius: 0,
-                        pointHoverRadius: 5,
-                        yAxisID: 'y1',
-                        segment: HG.partialSegment,
-                        order: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: { color: '#a3a6b0', font: { size: 12, weight: '600' }, boxWidth: 12, usePointStyle: true, sort: (a, b) => a.datasetIndex - b.datasetIndex }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(24, 25, 29, 0.95)',
-                        borderColor: 'rgba(255, 255, 255, 0.12)',
-                        borderWidth: 1,
-                        padding: 10,
-                        titleColor: '#ffffff',
-                        bodyColor: '#d0d2d8',
-                        callbacks: {
-                            label: function(item) {
-                                return item.dataset.yAxisID === 'y'
-                                    ? ` ${hoursLabel} : ${HG.fmt(item.parsed.y, 1)} h`
-                                    : ` ${msgsLabel} : ${HG.fmt(item.parsed.y)}`;
-                            }
-                        }
-                    }
+        // Different marks for different units: bars for voice hours (left axis), a line for messages (right axis).
+        // Today is still running: its bar is faded and the end of the messages line is dashed.
+        const msgs = d.messages || [];
+        const solid = d.partial ? msgs.map((v, i) => (i < lastDay ? v : null)) : msgs;
+        const dashed = d.partial ? msgs.map((v, i) => (i >= lastDay - 1 ? v : null)) : [];
+        const series = {
+            note: i => (d.partial && i === lastDay ? HG.tr('Aujourd’hui : journée en cours', 'Today: day still in progress') : ''),
+        };
+
+        // Every day: its number, with the month underneath at the start and on each 1st; a faint line marks the
+        // change of month. Weekends are dimmer, today is white. With less than 20 px per day (phones), one number
+        // out of 2 or 3 is shown, counted back from today; the months stay.
+        const step = () => Math.max(1, Math.ceil(20 / Math.max(1, (chart.getWidth() - 90) / Math.max(1, d.labels.length))));
+        HG.draw(chart, {
+            grid: HG.grid({ top: 40, left: 6, right: 6, bottom: 4 }),
+            legend: HG.legend({ data: [hoursLabel, msgsLabel], left: 'center' }),
+            tooltip: HG.tooltip({
+                axisPointer: HG.barPointer,
+                formatter: ps => {
+                    const i = ps[0].dataIndex;
+                    return HG.tipHtml(d.labels[i], [
+                        { color: '#717cf8', name: hoursLabel, value: `${HG.fmt(d.hours[i], 1)} h` },
+                        { color: '#3fd1a0', name: msgsLabel, value: HG.fmt(msgs[i]) },
+                    ], { notes: [series.note(i)] });
                 },
-                scales: {
-                    // Every day: its number, with the month underneath at the start and on each 1st; a faint
-                    // line marks the change of month. Weekends are dimmer, today is white. With less than 20 px
-                    // per day (phones), one number out of 2 or 3 is shown, counted back from today; the months stay.
-                    x: {
-                        grid: {
-                            drawTicks: false,
-                            color: (c) => (c.index > 0 && dayTicks[c.index] && dayTicks[c.index][1]) ? 'rgba(255, 255, 255, 0.09)' : 'transparent'
-                        },
-                        ticks: {
-                            autoSkip: false,
-                            maxRotation: 0,
-                            padding: 8,
-                            font: { family: "'Chakra Petch', sans-serif", size: 11, weight: '600', lineHeight: 1.3 },
-                            color: (c) => c.index === lastDay ? '#f2f3f5' : (chartData.weekend || [])[c.index] ? '#6b6f78' : '#a3a6b0',
-                            callback: function(value, index) {
-                                const tick = dayTicks[index];
-                                if (!tick) return this.getLabelForValue(value);
-                                const perDay = this.chart.chartArea ? this.chart.chartArea.width / dayTicks.length : 99;
-                                const step = Math.max(1, Math.ceil(20 / perDay));
-                                const day = (lastDay - index) % step !== 0 ? '' : tick[0];
-                                return tick[1] ? [day, tick[1]] : day;
-                            }
-                        }
+            }),
+            xAxis: HG.categoryAxis(d.labels, {
+                axisLabel: {
+                    interval: 0,
+                    lineHeight: 14,
+                    fontFamily: "'Chakra Petch', sans-serif",
+                    fontWeight: 600,
+                    fontSize: 11,
+                    formatter: (value, i) => {
+                        const tick = dayTicks[i];
+                        if (!tick) return value;
+                        const day = (lastDay - i) % step() !== 0 ? '' : tick[0];
+                        const style = i === lastDay ? 't' : weekend[i] ? 'w' : 'd';
+                        return (day ? `{${style}|${day}}` : ' ') + (tick[1] ? `\n{m|${tick[1]}}` : '');
                     },
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        beginAtZero: true,
-                        title: { display: true, text:HG.tr('Heures', 'Hours'), color: '#717cf8', font: { size: 11, weight: '600' } },
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        ticks: { color: '#717cf8', font: { size: 11 }, callback: (v) => HG.fmt(v) }
-                    },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        beginAtZero: true,
-                        title: { display: true, text: HG.tr('Messages', 'Messages'), color: '#3fd1a0', font: { size: 11, weight: '600' } },
-                        grid: { drawOnChartArea: false },
-                        ticks: { color: '#3fd1a0', font: { size: 11 }, callback: (v) => HG.fmt(v) }
-                    }
-                }
-            }
+                    rich: { d: { color: C.muted }, w: { color: C.faint }, t: { color: '#f2f3f5' }, m: { color: C.muted, fontSize: 10 } },
+                },
+                splitLine: { show: true, interval: i => i > 0 && !!(dayTicks[i] && dayTicks[i][1]), lineStyle: { color: 'rgba(255, 255, 255, 0.09)' } },
+            }),
+            yAxis: [
+                HG.valueAxis({ name: HG.tr('Heures', 'Hours'), nameTextStyle: { color: '#717cf8', fontWeight: 600, align: 'left' },
+                    axisLabel: { color: '#717cf8', formatter: v => HG.fmt(v) } }),
+                HG.valueAxis({ name: HG.tr('Messages', 'Messages'), nameTextStyle: { color: '#3fd1a0', fontWeight: 600, align: 'right' },
+                    axisLabel: { color: '#3fd1a0', formatter: v => HG.fmt(v) }, splitLine: { show: false } }),
+            ],
+            series: [
+                {
+                    type: 'bar', name: hoursLabel, yAxisIndex: 0, barMaxWidth: 18,
+                    data: HG.periodBars(d.hours, '#717cf8', { partial: d.partial }),
+                    itemStyle: { color: '#717cf8' },
+                    emphasis: { itemStyle: { color: '#8b93fa' } },
+                },
+                {
+                    type: 'line', name: msgsLabel, yAxisIndex: 1, data: solid, smooth: 0.35, showSymbol: false, symbolSize: 7,
+                    lineStyle: { width: 2.4, color: '#3fd1a0' }, itemStyle: { color: '#3fd1a0' }, z: 3,
+                },
+                {
+                    id: 'hg-hidden-today', type: 'line', name: msgsLabel, yAxisIndex: 1, data: dashed, smooth: 0.35, showSymbol: false,
+                    lineStyle: { width: 2.4, color: '#3fd1a0', type: 'dashed' }, itemStyle: { color: '#3fd1a0' }, z: 3,
+                    tooltip: { show: false }, silent: true,
+                },
+            ],
         });
-        HG.setPartial(homeChart, chartData.partial);
-        homeChart.update();
     } catch(e) {
         console.error('Error rendering home activity chart:', e);
     }

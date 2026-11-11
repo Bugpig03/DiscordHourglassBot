@@ -19,39 +19,46 @@
 
 {% block content %}
 {% if not initial_data %}<link rel="preload" href="{{ url_for('graphs.api_graphs_data') }}" as="fetch" crossorigin>{% endif %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
 
-<div class="an-head">
-    <h1 class="an-title" data-ghost="30J">{{tr('Analyses', 'Analytics')}}</h1>
-    <p class="an-sub">{{tr('L’activité de toute la communauté Hourglass, tous serveurs confondus.', 'Activity of the whole Hourglass community, across all servers.')}}</p>
-</div>
+<!-- Header card: title, the last 30 days at a glance, and the tabs as its bottom edge -->
+<section class="gray-box small-border-radius hg-hero an-hero">
+    <div class="hg-hero-body">
+        <div class="an-head">
+            <h1 class="an-title" data-ghost="30J">{{tr('Analyses', 'Analytics')}}</h1>
+            <p class="an-sub">{{tr('L’activité de toute la communauté Hourglass, tous serveurs confondus.', 'Activity of the whole Hourglass community, across all servers.')}}</p>
+        </div>
 
-<!-- Last 30 days at a glance, compared with the 30 days before -->
-<div class="dashboard-kpi-grid an-kpis">
-    {{ kpi('hours',tr('Vocal · 30 jours', 'Voice · 30 days'), 'blue', 'icon-voice', '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="mic"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM2 3h5v1h-5zM0 4h1v1h-1zM2 4h5v1h-5zM8 4h1v1h-1zM0 5h1v1h-1zM3 5h3v1h-3zM8 5h1v1h-1zM1 6h2v1h-2zM6 6h2v1h-2zM3 7h3v1h-3zM2 8h5v1h-5z"/></svg>') }}
-    {{ kpi('messages',tr('Messages · 30 jours', 'Messages · 30 days'), 'emerald', 'icon-messages', '<svg width="18" height="18" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>') }}
-    {{ kpi('members',tr('Membres actifs · 30 jours', 'Active members · 30 days'), 'violet', 'icon-users', '<svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>') }}
-    {{ kpi('servers',tr('Serveurs actifs · 30 jours', 'Active servers · 30 days'), 'amber', 'icon-servers', '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>') }}
-</div>
-
-<div class="graphs-tabs-wrapper">
-    <div class="graphs-tabs" role="tablist">
-        <button class="graphs-tab-btn active" data-tab="tab-trends" data-call="switchGraphTab" data-arg="tab-trends">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{tr('Évolution', 'Over time')}}</span><small class="tab-desc">{{tr('Vocal et messages dans le temps', 'Voice and messages over time')}}</small></span>
-        </button>
-        <button class="graphs-tab-btn" data-tab="tab-rhythm" data-call="switchGraphTab" data-arg="tab-rhythm">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{tr('Horaires', 'Hours')}}</span><small class="tab-desc">{{tr('Présence et heures de pointe', 'Presence and peak hours')}}</small></span>
-        </button>
-        <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{tr('Communauté', 'Community')}}</span><small class="tab-desc">{{tr('Nouveaux membres et classements', 'New members and rankings')}}</small></span>
-        </button>
+        <!-- Last 30 days at a glance, compared with the 30 days before -->
+        <div class="dashboard-kpi-grid an-kpis profile-hero-stats">
+            {{ kpi('hours',tr('Vocal · 30 jours', 'Voice · 30 days'), 'blue', 'icon-voice', '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="mic"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM2 3h5v1h-5zM0 4h1v1h-1zM2 4h5v1h-5zM8 4h1v1h-1zM0 5h1v1h-1zM3 5h3v1h-3zM8 5h1v1h-1zM1 6h2v1h-2zM6 6h2v1h-2zM3 7h3v1h-3zM2 8h5v1h-5z"/></svg>') }}
+            {{ kpi('messages',tr('Messages · 30 jours', 'Messages · 30 days'), 'emerald', 'icon-messages', '<svg width="18" height="18" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>') }}
+            {{ kpi('members',tr('Membres actifs · 30 jours', 'Active members · 30 days'), 'violet', 'icon-users', '<svg width="18" height="18" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>') }}
+            {{ kpi('servers',tr('Serveurs actifs · 30 jours', 'Active servers · 30 days'), 'amber', 'icon-servers', '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>') }}
+        </div>
     </div>
-</div>
+    <nav class="profile-hero-tabs" aria-label="{{tr('Sections des analyses', 'Analytics sections')}}">
+        <div class="hg-tabs-sentinel" aria-hidden="true"></div>
+        <div class="graphs-tabs-wrapper hg-sticky-tabs hg-card-tabs">
+            <div class="graphs-tabs" role="tablist">
+                <button class="graphs-tab-btn active" data-tab="tab-trends" data-call="switchGraphTab" data-arg="tab-trends">
+                    <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
+                    <span class="tab-text"><span class="tab-title">{{tr('Évolution', 'Over time')}}</span><small class="tab-desc">{{tr('Vocal et messages dans le temps', 'Voice and messages over time')}}</small></span>
+                </button>
+                <button class="graphs-tab-btn" data-tab="tab-rhythm" data-call="switchGraphTab" data-arg="tab-rhythm">
+                    <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>
+                    <span class="tab-text"><span class="tab-title">{{tr('Horaires', 'Hours')}}</span><small class="tab-desc">{{tr('Présence et heures de pointe', 'Presence and peak hours')}}</small></span>
+                </button>
+                <button class="graphs-tab-btn" data-tab="tab-community" data-call="switchGraphTab" data-arg="tab-community">
+                    <svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
+                    <span class="tab-text"><span class="tab-title">{{tr('Communauté', 'Community')}}</span><small class="tab-desc">{{tr('Nouveaux membres et classements', 'New members and rankings')}}</small></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+</section>
 
 <!-- ============================ Évolution ============================ -->
 <div id="tab-trends" class="graphs-tab-pane active">
@@ -138,18 +145,6 @@
         <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="hourlyChart"></canvas></div>
         <div class="an-punch-head">
             <span class="an-subtitle" id="punchTitle">{{tr('Détail par jour de la semaine (vocal)', 'Detail per day of the week (voice)')}}</span>
-            <span class="an-legend">
-                <span>{{tr('Calme', 'Quiet')}}</span>
-                <i data-punch-legend="1"></i>
-                <i data-punch-legend="2"></i>
-                <i data-punch-legend="3"></i>
-                <i data-punch-legend="4"></i>
-                <i data-punch-legend="5"></i>
-                <i data-punch-legend="6"></i>
-                <i data-punch-legend="7"></i>
-                <i data-punch-legend="8"></i>
-                <span>{{tr('Très actif', 'Busiest')}}</span>
-            </span>
         </div>
         <div class="an-punch">{{ loading() }}<div id="punchcardContent"></div></div>
     </section>
@@ -160,36 +155,55 @@
     <section class="gray-box small-border-radius an-card">
         <div class="an-card-head">
             <div>
-                <h2 class="an-card-title">{{tr('Nouveaux membres par mois', 'New members per month')}}</h2>
-                <p class="an-card-desc">{{tr('Membres vus pour la première fois par le bot.', 'Members seen by the bot for the first time.')}}</p>
+                <h2 class="an-card-title">{{tr('Nouveaux membres et serveurs par mois', 'New members and servers per month')}}</h2>
+                <p class="an-card-desc">{{tr('Membres et serveurs vus pour la première fois par le bot, côte à côte pour chaque mois. Les serveurs ont leur propre axe, à droite.', 'Members and servers seen by the bot for the first time, side by side for each month. Servers have their own axis, on the right.')}}</p>
             </div>
         </div>
         <div class="an-chart an-chart-md">{{ loading() }}<canvas id="growthChart"></canvas></div>
     </section>
 
+    <section class="gray-box small-border-radius an-card" id="globalRaceCard" hidden>
+        <div class="an-card-head">
+            <div>
+                <h2 class="an-card-title">{{tr('Course au classement', 'Leaderboard race')}}</h2>
+                <p class="an-card-desc">{{tr('Le top 10 des membres en heures de vocal cumulées, tous serveurs confondus, mois après mois : qui a pris la tête, et quand.', 'The top 10 members by cumulative voice hours, across all servers, month by month: who took the lead, and when.')}}</p>
+            </div>
+            <div class="an-controls">
+                <span class="an-badge an-badge-heat" data-race-month>&nbsp;</span>
+                <button type="button" class="granularity-btn hg-race-play" data-race-play>{{tr('Lecture', 'Play')}}</button>
+            </div>
+        </div>
+        <div class="hg-race-chart"><canvas data-race-canvas></canvas></div>
+        <input type="range" class="hg-race-seek" data-race-seek min="0" max="0" value="0" step="1" aria-label="{{tr('Mois affiché', 'Month shown')}}">
+    </section>
+
     <div class="an-grid-2">
-        <section class="gray-box small-border-radius an-card" data-ranking="servers">
+        <section class="gray-box small-border-radius an-card" data-movers="progress">
             <div class="an-card-head">
-                <h2 class="an-card-title">{{tr('Serveurs les plus actifs', 'Most active servers')}}</h2>
+                <div>
+                    <h2 class="an-card-title">{{tr('En forte progression', 'On the rise')}}</h2>
+                    <p class="an-card-desc">{{tr('Le plus d’heures de vocal gagnées sur les 30 derniers jours, par rapport aux 30 jours d’avant.', 'The most voice hours gained over the last 30 days, compared with the 30 days before.')}}</p>
+                </div>
                 <div class="granularity-toggle-group" role="group">
-                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{tr('Vocal', 'Voice')}}</button>
-                    <button type="button" class="granularity-btn" data-rank-metric="messages">{{ tr('Messages', 'Messages') }}</button>
+                    <button type="button" class="granularity-btn active" data-movers-kind="members">{{tr('Membres', 'Members')}}</button>
+                    <button type="button" class="granularity-btn" data-movers-kind="servers">{{tr('Serveurs', 'Servers')}}</button>
                 </div>
             </div>
             <ol class="an-rank" data-rank-list>{{ loading() }}</ol>
-            <a class="an-more" href="{{ url_for('top.top_servers') }}">{{tr('Voir tous les serveurs', 'See all servers')}} →</a>
         </section>
 
-        <section class="gray-box small-border-radius an-card" data-ranking="members">
+        <section class="gray-box small-border-radius an-card" data-movers="newcomers">
             <div class="an-card-head">
-                <h2 class="an-card-title">{{tr('Membres les plus actifs', 'Most active members')}}</h2>
+                <div>
+                    <h2 class="an-card-title">{{tr('Nouveaux venus', 'Newcomers')}}</h2>
+                    <p class="an-card-desc">{{tr('Arrivés ces 30 derniers jours, classés par heures de vocal depuis leur arrivée.', 'Arrived in the last 30 days, ranked by voice hours since they arrived.')}}</p>
+                </div>
                 <div class="granularity-toggle-group" role="group">
-                    <button type="button" class="granularity-btn active" data-rank-metric="hours">{{tr('Vocal', 'Voice')}}</button>
-                    <button type="button" class="granularity-btn" data-rank-metric="messages">{{ tr('Messages', 'Messages') }}</button>
+                    <button type="button" class="granularity-btn active" data-movers-kind="members">{{tr('Membres', 'Members')}}</button>
+                    <button type="button" class="granularity-btn" data-movers-kind="servers">{{tr('Serveurs', 'Servers')}}</button>
                 </div>
             </div>
             <ol class="an-rank" data-rank-list>{{ loading() }}</ol>
-            <a class="an-more" href="{{ url_for('top.top_users') }}">{{tr('Voir le classement complet', 'See the full leaderboard')}} →</a>
         </section>
     </div>
 </div>

@@ -32,16 +32,12 @@ function switchServerProfileTab(tabId) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    Chart.defaults.color = '#a3a6b0';
-    Chart.defaults.font.family = "Arial, sans-serif";
 
     const langLocale = HG.locale;
     const hoursUnit = 'h';
 
-    const modernPalette = [
-        '#5865F2', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6',
-        '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#72767d'
-    ];
+    // Shares and rankings: the Arène colors of the site, toned down, gray for "others"
+    const modernPalette = HG.RANK_COLORS;
     const readJson = id => {
         const el = document.getElementById(id);
         return el ? JSON.parse(el.textContent) : null;
@@ -62,56 +58,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }, { colors: { hours: '#717cf8', messages: '#3fd1a0' }, period: PAGE_CFG.charts_default_granularity });
     }
 
-    // 5. Server Top Members Donut
+    // Top members: share of the voice hours of the 10 most active members (and the others)
     const sMembersPieEl = document.getElementById('serverTopMembersPieData');
     if (sMembersPieEl) {
         const pieData = JSON.parse(sMembersPieEl.textContent);
-        const ctx = document.getElementById('serverTopMembersChart').getContext('2d');
-
-        const c5 = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: pieData.labels,
-                datasets: [{
-                    data: pieData.hours,
-                    backgroundColor: modernPalette.slice(0, pieData.labels.length),
-                    borderColor: '#212329',
-                    borderWidth: 2,
-                    hoverOffset: 12
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '55%',
-                layout: { padding: 10 },
-                plugins: {
-                    legend: {
-                        position: window.innerWidth < 768 ? 'bottom' : 'right',
-                        labels: {
-                            color: '#d0d2d8',
-                            padding: 12,
-                            font: { size: 11, weight: '500' },
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(24, 25, 29, 0.95)',
-                        callbacks: {
-                            label: function(ctx) {
-                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                const val = ctx.parsed;
-                                const pct = total > 0 ? HG.fmt((val / total) * 100, 1) : 0;
-                                return ` ${val.toLocaleString(langLocale)} ${hoursUnit} (${pct}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        serverChartInstances.push(c5);
+        const narrow = window.innerWidth < 768;
+        serverChartInstances.push(HG.draw('serverTopMembersChart', HG.donutOption({
+            labels: pieData.labels, values: pieData.hours, colors: modernPalette,
+            format: v => `${HG.fmt(v, 1)} ${hoursUnit}`,
+            legend: narrow ? { top: 'auto', bottom: 0, left: 'center' } : { orient: 'vertical', top: 'middle', left: '64%', right: 8 },
+        })));
     }
+
+    // Race of the most active members, month by month
+    const raceCard = document.getElementById('serverRaceCard');
+    const race = readJson('serverRaceData');
+    if (raceCard) HG.memberRace(raceCard, race, modernPalette);
 
     // Peak hours (voice or messages) + day x hour grid
     HG.peakCard(document.getElementById('serverPeakCard'), readJson('serverHourlyActivityData'), readJson('serverPunchcardData'));
@@ -164,3 +126,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+

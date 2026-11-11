@@ -13,7 +13,7 @@
 {% macro fighter(e, n, name, w, tab) %}
 {% set won = w == n|string %}
 {% set fallback = url_for('static', filename='images/base_avatar_big.png') if tab == 'users' else url_for('static', filename='icons/server.png') %}
-<div class="vs-side vs-side-{{ n }}{% if won %} is-winner{% elif w != 'tie' %} is-loser{% endif %}">
+<div class="vs-side vs-side-{{ n }}{% if won %} is-winner{% elif w != 'tie' %} is-loser{% endif %}{% if e.accent_hex %} has-theme{% endif %}{% if e.background_hex %} has-bg{% endif %}{% if e.banner %} has-banner{% endif %}"{% if e.accent_hex %} style="--fighter: {{ e.accent_hex }}; --fighter-rgb: {{ e.accent_rgb }};{% if e.background_hex %} --fighter-bg: {{ e.background_hex }};{% endif %}"{% endif %}>
     {% if e.banner %}<div class="vs-side-bg" style="background-image: url('{{ e.banner }}');"></div>
     {% elif e.avatar %}<div class="vs-side-bg is-avatar" style="background-image: url('{{ e.avatar }}');"></div>{% endif %}
     <div class="vs-side-body">
@@ -41,6 +41,7 @@
             <span class="vs-chip">{{ pixel_icon('trophy', 12) }}<b>#{{ e.rank if e.rank else '–' }}</b>{% if e.rank and total %}<small>/ {{ total | thousands_fr }}</small>{% endif %}</span>
             <span class="vs-chip">{{ pixel_icon('clock', 12) }}<b>{{ e.hours | num(1) }} h</b></span>
         </div>
+
     </div>
 </div>
 {% endmacro %}
@@ -49,10 +50,9 @@
 
 {% macro metric_lead(m) %}{% if m.key == 'rank' %}{{ tr('{n} places devant', '{n} spots ahead', n=m.diff | thousands_fr) if m.diff > 1 else tr('1 place devant', '1 spot ahead') }}{% elif m.unit == 'h' %}+{{ m.diff | num(1) }} h{% else %}+{{ m.diff | thousands_fr }}{% endif %}{% endmacro %}
 
-<!-- Chart.js & Adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<!-- ECharts -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 <script type="application/json" id="versusChartData">{{ chart_json|safe_json }}</script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/versus.css', v=asset_version('css/pages/versus.css')) }}">
 
@@ -264,6 +264,10 @@
         <section class="vs-arena" data-winner="{{ w }}">
             {{ fighter(entity1, 1, name1, w, tab) }}
 
+        {% set radar_axes = [] %}
+        {% for m in comparison.metrics %}
+            {% set _ = radar_axes.append({"key": m.key, "label": t(m.label_key), "pct1": m.pct1, "v1": metric_value(m, m.v1) | striptags, "v2": metric_value(m, m.v2) | striptags, "winner": m.winner}) %}
+        {% endfor %}
             <div class="vs-core">
                 <div class="vs-emblem" aria-hidden="true"><span>VS</span></div>
                 <div class="vs-score" role="img" aria-label="{{ tr('Score : {a} à {b}', 'Score: {a} to {b}', a=comparison.score1, b=comparison.score2) }}">
@@ -271,6 +275,9 @@
                     <span class="vs-score-sep">:</span>
                     <span class="vs-score-2{% if w == '2' %} is-win{% endif %}">{{ comparison.score2 }}</span>
                 </div>
+                <!-- Each branch: the share of a category each side holds -->
+                <div class="vs-radar" role="img" aria-label="{{ tr('Profil du duel : la part de chaque catégorie prise par chacun', 'Duel profile: the share of each category each side holds') }}"><canvas id="versusRadar"></canvas></div>
+                <script type="application/json" id="versusRadarData">{{ {"name1": name1, "name2": name2, "axes": radar_axes} | tojson }}</script>
                 <div class="vs-verdict vs-verdict-{{ w }}">
                     {% if w == 'tie' %}
                         {{ pixel_icon('scale', 13) }}<span>{{ t('versus.overall_tie_title') }}</span>

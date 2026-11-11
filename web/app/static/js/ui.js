@@ -150,3 +150,49 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(reveal, 0);
     });
 });
+
+/* Section bars that stay under the header (profiles, server pages): compact once stuck, and a new section opens
+   at its top instead of somewhere down the page */
+document.addEventListener('DOMContentLoaded', function () {
+    const bar = document.querySelector('.hg-sticky-tabs');
+    const sentinel = document.querySelector('.hg-tabs-sentinel');
+    if (!bar || !sentinel) return;
+    const header = document.querySelector('.app-header');
+    // The site header only stays on screen on wide screens (sticky); on phones it scrolls away with the page
+    const headerHeight = function () {
+        if (!header || !/^(sticky|fixed)$/.test(getComputedStyle(header).position)) return 0;
+        return Math.round(header.getBoundingClientRect().height);
+    };
+    const setHeader = function () { document.documentElement.style.setProperty('--hg-header', headerHeight() + 'px'); };
+    setHeader();
+    window.addEventListener('resize', setHeader);
+    // Stuck once the spot the bar starts from has gone under the header (one measure per scroll event: cheap).
+    // A bar that is part of a card (player profile) cannot stick past its card: it is fixed instead, at the place and
+    // width of the card, which keeps its room so the page does not jump.
+    let offset = headerHeight();
+    const holder = bar.closest('.profile-hero-tabs');
+    let restHeight = bar.offsetHeight;
+    const check = function () {
+        const stuck = sentinel.getBoundingClientRect().top < offset;
+        if (holder) {
+            if (stuck) {
+                const r = holder.getBoundingClientRect();
+                holder.style.minHeight = restHeight + 'px';
+                bar.style.setProperty('--hg-bar-left', r.left + 'px');
+                bar.style.setProperty('--hg-bar-width', r.width + 'px');
+            } else {
+                holder.style.minHeight = '';
+                restHeight = bar.offsetHeight || restHeight;
+            }
+        }
+        bar.classList.toggle('is-stuck', stuck);
+    };
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', function () { offset = headerHeight(); check(); });
+    check();
+    bar.addEventListener('click', function (e) {
+        if (!e.target.closest('.graphs-tab-btn') || !bar.classList.contains('is-stuck')) return;
+        const top = sentinel.getBoundingClientRect().top + window.scrollY - headerHeight();
+        requestAnimationFrame(function () { window.scrollTo({ top: Math.max(0, top), behavior: 'auto' }); });
+    });
+});

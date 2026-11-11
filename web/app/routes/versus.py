@@ -300,6 +300,10 @@ def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None =
         "username": uname,
         "avatar": get_user_avatar_url(uid),
         "banner": theme["banner_url"],
+        # Profile customization shown on the fighter card: banner (above), color and page background color
+        "accent_hex": theme["accent_hex"],
+        "accent_rgb": theme["accent_rgb"],
+        "background_hex": theme["background_hex"],
         "title_group": xp_info["title_group"],
         "rank": rank,
         "total_user": total_scope_users,

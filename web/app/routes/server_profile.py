@@ -37,6 +37,7 @@ from app.functions import (
     get_hourly_punchcard_data,
 )
 from app.cache import cache
+from app.functions import get_member_race
 from app.auth import can_view_server_private_data
 from app.i18n import current_lang, tr, day_month, month_year
 
@@ -386,6 +387,14 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
         "hours": member_hours
     })
 
+    # 5b. Race of the most active members, month by month (animated bars)
+    try:
+        member_race_json = json.dumps(get_member_race(all_members, int_server_id, lang))
+    except Exception:
+        from app.database import db
+        db.rollback()
+        member_race_json = "null"
+
     # Average monthly metrics
     full_hours = monthly_diff_data[:-1] if len(monthly_diff_data) > 1 else monthly_diff_data
     avg_hours = round(sum(r["hours_this_month"] for r in full_hours) / max(1, len(full_hours)), 1) if full_hours else 0
@@ -435,6 +444,7 @@ def _build_public_server_charts(server_id: str | int, lang: str = "fr", all_memb
         "daily_hours_chart_data_json": daily_hours_chart_data_json,
         "daily_messages_chart_diff_data_json": daily_messages_chart_diff_data_json,
         "top_members_pie_json": top_members_pie_json,
+        "member_race_json": member_race_json,
         "avg_hours": avg_hours,
         "avg_msgs": avg_msgs,
         "avg_daily_hours": avg_daily_hours,

@@ -19,11 +19,11 @@ from app.functions import (
     get_monthly_hours_diff,
     get_monthly_messages_diff,
     get_daily_activity_last_30_days,
-    get_top_10_users_by_hours,
-    get_top_10_users_by_messages,
     get_hourly_activity_distribution,
     get_presence_history_48h,
     get_voice_history,
+    get_member_race,
+    get_global_race_members,
     slice_voice_history,
     get_voice_record,
     get_monthly_new_users_growth,
@@ -281,26 +281,102 @@ def _window_activity(since: datetime, until: datetime | None = None) -> dict:
     }
 
 
-def _top_servers(field, lang: str) -> list[dict]:
-    rows = (
-        Stats.select(Stats.server_id, Servers.servername, Servers.avatar, fn.SUM(field).alias("value"))
-        .join(Servers, JOIN.LEFT_OUTER, on=(Stats.server_id == Servers.server_id))
-        .group_by(Stats.server_id, Servers.servername, Servers.avatar)
-        .order_by(fn.SUM(field).desc())
-        .limit(10)
-        .dicts()
-    )
-    default = tr("Serveur", "Server", lang)
-    is_voice = field is Stats.seconds
-    return [
-        {
-            "id": str(r["server_id"]),
-            "name": r["servername"] or f"{default} {r['server_id']}",
-            "avatar": r["avatar"],
-            "value": round((r["value"] or 0) / 3600, 1) if is_voice else int(r["value"] or 0),
-        }
-        for r in rows
-    ]
+def _global_race(lang: str) -> dict | None:
+    try:
+        return get_member_race(get_global_race_members(), None, lang)
+    except Exception:
+        log.exception("Global leaderboard race unavailable")
+        db.rollback()
+        return None
+
+
+MOVERS_DAYS = 30
+MOVERS_LIMIT = 10
+
+
+def _growth(lang: str) -> dict:
+    """New members and new servers per month, on one shared list of months.
+
+    A server counts from the first time Hourglass knew it: first_tracked_at or its first recorded activity, whichever
+    is older (first_tracked_at only exists since October 2026, like the server pages).
+    """
+    members = {r["month"][:7]: r["new_users"] for r in get_monthly_new_users_growth()}
+    servers = {}
+    try:
+        rows = db.execute_sql(
+            "SELECT to_char(date_trunc('month', LEAST(s.first_tracked_at, f.first_stat)), 'YYYY-MM'), COUNT(*) "
+            "FROM servers s LEFT JOIN (SELECT server_id, MIN(date_creation) AS first_stat FROM stats GROUP BY server_id) f "
+            "ON f.server_id = s.server_id GROUP BY 1").fetchall()
+        servers = {m: int(n) for m, n in rows if m}
+    except Exception:
+        db.rollback()
+    months = sorted(set(members) | set(servers))
+    return {
+        "labels": [_month_label(m + "-01", lang) for m in months],
+        "new_users": [members.get(m, 0) for m in months],
+        "new_servers": [servers.get(m, 0) for m in months],
+    }
+
+
+def _movers(lang: str) -> dict:
+    """Biggest rises in voice (last 30 days against the 30 before) and the newcomers of the last 30 days,
+    for members and for servers. Bots are left out; archive sessions do not count."""
+    from app.functions import is_bot_user
+    days = MOVERS_DAYS
+    member_label, server_label = tr("Membre", "Member", lang), tr("Serveur", "Server", lang)
+
+    def names(kind: str, ids: list[int]) -> dict:
+        if not ids:
+            return {}
+        if kind == "members":
+            rows = db.execute_sql("SELECT user_id, username, avatar FROM users WHERE user_id = ANY(%s)", (ids,)).fetchall()
+        else:
+            rows = db.execute_sql("SELECT server_id, servername, avatar FROM servers WHERE server_id = ANY(%s)", (ids,)).fetchall()
+        return {int(i): (n, a) for i, n, a in rows}
+
+    def entries(kind: str, rows, value, extra) -> list[dict]:
+        rows = [r for r in rows if kind != "members" or not is_bot_user(r[0])][:MOVERS_LIMIT]
+        known = names(kind, [int(r[0]) for r in rows])
+        out = []
+        for r in rows:
+            name, avatar = known.get(int(r[0]), (None, None))
+            out.append({"id": str(r[0]), "name": name or f"{member_label if kind == 'members' else server_label} {r[0]}",
+                        "avatar": avatar, "value": value(r), **extra(r)})
+        return out
+
+    result = {"progress": {}, "newcomers": {}, "days": days}
+    for kind, col in (("members", "user_id"), ("servers", "server_id")):
+        try:
+            rows = db.execute_sql(
+                f"SELECT id, cur, prev FROM (SELECT {col} AS id, "
+                "SUM(CASE WHEN joined_at >= NOW()::timestamp - %s * INTERVAL '1 day' THEN duration_seconds ELSE 0 END) AS cur, "
+                "SUM(CASE WHEN joined_at < NOW()::timestamp - %s * INTERVAL '1 day' THEN duration_seconds ELSE 0 END) AS prev "
+                "FROM voice_sessions WHERE joined_at >= NOW()::timestamp - %s * INTERVAL '1 day' AND NOT COALESCE(is_legacy, FALSE) "
+                f"GROUP BY {col}) t WHERE cur > prev AND prev > 0 ORDER BY cur - prev DESC LIMIT 40",  # newcomers have their own card
+                (days, days, days * 2)).fetchall()
+            result["progress"][kind] = entries(kind, rows, lambda r: round((r[1] - r[2]) / 3600, 1),
+                                               lambda r: {"current": round((r[1] or 0) / 3600, 1), "previous": round((r[2] or 0) / 3600, 1)})
+        except Exception:
+            db.rollback()
+            result["progress"][kind] = []
+        try:
+            if kind == "members":
+                rows = db.execute_sql(
+                    "SELECT user_id, SUM(seconds), MIN(date_creation) FROM stats GROUP BY user_id "
+                    "HAVING MIN(date_creation) >= NOW()::timestamp - %s * INTERVAL '1 day' ORDER BY 2 DESC LIMIT 40", (days,)).fetchall()
+            else:
+                rows = db.execute_sql(
+                    "SELECT s.server_id, COALESCE(f.secs, 0), LEAST(s.first_tracked_at, f.first_stat) FROM servers s "
+                    "LEFT JOIN (SELECT server_id, SUM(seconds) AS secs, MIN(date_creation) AS first_stat FROM stats GROUP BY server_id) f "
+                    "ON f.server_id = s.server_id "
+                    "WHERE LEAST(s.first_tracked_at, f.first_stat) >= NOW()::timestamp - %s * INTERVAL '1 day' ORDER BY 3 DESC LIMIT 40",
+                    (days,)).fetchall()
+            result["newcomers"][kind] = entries(kind, rows, lambda r: round((r[1] or 0) / 3600, 1),
+                                                lambda r: {"since": r[2].strftime("%Y-%m-%d") if r[2] else None})
+        except Exception:
+            db.rollback()
+            result["newcomers"][kind] = []
+    return result
 
 
 def compute_graphs_data(lang: str = "fr") -> dict:
@@ -346,12 +422,12 @@ def compute_graphs_data(lang: str = "fr") -> dict:
         "month_cumul": {"labels": [_month_label(d, lang) for d in c_dates], "hours": c_hours, "messages": c_msgs},
     }
 
-    growth = get_monthly_new_users_growth()
-    top_hours = get_top_10_users_by_hours()
-    top_msgs = get_top_10_users_by_messages()
+    growth = _growth(lang)
 
     return {
         "summary": {"current": current, "previous": previous},
+        # Race of the most active members across every server, month by month (Communauté tab)
+        "race": _global_race(lang),
         "trends": trends,
         "hourly": get_hourly_activity_distribution(server_id=None, user_id=None, lang=lang),
         "punchcard": get_hourly_punchcard_data(),
@@ -359,15 +435,11 @@ def compute_graphs_data(lang: str = "fr") -> dict:
         "presence": {"48h": get_presence_history_48h(lang=lang), "7d": get_presence_history_48h(lang=lang, hours=24 * 7)},
         # Members in voice every 15 min, rebuilt from the voice sessions (one query for 7 days, 48 h sliced from it)
         "voice_live": _voice_live(lang),
-        "growth": {
-            "labels": [_month_label(r["month"], lang) for r in growth],
-            "new_users": [r["new_users"] for r in growth],
-        },
-        "top_servers": {"hours": _top_servers(Stats.seconds, lang), "messages": _top_servers(Stats.messages, lang)},
-        "top_members": {
-            "hours": [{"id": str(r["user_id"]), "name": r["username"], "avatar": r["avatar"], "value": r["hours"]} for r in top_hours],
-            "messages": [{"id": str(r["user_id"]), "name": r["username"], "avatar": r["avatar"], "value": r["messages"]} for r in top_msgs],
-        },
+        # New members and new servers per month (Communauté tab)
+        "growth": growth,
+        # What moved lately, rather than the all-time ranking already shown by the race: the biggest rises in voice
+        # over the last 30 days, and the members and servers that arrived in the last 30 days
+        "movers": _movers(lang),
     }
 
 
@@ -385,6 +457,33 @@ def graphs():
     """Analytics page. When the data is already cached it is inlined in the page (no second request);
     otherwise the page renders immediately and the charts load from /api/graphs/data."""
     return render_template("graphs.html", initial_data=get_cached_graphs_data(_visitor_lang(), get_user_timezone(), wait=False))
+
+
+LIVE_VOICE_CACHE_SECONDS = 20
+
+
+@graphs_bp.route("/api/live/voice", methods=["GET"])
+def api_live_voice():
+    """Members in voice right now, seen by the bot (the live point of the "Members in voice" chart, polled every minute).
+
+    Same rule as the chart: an open session counts while the bot keeps its heartbeat (every 30 s).
+    """
+    from app.cache import cache
+
+    def count():
+        try:
+            row = db.execute_sql(
+                "SELECT COUNT(DISTINCT user_id) FROM voice_sessions WHERE left_at IS NULL AND NOT COALESCE(is_legacy, FALSE) "
+                "AND last_heartbeat >= NOW()::timestamp - INTERVAL '5 minutes'").fetchone()
+            return int(row[0] or 0)
+        except Exception:
+            db.rollback()
+            return None
+
+    value = cache.get_or_set(("live_voice",), LIVE_VOICE_CACHE_SECONDS, count)
+    response = jsonify({"in_voice": value})
+    response.headers["Cache-Control"] = f"public, max-age={LIVE_VOICE_CACHE_SECONDS}"
+    return response
 
 
 @graphs_bp.route("/api/graphs/data", methods=["GET"])

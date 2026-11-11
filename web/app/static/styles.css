@@ -4857,6 +4857,28 @@ button.btn-versus-action {
 .hg-controls .granularity-toggle-group { margin: 0; }
 .hg-badge { background: rgba(113, 124, 248, 0.15); color: #717cf8; border: 1px solid rgba(113, 124, 248, 0.3); padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
 .hg-chart { position: relative; width: 100%; height: 340px; }
+/* Day x hour heat map and its filter */
+.hg-punch, #punchcardContent { height: 290px; }
+@media (max-width: 480px) { .hg-punch, #punchcardContent { height: 250px; } }
+/* On its own line, left-aligned: the text after the slider grows to the right without moving the slider */
+.hg-heat-filter { display: flex; flex: 1 0 100%; align-items: center; gap: 8px; color: #9a9da7; font-size: 0.78rem; flex-wrap: wrap; margin-top: 8px; }
+.hg-heat-range { position: relative; width: 150px; height: 18px; display: flex; align-items: center; }
+.hg-heat-bar { position: absolute; left: 0; right: 0; height: 8px; border-radius: 4px; pointer-events: none; }
+.hg-heat-range input { position: relative; width: 100%; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.hg-heat-range input::-webkit-slider-runnable-track { height: 8px; background: transparent; }
+.hg-heat-range input::-moz-range-track { height: 8px; background: transparent; }
+.hg-heat-range input::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 18px; margin-top: -5px; background: #fff; border: 2px solid #15161a; border-radius: 3px; transform: skewX(-12deg); }
+.hg-heat-range input::-moz-range-thumb { width: 10px; height: 16px; background: #fff; border: 2px solid #15161a; border-radius: 3px; }
+.hg-heat-filter output { color: #e3e5e8; font-weight: 600; min-width: 0; }
+/* Leaderboard race of the server page */
+.hg-race-chart { position: relative; width: 100%; height: 440px; }
+.hg-race-seek { width: 100%; margin-top: 10px; accent-color: #717cf8; }
+.hg-race-play { display: inline-flex; align-items: center; gap: 7px; min-width: 104px; justify-content: center; }
+.hg-race-play svg { flex: none; }
+.hg-race-play.is-playing { background: rgba(113, 124, 248, 0.18); color: #e0dbff; }
+.hg-race-play:not(.is-playing) { background: #717cf8; color: #fff; }
+@media (max-width: 768px) { .hg-race-chart { height: 400px; } }
+
 .hg-chart-sm { height: 260px; }
 .hg-punch-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin: 22px 0 10px; }
 .hg-punch-head .hg-subtitle { color: #e3e5e8; font-weight: 700; }
@@ -4871,6 +4893,8 @@ button.btn-versus-action {
 .hg-split-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
 .hg-split-item { display: grid; grid-template-columns: 10px 1fr auto 56px; align-items: center; gap: 10px; padding: 7px 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: 0.86rem; }
 .hg-split-item i { width: 10px; height: 10px; border-radius: 3px; }
+.hg-split-item { transition: background 0.15s; }
+.hg-split-item:hover, .hg-split-item.is-hover { background: rgba(255, 255, 255, 0.08); }
 .hg-split-name { color: #f2f3f5; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hg-split-value { color: #e3e5e8; font-weight: 700; }
 .hg-split-pct { color: #9a9da7; font-size: 0.78rem; text-align: right; }
@@ -5311,3 +5335,119 @@ button.btn-versus-action {
     line-height: 1.3;
   }
 }
+
+
+/* ==========================================================================
+   Profiles and server pages: the section bar stays under the site header while scrolling, compact once stuck
+   (titles only, on a blurred panel), so the other sections are always in sight. ui.js sets .is-stuck and the
+   header height (--hg-header).
+   ========================================================================== */
+.hg-tabs-sentinel { height: 1px; margin-bottom: -1px; }
+.hg-sticky-tabs { position: sticky; top: var(--hg-header, 58px); z-index: 900; transition: margin 0.2s ease; }
+.hg-sticky-tabs .graphs-tabs { transition: background 0.2s ease, box-shadow 0.2s ease, padding 0.2s ease; }
+.hg-sticky-tabs.is-stuck .graphs-tabs,
+.hg-sticky-tabs.is-stuck .graphs-tabs.has-more {
+  background: rgba(21, 22, 26, 0.94);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  padding: 6px;
+}
+.hg-sticky-tabs.is-stuck .tab-desc { display: none; }
+.hg-sticky-tabs.is-stuck .graphs-tab-btn { padding-top: 7px; padding-bottom: 8px; }
+.hg-sticky-tabs.is-stuck .graphs-tab-btn > svg { padding: 5px; }
+@media (max-width: 760px) {
+  .hg-sticky-tabs.is-stuck .graphs-tab-btn { flex-direction: row; justify-content: center; gap: 6px; padding: 7px 4px; }
+  .hg-sticky-tabs.is-stuck .graphs-tab-btn > svg { width: 14px; height: 14px; padding: 3px; }
+  .hg-sticky-tabs.is-stuck .graphs-tab-btn .tab-title { font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hg-sticky-tabs.is-stuck .graphs-tab-btn .tab-text { width: auto; min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hg-sticky-tabs, .hg-sticky-tabs .graphs-tabs { transition: none; }
+}
+
+/* ==========================================================================
+   Player profile: the section tabs are the bottom edge of the player's card (like Discord or Twitter profiles),
+   under a compact strip of key figures. Once the card has scrolled away, the tabs stay at the top (ui.js fixes
+   them under the site header and keeps their room in the card).
+   ========================================================================== */
+html body .profile-hero-stats { margin: 16px 0 0; gap: 0; background: rgba(255, 255, 255, 0.025); border-top: 1px solid rgba(255, 255, 255, 0.06); }
+html body .profile-hero-stats .home-stats-box { background: transparent; box-shadow: none; clip-path: none; border: 0; border-radius: 0; padding: 12px 14px; }
+html body .profile-hero-stats .home-stats-box + .home-stats-box { border-left: 1px solid rgba(255, 255, 255, 0.06); }
+html body .profile-hero-stats .home-stats-icon { transform: scale(0.85); }
+@media (max-width: 760px) {
+  html body .profile-hero-stats .home-stats-box:nth-child(odd) { border-left: 0; }
+  html body .profile-hero-stats .home-stats-box:nth-child(n + 3) { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+}
+.profile-hero-tabs { border-top: 1px solid rgba(255, 255, 255, 0.07); }
+html body .profile-hero-tabs .graphs-tabs-wrapper { margin: 0; position: static; }
+html body .profile-hero-tabs .graphs-tabs { background: none; border: 0; border-radius: 0; padding: 0; gap: 0; box-shadow: none; }
+html body .profile-hero-tabs .graphs-tab-btn {
+  clip-path: none; border-radius: 0; background: transparent; box-shadow: none;
+  padding: 14px 14px 13px; color: var(--ar-muted, #a3a6b0);
+}
+html body .profile-hero-tabs .graphs-tab-btn > svg { background: rgba(255, 255, 255, 0.05); }
+html body .profile-hero-tabs .graphs-tab-btn:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
+html body .profile-hero-tabs .graphs-tab-btn.active { background: rgba(var(--accent-rgb, 113, 124, 248), 0.12); color: #fff; }
+html body .profile-hero-tabs .graphs-tab-btn.active > svg { color: var(--accent, #717cf8); background: rgba(var(--accent-rgb, 113, 124, 248), 0.2); }
+html body .profile-hero-tabs .graphs-tab-btn.active .tab-desc { color: #b0b3bc; }
+html body .profile-hero-tabs .graphs-tab-btn::after,
+html body .profile-hero-tabs .graphs-tab-btn.active::after {
+  content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; top: auto; width: auto; height: 3px;
+  border-radius: 0; background: transparent; transition: background 0.18s ease;
+}
+html body .profile-hero-tabs .graphs-tab-btn.active::after { background: var(--accent, #717cf8); }
+html body .profile-hero-tabs .graphs-tab-btn .tab-badge { background: rgba(255, 255, 255, 0.08); color: #c9ccd3; }
+html body .profile-hero-tabs .graphs-tab-btn.active .tab-badge { background: rgba(var(--accent-rgb, 113, 124, 248), 0.3); color: #fff; }
+/* Fixed under the header once the card is out of sight */
+html body .profile-hero-tabs .hg-sticky-tabs.is-stuck { position: fixed; top: var(--hg-header, 0px); left: var(--hg-bar-left, 0); width: var(--hg-bar-width, 100%); z-index: 900; }
+html body .profile-hero-tabs .hg-sticky-tabs.is-stuck .graphs-tabs {
+  background: rgba(21, 22, 26, 0.95); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.06); padding: 0;
+}
+@media (max-width: 760px) {
+  html body .profile-hero-tabs .graphs-tabs { padding: 0; }
+  html body .profile-hero-tabs .graphs-tab-btn { padding: 10px 4px 11px; }
+  html body .profile-hero-tabs .graphs-tab-btn .tab-badge { margin: 2px 0 0; font-size: 0.68rem; padding: 1px 6px; }
+}
+/* The themed profile writes dark ink on a solid accent fill; these tabs only get a light tint: light text */
+html body .profile-themed .profile-hero-tabs .graphs-tab-btn.active { color: #fff; }
+html body .profile-themed .profile-hero-tabs .graphs-tab-btn.active .tab-desc { color: #b0b3bc; }
+html body .profile-themed .profile-hero-tabs .graphs-tab-btn.active svg { color: var(--accent, #717cf8); }
+
+/* ==========================================================================
+   One header card for the player profile, the server page and the Analytics page: same padding and cut corners,
+   the strip of key figures (same icons, no colored top line), and the section tabs as the bottom edge.
+   ========================================================================== */
+html body .hg-hero { padding: 0; margin-bottom: 25px; clip-path: var(--cut-m); }
+html body .hg-hero-body { padding: 24px; }
+html body .profile-hero .profile-hero-body { padding-bottom: 24px; }
+html body .an-hero .an-head { margin: 0; }
+html body .an-hero .profile-hero-stats { margin-top: 18px; }
+@media (max-width: 760px) { html body .hg-hero-body { padding: 18px 16px; } }
+
+/* Key figures: one look whatever the page (the color of the page, not one per kind of figure) */
+html body .hg-hero .profile-hero-stats .home-stats-box[class*="tone-"],
+html body .hg-hero .profile-hero-stats .home-stats-box { box-shadow: none; }
+html body .hg-hero .profile-hero-stats .home-stats-box .home-stats-icon {
+  background: rgba(var(--accent-rgb, 113, 124, 248), 0.16); color: var(--accent, #717cf8); border-color: transparent;
+}
+/* Analytics: the strip keeps one color per kind of figure (voice, messages, members, servers): a colored line on
+   top of each figure and a solid colored icon, as before the header card */
+html body .hg-hero .profile-hero-stats .dashboard-kpi-card {
+  background: transparent; border: 0; border-top: 3px solid var(--tone, #717cf8); box-shadow: none; clip-path: none; border-radius: 0; padding: 14px 16px;
+}
+html body .hg-hero .profile-hero-stats .dashboard-kpi-card::before,
+html body .hg-hero .profile-hero-stats .dashboard-kpi-card::after { display: none; }
+html body .hg-hero .profile-hero-stats .dashboard-kpi-card + .dashboard-kpi-card { border-left: 1px solid rgba(255, 255, 255, 0.06); }
+@media (max-width: 760px) {
+  html body .hg-hero .profile-hero-stats .dashboard-kpi-card:nth-child(odd) { border-left: 0; }
+  html body .hg-hero .profile-hero-stats .dashboard-kpi-card:nth-child(n + 3) { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+}
+
+/* Tabs: icon and title from the left, counter on the right, on every page */
+@media (min-width: 761px) {
+  html body .profile-hero-tabs .graphs-tab-btn { justify-content: flex-start; }
+}
+/* A link to a section (#tab-…) lands with the section start below the tabs stuck at the top */
+.graphs-tab-pane { scroll-margin-top: calc(var(--hg-header, 0px) + 90px); }

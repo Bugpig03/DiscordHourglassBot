@@ -8,11 +8,10 @@
 
 {% block content %}
 
-<!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<!-- ECharts and the shared chart helpers -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 <script src="{{ url_for('static', filename='js/activity_charts.js', v=asset_version('js/activity_charts.js')) }}" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for Server -->
 <script type="application/json" id="serverHoursProgressionData">{{ charts.chart_data_json|safe_json }}</script>
@@ -32,8 +31,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/server_profile.css', v=asset_version('css/pages/server_profile.css')) }}">
 
 <br>
-<!-- Server Header Card -->
-<div class="gray-box small-border-radius" style="padding: 24px; margin-bottom: 25px;">
+<!-- Server Header Card: identity, key figures, and the section tabs as its bottom edge -->
+<section class="gray-box small-border-radius hg-hero server-hero">
+    <div class="hg-hero-body">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
             <img src="{{ stats.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
@@ -72,70 +72,72 @@
             </a>
         </div>
     </div>
-</div>
-
-<!-- Server KPI Cards -->
-<div class="home-stats-container stats-4" style="margin-bottom: 25px;">
-    <div class="home-stats-box tone-rank">
-        <div class="home-stats-icon">
-            {{ pixel_icon('trophy', 22) }}
+    <!-- Key figures, part of the card -->
+    <div class="home-stats-container stats-4 profile-hero-stats">
+        <div class="home-stats-box tone-rank">
+            <div class="home-stats-icon">
+                {{ pixel_icon('trophy', 22) }}
+            </div>
+            <div class="home-stats-content">
+                <span class="home-stats-label">{{ t('server_profile.server_rank_label') }}</span>
+                <span class="home-stats-value">{% if stats.rank %}#{{ stats.rank }} <span style="font-size: 0.85rem; color: #9a9da7;">/ {{ stats.total_server }}</span>{% else %}{{ t('user_profile.unranked') }}{% endif %}</span>
+            </div>
         </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('server_profile.server_rank_label') }}</span>
-            <span class="home-stats-value">{% if stats.rank %}#{{ stats.rank }} <span style="font-size: 0.85rem; color: #9a9da7;">/ {{ stats.total_server }}</span>{% else %}{{ t('user_profile.unranked') }}{% endif %}</span>
+
+        <div class="home-stats-box tone-voice">
+            <div class="home-stats-icon">
+                {{ pixel_icon('calendar', 22) }}
+            </div>
+            <div class="home-stats-content">
+                <span class="home-stats-label">{{ t('server_profile.activity_30d') }}</span>
+                <span class="home-stats-value">{{ (stats.total_time_last_30d.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}</span>
+            </div>
+        </div>
+
+        <div class="home-stats-box tone-voice">
+            <div class="home-stats-icon">
+                {{ pixel_icon('hourglass', 22) }}
+            </div>
+            <div class="home-stats-content">
+                <span class="home-stats-label">{{ t('server_profile.total_voice') }}</span>
+                <span class="home-stats-value">{{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}</span>
+            </div>
+        </div>
+
+        <div class="home-stats-box tone-msg">
+            <div class="home-stats-icon">
+                {{ pixel_icon('chat', 22) }}
+            </div>
+            <div class="home-stats-content">
+                <span class="home-stats-label">{{ t('server_profile.total_messages') }}</span>
+                <span class="home-stats-value">{{ stats.total_message | num }}</span>
+            </div>
         </div>
     </div>
-
-    <div class="home-stats-box tone-voice">
-        <div class="home-stats-icon">
-            {{ pixel_icon('calendar', 22) }}
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('server_profile.activity_30d') }}</span>
-            <span class="home-stats-value">{{ (stats.total_time_last_30d.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}</span>
+    </div>
+    <nav class="profile-hero-tabs" aria-label="{{tr('Sections du serveur', 'Server sections')}}">
+    <div class="hg-tabs-sentinel" aria-hidden="true"></div>
+    <div class="graphs-tabs-wrapper hg-sticky-tabs hg-card-tabs">
+        <div class="graphs-tabs" role="tablist">
+            <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchServerProfileTab" data-arg="tab-activity">
+                <svg width="15" height="15" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="flame"><path d="M4 0h1v1h-1zM3 1h2v1h-2zM3 2h3v1h-3zM7 2h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM1 4h8v1h-8zM1 5h3v1h-3zM5 5h4v1h-4zM1 6h2v1h-2zM6 6h3v1h-3zM1 7h2v1h-2zM6 7h2v1h-2zM2 8h5v1h-5z"/></svg>
+                <span class="tab-text"><span class="tab-title">{{ t('server_profile.tab_activity') }}</span><small class="tab-desc">{{tr('Salons et sessions vocales', 'Channels and voice sessions')}}</small></span>
+            </button>
+            <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchServerProfileTab" data-arg="tab-charts">
+                <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
+                <span class="tab-text"><span class="tab-title">{{ t('server_profile.tab_graphs') }}</span><small class="tab-desc">{{tr('Évolution, heures de pointe, top', 'Trends, peak hours, top')}}</small></span>
+            </button>
+            <button class="graphs-tab-btn" data-tab="tab-members" data-call="switchServerProfileTab" data-arg="tab-members">
+                <svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
+                <span class="tab-text"><span class="tab-title">{{ t('server_profile.tab_members') }}</span><small class="tab-desc">{{tr('Classement et présence', 'Ranking and presence')}}</small></span>
+                {% if stats.users %}<span class="tab-badge">{{ stats.users | length }}</span>{% endif %}
+            </button>
         </div>
     </div>
+    </nav>
+</section>
 
-    <div class="home-stats-box tone-voice">
-        <div class="home-stats-icon">
-            {{ pixel_icon('hourglass', 22) }}
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('server_profile.total_voice') }}</span>
-            <span class="home-stats-value">{{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}</span>
-        </div>
-    </div>
 
-    <div class="home-stats-box tone-msg">
-        <div class="home-stats-icon">
-            {{ pixel_icon('chat', 22) }}
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('server_profile.total_messages') }}</span>
-            <span class="home-stats-value">{{ stats.total_message | num }}</span>
-        </div>
-    </div>
-</div>
-
-<!-- =================================================================== -->
-<!-- TAB NAVIGATION BAR                                                  -->
-<!-- =================================================================== -->
-<div class="graphs-tabs-wrapper">
-    <div class="graphs-tabs" role="tablist">
-        <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchServerProfileTab" data-arg="tab-activity">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="flame"><path d="M4 0h1v1h-1zM3 1h2v1h-2zM3 2h3v1h-3zM7 2h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM1 4h8v1h-8zM1 5h3v1h-3zM5 5h4v1h-4zM1 6h2v1h-2zM6 6h3v1h-3zM1 7h2v1h-2zM6 7h2v1h-2zM2 8h5v1h-5z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('server_profile.tab_activity') }}</span><small class="tab-desc">{{tr('Heures de pointe, salons, sessions', 'Peak hours, channels, sessions')}}</small></span>
-        </button>
-        <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchServerProfileTab" data-arg="tab-charts">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('server_profile.tab_graphs') }}</span><small class="tab-desc">{{tr('Évolution et top membres', 'Trends and top members')}}</small></span>
-        </button>
-        <button class="graphs-tab-btn" data-tab="tab-members" data-call="switchServerProfileTab" data-arg="tab-members">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="users"><path d="M1 0h2v1h-2zM6 0h2v1h-2zM0 1h4v1h-4zM5 1h4v1h-4zM0 2h4v1h-4zM5 2h4v1h-4zM1 3h2v1h-2zM6 3h2v1h-2zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h4v1h-4zM5 7h4v1h-4z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('server_profile.tab_members') }}</span><small class="tab-desc">{{tr('Classement et présence', 'Ranking and presence')}}</small></span>
-        </button>
-    </div>
-</div>
 
 <!-- =================================================================== -->
 <!-- ONGLET 3 : Membres du serveur (Classés par temps en vocal)           -->
@@ -256,35 +258,6 @@
         <div class="hg-chart"><canvas data-trend-canvas></canvas></div>
     </section>
 
-    <!-- Graphique 5 : Répartition des membres (Top 10 Donut) -->
-    <div style="margin: 30px 0 20px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 4px; height: 24px; background: #8b5cf6; border-radius: 4px;"></div>
-        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
-            {{ t('server_profile.top_members_section_title') }}
-        </h2>
-        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
-    </div>
-
-    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('server_profile.top_members_title') }}</div>
-                <div class="small-text gray" style="margin-top: 4px;">{{ t('server_profile.top_members_desc') }}</div>
-            </div>
-            <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); padding: 4px 12px; border-radius: 2px; font-size: 0.85rem; font-weight: bold;">
-                {{ t('server_profile.top_10_others') }}
-            </span>
-        </div>
-        <div style="position: relative; min-height: 380px; width: 100%; display: flex; justify-content: center; align-items: center;">
-            <canvas id="serverTopMembersChart" style="max-height: 360px; width: 100%;"></canvas>
-        </div>
-    </div>
-</div>
-
-<!-- =================================================================== -->
-<!-- ONGLET 1 : Activité (heures de pointe, salons, sessions)           -->
-<!-- =================================================================== -->
-<div id="tab-activity" class="graphs-tab-pane active">
     <section class="gray-box small-border-radius hg-card" id="serverPeakCard">
         <div class="hg-card-head">
             <div>
@@ -306,11 +279,6 @@
         {% if punchcard.days %}
         <div class="hg-punch-head">
             <span class="hg-subtitle" data-punch-title>&nbsp;</span>
-            <span class="hg-legend">
-                <span>{{tr('Calme', 'Quiet')}}</span>
-                <i data-punch-legend="1"></i><i data-punch-legend="2"></i><i data-punch-legend="3"></i><i data-punch-legend="4"></i><i data-punch-legend="5"></i>
-                <span>{{tr('Très actif', 'Busiest')}}</span>
-            </span>
         </div>
         <div class="hg-punch" data-punch></div>
         {% endif %}
@@ -319,6 +287,54 @@
         {% endif %}
     </section>
 
+    <!-- Graphique 5 : Répartition des membres (Top 10 Donut) -->
+    <div style="margin: 30px 0 20px; display: flex; align-items: center; gap: 14px;">
+        <div style="width: 4px; height: 24px; background: #8b5cf6; border-radius: 4px;"></div>
+        <h2 style="color: #ffffff; font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">
+            {{ t('server_profile.top_members_section_title') }}
+        </h2>
+        <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
+    </div>
+
+    <div class="gray-box small-border-radius" style="padding: 20px 25px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <div class="medium-bold-text" style="color: #ffffff; font-size: 1.2rem;">{{ t('server_profile.top_members_title') }}</div>
+                <div class="small-text gray" style="margin-top: 4px;">{{ t('server_profile.top_members_desc') }}</div>
+            </div>
+            <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); padding: 4px 12px; border-radius: 2px; font-size: 0.85rem; font-weight: bold;">
+                {{ t('server_profile.top_10_others') }}
+            </span>
+        </div>
+        <div style="position: relative; height: 380px; width: 100%;">
+            <canvas id="serverTopMembersChart"></canvas>
+        </div>
+    </div>
+
+    {% if charts.member_race_json and charts.member_race_json != 'null' %}
+    <!-- Race of the most active members, month by month -->
+    <section class="gray-box small-border-radius hg-card" id="serverRaceCard">
+        <div class="hg-card-head">
+            <div>
+                <h2 class="hg-card-title">{{tr('Course au classement', 'Leaderboard race')}}</h2>
+                <p class="hg-card-desc">{{tr('Le top 10 des membres en heures de vocal cumulées, mois après mois : qui a pris la tête, et quand.', 'The top 10 members by cumulative voice hours, month by month: who took the lead, and when.')}}</p>
+            </div>
+            <div class="hg-controls">
+                <span class="hg-badge" data-race-month>&nbsp;</span>
+                <button type="button" class="granularity-btn hg-race-play" data-race-play>{{tr('Lecture', 'Play')}}</button>
+            </div>
+        </div>
+        <div class="hg-race-chart"><canvas data-race-canvas></canvas></div>
+        <input type="range" class="hg-race-seek" data-race-seek min="0" max="0" value="0" step="1" aria-label="{{tr('Mois affiché', 'Month shown')}}">
+    </section>
+    <script type="application/json" id="serverRaceData">{{ charts.member_race_json|safe_json }}</script>
+    {% endif %}
+</div>
+
+<!-- =================================================================== -->
+<!-- ONGLET 1 : Activité (heures de pointe, salons, sessions)           -->
+<!-- =================================================================== -->
+<div id="tab-activity" class="graphs-tab-pane active">
     <section class="gray-box small-border-radius hg-card" id="serverChannelsCard">
         <div class="hg-card-head">
             <div>

@@ -7,27 +7,20 @@ const initializedTabs = new Set();
 let apiData = null;
 let currentTab = 'tab-trends';
 
-function switchGraphTab(tabId) {
+function switchGraphTab(tabId, initial) {
     if (!document.getElementById(tabId)) tabId = 'tab-trends';
     currentTab = tabId;
     document.querySelectorAll('.graphs-tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabId));
     document.querySelectorAll('.graphs-tab-pane').forEach(pane => pane.classList.toggle('active', pane.id === tabId));
     initTab(tabId);
     requestAnimationFrame(() => Object.values(charts).forEach(c => { try { c.resize(); } catch (e) {} }));
-    if (window.history && window.history.replaceState) window.history.replaceState(null, '', '#' + tabId);
+    // The address only gets a #tab once the visitor switches: a #fragment present when the page finishes loading
+    // makes the browser jump down to that section, past the header card
+    if (!initial && window.history && window.history.replaceState) window.history.replaceState(null, '', '#' + tabId);
 }
 
-const TOOLTIP = {
-    backgroundColor: 'rgba(24, 25, 29, 0.95)',
-    titleColor: '#ffffff',
-    bodyColor: '#e3e5e8',
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1,
-    padding: 12,
-    boxPadding: 6,
-};
-const GRID = { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false };
 const COLORS = { hours: '#717cf8', messages: '#3fd1a0' };
+const RACE_PALETTE = HG.RANK_COLORS;
 
 function unit(metric) {
     return metric === 'hours' ? 'h' : HG.tr('msgs', 'msgs');
@@ -74,83 +67,21 @@ function renderTrends() {
     const series = apiData.trends[key];
     const metric = trendState.metric;
     const values = series[metric];
-    const color = COLORS[metric];
-    const canvas = document.getElementById('trendsChart');
-    if (charts.trends) charts.trends.destroy();
+    const cumul = trendState.mode === 'cumul';
+    const per = trendState.period === 'month' ? T('mois', 'month') : T('jour', 'day');
 
     const summary = document.getElementById('trendsSummary');
-    let datasets;
-    if (trendState.mode === 'cumul') {
-        const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, color + '59');
-        gradient.addColorStop(1, color + '00');
-        datasets = [{
-            label: T('Total cumulé', 'Running total'),
-            data: values,
-            borderColor: color,
-            backgroundColor: gradient,
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2.5,
-            pointRadius: 0,
-            pointHoverRadius: 5,
-        }];
+    if (cumul) {
         summary.textContent = `${T('Total', 'Total')} : ${fmtValue(metric, values[values.length - 1] || 0)}`;
     } else {
         const complete = HG.measuredValues(values, series);
         const avg = complete.reduce((a, b) => a + b, 0) / Math.max(1, complete.length);
         const total = values.reduce((a, b) => a + b, 0);
-        const per = trendState.period === 'month' ? T('mois', 'month') : T('jour', 'day');
-        datasets = [
-            {
-                label: metric === 'hours' ? T('Heures en vocal', 'Voice hours') : T('Messages', 'Messages'),
-                data: values,
-                ...HG.partialBar(color),
-                borderRadius: 6,
-                borderSkipped: false,
-                order: 2,
-            },
-            {
-                label: `${T('Moyenne', 'Average')} (${fmtValue(metric, avg)} / ${per})`,
-                data: values.map(() => Math.round(avg * 10) / 10),
-                type: 'line',
-                borderColor: '#fbbf24',
-                borderWidth: 2,
-                borderDash: [6, 6],
-                pointRadius: 0,
-                fill: false,
-                order: 1,
-            },
-        ];
         summary.textContent = `${T('Total sur la période', 'Total over the period')} : ${fmtValue(metric, total)} · ${T('moyenne', 'average')} ${fmtValue(metric, avg)} / ${per}`;
     }
-
-    charts.trends = new Chart(canvas, {
-        type: trendState.mode === 'cumul' ? 'line' : 'bar',
-        data: { labels: series.labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { display: trendState.mode !== 'cumul', labels: { color: '#e3e5e8', font: { weight: 'bold' } } },
-                tooltip: {
-                    ...TOOLTIP,
-                    callbacks: { label: c => ` ${c.dataset.label.split(' (')[0]} : ${fmtValue(metric, c.parsed.y)}` },
-                },
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { color: '#a3a6b0', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', callback: v => `${HG.fmt(v)} ${unit(metric)}` } },
-            },
-        },
-    });
-    if (trendState.mode !== 'cumul') {
-        HG.setPartial(charts.trends, series.partial);
-        HG.setEstimated(charts.trends, series.estimated);
-        charts.trends.update();
-    }
+    charts.trends = HG.draw('trendsChart', HG.trendOption({
+        labels: series.labels, values, series, metric, cumul, color: COLORS[metric], perLabel: per,
+    }));
 }
 
 function bindTrendControls() {
@@ -168,22 +99,6 @@ function bindTrendControls() {
 // Horaires: presence over 48 h / 7 days, peak hours (one metric at a time) + day x hour grid
 // ---------------------------------------------------------------------------
 let peakMetric = 'hours';
-// Heat scales, from quiet to busiest: the site's violet (voice) or green (messages), dark to light
-const HEAT = {
-    hours: ['#1e1b3a', '#2c2766', '#3d3591', '#5146b8', '#6b5fd6', '#8b80ea', '#b1a8f5', '#e0dbff'],
-    messages: ['#0f2a22', '#143f31', '#175642', '#1a6e53', '#1f8a67', '#35a87f', '#6fcaa2', '#bff0d9'],
-};
-
-// Position of v between the smallest and the largest non-zero value (0 = quietest, 1 = busiest): the scale
-// spans the real spread instead of 0..max, where quiet hours all fell in the same pale shade
-function heatRatio(v, lo, hi) {
-    return hi > lo ? (v - lo) / (hi - lo) : 1;
-}
-
-function heatColor(scale, r) {
-    return scale[Math.max(0, Math.min(scale.length - 1, Math.floor(r * scale.length - 1e-9)))];
-}
-
 function hourLabel(h) {
     return HG.lang === 'fr' ? `${h}h` : `${h}:00`;
 }
@@ -194,50 +109,13 @@ function renderHourly() {
     const values = (isVoice ? d.voice_hours : d.messages_count) || [];
     const max = Math.max(0, ...values);
     const peak = max > 0 ? values.indexOf(max) : -1;
-    const scale = HEAT[peakMetric];
-    const nonZero = values.filter(v => v > 0);
-    const lo = nonZero.length ? Math.min(...nonZero) : 0;
-    const barColor = v => (v > 0 ? heatColor(scale, heatRatio(v, lo, max)) : 'rgba(255, 255, 255, 0.06)');
     document.getElementById('badgePeak').textContent = peak >= 0
         ? `${T('Pic', 'Peak')} : ${hourLabel(peak)} – ${hourLabel((peak + 1) % 24)}`
         : `${T('Pic', 'Peak')} : --`;
     document.getElementById('peakDesc').textContent = isVoice
         ? T('Nombre moyen de membres en vocal à chaque heure de la journée.', 'Average number of members in voice at each hour of the day.')
         : T('Nombre moyen de messages envoyés à chaque heure de la journée.', 'Average number of messages sent at each hour of the day.');
-    const fmtVal = v => isVoice
-        ? `${HG.fmt(v, 1)} ${T('membre(s) en vocal en moyenne', 'member(s) in voice on average')}`
-        : `${HG.fmt(v, 1)} ${T('messages en moyenne', 'messages on average')}`;
-    if (charts.hourly) charts.hourly.destroy();
-    charts.hourly = new Chart(document.getElementById('hourlyChart'), {
-        type: 'bar',
-        data: {
-            labels: values.map((_, h) => hourLabel(h)),
-            datasets: [{
-                data: values,
-                backgroundColor: values.map(barColor),
-                hoverBackgroundColor: values.map(v => barColor(v) + 'cc'),
-                borderColor: values.map((v, i) => (i === peak ? '#ffffff' : 'transparent')),
-                borderWidth: values.map((v, i) => (i === peak ? 1.5 : 0)),
-                borderRadius: 5,
-                borderSkipped: false,
-            }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { ...TOOLTIP, callbacks: {
-                    title: items => `${hourLabel(items[0].dataIndex)} – ${hourLabel((items[0].dataIndex + 1) % 24)}`,
-                    label: c => ` ${fmtVal(c.parsed.y)}`,
-                } },
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { color: '#a3a6b0', autoSkip: true, maxTicksLimit: 12 } },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', maxTicksLimit: 6, callback: v => HG.fmt(v, Number.isInteger(v) ? 0 : 1) } },
-            },
-        },
-    });
+    charts.hourly = HG.draw('hourlyChart', HG.hourlyOption(values, peakMetric));
     renderPunchcard(apiData.punchcard);
 }
 
@@ -245,31 +123,11 @@ function renderPunchcard(data) {
     const container = document.getElementById('punchcardContent');
     if (!container || !data || !data.days) return;
     const isVoice = peakMetric === 'hours';
-    const scale = HEAT[peakMetric];
-    document.querySelectorAll('[data-punch-legend]').forEach(el => { el.style.background = scale[Number(el.dataset.punchLegend) - 1]; });
     document.getElementById('punchTitle').textContent = isVoice
         ? T('Détail par jour de la semaine (vocal)', 'Detail per day of the week (voice)')
         : T('Détail par jour de la semaine (messages)', 'Detail per day of the week (messages)');
-    const val = c => (isVoice ? c.voice_hours : c.messages) || 0;
-    const all = data.days.flatMap(r => (r.hours || []).map(val)).filter(v => v > 0);
-    const max = all.length ? Math.max(...all) : 0;
-    const lo = all.length ? Math.min(...all) : 0;
-    let html = '<div class="an-punch-grid"><div></div>';
-    for (let h = 0; h < 24; h++) html += `<div class="an-punch-hour">${h % 3 === 0 ? (h < 10 ? '0' + h : h) + 'h' : ''}</div>`;
-    data.days.forEach(row => {
-        const day = HG.lang === 'fr' ? row.day_name : HG.weekday(row.day_index);
-        html += `<div class="an-punch-day">${HG.esc(day)}</div>`;
-        (row.hours || []).forEach(c => {
-            const v = val(c);
-            const bg = v > 0 ? heatColor(scale, heatRatio(v, lo, max)) : 'rgba(255, 255, 255, 0.04)';
-            const what = isVoice
-                ? T('{n} h de vocal au total', '{n} h of voice in total', { n: HG.fmt(c.voice_hours, 1) })
-                : T('{n} messages au total', '{n} messages in total', { n: HG.fmt(c.messages) });
-            const tip = `${day} ${hourLabel(c.hour)} · ${what}`;
-            html += `<div class="punch-cell" style="background: ${bg};" data-tip="${HG.esc(tip)}" aria-label="${HG.esc(tip)}"></div>`;
-        });
-    });
-    container.innerHTML = html + '</div>';
+    charts.punch = HG.draw(container, HG.punchOption(data.days, peakMetric));
+    HG.punchFilter(charts.punch, document.querySelector('.an-punch-head'), peakMetric);
 }
 
 function bindPeakControls() {
@@ -284,60 +142,66 @@ function bindPeakControls() {
 
 let presenceRange = '7d';
 
-function dayTick(labels, i) {
-    const day = l => (l || '').split(' ').slice(0, ['fr', 'ja'].includes(HG.lang) ? 1 : 2).join(' ');
-    return i > 0 && day(labels[i]) !== day(labels[i - 1]) ? day(labels[i]) : '';
+// Points of a time series: [local time, value] on a time axis (zoom keeps sensible ticks), or the labels sent by
+// the server when the data was computed before the times were added
+function timePoints(p, values) {
+    return p.times ? values.map((v, i) => [new Date(p.times[i]).getTime(), v]) : values;
+}
+function timeX(p) {
+    return p.times ? HG.timeAxis() : HG.categoryAxis(p.labels, { boundaryGap: false });
 }
 
 function renderPresence() {
     const p = apiData.presence[presenceRange];
     const label = presenceRange === '7d' ? T('sur 7 jours', 'over 7 days') : T('sur 48 h', 'over 48 h');
     document.getElementById('badgePresence').textContent = `${T('Connectés en moyenne', 'Online on average')} ${label} : ${HG.fmt(p.avg_ratio || 0, 1)} %`;
-    const area = (name, data, color) => ({
-        label: name, data, borderColor: color, backgroundColor: color + '33', fill: true, tension: 0.3, borderWidth: 1.5, pointRadius: 0,
-    });
-    if (charts.presence) charts.presence.destroy();
     const empty = !p.labels || !p.labels.length;
     document.getElementById('presenceEmpty').hidden = !empty;
     document.getElementById('presenceChart').hidden = empty;
     if (empty) {
         document.getElementById('badgePresence').textContent = `${T('Connectés en moyenne', 'Online on average')} ${label} : --`;
-        delete charts.presence;
+        if (charts.presence) charts.presence.clear();
         return;
     }
-    charts.presence = new Chart(document.getElementById('presenceChart'), {
-        type: 'line',
-        data: {
-            labels: p.labels,
-            datasets: [
-                area(T('En ligne', 'Online'), p.online, '#22c55e'),
-                area(T('Absent', 'Idle'), p.idle, '#f59e0b'),
-                area(T('Ne pas déranger', 'Do not disturb'), p.dnd, '#ef4444'),
-                // Offline members dwarf the other curves: hidden by default, one click on the legend shows it
-                { ...area(T('Hors ligne', 'Offline'), p.offline, '#72767d'), hidden: true },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { labels: { color: '#e3e5e8', usePointStyle: true, pointStyle: 'circle' } },
-                tooltip: { ...TOOLTIP, callbacks: { label: c => ` ${c.dataset.label} : ${HG.fmt(c.parsed.y)} ${T('membres', 'members')}` } },
+    const SERIES = [
+        { key: 'online', name: T('En ligne', 'Online'), color: '#22c55e' },
+        { key: 'idle', name: T('Absent', 'Idle'), color: '#f59e0b' },
+        { key: 'dnd', name: T('Ne pas déranger', 'Do not disturb'), color: '#ef4444' },
+        { key: 'offline', name: T('Hors ligne', 'Offline'), color: '#8b8e98' },
+    ];
+    const zoom = HG.zoom(p.labels.length, { min: 60, minSpan: p.times ? 6 * 3600 * 1000 : 6 });
+    charts.presence = HG.draw('presenceChart', {
+        grid: HG.grid({ top: 40, bottom: zoom.bottom }),
+        // Offline members dwarf the other curves: hidden by default, one click on the legend shows them
+        legend: HG.legend({ selected: { [SERIES[3].name]: false } }),
+        tooltip: HG.tooltip({
+            formatter: ps => {
+                const rows = HG.sortedRows(ps, v => HG.fmt(v));
+                const sum = rows.reduce((a, r) => a + r.raw, 0);
+                rows.forEach(r => { r.pct = sum ? `${Math.round(r.raw / sum * 100)} %` : ''; });
+                return HG.tipHtml(p.labels[ps[0].dataIndex], rows, { total: rows.length > 1 ? HG.fmt(sum) : null, pctColumn: true });
             },
-            scales: {
-                // 7 days = 168 hourly points: one tick per day, on the first hour of each new date
-                // (labels look like "dd/mm HHh" in French, "Mon DD HHAM" in English)
-                x: {
-                    grid: { display: false },
-                    ticks: presenceRange === '7d'
-                        ? { color: '#a3a6b0', autoSkip: false, maxRotation: 0, callback: (v, i) => dayTick(p.labels, i) }
-                        : { color: '#a3a6b0', maxTicksLimit: 12, maxRotation: 0 },
-                },
-                y: { stacked: true, beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0' } },
-            },
-        },
+        }),
+        xAxis: timeX(p),
+        yAxis: HG.valueAxis({ min: HG.fitMin }),
+        dataZoom: zoom.dataZoom,
+        series: SERIES.map(s => ({
+            name: s.name, type: 'line', data: timePoints(p, p[s.key]),
+            showSymbol: false, smooth: 0.3, symbolSize: 6,
+            lineStyle: { width: 1.6, color: s.color }, itemStyle: { color: s.color },
+            // Each curve at its own value (not stacked): a light fill under it, fading out
+            areaStyle: { color: HG.areaFill(s.color, 0.16, 0) },
+            emphasis: { focus: 'series', lineStyle: { width: 2.6 } },
+            blur: { lineStyle: { opacity: 0.2 }, areaStyle: { opacity: 0.05 } },
+        })),
     });
+    syncRhythm();
+}
+
+// Presence and members in voice share their timeline: hovering or zooming one moves the other
+function syncRhythm() {
+    const p = apiData.presence[presenceRange], v = apiData.voice_live && apiData.voice_live[voiceLiveRange];
+    if (p && p.times && v && v.times) HG.syncTime([charts.presence, charts.voiceLive]);
 }
 
 function bindPresenceControls() {
@@ -352,22 +216,10 @@ function bindPresenceControls() {
 
 let voiceLiveRange = '7d';
 
-// Vertical gradient over the chart area, deep violet at the bottom to lavender at the top (alpha suffix for the fill)
-function heatGradient(chart, alpha) {
-    const area = chart.chartArea;
-    if (!area) return 'transparent';
-    const g = chart.ctx.createLinearGradient(0, area.bottom, 0, area.top);
-    const stops = ['#3d3591', '#5146b8', '#6b5fd6', '#8b80ea', '#b1a8f5'];
-    stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c + alpha));
-    return g;
-}
-
 // Members in voice every 15 min (rebuilt from the voice sessions), over 48 h or 7 days
 function renderVoiceLive() {
     const p = apiData.voice_live && apiData.voice_live[voiceLiveRange];
     const badge = document.getElementById('badgeVoiceLive');
-    if (charts.voiceLive) charts.voiceLive.destroy();
-    delete charts.voiceLive;
     const empty = !p || !p.has_data;
     document.getElementById('voiceLiveEmpty').hidden = !empty;
     document.getElementById('voiceLiveChart').hidden = empty;
@@ -380,37 +232,91 @@ function renderVoiceLive() {
         const when = new Date(rec.at).toLocaleString(HG.lang, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         recBadge.textContent = `${T('Record absolu', 'All-time record')} : ${HG.fmt(rec.count)} · ${when}`;
     }
-    if (empty) return;
-    charts.voiceLive = new Chart(document.getElementById('voiceLiveChart'), {
-        type: 'line',
-        data: {
-            labels: p.labels,
-            datasets: [{
-                label: T('En vocal', 'In voice'), data: p.voice,
-                borderColor: c => heatGradient(c.chart, ''), backgroundColor: c => heatGradient(c.chart, '40'),
-                pointHoverBackgroundColor: '#e0dbff', fill: true, tension: 0.25, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4,
-            }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: { ...TOOLTIP, callbacks: { label: c => ` ${T('En vocal', 'In voice')} : ${HG.fmt(c.parsed.y)} ${T('membres', 'members')}` } },
+    if (empty) {
+        if (charts.voiceLive) charts.voiceLive.clear();
+        return;
+    }
+    const zoom = HG.zoom(p.voice.length, { min: 60, minSpan: p.times ? 3 * 3600 * 1000 : 12 });
+    charts.voiceLive = HG.draw('voiceLiveChart', {
+        grid: HG.grid({ top: 30, bottom: zoom.bottom }),
+        tooltip: HG.tooltip({
+            formatter: ps => {
+                const i = ps[0].dataIndex;
+                // The live point comes after the 15-minute snapshots
+                if (i >= p.labels.length) return HG.tipHtml(T('Maintenant', 'Right now'), [{ color: '#b1a8f5', name: T('en vocal', 'in voice'), value: HG.fmt(liveNow ? liveNow.v : 0) }]);
+                return HG.tipHtml(p.labels[i], [{ color: '#8b80ea', name: T('en vocal', 'in voice'), value: HG.fmt(p.voice[i]) }]);
             },
-            scales: {
-                // 7 days = 673 points: one tick per day, on the first point of each new date
-                x: {
-                    grid: { display: false },
-                    ticks: voiceLiveRange === '7d'
-                        ? { color: '#a3a6b0', autoSkip: false, maxRotation: 0, callback: (v, i) => dayTick(p.labels, i) }
-                        : { color: '#a3a6b0', maxTicksLimit: 12, maxRotation: 0 },
-                },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', precision: 0 } },
+        }),
+        xAxis: timeX(p),
+        yAxis: HG.valueAxis({ minInterval: 1, min: HG.fitMin }),
+        dataZoom: zoom.dataZoom,
+        series: [{
+            id: 'voice', name: T('En vocal', 'In voice'), type: 'line', data: timePoints(p, p.voice),
+            showSymbol: false, smooth: 0.3, sampling: 'lttb', symbolSize: 7,
+            lineStyle: { width: 2, color: '#8b80ea' }, itemStyle: { color: '#8b80ea' },
+            areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(177, 168, 245, 0.45)' }, { offset: 1, color: 'rgba(61, 53, 145, 0.04)' },
+            ]) },
+            // The peak of the period, in gold like the record badge
+            markPoint: {
+                symbol: 'pin', symbolSize: 40, itemStyle: { color: '#fbbf3c' },
+                label: { color: '#15161a', fontWeight: 700, fontSize: 11 },
+                data: [{ type: 'max', name: T('Pic', 'Peak') }],
             },
-        },
+        }, {
+            // Right now: a pulsing dot at the end of the curve, moved every minute
+            id: 'live', type: 'effectScatter', data: [], symbolSize: 9, z: 5,
+            rippleEffect: { scale: 3.2, brushType: 'stroke', period: 2.4 },
+            itemStyle: { color: '#b1a8f5', shadowBlur: 10, shadowColor: 'rgba(177, 168, 245, 0.8)' },
+            tooltip: { show: false },
+        }],
     });
+    paintLive();
+    syncRhythm();
+    startLive();
+}
+
+// ---------------------------------------------------------------------------
+// Live count of members in voice (/api/live/voice), every minute while the Horaires tab is open
+// ---------------------------------------------------------------------------
+let liveNow = null;
+let liveTimer = null;
+
+function paintLive() {
+    const p = apiData && apiData.voice_live && apiData.voice_live[voiceLiveRange];
+    let badge = document.getElementById('badgeVoiceNow');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'badgeVoiceNow';
+        badge.className = 'an-badge an-badge-live';
+        badge.hidden = true;
+        document.getElementById('badgeVoiceLive').before(badge);
+    }
+    if (!liveNow) return;
+    badge.hidden = false;
+    badge.innerHTML = `<i aria-hidden="true"></i>${HG.esc(T('{n} en vocal maintenant', '{n} in voice right now', { n: HG.fmt(liveNow.v) }))}`;
+    if (!charts.voiceLive || !p || !p.times || !p.has_data) return;
+    const point = [liveNow.t, liveNow.v];
+    charts.voiceLive.setOption({ series: [{ id: 'voice', data: timePoints(p, p.voice).concat([point]) }, { id: 'live', data: [point] }] });
+}
+
+function liveTick() {
+    if (document.hidden || currentTab !== 'tab-rhythm') return;
+    fetch('/api/live/voice', { credentials: 'same-origin' })
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => {
+            if (!d || d.in_voice == null) return;
+            liveNow = { t: Date.now(), v: d.in_voice };
+            paintLive();
+        })
+        .catch(() => {});
+}
+
+function startLive() {
+    if (liveTimer) return;
+    liveTick();
+    liveTimer = setInterval(liveTick, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) liveTick(); });
 }
 
 function bindVoiceLiveControls() {
@@ -428,52 +334,79 @@ function bindVoiceLiveControls() {
 // ---------------------------------------------------------------------------
 function renderGrowth() {
     const g = apiData.growth;
-    charts.growth = new Chart(document.getElementById('growthChart'), {
-        type: 'bar',
-        data: {
-            labels: g.labels,
-            datasets: [{ label: T('Nouveaux membres', 'New members'), data: g.new_users, backgroundColor: '#a855f7', borderRadius: 6, borderSkipped: false }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { ...TOOLTIP, callbacks: { label: c => ` ${HG.fmt(c.parsed.y)} ${T('nouveaux membres', 'new members')}` } } },
-            scales: {
-                x: { grid: { display: false }, ticks: { color: '#a3a6b0', maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
-                y: { beginAtZero: true, grid: GRID, ticks: { color: '#a3a6b0', precision: 0 } },
+    const servers = g.new_servers || [];
+    const zoom = HG.zoom(g.labels.length, { min: 40, compact: true, label: v => v });
+    charts.growth = HG.draw('growthChart', {
+        grid: HG.grid({ top: 40, bottom: zoom.bottom }),
+        legend: HG.legend({ left: 'center' }),
+        tooltip: HG.tooltip({
+            axisPointer: HG.barPointer,
+            formatter: ps => {
+                const i = ps[0].dataIndex;
+                return HG.tipHtml(ps[0].axisValueLabel || ps[0].name, [
+                    { color: '#b07cff', name: T('nouveaux membres', 'new members'), value: HG.fmt(g.new_users[i]) },
+                    { color: '#ff6b5e', name: T('nouveaux serveurs', 'new servers'), value: HG.fmt(servers[i] || 0) },
+                ]);
             },
-        },
+        }),
+        xAxis: HG.categoryAxis(g.labels),
+        yAxis: [
+            HG.valueAxis({ minInterval: 1, axisLabel: { color: '#b07cff' } }),
+            HG.valueAxis({ minInterval: 1, splitLine: { show: false }, axisLabel: { color: '#ff6b5e' } }),
+        ],
+        dataZoom: zoom.dataZoom,
+        series: [{
+            type: 'bar', name: T('Nouveaux membres', 'New members'), data: g.new_users, barMaxWidth: 34, yAxisIndex: 0, barGap: '12%',
+            itemStyle: { color: '#b07cff' },
+            emphasis: { itemStyle: { color: '#c9a3ff' } },
+        }, {
+            // Second column of each month, on its own axis (a few servers a month against dozens of members)
+            type: 'bar', name: T('Nouveaux serveurs', 'New servers'), data: servers, barMaxWidth: 34, yAxisIndex: 1,
+            itemStyle: { color: '#ff6b5e' },
+            emphasis: { itemStyle: { color: '#ff9289' } },
+        }],
     });
 }
 
-function renderRanking(card, metric) {
-    const kind = card.dataset.ranking;
-    const rows = (kind === 'servers' ? apiData.top_servers : apiData.top_members)[metric] || [];
-    const max = Math.max(1, ...rows.map(r => r.value));
+// What moved lately: biggest rises in voice (30 days against the 30 before) and newcomers of the last 30 days
+function renderMovers(card, kind) {
     const list = card.querySelector('[data-rank-list]');
+    const what = card.dataset.movers;
+    const data = apiData.movers && apiData.movers[what] && apiData.movers[what][kind];
+    const rows = data || [];
+    const max = Math.max(1, ...rows.map(r => r.value));
+    const day = d => (d ? new Date(d + 'T12:00').toLocaleDateString(HG.locale, { day: 'numeric', month: 'short' }) : '');
     list.innerHTML = rows.map((r, i) => {
         const href = kind === 'servers'
             ? PAGE_CFG.server_url.replace(/0$/, encodeURIComponent(r.id))
             : PAGE_CFG.profile_url.replace(/0$/, encodeURIComponent(r.id));
         const fallback = kind === 'servers' ? PAGE_CFG.server_icon : PAGE_CFG.user_icon;
         const avatar = `<img src="${HG.esc(r.avatar || fallback)}" data-fallback="${HG.esc(fallback)}" alt=""${kind === 'members' ? ' class="is-member"' : ''}>`;
-        const value = metric === 'hours' ? `${HG.fmt(r.value, 1)} h` : HG.fmt(r.value);
-        return `<li class="an-rank-item${i < 3 ? ' podium-' + (i + 1) : ''}">
+        const value = what === 'progress' ? `+${HG.fmt(r.value, 1)} h` : `${HG.fmt(r.value, 1)} h`;
+        const tip = what === 'progress'
+            ? T('{a} h ces 30 jours, contre {b} h les 30 jours d’avant', '{a} h these 30 days, against {b} h the 30 days before', { a: HG.fmt(r.current, 1), b: HG.fmt(r.previous, 1) })
+            : T('Arrivé le {d}', 'Arrived on {d}', { d: day(r.since) });
+        const sub = what === 'progress'
+            ? T('{a} h · avant {b} h', '{a} h · before {b} h', { a: HG.fmt(r.current, 1), b: HG.fmt(r.previous, 1) })
+            : T('depuis le {d}', 'since {d}', { d: day(r.since) });
+        return `<li class="an-rank-item${i < 3 ? ' podium-' + (i + 1) : ''}" data-tip="${HG.esc(tip)}">
             <span class="an-rank-pos">${i + 1}</span>
             ${avatar}
-            <a class="an-rank-name" href="${href}">${HG.esc(r.name)}</a>
+            <span class="an-rank-who"><a class="an-rank-name" href="${href}">${HG.esc(r.name)}</a><small class="an-rank-sub">${HG.esc(sub)}</small></span>
             <span class="an-rank-bar"><i style="width: ${Math.max(3, (r.value / max) * 100)}%"></i></span>
-            <span class="an-rank-value">${value}</span>
+            <span class="an-rank-value${what === 'progress' ? ' is-up' : ''}">${value}</span>
         </li>`;
-    }).join('') || `<li class="an-rank-empty">${T('Aucune donnée', 'No data')}</li>`;
+    }).join('') || `<li class="an-rank-empty">${what === 'progress'
+        ? T('Personne n’a progressé ces 30 derniers jours.', 'Nobody rose over the last 30 days.')
+        : T('Aucune arrivée ces 30 derniers jours.', 'No arrival in the last 30 days.')}</li>`;
 }
 
-function bindRankings() {
-    document.querySelectorAll('[data-ranking]').forEach(card => {
-        card.querySelectorAll('[data-rank-metric]').forEach(btn => {
+function bindMovers() {
+    document.querySelectorAll('[data-movers]').forEach(card => {
+        card.querySelectorAll('[data-movers-kind]').forEach(btn => {
             btn.addEventListener('click', () => {
-                card.querySelectorAll('[data-rank-metric]').forEach(b => b.classList.toggle('active', b === btn));
-                if (apiData) renderRanking(card, btn.dataset.rankMetric);
+                card.querySelectorAll('[data-movers-kind]').forEach(b => b.classList.toggle('active', b === btn));
+                if (apiData) renderMovers(card, btn.dataset.moversKind);
             });
         });
     });
@@ -487,20 +420,18 @@ function initTab(tabId) {
     initializedTabs.add(tabId);
     if (tabId === 'tab-trends') renderTrends();
     else if (tabId === 'tab-rhythm') { renderPresence(); renderVoiceLive(); renderHourly(); }
-    else if (tabId === 'tab-community') { renderGrowth(); document.querySelectorAll('[data-ranking]').forEach(c => renderRanking(c, 'hours')); }
+    else if (tabId === 'tab-community') { renderGrowth(); HG.memberRace(document.getElementById('globalRaceCard'), apiData.race, RACE_PALETTE); document.querySelectorAll('[data-movers]').forEach(c => renderMovers(c, 'members')); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    Chart.defaults.color = '#a3a6b0';
-    Chart.defaults.font.family = 'Arial, sans-serif';
     bindTrendControls();
-    bindRankings();
+    bindMovers();
     bindPresenceControls();
     bindVoiceLiveControls();
     bindPeakControls();
 
     const hash = window.location.hash.replace('#', '');
-    switchGraphTab(hash || 'tab-trends');
+    switchGraphTab(hash || 'tab-trends', true);
 
     // Data inlined in the page when the server already had it, otherwise one request (preloaded in the page)
     const inline = document.getElementById('graphsInitialData');

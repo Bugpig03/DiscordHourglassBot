@@ -11,11 +11,10 @@
 
 {% block content %}
 
-<!-- Load Chart.js and date-fns time adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<!-- ECharts and the shared chart helpers -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 <script src="{{ url_for('static', filename='js/activity_charts.js', v=asset_version('js/activity_charts.js')) }}" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
 
 <!-- Embedded Chart Data for User -->
 {% if layout.visible.tab_charts %}
@@ -43,7 +42,7 @@
 {% endif %}
 
 <!-- Profile header: identity, level and personal touches (banner, color, favorite server, showcase) -->
-<section class="gray-box small-border-radius profile-hero {% if theme.show_banner %}has-banner{% endif %}" aria-labelledby="profileName">
+<section class="gray-box small-border-radius profile-hero hg-hero {% if theme.show_banner %}has-banner{% endif %}" aria-labelledby="profileName">
     {% if theme.show_banner %}
     <div class="profile-banner">
         {% if theme.banner_url %}<img src="{{ theme.banner_url }}" alt="" loading="eager" data-fallback="hide">{% endif %}
@@ -118,9 +117,94 @@
                 </div>
             </div>
         </div>
+        <!-- Key figures, part of the card -->
+        <div class="home-stats-container stats-4 profile-hero-stats">
+            <div class="home-stats-box">
+                <div class="home-stats-icon">
+                    {{ pixel_icon('trophy', 22) }}
+                </div>
+                <div class="home-stats-content">
+                    <span class="home-stats-label">{{ t('user_profile.global_rank_label') }}</span>
+                    <span class="home-stats-value">
+                        {% if stats.rank and stats.rank is number %}
+                            #{{ stats.rank }} <span style="font-size: 0.85rem; color: #9a9da7;">/ {{ stats.total_user }}</span>
+                        {% else %}
+                            {{ t('user_profile.unranked') }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="home-stats-box">
+                <div class="home-stats-icon">
+                    {{ pixel_icon('calendar', 22) }}
+                </div>
+                <div class="home-stats-content">
+                    <span class="home-stats-label">{{ t('user_profile.activity_30d') }}</span>
+                    <span class="home-stats-value">{{ (stats.total_time_last_30d / 3600) | num(1) }} {{ t('top.hours_unit') }}</span>
+                </div>
+            </div>
+
+            <div class="home-stats-box">
+                <div class="home-stats-icon">
+                    {{ pixel_icon('hourglass', 22) }}
+                </div>
+                <div class="home-stats-content">
+                    <span class="home-stats-label">{{ t('user_profile.total_voice') }}</span>
+                    <span class="home-stats-value">{{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}</span>
+                </div>
+            </div>
+
+            <div class="home-stats-box">
+                <div class="home-stats-icon">
+                    {{ pixel_icon('chat', 22) }}
+                </div>
+                <div class="home-stats-content">
+                    <span class="home-stats-label">{{ t('user_profile.total_messages') }}</span>
+                    <span class="home-stats-value">{{ stats.total_message | num }}</span>
+                </div>
+            </div>
+        </div>
     </div>
+    {% if not layout.private_view %}
+    <nav class="profile-hero-tabs" aria-label="{{tr('Sections du profil', 'Profile sections')}}">
+    <div class="hg-tabs-sentinel" aria-hidden="true"></div>
+    <div class="graphs-tabs-wrapper hg-sticky-tabs hg-card-tabs">
+        <div class="graphs-tabs" role="tablist">
+            <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchUserProfileTab" data-arg="tab-activity">
+                <svg width="15" height="15" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="flame"><path d="M4 0h1v1h-1zM3 1h2v1h-2zM3 2h3v1h-3zM7 2h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM1 4h8v1h-8zM1 5h3v1h-3zM5 5h4v1h-4zM1 6h2v1h-2zM6 6h3v1h-3zM1 7h2v1h-2zM6 7h2v1h-2zM2 8h5v1h-5z"/></svg>
+                <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_activity') }}</span><small class="tab-desc">{{tr('Vitrine, séries, calendrier', 'Showcase, streaks, calendar')}}</small></span>
+            </button>
+            {% if layout.visible.tab_charts %}
+            <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchUserProfileTab" data-arg="tab-charts">
+                <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
+                <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_graphs') }}</span><small class="tab-desc">{{tr('Évolution et répartition', 'Trends and breakdown')}}</small></span>
+            </button>
+            {% endif %}
+            {% if layout.visible.tab_servers %}
+            <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchUserProfileTab" data-arg="tab-servers">
+                <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
+                <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_servers') }}</span><small class="tab-desc">{{tr('Ses serveurs et classements', 'Servers and rankings')}}</small></span>
+                {% if stats.user_servers_stats %}<span class="tab-badge">{{ stats.user_servers_stats | length }}</span>{% endif %}
+            </button>
+            {% endif %}
+            {% if layout.visible.tab_badges %}
+            <button class="graphs-tab-btn" data-tab="tab-badges" data-call="switchUserProfileTab" data-arg="tab-badges">
+                <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="trophy"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h5v1h-5zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h5v1h-5zM8 2h1v1h-1zM1 3h7v1h-7zM2 4h5v1h-5zM3 5h3v1h-3zM4 6h1v1h-1zM3 7h3v1h-3zM1 8h7v1h-7z"/></svg>
+                <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_badges') }}</span><small class="tab-desc">{{tr('Débloqués et à venir', 'Unlocked and upcoming')}}</small></span>
+                <span class="tab-badge">{{ gamification.unlocked_count }}/{{ gamification.total_badges }}</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    </nav>
+    {% endif %}
 </section>
 
+
+
+
+{% set vitrine_html %}
 {# ===================================================================
    Vitrine: everything the member picked themselves (badges, favorite server, records), grouped in one card.
    =================================================================== #}
@@ -188,58 +272,9 @@
     {% endif %}
 </section>
 {% endif %}
-
-<!-- User KPI Cards -->
-<div class="home-stats-container stats-4" style="margin-bottom: 25px;">
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            {{ pixel_icon('trophy', 22) }}
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('user_profile.global_rank_label') }}</span>
-            <span class="home-stats-value">
-                {% if stats.rank and stats.rank is number %}
-                    #{{ stats.rank }} <span style="font-size: 0.85rem; color: #9a9da7;">/ {{ stats.total_user }}</span>
-                {% else %}
-                    {{ t('user_profile.unranked') }}
-                {% endif %}
-            </span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            {{ pixel_icon('calendar', 22) }}
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('user_profile.activity_30d') }}</span>
-            <span class="home-stats-value">{{ (stats.total_time_last_30d / 3600) | num(1) }} {{ t('top.hours_unit') }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            {{ pixel_icon('hourglass', 22) }}
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('user_profile.total_voice') }}</span>
-            <span class="home-stats-value">{{ stats.total_time_hours | num(1) }} {{ t('top.hours_unit') }}</span>
-        </div>
-    </div>
-
-    <div class="home-stats-box">
-        <div class="home-stats-icon">
-            {{ pixel_icon('chat', 22) }}
-        </div>
-        <div class="home-stats-content">
-            <span class="home-stats-label">{{ t('user_profile.total_messages') }}</span>
-            <span class="home-stats-value">{{ stats.total_message | num }}</span>
-        </div>
-    </div>
-</div>
-
-
+{% endset %}
 {% if layout.private_view %}
+{{ vitrine_html }}
 <div class="gray-box small-border-radius profile-private-notice">
     <svg width="22" height="22" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg>
     <div>
@@ -251,40 +286,12 @@
 {% if layout.private %}
 <div class="profile-private-owner"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg> {{tr('Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.', 'Your profile is private: visitors only see the header, level and totals.')}} <a href="{{ url_for('customize.customize_profile') }}">{{tr('Modifier', 'Change')}}</a></div>
 {% endif %}
-<!-- =================================================================== -->
-<!-- TAB NAVIGATION BAR                                                  -->
-<!-- =================================================================== -->
-<div class="graphs-tabs-wrapper">
-    <div class="graphs-tabs" role="tablist">
-        <button class="graphs-tab-btn active" data-tab="tab-activity" data-call="switchUserProfileTab" data-arg="tab-activity">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0.5 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="flame"><path d="M4 0h1v1h-1zM3 1h2v1h-2zM3 2h3v1h-3zM7 2h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM1 4h8v1h-8zM1 5h3v1h-3zM5 5h4v1h-4zM1 6h2v1h-2zM6 6h3v1h-3zM1 7h2v1h-2zM6 7h2v1h-2zM2 8h5v1h-5z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_activity') }}</span><small class="tab-desc">{{tr('Séries, calendrier, sessions', 'Streaks, calendar, sessions')}}</small></span>
-        </button>
-        {% if layout.visible.tab_charts %}
-        <button class="graphs-tab-btn" data-tab="tab-charts" data-call="switchUserProfileTab" data-arg="tab-charts">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chart"><path d="M7 0h2v1h-2zM7 1h2v1h-2zM4 2h2v1h-2zM7 2h2v1h-2zM4 3h2v1h-2zM7 3h2v1h-2zM1 4h2v1h-2zM4 4h2v1h-2zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h2v1h-2zM7 5h2v1h-2zM1 6h2v1h-2zM4 6h2v1h-2zM7 6h2v1h-2zM1 7h2v1h-2zM4 7h2v1h-2zM7 7h2v1h-2zM0 8h9v1h-9z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_graphs') }}</span><small class="tab-desc">{{tr('Évolution et répartition', 'Trends and breakdown')}}</small></span>
-        </button>
-        {% endif %}
-        {% if layout.visible.tab_servers %}
-        <button class="graphs-tab-btn" data-tab="tab-servers" data-call="switchUserProfileTab" data-arg="tab-servers">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_servers') }}</span><small class="tab-desc">{{tr('Ses serveurs et classements', 'Servers and rankings')}}</small></span>
-        </button>
-        {% endif %}
-        {% if layout.visible.tab_badges %}
-        <button class="graphs-tab-btn" data-tab="tab-badges" data-call="switchUserProfileTab" data-arg="tab-badges">
-            <svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="trophy"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h5v1h-5zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h5v1h-5zM8 2h1v1h-1zM1 3h7v1h-7zM2 4h5v1h-5zM3 5h3v1h-3zM4 6h1v1h-1zM3 7h3v1h-3zM1 8h7v1h-7z"/></svg>
-            <span class="tab-text"><span class="tab-title">{{ t('user_profile.tab_badges') }}</span><small class="tab-desc">{{tr('Débloqués et à venir', 'Unlocked and upcoming')}}</small></span>
-        </button>
-        {% endif %}
-    </div>
-</div>
 
 <!-- =================================================================== -->
 <!-- ONGLET 1 : Activité, Heatmap & Compagnons Vocaux                    -->
 <!-- =================================================================== -->
 <div id="tab-activity" class="graphs-tab-pane active">
+{{ vitrine_html }}
 
     {% set block_streaks %}
     <!-- Streaks & consistency: one compact strip instead of four large cards -->

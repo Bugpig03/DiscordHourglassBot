@@ -3,8 +3,8 @@
 {% block title %}{{ t('home.title') }}{% endblock %}
 
 {% block content %}
-<!-- Load Chart.js for dashboard activity chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
+<!-- ECharts for the dashboard activity chart -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" defer></script>
 <script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
 
 <!-- Embedded Chart Data -->
