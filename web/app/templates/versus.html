@@ -289,6 +289,11 @@
                 <div class="vs-tug-caption">
                     {{ tr('{n} catégories', '{n} categories', n=comparison.total_categories) }}{% if comparison.ties %} · {{ tr('{n} égalités', '{n} ties', n=comparison.ties) if comparison.ties > 1 else tr('1 égalité', '1 tie') }}{% endif %}
                 </div>
+                {% if tab == 'users' %}
+                <a class="vs-timeline-link" href="{{ url_for('timeline.timeline', users=entity1.id ~ ',' ~ entity2.id, mode='lines', srv=(selected_server.id if selected_server else None)) }}">
+                    {{ pixel_icon('chart', 12) }}<span>{{ tr('Comparer dans la Timeline', 'Compare in the Timeline') }}</span>
+                </a>
+                {% endif %}
             </div>
 
             {{ fighter(entity2, 2, name2, w, tab) }}

@@ -162,20 +162,14 @@
         <div class="an-chart an-chart-md">{{ loading() }}<canvas id="growthChart"></canvas></div>
     </section>
 
-    <section class="gray-box small-border-radius an-card" id="globalRaceCard" hidden>
-        <div class="an-card-head">
-            <div>
-                <h2 class="an-card-title">{{tr('Course au classement', 'Leaderboard race')}}</h2>
-                <p class="an-card-desc">{{tr('Le top 10 des membres en heures de vocal cumulées, tous serveurs confondus, mois après mois : qui a pris la tête, et quand.', 'The top 10 members by cumulative voice hours, across all servers, month by month: who took the lead, and when.')}}</p>
-            </div>
-            <div class="an-controls">
-                <span class="an-badge an-badge-heat" data-race-month>&nbsp;</span>
-                <button type="button" class="granularity-btn hg-race-play" data-race-play>{{tr('Lecture', 'Play')}}</button>
-            </div>
-        </div>
-        <div class="hg-race-chart"><canvas data-race-canvas></canvas></div>
-        <input type="range" class="hg-race-seek" data-race-seek min="0" max="0" value="0" step="1" aria-label="{{tr('Mois affiché', 'Month shown')}}">
-    </section>
+    <a class="gray-box small-border-radius hg-timeline-cta" href="{{ url_for('timeline.timeline') }}">
+        <span class="hg-timeline-cta-icon"><svg width="22" height="22" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="race"><path d="M0 0h1v9h-1zM1 1h6v2h-6zM1 4h4v2h-4zM1 7h7v2h-7z"/></svg></span>
+        <span class="hg-timeline-cta-text">
+            <strong>{{tr('Course au classement', 'Leaderboard race')}}</strong>
+            <small>{{tr('Rejoue le classement mois après mois, en vocal ou en messages, sur tous les serveurs ou un seul, avec les membres de ton choix.', 'Replay the ranking month by month, in voice or messages, across all servers or one, with the members of your choice.')}}</small>
+        </span>
+        <span class="granularity-btn hg-timeline-cta-btn">{{tr('Ouvrir la Timeline', 'Open the Timeline')}} ›</span>
+    </a>
 
     <div class="an-grid-2">
         <section class="gray-box small-border-radius an-card" data-movers="progress">

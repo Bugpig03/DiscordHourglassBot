@@ -643,10 +643,12 @@
     };
 
     /* ----------------------------------------------------------------------
-       Leaderboard race: the 10 best members by cumulative voice hours, one month per step. It starts on its own
+       Leaderboard race (Timeline page): the best members by running total, one month per step. It starts on its own
        the first time the card is seen (final standings straight away for visitors who prefer less motion); the
        button pauses, resumes or replays it, and the slider under it picks a month.
        card: [data-race-canvas], [data-race-month], [data-race-play], [data-race-seek]; race: {members, frames}
+       opts: {shown: bars on screen (10), unit: 'h' | 'msg', stepMs: () => ms per month, autoplay: true,
+              hideZero: no name nor value on rows still at zero, onFrame: i => {}}. Drawing again in the same card stops the previous race.
        ---------------------------------------------------------------------- */
     const ICON = {
         play: '<path d="M2 0h2v9h-2zM4 1h1v7h-1zM5 2h1v5h-1zM6 3h1v3h-1zM7 4h1v1h-1z"/>',
@@ -655,8 +657,9 @@
     };
     const pixelIcon = name => `<svg width="13" height="13" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">${ICON[name]}</svg>`;
 
-    HG.memberRace = function (card, race, palette) {
-        if (!card || !race || !race.frames || race.frames.length < 2) {
+    HG.memberRace = function (card, race, palette, opts = {}) {
+        if (card && card._race) card._race.destroy();
+        if (!card || !race || !race.frames || !race.frames.length || !race.members || !race.members.length) {
             if (card) card.hidden = true;
             return null;
         }
@@ -665,16 +668,25 @@
         const monthEl = card.querySelector('[data-race-month]');
         const playBtn = card.querySelector('[data-race-play]');
         const seek = card.querySelector('[data-race-seek]');
-        const STEP_MS = 1100;
+        const shown = Math.max(3, opts.shown || 10);
+        const isMsg = opts.unit === 'msg';
+        const valueText = v => (isMsg ? HG.fmt(v) : `${HG.fmt(v, 1)} h`);
+        const axisText = v => (isMsg ? HG.fmt(v) : `${HG.fmt(v)} h`);
+        const stepMs = () => Math.max(150, (opts.stepMs ? opts.stepMs() : 1100));
+        // Overtakes and growth play quickly at the start of each month, then the standings hold still until the
+        // next one: with many changes at once, slow moves left nothing readable
+        const moveMs = () => Math.round(Math.min(420, stepMs() * 0.45));
         const last = race.frames.length - 1;
         const names = race.members.map((m, i) => `${i}`);  // one category per member (two members may share a name)
         const shortName = n => (n.length > 16 ? n.slice(0, 15) + '…' : n);
-        const rich = { name: { color: '#e3e5e8', fontWeight: 600, fontSize: 12, padding: [0, 0, 0, 6] } };
+        const dense = shown > 15;
+        const size = dense ? 18 : 22;
+        const rich = { name: { color: '#e3e5e8', fontWeight: 600, fontSize: dense ? 11 : 12, padding: [0, 0, 0, 6] } };
         race.members.forEach((m, i) => {
-            if (m.avatar) rich['a' + i] = { width: 22, height: 22, borderRadius: 11, backgroundColor: { image: m.avatar.split('?')[0] + '?size=64' } };
+            if (m.avatar) rich['a' + i] = { width: size, height: size, borderRadius: size / 2, backgroundColor: { image: m.avatar.split('?')[0] + '?size=64' } };
         });
         const chart = HG.chart(box);
-        let frame = 0, timer = null;
+        let frame = 0, timer = null, seen = null;
 
         // Each member keeps one color for the whole race (easy to follow when they overtake someone)
         const colors = (palette || HG.RANK_COLORS).slice(0, -1);
@@ -686,65 +698,90 @@
             type: 'text', right: 24, bottom: 28, z: 0, silent: true,
             style: { text: race.frames[i].label, font: "italic 700 40px 'Chakra Petch', sans-serif", fill: 'rgba(255, 255, 255, 0.13)' },
         }];
+        const frameNote = i => {
+            const f = race.frames[i];
+            if (f.partial) return T('Mois en cours : données partielles', 'Current month: data still coming in');
+            if (f.estimated) return T('Estimation : avant octobre 2024, le bot ne gardait que les totaux', 'Estimate: before October 2024, the bot only kept totals');
+            return '';
+        };
 
         HG.draw(chart, {
             animationDuration: 0,
-            animationDurationUpdate: STEP_MS - 100,
+            animationDurationUpdate: moveMs(),
             animationEasing: 'linear',
-            animationEasingUpdate: 'linear',
-            grid: { left: 8, right: 76, top: 8, bottom: 8, containLabel: true },
-            xAxis: { type: 'value', max: 'dataMax', splitNumber: 4, axisLabel: { color: C.muted, formatter: v => `${HG.fmt(v)} h` },
+            animationEasingUpdate: 'cubicOut',
+            grid: { left: 8, right: isMsg ? 84 : 76, top: 8, bottom: 8, containLabel: true },
+            xAxis: { type: 'value', max: 'dataMax', splitNumber: 4, axisLabel: { color: C.muted, formatter: axisText },
                 splitLine: { lineStyle: { color: C.grid } } },
             yAxis: {
-                type: 'category', data: names, inverse: true, max: 9,
-                animationDuration: 300, animationDurationUpdate: 300,
+                type: 'category', data: names, inverse: true, max: Math.min(shown, race.members.length) - 1,
+                // Names move with their bars (a faster axis left names and bars apart while overtaking)
+                animationDuration: 300, animationDurationUpdate: moveMs(), animationEasingUpdate: 'cubicOut',
                 axisLine: { show: false }, axisTick: { show: false },
-                axisLabel: { formatter: v => (rich['a' + v] ? `{a${v}|}` : '') + `{name|${shortName(race.members[Number(v)].name)}}`, rich },
+                axisLabel: { formatter: v => (opts.hideZero && !(race.frames[frame].values[Number(v)] > 0) ? ''
+                    : (rich['a' + v] ? `{a${v}|}` : '') + `{name|${shortName(race.members[Number(v)].name)}}`), rich },
             },
             tooltip: HG.tooltip({
                 trigger: 'item', axisPointer: undefined,
-                formatter: p => HG.tipHtml(race.frames[frame].label, [{ color: p.color, name: p.name, value: `${HG.fmt(p.value, 1)} h` }]),
+                formatter: p => {
+                    const f = race.frames[frame];
+                    const gain = f.gains ? f.gains[p.dataIndex] : null;
+                    return HG.tipHtml(f.label, [{ color: p.color, name: p.name, value: valueText(p.value) }], {
+                        sub: gain ? `+${valueText(gain)} ${T('ce mois-ci', 'this month')}` : '',
+                        notes: [frameNote(frame)],
+                    });
+                },
             }),
             series: [{
-                type: 'bar', realtimeSort: true, barCategoryGap: '26%', data: seriesData(0),
+                type: 'bar', realtimeSort: true, barCategoryGap: dense ? '18%' : '26%', barMaxWidth: 30, data: seriesData(0),
                 label: { show: true, position: 'right', valueAnimation: true, color: '#fff', fontFamily: DISPLAY, fontWeight: 700,
-                    formatter: p => `${HG.fmt(p.value, 1)} h` },
+                    fontSize: dense ? 11 : 12, formatter: p => (opts.hideZero && !(p.value > 0) ? '' : valueText(p.value)) },
             }],
             graphic: monthMark(0),
         });
 
-        seek.max = String(last);
+        if (seek) seek.max = String(last);
         function show(i) {
             frame = i;
-            seek.value = String(i);
-            seek.style.setProperty('--seek', `${last ? (i / last) * 100 : 0}%`);
-            monthEl.textContent = race.frames[i].label;
-            chart.setOption({ series: [{ data: seriesData(i) }], graphic: monthMark(i) });
+            if (seek) {
+                seek.value = String(i);
+                seek.style.setProperty('--seek', `${last ? (i / last) * 100 : 0}%`);
+            }
+            if (monthEl) monthEl.textContent = race.frames[i].label;
+            const ms = moveMs();
+            chart.setOption({ animationDurationUpdate: ms, yAxis: { animationDurationUpdate: ms }, series: [{ data: seriesData(i) }], graphic: monthMark(i) });
+            if (opts.onFrame) opts.onFrame(i);
         }
         function setButton() {
+            if (!playBtn) return;
             const state = timer ? 'pause' : frame >= last ? 'replay' : 'play';
             const label = { pause: T('Pause', 'Pause'), replay: T('Rejouer', 'Replay'), play: T('Lecture', 'Play') }[state];
             playBtn.innerHTML = `${pixelIcon(state)}<span>${esc(label)}</span>`;
             playBtn.setAttribute('aria-label', label);
             playBtn.classList.toggle('is-playing', !!timer);
+            playBtn.disabled = last === 0;
         }
-        function stop() { clearInterval(timer); timer = null; setButton(); }
+        function stop() { clearTimeout(timer); timer = null; setButton(); }
+        function tick() {
+            if (frame >= last) return stop();
+            show(frame + 1);
+            timer = setTimeout(tick, stepMs());
+        }
         function play() {
+            if (last === 0) return;
             if (frame >= last) show(0);
-            timer = setInterval(() => {
-                if (frame >= last) return stop();
-                show(frame + 1);
-            }, STEP_MS);
+            clearTimeout(timer);
+            timer = setTimeout(tick, stepMs());
             setButton();
         }
-        playBtn.onclick = () => (timer ? stop() : play());
-        seek.oninput = () => { stop(); show(Number(seek.value)); };
+        if (playBtn) playBtn.onclick = () => (timer ? stop() : play());
+        if (seek) seek.oninput = () => { stop(); show(Number(seek.value)); };
 
         const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        show(calm ? last : 0);
+        show(calm || last === 0 ? last : 0);
         setButton();
-        if (!calm && 'IntersectionObserver' in window) {
-            const seen = new IntersectionObserver(entries => {
+        if (!calm && opts.autoplay !== false && last > 0 && 'IntersectionObserver' in window) {
+            seen = new IntersectionObserver(entries => {
                 if (entries.some(e => e.isIntersecting)) {
                     seen.disconnect();
                     if (!timer && frame === 0) play();
@@ -752,6 +789,11 @@
             }, { threshold: 0.4 });
             seen.observe(card);
         }
+        card._race = {
+            chart, play, stop, show,
+            frame: () => frame,
+            destroy() { stop(); if (seen) seen.disconnect(); if (playBtn) playBtn.onclick = null; if (seek) seek.oninput = null; card._race = null; },
+        };
         return chart;
     };
 })();

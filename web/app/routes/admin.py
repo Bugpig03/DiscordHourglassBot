@@ -29,7 +29,7 @@ DEFAULT_PERIOD = 30
 PAGE_LABELS = {
     "home": ("Accueil", "Home"), "members": ("Membres", "Members"), "servers": ("Serveurs", "Servers"),
     "profile": ("Profils", "Profiles"), "server": ("Fiches serveur", "Server pages"), "graphs": ("Analyses", "Analytics"),
-    "versus": ("Versus", "Versus"), "badges": ("Pages des badges", "Badge pages"), "customize": ("Personnalisation", "Customization"), "help": ("Aide", "Help"),
+    "versus": ("Versus", "Versus"), "timeline": ("Timeline", "Timeline"), "badges": ("Pages des badges", "Badge pages"), "customize": ("Personnalisation", "Customization"), "help": ("Aide", "Help"),
     "privacy": ("Confidentialité", "Privacy"), "terms": ("Conditions", "Terms"), "other": ("Autres", "Other"),
 }
 SECURITY_ATTACK_KINDS = ("login_fail", "admin_denied", "csrf_fail", "rate_limited", "scan", "card_token_fail", "webhook_fail", "too_large")

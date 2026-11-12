@@ -414,3 +414,20 @@
   font-size: 12.5px;
   text-align: left;
 }
+
+/* Link to the Timeline with both members picked (curves month by month) */
+.vs-timeline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: rgba(113, 124, 248, 0.14);
+  clip-path: var(--slant, none);
+  color: #c5c9ff;
+  font: 700 0.74rem/1 var(--vs-display, sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.vs-timeline-link:hover { background: rgba(113, 124, 248, 0.26); color: #fff; }

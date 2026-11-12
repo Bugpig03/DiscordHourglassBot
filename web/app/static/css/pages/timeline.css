@@ -1,0 +1,190 @@
+/* Timeline (Outils menu): settings on the left, the race on the right; stacked on narrow screens. */
+.tl-hero .hg-hero-body { padding-bottom: 6px; }
+
+.tl-layout {
+  display: grid;
+  grid-template-columns: minmax(270px, 320px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.tl-layout > .an-card { margin: 0 !important; }
+
+/* ---------------------------------------------------------------- settings */
+.tl-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: calc(var(--hg-header, 64px) + 14px);
+}
+.tl-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.tl-field[hidden] { display: none; }
+.tl-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ar-dim, #72767d);
+  font: 700 0.72rem/1 var(--ar-display, sans-serif);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tl-count { color: var(--ar-accent-hi, #a5acff); font-weight: 700; letter-spacing: 0.04em; }
+.tl-seg { display: flex; width: 100%; margin: 0; }
+.tl-seg .granularity-btn { flex: 1 1 0; justify-content: center; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tl-select { width: 100%; }
+.tl-field .hg-select-btn { width: 100%; }
+
+.tl-period { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px; }
+.tl-arrow { color: var(--ar-dim, #72767d); }
+.tl-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.tl-preset {
+  padding: 4px 10px;
+  border: 1px solid var(--ar-line, #2e3138);
+  background: transparent;
+  color: var(--ar-muted, #a3a6b0);
+  font: 600 0.74rem/1.2 var(--ar-body, sans-serif);
+  cursor: pointer;
+  clip-path: var(--slant, none);
+}
+.tl-preset:hover { color: var(--ar-fg, #fff); border-color: var(--ar-dim, #72767d); }
+.tl-preset.active { background: var(--ar-accent-soft, rgba(113, 124, 248, 0.16)); border-color: transparent; color: var(--ar-accent-hi, #a5acff); }
+
+/* Hand-picked members: search with suggestions, then one chip per member (in its race color) */
+.tl-picker { display: flex; gap: 6px; }
+.tl-search {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--ar-panel, #212329);
+  border: 1px solid var(--ar-line, #2e3138);
+  color: var(--ar-dim, #72767d);
+}
+.tl-search:focus-within { border-color: var(--ar-accent, #717cf8); }
+.tl-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 0;
+  background: none;
+  border: 0;
+  outline: 0;
+  color: var(--ar-fg, #fff);
+  font: inherit;
+  font-size: 0.88rem;
+}
+.tl-search input:disabled { cursor: not-allowed; }
+.tl-suggest {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: -1px;
+  right: -1px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: #1b1c21;
+  border: 1px solid var(--ar-line, #2e3138);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+  max-height: 300px;
+  overflow-y: auto;
+}
+.tl-suggest li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  color: #d0d2d8;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+.tl-suggest li img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex: none; }
+.tl-suggest li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-suggest li.is-active,
+.tl-suggest li:hover { background: var(--ar-panel-2, #292c33); color: #fff; }
+.tl-suggest .tl-suggest-empty { color: var(--ar-dim, #72767d); cursor: default; }
+.tl-me { white-space: nowrap; }
+
+.tl-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.tl-chips:empty { display: none; }
+.tl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 4px 3px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 3px 0 0 var(--chip, #717cf8);
+  color: #e3e5e8;
+  font-size: 0.82rem;
+}
+.tl-chip img, .tl-chip > i { width: 20px; height: 20px; border-radius: 50%; flex: none; background: var(--chip); object-fit: cover; }
+.tl-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+.tl-chip button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ar-dim, #72767d);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tl-chip button:hover { color: #f87171; }
+.tl-chip.is-missing { opacity: 0.55; box-shadow: inset 3px 0 0 #6b6f78; }
+.tl-hint { margin: 0; color: var(--ar-dim, #72767d); font-size: 0.78rem; line-height: 1.4; }
+
+.tl-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 4px; border-top: 1px solid var(--ar-line, #2e3138); padding-top: 16px; }
+.tl-share { display: inline-flex; align-items: center; gap: 7px; }
+.tl-share.is-done { background: rgba(63, 209, 160, 0.16); color: #3fd1a0; }
+.tl-reset { background: none; border: 0; padding: 4px 0; color: var(--ar-dim, #72767d); font: inherit; font-size: 0.82rem; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.tl-reset:hover { color: var(--ar-fg, #fff); }
+
+/* ---------------------------------------------------------------- the race */
+.tl-stage { position: relative; min-height: 420px; }
+.tl-stage [hidden] { display: none !important; }
+.tl-speed .granularity-btn { min-width: 0; padding-left: 9px; padding-right: 9px; font-variant-numeric: tabular-nums; }
+.tl-race-chart { transition: height 0.25s ease; }
+.tl-lines-chart { width: 100%; height: 480px; }
+.tl-notice {
+  margin: -4px 0 12px;
+  padding: 8px 12px;
+  background: rgba(251, 191, 36, 0.08);
+  box-shadow: inset 3px 0 0 #fbbf24;
+  color: #f3d58a;
+  font-size: 0.84rem;
+}
+.tl-empty {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  color: var(--ar-muted, #a3a6b0);
+  text-align: center;
+  font-size: 0.95rem;
+}
+.tl-stage.is-empty .tl-race,
+.tl-stage.is-empty .tl-lines,
+.tl-stage.is-empty [data-tl-show-view].an-controls { display: none !important; }
+.tl-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: rgba(22, 23, 28, 0.55);
+}
+.tl-stage:not(.is-loading) .tl-loading { display: none; }
+
+@media (max-width: 1024px) {
+  .tl-layout { grid-template-columns: minmax(0, 1fr); }
+  .tl-builder { position: static; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+  .tl-field-wide, .tl-actions { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .tl-builder { grid-template-columns: minmax(0, 1fr); }
+  .tl-stage .an-controls { width: 100%; }
+  .tl-stage .hg-race-play { flex: 1; }
+}

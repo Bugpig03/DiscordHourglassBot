@@ -3095,10 +3095,6 @@
   "Course au classement",
   "Leaderboard race"
  ],
- "p0853": [
-  "Le top 10 des membres en heures de vocal cumulées, mois après mois : qui a pris la tête, et quand.",
-  "The top 10 members by cumulative voice hours, month by month: who took the lead, and when."
- ],
  "p0854": [
   "Lecture",
   "Play"
@@ -3142,10 +3138,6 @@
  "p0868": [
   "Rejouer",
   "Replay"
- ],
- "p0870": [
-  "Le top 10 des membres en heures de vocal cumulées, tous serveurs confondus, mois après mois : qui a pris la tête, et quand.",
-  "The top 10 members by cumulative voice hours, across all servers, month by month: who took the lead, and when."
  ],
  "p0872": [
   "Salons et sessions vocales",
@@ -3238,5 +3230,173 @@
  "p0895": [
   "Avantage {name}",
   "Edge to {name}"
+ ],
+ "p0896": [
+  "Outils",
+  "Tools"
+ ],
+ "p0898": [
+  "Timeline",
+  "Timeline"
+ ],
+ "p0900": [
+  "Rejoue le classement mois après mois, en vocal ou en messages, sur tous les serveurs ou un seul, avec les membres de ton choix.",
+  "Replay the ranking month by month, in voice or messages, across all servers or one, with the members of your choice."
+ ],
+ "p0901": [
+  "Ouvrir la Timeline",
+  "Open the Timeline"
+ ],
+ "p0902": [
+  "Rejoue le classement de ce serveur mois après mois, en vocal ou en messages, avec les membres de ton choix.",
+  "Replay this server’s ranking month by month, in voice or messages, with the members of your choice."
+ ],
+ "p0903": [
+  "Voir la timeline de ce serveur",
+  "See this server’s timeline"
+ ],
+ "p0904": [
+  "Ta course au classement, sur mesure : choisis le serveur, les membres, la mesure et la période, puis lance la course.",
+  "Your own leaderboard race: pick the server, the members, the measure and the period, then start the race."
+ ],
+ "p0905": [
+  "Réglages de la timeline",
+  "Timeline settings"
+ ],
+ "p0906": [
+  "Les meilleurs",
+  "The best"
+ ],
+ "p0907": [
+  "Au choix",
+  "Hand-picked"
+ ],
+ "p0908": [
+  "Barres affichées",
+  "Bars shown"
+ ],
+ "p0909": [
+  "Ajouter un membre…",
+  "Add a member…"
+ ],
+ "p0910": [
+  "Ajouter un membre",
+  "Add a member"
+ ],
+ "p0911": [
+  "Moi",
+  "Me"
+ ],
+ "p0912": [
+  "Jusqu’à {n} membres. Les profils privés et les bots n’apparaissent pas.",
+  "Up to {n} members. Private profiles and bots do not appear."
+ ],
+ "p0913": [
+  "Début",
+  "Start"
+ ],
+ "p0914": [
+  "Fin",
+  "End"
+ ],
+ "p0915": [
+  "12 derniers mois",
+  "Last 12 months"
+ ],
+ "p0916": [
+  "Cette année",
+  "This year"
+ ],
+ "p0917": [
+  "Course",
+  "Race"
+ ],
+ "p0918": [
+  "Courbes",
+  "Curves"
+ ],
+ "p0919": [
+  "Copier le lien",
+  "Copy link"
+ ],
+ "p0920": [
+  "Réinitialiser",
+  "Reset"
+ ],
+ "p0921": [
+  "Vitesse",
+  "Speed"
+ ],
+ "p0922": [
+  "Comparer dans la Timeline",
+  "Compare in the Timeline"
+ ],
+ "p0923": [
+  "ce mois-ci",
+  "this month"
+ ],
+ "p0924": [
+  "Membre indisponible",
+  "Member unavailable"
+ ],
+ "p0925": [
+  "Retirer {name}",
+  "Remove {name}"
+ ],
+ "p0926": [
+  "Maximum atteint",
+  "Maximum reached"
+ ],
+ "p0927": [
+  "Aucun membre trouvé",
+  "No member found"
+ ],
+ "p0928": [
+  "Lien copié !",
+  "Link copied!"
+ ],
+ "p0929": [
+  "Copie ce lien :",
+  "Copy this link:"
+ ],
+ "p0930": [
+  "heures de vocal",
+  "voice hours"
+ ],
+ "p0931": [
+  "{n} membres au choix",
+  "{n} hand-picked members"
+ ],
+ "p0932": [
+  "{m} cumulés depuis le début de la période",
+  "{m} added up from the start of the period"
+ ],
+ "p0933": [
+  "{n} membre(s) retiré(s) : profil privé ou bot",
+  "{n} member(s) left out: private profile or bot"
+ ],
+ "p0934": [
+  "{n} membre(s) introuvable(s)",
+  "{n} member(s) not found"
+ ],
+ "p0935": [
+  "Ajoute des membres pour lancer la course.",
+  "Add members to start the race."
+ ],
+ "p0936": [
+  "La timeline n’a pas pu être chargée. Réessaie dans un instant.",
+  "The timeline could not be loaded. Try again in a moment."
+ ],
+ "p0937": [
+  "Pas d’activité à montrer pour ces réglages.",
+  "No activity to show for these settings."
+ ],
+ "p0938": [
+  "+ {n} autres",
+  "+ {n} more"
+ ],
+ "p0939": [
+  "Membres choisis",
+  "Chosen members"
  ]
 }

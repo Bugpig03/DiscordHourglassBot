@@ -1,5 +1,19 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.40.0 - Menu Outils et Timeline - 12/11/2026
+- **Nouveau menu « Outils »** dans la barre du haut, après Analyses : il regroupe Versus et la nouvelle page Timeline. Sur ordinateur, c'est un menu déroulant ; sur téléphone, les deux pages s'affichent sous « Outils » dans le menu.
+- **Nouvelle page Timeline** : ta course au classement, sur mesure. Les courses au classement sont maintenant toutes réunies ici.
+  - **Serveur** : tous les serveurs ou un seul.
+  - **Mesure** : heures de vocal ou messages.
+  - **Membres** : les meilleurs (top 10, 20 ou 30 de chaque mois) ou jusqu'à 20 membres choisis à la main. La recherche propose les membres du serveur choisi, avec un raccourci « Moi » quand on est connecté.
+  - **Période** : du mois de son choix à celui de son choix, avec les raccourcis « Tout », « 12 derniers mois » et « Cette année ». Les totaux repartent de zéro au début de la période : une course « de 2025 » montre qui a le plus joué en 2025.
+  - **Affichage** : la course en barres animées (lecture, pause, vitesse ×0,5 à ×4, curseur des mois, gain du mois au survol) ou des courbes mois par mois, cumulées ou par mois.
+  - **Lien à partager** : tous les réglages sont dans l'adresse de la page, et « Copier le lien » donne un lien qui ouvre exactement la même course.
+  - Les **profils privés** et les bots n'apparaissent jamais, ni dans les meilleurs ni parmi les membres choisis ; la page indique combien ont été retirés.
+- **Analyses (onglet Communauté) et fiches serveur** : la course au classement laisse la place à un lien vers la Timeline (déjà réglée sur le serveur depuis une fiche serveur).
+- **Versus** : un lien « Comparer dans la Timeline » sous le score ouvre les courbes des deux joueurs mois par mois (sur le serveur choisi s'il y en a un).
+- **Course au classement plus lisible** : les membres encore à zéro n'affichent plus de ligne vide « 0,0 h », les barres restent fines avec peu de membres, et les noms se déplacent avec leur barre quand quelqu'un dépasse.
+
 ## Version 3.39.0 - Graphiques Interactifs avec ECharts - 11/11/2026
 - **Tous les graphiques du site passent à ECharts**, une bibliothèque plus vivante et plus pratique que Chart.js : accueil, Analyses, profils de membres, fiches serveur, Versus et console admin.
 - **Graphiques au style Arène du site** : colonnes carrées avec le coin du haut coupé en biais (comme les cartes et les boutons), couleurs franches du site sans dégradé (vocal bleu, messages vert, membres violet, serveurs corail), points des courbes en losange, cases de la carte de chaleur et parts des anneaux carrées, pastilles de légende inclinées, info-bulles aux coins coupés et poignées de zoom en biais.

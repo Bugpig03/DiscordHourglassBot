@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tr('Timeline', 'Timeline') }} - Hourglass{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" defer></script>
+<script src="{{ url_for('static', filename='js/charts.js', v=asset_version('js/charts.js')) }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/graphs.css', v=asset_version('css/pages/graphs.css')) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/timeline.css', v=asset_version('css/pages/timeline.css')) }}">
+
+<!-- Header -->
+<section class="gray-box small-border-radius hg-hero an-hero tl-hero">
+    <div class="hg-hero-body">
+        <div class="an-head">
+            <h1 class="an-title" data-ghost="RACE">{{ tr('Timeline', 'Timeline') }}</h1>
+            <p class="an-sub">{{ tr('Ta course au classement, sur mesure : choisis le serveur, les membres, la mesure et la période, puis lance la course.', 'Your own leaderboard race: pick the server, the members, the measure and the period, then start the race.') }}</p>
+        </div>
+    </div>
+</section>
+
+<div class="tl-layout">
+    <!-- Builder: every setting is kept in the address, so a link opens the same race -->
+    <section class="gray-box small-border-radius an-card tl-builder" id="tlBuilder" aria-label="{{ tr('Réglages de la timeline', 'Timeline settings') }}">
+        <div class="tl-field">
+            <label class="tl-label" for="tlScope">{{ tr('Serveur', 'Server') }}</label>
+            <select id="tlScope" class="top-select tl-select">
+                <option value="">{{ tr('Tous les serveurs', 'All servers') }}</option>
+                {% for s in servers %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+            </select>
+        </div>
+
+        <div class="tl-field">
+            <span class="tl-label">{{ tr('Mesure', 'Metric') }}</span>
+            <div class="granularity-toggle-group tl-seg" role="group" data-tl-group="metric">
+                <button type="button" class="granularity-btn" data-value="voice">{{ pixel_icon('mic', 12) }}<span>{{ tr('Vocal', 'Voice') }}</span></button>
+                <button type="button" class="granularity-btn" data-value="messages">{{ pixel_icon('chat', 12) }}<span>{{ tr('Messages', 'Messages') }}</span></button>
+            </div>
+        </div>
+
+        <div class="tl-field">
+            <span class="tl-label">{{ tr('Membres', 'Members') }}</span>
+            <div class="granularity-toggle-group tl-seg" role="group" data-tl-group="who">
+                <button type="button" class="granularity-btn" data-value="top">{{ tr('Les meilleurs', 'The best') }}</button>
+                <button type="button" class="granularity-btn" data-value="picks">{{ tr('Au choix', 'Hand-picked') }}</button>
+            </div>
+        </div>
+
+        <div class="tl-field" data-tl-show="top">
+            <span class="tl-label">{{ tr('Barres affichées', 'Bars shown') }}</span>
+            <div class="granularity-toggle-group tl-seg" role="group" data-tl-group="top">
+                {% for n in tops %}<button type="button" class="granularity-btn" data-value="{{ n }}">{{ tr('Top {n}', 'Top {n}', n=n) }}</button>{% endfor %}
+            </div>
+        </div>
+
+        <div class="tl-field tl-field-wide" data-tl-show="picks" hidden>
+            <span class="tl-label">{{ tr('Membres choisis', 'Chosen members') }} <b class="tl-count" id="tlPickCount">0 / {{ max_picks }}</b></span>
+            <div class="tl-picker">
+                <div class="tl-search">
+                    {{ pixel_icon('search', 13) }}
+                    <input type="search" id="tlSearch" autocomplete="off" spellcheck="false" maxlength="40"
+                           placeholder="{{ tr('Ajouter un membre…', 'Add a member…') }}" aria-label="{{ tr('Ajouter un membre', 'Add a member') }}"
+                           aria-controls="tlSuggest" aria-autocomplete="list">
+                    <ul class="tl-suggest" id="tlSuggest" role="listbox" hidden></ul>
+                </div>
+                {% if me %}<button type="button" class="granularity-btn tl-me" id="tlMe" data-id="{{ me.id }}" data-name="{{ me.name }}" data-avatar="{{ me.avatar or '' }}">+ {{ tr('Moi', 'Me') }}</button>{% endif %}
+            </div>
+            <ul class="tl-chips" id="tlChips"></ul>
+            <p class="tl-hint" id="tlPickHint">{{ tr('Jusqu’à {n} membres. Les profils privés et les bots n’apparaissent pas.', 'Up to {n} members. Private profiles and bots do not appear.', n=max_picks) }}</p>
+        </div>
+
+        <div class="tl-field">
+            <span class="tl-label">{{ tr('Période', 'Period') }}</span>
+            <div class="tl-period">
+                <select id="tlFrom" class="top-select tl-select" aria-label="{{ tr('Début', 'Start') }}"></select>
+                <span class="tl-arrow" aria-hidden="true">→</span>
+                <select id="tlTo" class="top-select tl-select" aria-label="{{ tr('Fin', 'End') }}"></select>
+            </div>
+            <div class="tl-presets">
+                <button type="button" class="tl-preset" data-preset="all">{{ tr('Tout', 'All') }}</button>
+                <button type="button" class="tl-preset" data-preset="12">{{ tr('12 derniers mois', 'Last 12 months') }}</button>
+                <button type="button" class="tl-preset" data-preset="year">{{ tr('Cette année', 'This year') }}</button>
+            </div>
+        </div>
+
+        <div class="tl-field">
+            <span class="tl-label">{{ tr('Affichage', 'Display') }}</span>
+            <div class="granularity-toggle-group tl-seg" role="group" data-tl-group="view">
+                <button type="button" class="granularity-btn" data-value="race">{{ tr('Course', 'Race') }}</button>
+                <button type="button" class="granularity-btn" data-value="lines">{{ tr('Courbes', 'Curves') }}</button>
+            </div>
+        </div>
+
+        <div class="tl-actions">
+            <button type="button" class="granularity-btn tl-share" id="tlShare">{{ pixel_icon('share', 12) }}<span>{{ tr('Copier le lien', 'Copy link') }}</span></button>
+            <button type="button" class="tl-reset" id="tlReset">{{ tr('Réinitialiser', 'Reset') }}</button>
+        </div>
+    </section>
+
+    <!-- The race (or the curves) -->
+    <section class="gray-box small-border-radius an-card tl-stage" id="tlStage" aria-live="polite">
+        <div class="an-card-head">
+            <div>
+                <h2 class="an-card-title" id="tlTitle">{{ tr('Course au classement', 'Leaderboard race') }}</h2>
+                <p class="an-card-desc" id="tlDesc">&nbsp;</p>
+            </div>
+            <div class="an-controls" data-tl-show-view="race">
+                <span class="an-badge an-badge-heat" data-race-month>&nbsp;</span>
+                <div class="granularity-toggle-group tl-speed" role="group" aria-label="{{ tr('Vitesse', 'Speed') }}" data-tl-group="speed">
+                    <button type="button" class="granularity-btn" data-value="0.5">×0,5</button>
+                    <button type="button" class="granularity-btn" data-value="1">×1</button>
+                    <button type="button" class="granularity-btn" data-value="2">×2</button>
+                    <button type="button" class="granularity-btn" data-value="4">×4</button>
+                </div>
+                <button type="button" class="granularity-btn hg-race-play" data-race-play>{{ tr('Lecture', 'Play') }}</button>
+            </div>
+            <div class="an-controls" data-tl-show-view="lines" hidden>
+                <div class="granularity-toggle-group" role="group" data-tl-group="curve">
+                    <button type="button" class="granularity-btn" data-value="cumul">{{ tr('Cumulé', 'Cumulative') }}</button>
+                    <button type="button" class="granularity-btn" data-value="month">{{ tr('Par mois', 'Monthly') }}</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tl-notice" id="tlNotice" hidden></div>
+        <div class="tl-empty" id="tlEmpty" hidden></div>
+        <div class="tl-loading" id="tlLoading"><div class="chart-spinner-ring"></div></div>
+
+        <div class="tl-race" data-tl-show-view="race">
+            <div class="hg-race-chart tl-race-chart" id="tlRaceChart"><canvas data-race-canvas></canvas></div>
+            <input type="range" class="hg-race-seek" data-race-seek min="0" max="0" value="0" step="1" aria-label="{{ tr('Mois affiché', 'Month shown') }}">
+        </div>
+        <div class="tl-lines" data-tl-show-view="lines" hidden>
+            <div class="tl-lines-chart" id="tlLinesChart"></div>
+        </div>
+    </section>
+</div>
+
+<script type="application/json" id="tlConfig">{{ {"tops": tops, "default_top": default_top, "max_picks": max_picks, "api": url_for('timeline.timeline_data'), "members_api": url_for('timeline.timeline_members'), "profile_url": url_for('user_profile.profile', username='0'), "servers": servers}|tojson }}</script>
+<script src="{{ url_for('static', filename='js/pages/timeline.js', v=asset_version('js/pages/timeline.js')) }}" defer></script>
+{% endblock %}

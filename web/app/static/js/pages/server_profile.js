@@ -70,11 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })));
     }
 
-    // Race of the most active members, month by month
-    const raceCard = document.getElementById('serverRaceCard');
-    const race = readJson('serverRaceData');
-    if (raceCard) HG.memberRace(raceCard, race, modernPalette);
-
     // Peak hours (voice or messages) + day x hour grid
     HG.peakCard(document.getElementById('serverPeakCard'), readJson('serverHourlyActivityData'), readJson('serverPunchcardData'));
 

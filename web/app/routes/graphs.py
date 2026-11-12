@@ -22,8 +22,6 @@ from app.functions import (
     get_hourly_activity_distribution,
     get_presence_history_48h,
     get_voice_history,
-    get_member_race,
-    get_global_race_members,
     slice_voice_history,
     get_voice_record,
     get_monthly_new_users_growth,
@@ -281,15 +279,6 @@ def _window_activity(since: datetime, until: datetime | None = None) -> dict:
     }
 
 
-def _global_race(lang: str) -> dict | None:
-    try:
-        return get_member_race(get_global_race_members(), None, lang)
-    except Exception:
-        log.exception("Global leaderboard race unavailable")
-        db.rollback()
-        return None
-
-
 MOVERS_DAYS = 30
 MOVERS_LIMIT = 10
 
@@ -427,7 +416,6 @@ def compute_graphs_data(lang: str = "fr") -> dict:
     return {
         "summary": {"current": current, "previous": previous},
         # Race of the most active members across every server, month by month (Communauté tab)
-        "race": _global_race(lang),
         "trends": trends,
         "hourly": get_hourly_activity_distribution(server_id=None, user_id=None, lang=lang),
         "punchcard": get_hourly_punchcard_data(),
@@ -437,7 +425,7 @@ def compute_graphs_data(lang: str = "fr") -> dict:
         "voice_live": _voice_live(lang),
         # New members and new servers per month (Communauté tab)
         "growth": growth,
-        # What moved lately, rather than the all-time ranking already shown by the race: the biggest rises in voice
+        # What moved lately (the all-time race lives on the Timeline page): the biggest rises in voice
         # over the last 30 days, and the members and servers that arrived in the last 30 days
         "movers": _movers(lang),
     }

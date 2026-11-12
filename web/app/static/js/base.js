@@ -72,13 +72,18 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                                 if (d !== parent) d.classList.remove('open');
                             });
                             parent.classList.toggle('open', !wasOpen);
+                            btn.setAttribute('aria-expanded', String(!wasOpen));
                         }
                     });
                 });
 
                 document.addEventListener('click', (e) => {
                     if (!e.target.closest('.nav-dropdown')) {
-                        document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
+                        document.querySelectorAll('.nav-dropdown.open').forEach(d => {
+                            d.classList.remove('open');
+                            const toggle = d.querySelector('.nav-dropdown-toggle');
+                            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                        });
                     }
                 });
             }

@@ -2091,3 +2091,18 @@ html body .btn-vote-topgg {
 html body .btn-vote-topgg:hover { background: rgba(255, 107, 138, 0.24); color: #ffb3c3; }
 html body .btn-hero-vote svg { color: #ff6b8a; }
 html body .btn-hero-vote { display: inline-flex; align-items: center; gap: 8px; }
+
+/* --------------------------------------------------------------- Tools menu (Versus, Timeline) */
+html body .nav-tools > .nav-dropdown-toggle { cursor: pointer; }
+html body .nav-tools .nav-dropdown-menu { top: 100%; min-width: 280px; }
+html body .nav-tools .nav-dropdown-item.active { border: 0; background: var(--ar-accent-soft); color: var(--ar-fg); box-shadow: inset 3px 0 0 var(--ar-accent-hi); }
+html body .nav-tools .nav-dropdown-item.active .dropdown-item-icon { color: var(--ar-accent-hi); }
+html body .hg-timeline-cta { clip-path: var(--cut-m); border: 0; }
+html body .hg-timeline-cta-icon { clip-path: var(--cut-s); }
+html body .hg-timeline-cta-btn { clip-path: var(--slant); }
+@media (max-width: 1024px) {
+  html body .app-nav-item.nav-tools { clip-path: none; background: none; border: 0; }
+  html body .nav-tools > .nav-dropdown-toggle { width: 100%; justify-content: flex-start; }
+  html body .nav-tools > .nav-dropdown-toggle .chevron-icon { display: none; }
+  html body .nav-tools > .nav-dropdown-toggle.active::after { display: none; }
+}

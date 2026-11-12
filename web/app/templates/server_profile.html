@@ -311,24 +311,14 @@
         </div>
     </div>
 
-    {% if charts.member_race_json and charts.member_race_json != 'null' %}
-    <!-- Race of the most active members, month by month -->
-    <section class="gray-box small-border-radius hg-card" id="serverRaceCard">
-        <div class="hg-card-head">
-            <div>
-                <h2 class="hg-card-title">{{tr('Course au classement', 'Leaderboard race')}}</h2>
-                <p class="hg-card-desc">{{tr('Le top 10 des membres en heures de vocal cumulées, mois après mois : qui a pris la tête, et quand.', 'The top 10 members by cumulative voice hours, month by month: who took the lead, and when.')}}</p>
-            </div>
-            <div class="hg-controls">
-                <span class="hg-badge" data-race-month>&nbsp;</span>
-                <button type="button" class="granularity-btn hg-race-play" data-race-play>{{tr('Lecture', 'Play')}}</button>
-            </div>
-        </div>
-        <div class="hg-race-chart"><canvas data-race-canvas></canvas></div>
-        <input type="range" class="hg-race-seek" data-race-seek min="0" max="0" value="0" step="1" aria-label="{{tr('Mois affiché', 'Month shown')}}">
-    </section>
-    <script type="application/json" id="serverRaceData">{{ charts.member_race_json|safe_json }}</script>
-    {% endif %}
+    <a class="gray-box small-border-radius hg-timeline-cta" href="{{ url_for('timeline.timeline', srv=stats.server_id) }}">
+        <span class="hg-timeline-cta-icon"><svg width="22" height="22" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="race"><path d="M0 0h1v9h-1zM1 1h6v2h-6zM1 4h4v2h-4zM1 7h7v2h-7z"/></svg></span>
+        <span class="hg-timeline-cta-text">
+            <strong>{{tr('Course au classement', 'Leaderboard race')}}</strong>
+            <small>{{tr('Rejoue le classement de ce serveur mois après mois, en vocal ou en messages, avec les membres de ton choix.', 'Replay this server’s ranking month by month, in voice or messages, with the members of your choice.')}}</small>
+        </span>
+        <span class="granularity-btn hg-timeline-cta-btn">{{tr('Voir la timeline de ce serveur', 'See this server’s timeline')}} ›</span>
+    </a>
 </div>
 
 <!-- =================================================================== -->

@@ -20,7 +20,6 @@ function switchGraphTab(tabId, initial) {
 }
 
 const COLORS = { hours: '#717cf8', messages: '#3fd1a0' };
-const RACE_PALETTE = HG.RANK_COLORS;
 
 function unit(metric) {
     return metric === 'hours' ? 'h' : HG.tr('msgs', 'msgs');
@@ -420,7 +419,7 @@ function initTab(tabId) {
     initializedTabs.add(tabId);
     if (tabId === 'tab-trends') renderTrends();
     else if (tabId === 'tab-rhythm') { renderPresence(); renderVoiceLive(); renderHourly(); }
-    else if (tabId === 'tab-community') { renderGrowth(); HG.memberRace(document.getElementById('globalRaceCard'), apiData.race, RACE_PALETTE); document.querySelectorAll('[data-movers]').forEach(c => renderMovers(c, 'members')); }
+    else if (tabId === 'tab-community') { renderGrowth(); document.querySelectorAll('[data-movers]').forEach(c => renderMovers(c, 'members')); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
