@@ -983,5 +983,9 @@
  "p1105": "APP",
  "p1106": "Senin kartınla (veya sunucunun en aktif üyesinin kartıyla) örnek.",
  "p1110": "üye",
- "p1111": "Botun “Bağlantı yerleştir” izni yok: duyurular kartsız gönderilecek (Genel sekmesine bak)."
+ "p1111": "Botun “Bağlantı yerleştir” izni yok: duyurular kartsız gönderilecek (Genel sekmesine bak).",
+ "p1112": "Duyuru kanalında",
+ "p1113": "Her zaman yukarıda seçilen kanalda.",
+ "p1114": "Üyenin az önce yazdığı yerde",
+ "p1115": "Son mesajının kanalında. Seslide seviye atlarsa yazı kanalı yoktur: duyuru, duyuru kanalına gider."
 }

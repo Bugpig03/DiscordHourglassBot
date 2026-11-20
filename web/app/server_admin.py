@@ -144,9 +144,20 @@ def is_member(user_id: int, server_id: int) -> bool:
     return cache.get_or_set(("guild_member", int(server_id), int(user_id)), ACCESS_CACHE_SECONDS, load)
 
 
+# Preview period: server management is open to the site admins only (ADMIN_USER_IDS) until it is ready for every
+# owner. Set to True to open it to all owners and their managers.
+OPEN_TO_ALL = False
+
+
+def preview_allowed(user_id: int | str | None) -> bool:
+    """Server management is visible to this member (everyone once OPEN_TO_ALL, the site admins until then)."""
+    from app.config import Config
+    return bool(user_id) and (OPEN_TO_ALL or str(user_id) in Config.ADMIN_USER_IDS)
+
+
 def server_role(user_id: int | str | None, server_id: int) -> str | None:
     """"owner", "manager" or None for this visitor on this server."""
-    if not user_id or not _enabled:
+    if not user_id or not _enabled or not preview_allowed(user_id):
         return None
     uid = int(user_id)
     meta = guild_meta(server_id)
@@ -161,7 +172,7 @@ def server_role(user_id: int | str | None, server_id: int) -> str | None:
 
 def managed_servers(user_id: int | str | None) -> list[dict]:
     """Servers this member owns or manages (account menu, "My servers"), the bot present first."""
-    if not user_id or not _enabled:
+    if not user_id or not _enabled or not preview_allowed(user_id):
         return []
     uid = int(user_id)
 

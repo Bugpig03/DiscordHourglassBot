@@ -983,5 +983,9 @@
  "p1105": "APP",
  "p1106": "Esempio con la tua scheda (o quella del membro più attivo del server).",
  "p1110": "membro",
- "p1111": "Il bot non ha il permesso «Incorporare link»: gli annunci partiranno senza la scheda (vedi la scheda Generale)."
+ "p1111": "Il bot non ha il permesso «Incorporare link»: gli annunci partiranno senza la scheda (vedi la scheda Generale).",
+ "p1112": "Nel canale degli annunci",
+ "p1113": "Sempre nel canale scelto qui sopra.",
+ "p1114": "Dove il membro ha appena scritto",
+ "p1115": "Nel canale del suo ultimo messaggio. Se sale di livello in vocale, non c'è un canale testuale: l'annuncio va nel canale degli annunci."
 }

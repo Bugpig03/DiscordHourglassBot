@@ -983,5 +983,9 @@
  "p1105": "APP",
  "p1106": "Beispiel mit deiner Karte (oder der des aktivsten Mitglieds des Servers).",
  "p1110": "Mitglied",
- "p1111": "Dem Bot fehlt die Berechtigung „Links einbetten“: Ankündigungen gehen ohne Karte raus (siehe Tab Allgemein)."
+ "p1111": "Dem Bot fehlt die Berechtigung „Links einbetten“: Ankündigungen gehen ohne Karte raus (siehe Tab Allgemein).",
+ "p1112": "Im Ankündigungskanal",
+ "p1113": "Immer im oben gewählten Kanal.",
+ "p1114": "Wo das Mitglied gerade geschrieben hat",
+ "p1115": "Im Kanal seiner letzten Nachricht. Steigt es im Sprachkanal auf, gibt es keinen Textkanal: Die Ankündigung geht in den Ankündigungskanal."
 }

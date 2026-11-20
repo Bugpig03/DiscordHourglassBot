@@ -164,4 +164,6 @@ def my_servers():
     user = get_current_user()
     if not user:
         return redirect(url_for("auth.login", next=request.path))
+    if not sa.preview_allowed(user.get("id")):
+        abort(404)  # preview period: site admins only
     return render_template("my_servers.html", servers=sa.managed_servers(user.get("id")), invite_url=sa.invite_url())

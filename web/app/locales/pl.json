@@ -983,5 +983,9 @@
  "p1105": "APP",
  "p1106": "Przykład z twoją kartą (lub kartą najaktywniejszego członka serwera).",
  "p1110": "członek",
- "p1111": "Bot nie ma uprawnienia „Osadzanie linków”: ogłoszenia wyjdą bez karty (zob. kartę Ogólne)."
+ "p1111": "Bot nie ma uprawnienia „Osadzanie linków”: ogłoszenia wyjdą bez karty (zob. kartę Ogólne).",
+ "p1112": "W kanale ogłoszeń",
+ "p1113": "Zawsze w kanale wybranym powyżej.",
+ "p1114": "Tam, gdzie członek właśnie napisał",
+ "p1115": "W kanale jego ostatniej wiadomości. Jeśli awansuje na głosowym, nie ma kanału tekstowego: ogłoszenie trafia do kanału ogłoszeń."
 }

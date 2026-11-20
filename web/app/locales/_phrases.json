@@ -3955,18 +3955,6 @@
   "Où annoncer",
   "Where to announce"
  ],
- "p1091": [
-  "Toujours dans ce salon",
-  "Always in this channel"
- ],
- "p1092": [
-  "Dans le salon où il vient d’écrire",
-  "In the channel where they just wrote"
- ],
- "p1093": [
-  "Une montée de niveau en vocal reste annoncée dans le salon ci-dessus.",
-  "A level-up in voice is still announced in the channel above."
- ],
  "p1094": [
   "Message",
   "Message"
@@ -4034,5 +4022,21 @@
  "p1111": [
   "Le bot n’a pas la permission « Intégrer des liens » : les annonces partiront sans la carte (voir l’onglet Général).",
   "The bot lacks the “Embed links” permission: announcements will go without the card (see the General tab)."
+ ],
+ "p1112": [
+  "Dans le salon des annonces",
+  "In the announcement channel"
+ ],
+ "p1113": [
+  "Toujours dans le salon choisi ci-dessus.",
+  "Always in the channel chosen above."
+ ],
+ "p1114": [
+  "Là où le membre vient d’écrire",
+  "Where the member just wrote"
+ ],
+ "p1115": [
+  "Dans le salon de son dernier message. S’il monte de niveau en vocal, il n’y a pas de salon écrit : l’annonce part dans le salon des annonces.",
+  "In the channel of their last message. If they level up in voice, there is no text channel: the announcement goes to the announcement channel."
  ]
 }

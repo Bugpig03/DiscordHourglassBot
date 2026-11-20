@@ -208,3 +208,66 @@ html body .sm-fix { background: #717cf8; color: #fff; }
   .sm-levels-grid { grid-template-columns: minmax(0, 1fr); }
   .sm-preview { position: static; }
 }
+
+/* ---------------------------------------------------------------- Levels tab, Arène controls */
+/* Where to announce: two choice tiles, cut corner, colored edge when chosen */
+.sm-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.sm-choice {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ar-line, #2e3138);
+  clip-path: var(--cut-s, none);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.sm-choice:hover { background: rgba(255, 255, 255, 0.05); }
+.sm-choice input { position: absolute; opacity: 0; pointer-events: none; }
+.sm-choice-mark { flex: none; width: 14px; height: 14px; margin-top: 2px; border: 2px solid var(--ar-dim, #72767d); transform: rotate(45deg); transition: background-color 0.15s ease, border-color 0.15s ease; }
+.sm-choice-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sm-choice-text b { color: #e3e5e8; font: 700 0.86rem/1.2 var(--ar-display, sans-serif); letter-spacing: 0.04em; text-transform: uppercase; }
+.sm-choice-text small { color: var(--ar-dim, #72767d); font-size: 0.8rem; line-height: 1.4; }
+.sm-choice:has(input:checked) { background: var(--ar-accent-soft, rgba(113, 124, 248, 0.16)); border-color: rgba(113, 124, 248, 0.55); box-shadow: inset 3px 0 0 var(--ar-accent, #717cf8); }
+.sm-choice:has(input:checked) .sm-choice-mark { background: var(--ar-accent, #717cf8); border-color: var(--ar-accent, #717cf8); }
+.sm-choice:has(input:checked) .sm-choice-text b { color: #fff; }
+.sm-choice:has(input:focus-visible) { outline: 2px solid #a5acff; outline-offset: 2px; }
+
+/* Options: slanted toggles with a square check box */
+.sm-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px 9px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ar-line, #2e3138);
+  clip-path: var(--slant, none);
+  color: var(--ar-muted, #a3a6b0);
+  font: 700 0.78rem/1 var(--ar-display, sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sm-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.sm-toggle-box { display: grid; place-items: center; width: 18px; height: 18px; border: 2px solid var(--ar-dim, #72767d); color: transparent; transition: background-color 0.15s ease, border-color 0.15s ease; }
+.sm-toggle:hover { color: var(--ar-fg, #fff); }
+.sm-toggle:has(input:checked) { background: var(--ar-accent-soft, rgba(113, 124, 248, 0.16)); color: #fff; border-color: rgba(113, 124, 248, 0.45); }
+.sm-toggle:has(input:checked) .sm-toggle-box { background: var(--ar-accent, #717cf8); border-color: var(--ar-accent, #717cf8); color: #fff; }
+.sm-toggle:has(input:focus-visible) { outline: 2px solid #a5acff; outline-offset: 2px; }
+
+/* Level and frequency: label above, field in the site's style */
+.sm-inline { flex-direction: column; align-items: flex-start; gap: 8px; }
+.sm-number {
+  width: 110px;
+  padding: 10px 12px;
+  background: var(--ar-panel, #212329);
+  border: 1px solid var(--ar-line, #2e3138);
+  color: #fff;
+  font: 700 0.95rem/1 var(--ar-display, sans-serif);
+  clip-path: var(--cut-s, none);
+}
+.sm-textarea { clip-path: var(--cut-s, none); }
+@media (max-width: 640px) { .sm-choices { grid-template-columns: minmax(0, 1fr); } }

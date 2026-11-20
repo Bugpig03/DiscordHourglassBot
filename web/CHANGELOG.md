@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.43.1 - Gestion des Serveurs : Bientôt Disponible - 20/11/2026
+- **La gestion des serveurs (page « Gérer », « Mes serveurs ») sera bientôt disponible pour tous les propriétaires de serveurs.** En attendant, elle est réservée aux administrateurs du site, le temps de la finaliser : le bouton « Gérer » et le menu « Mes serveurs » ne s'affichent pas pour les autres.
+- **Onglet Niveaux aux couleurs du site** : « Où annoncer » devient deux tuiles à choisir aux coins coupés, les options (mention, carte image) deviennent des boutons à cocher dans le style Arène, et les champs niveau et message prennent le style des autres champs.
+- **« Là où le membre vient d'écrire » expliqué** : l'annonce part dans le salon de son dernier message ; s'il monte de niveau en vocal, il n'y a pas de salon écrit, donc elle part dans le salon des annonces.
+
 ## Version 3.43.0 - Annonces de Passage de Niveau - 20/11/2026
 - **Onglet « Niveaux » de la page « Gérer »** : le propriétaire et ses gestionnaires activent les annonces de passage de niveau du bot sur leur serveur.
   - **Salon des annonces** : les salons où le bot ne peut pas écrire sont signalés. On peut aussi annoncer dans le salon où le membre vient d'écrire.

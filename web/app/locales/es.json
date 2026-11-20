@@ -983,5 +983,9 @@
  "p1105": "APP",
  "p1106": "Ejemplo con tu tarjeta (o la del miembro más activo del servidor).",
  "p1110": "miembro",
- "p1111": "El bot no tiene el permiso «Insertar enlaces»: los anuncios saldrán sin la tarjeta (ver la pestaña General)."
+ "p1111": "El bot no tiene el permiso «Insertar enlaces»: los anuncios saldrán sin la tarjeta (ver la pestaña General).",
+ "p1112": "En el canal de anuncios",
+ "p1113": "Siempre en el canal elegido arriba.",
+ "p1114": "Donde el miembro acaba de escribir",
+ "p1115": "En el canal de su último mensaje. Si sube de nivel en voz, no hay canal de texto: el anuncio va al canal de anuncios."
 }

@@ -220,8 +220,20 @@
                     </div>
                     <div class="sm-field">
                         <span class="sm-label">{{ tr('Où annoncer', 'Where to announce') }}</span>
-                        <label class="sm-radio"><input type="radio" name="same_channel" value="0"{% if not levelup.same_channel %} checked{% endif %}><span>{{ tr('Toujours dans ce salon', 'Always in this channel') }}</span></label>
-                        <label class="sm-radio"><input type="radio" name="same_channel" value="1"{% if levelup.same_channel %} checked{% endif %}><span>{{ tr('Dans le salon où il vient d’écrire', 'In the channel where they just wrote') }}<small>{{ tr('Une montée de niveau en vocal reste annoncée dans le salon ci-dessus.', 'A level-up in voice is still announced in the channel above.') }}</small></span></label>
+                        <div class="sm-choices" role="radiogroup">
+                            <label class="sm-choice">
+                                <input type="radio" name="same_channel" value="0"{% if not levelup.same_channel %} checked{% endif %}>
+                                <span class="sm-choice-mark" aria-hidden="true"></span>
+                                <span class="sm-choice-text"><b>{{ tr('Dans le salon des annonces', 'In the announcement channel') }}</b>
+                                    <small>{{ tr('Toujours dans le salon choisi ci-dessus.', 'Always in the channel chosen above.') }}</small></span>
+                            </label>
+                            <label class="sm-choice">
+                                <input type="radio" name="same_channel" value="1"{% if levelup.same_channel %} checked{% endif %}>
+                                <span class="sm-choice-mark" aria-hidden="true"></span>
+                                <span class="sm-choice-text"><b>{{ tr('Là où le membre vient d’écrire', 'Where the member just wrote') }}</b>
+                                    <small>{{ tr('Dans le salon de son dernier message. S’il monte de niveau en vocal, il n’y a pas de salon écrit : l’annonce part dans le salon des annonces.', 'In the channel of their last message. If they level up in voice, there is no text channel: the announcement goes to the announcement channel.') }}</small></span>
+                            </label>
+                        </div>
                     </div>
                     <div class="sm-field">
                         <label class="sm-label" for="smLevelMessage">{{ tr('Message', 'Message') }} <small class="sm-counter" data-counter>0 / {{ levelup_max }}</small></label>
@@ -235,15 +247,15 @@
                         <p class="sm-help">{{ tr('Vide : le texte par défaut, dans la langue du serveur. **gras**, *italique* et les émojis fonctionnent comme sur Discord.', 'Empty: the default text, in the server’s language. **bold**, *italics* and emojis work as on Discord.') }}</p>
                     </div>
                     <div class="sm-field sm-row-fields">
-                        <label class="sm-check"><input type="checkbox" name="mention" value="1"{% if levelup.mention %} checked{% endif %}><span>{{ tr('Mentionner le membre', 'Mention the member') }}</span></label>
-                        <label class="sm-check"><input type="checkbox" name="with_card" value="1"{% if levelup.with_card %} checked{% endif %}><span>{{ tr('Ajouter sa carte image', 'Add their image card') }}</span></label>
+                        <label class="sm-toggle"><input type="checkbox" name="mention" value="1"{% if levelup.mention %} checked{% endif %}><span class="sm-toggle-box" aria-hidden="true">{{ pixel_icon('check', 12) }}</span><span>{{ tr('Mentionner le membre', 'Mention the member') }}</span></label>
+                        <label class="sm-toggle"><input type="checkbox" name="with_card" value="1"{% if levelup.with_card %} checked{% endif %}><span class="sm-toggle-box" aria-hidden="true">{{ pixel_icon('check', 12) }}</span><span>{{ tr('Ajouter sa carte image', 'Add their image card') }}</span></label>
                     </div>
                     {% if not can_embed %}<p class="sm-help sm-warn-text">{{ tr('Le bot n’a pas la permission « Intégrer des liens » : les annonces partiront sans la carte (voir l’onglet Général).', 'The bot lacks the “Embed links” permission: announcements will go without the card (see the General tab).') }}</p>{% endif %}
                     <div class="sm-field sm-row-fields">
-                        <label class="sm-inline">{{ tr('À partir du niveau', 'From level') }}
+                        <label class="sm-inline"><span class="sm-label">{{ tr('À partir du niveau', 'From level') }}</span>
                             <input type="number" name="min_level" min="1" max="500" value="{{ levelup.min_level }}" class="sm-number">
                         </label>
-                        <label class="sm-inline">{{ tr('Annoncer', 'Announce') }}
+                        <label class="sm-inline"><span class="sm-label">{{ tr('Annoncer', 'Announce') }}</span>
                             <select name="every" class="top-select sm-select-sm">
                                 {% for n in levelup_every %}<option value="{{ n }}"{% if n == levelup.every %} selected{% endif %}>{{ tr('chaque niveau', 'every level') if n == 1 else tr('tous les {n} niveaux', 'every {n} levels', n=n) }}</option>{% endfor %}
                             </select>
