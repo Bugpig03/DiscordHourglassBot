@@ -34,6 +34,51 @@
         el.textContent = d.toLocaleString(HG.locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     });
 
+    // ---------------------------------------------------------------- level-up announcements: live preview
+    const levels = document.getElementById('smLevels');
+    if (levels) {
+        const area = levels.querySelector('textarea[name="message"]');
+        const preview = levels.querySelector('[data-preview]');
+        const card = levels.querySelector('[data-preview-card]');
+        const counter = levels.querySelector('[data-counter]');
+        const toggle = levels.querySelector('[data-levels-enabled]');
+        const switchLabel = levels.querySelector('.sm-switch-label');
+        const body = levels.querySelector('[data-levels-body]');
+        const max = Number(area.getAttribute('maxlength')) || 300;
+
+        // Discord-like rendering of the text: **bold**, *italics*, the member as a mention or in bold
+        const render = () => {
+            const mention = levels.querySelector('input[name="mention"]').checked;
+            const name = levels.dataset.user || T('membre', 'member');
+            const template = area.value.trim() || levels.dataset.default;
+            let html = esc(template)
+                .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.+?)\*/g, '<i>$1</i>')
+                .replace(/\n/g, '<br>');
+            const who = mention ? `<span class="sm-mention">@${esc(name)}</span>` : `<b>${esc(name)}</b>`;
+            html = html.replace(/\{(membre|member)\}/g, who).replace(/\{(niveau|level)\}/g, esc(levels.dataset.level || '12'))
+                .replace(/\{(serveur|server)\}/g, esc(levels.dataset.server || ''));
+            preview.innerHTML = html;
+            card.hidden = !levels.querySelector('input[name="with_card"]').checked;
+            counter.textContent = `${area.value.length} / ${max}`;
+            switchLabel.textContent = toggle.checked ? switchLabel.dataset.on : switchLabel.dataset.off;
+            body.classList.toggle('is-off', !toggle.checked);
+        };
+        levels.addEventListener('input', render);
+        levels.addEventListener('change', render);
+        // Variables inserted where the cursor is
+        levels.querySelectorAll('[data-var]').forEach(btn => btn.addEventListener('click', () => {
+            const v = btn.dataset.var;
+            const start = area.selectionStart ?? area.value.length, end = area.selectionEnd ?? area.value.length;
+            if (area.value.length - (end - start) + v.length > max) return;
+            area.value = area.value.slice(0, start) + v + area.value.slice(end);
+            area.focus();
+            area.selectionStart = area.selectionEnd = start + v.length;
+            render();
+        }));
+        render();
+    }
+
     // ---------------------------------------------------------------- choose a manager
     const form = document.getElementById('smAddManager');
     if (!form) return;
@@ -51,13 +96,13 @@
         }
         list.innerHTML = found.map((m, i) => `<li role="option" data-index="${i}" class="${i === active ? 'is-active' : ''}" aria-selected="${i === active}">
             <img src="${esc(m.avatar || '/static/images/base_avatar_big.png')}" alt="" width="22" height="22" loading="lazy">
-            <span>${esc(m.name)}${m.username && m.username !== m.name ? ` <small>@${esc(m.username)}</small>` : ''}</span></li>`).join('');
+            <span>@${esc(m.name)}${m.nickname ? ` <small>${esc(m.nickname)}</small>` : ''}</span></li>`).join('');
         list.hidden = false;
     }
     function pick(m) {
         if (!m) return;
         hidden.value = m.id;
-        input.value = m.name;
+        input.value = `@${m.name}`;
         close();
         form.submit();
     }

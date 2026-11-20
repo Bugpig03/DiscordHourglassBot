@@ -2117,3 +2117,7 @@ html body .dashboard-podium-card:has(.icon-votes) .podium-card-icon { background
 @media (max-width: 560px) { html body .podium-carousel .podium-card-header { flex-wrap: wrap; } }
 html body .voice-now-tag:not(.is-live) { color: var(--ar-dim); }
 html body .voice-now-tag.is-live { color: #3fd1a0; background: rgba(63, 209, 160, 0.12); }
+
+/* Drop-down option flagged as a problem (channel the bot cannot write in): red italics, in the list and once chosen */
+html body .hg-select-opt.is-blocked .hg-select-opt-text,
+html body .hg-select-btn.is-blocked .hg-select-value { color: #f87171; font-style: italic; }

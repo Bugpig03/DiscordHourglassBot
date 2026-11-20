@@ -401,6 +401,8 @@ const MANAGE_ACTIONS = {
     timezone: T('Fuseau horaire modifié', 'Time zone changed'), manager_added: T('Gestionnaire ajouté', 'Manager added'),
     manager_removed: T('Gestionnaire retiré', 'Manager removed'), bot_added: T('Hourglass ajouté', 'Hourglass added'),
     bot_removed: T('Hourglass retiré', 'Hourglass removed'), bot_synced: T('Serveur relu par le bot', 'Server read again by the bot'),
+    levels_on: T('Annonces de niveau activées', 'Level-ups turned on'), levels_off: T('Annonces de niveau désactivées', 'Level-ups turned off'),
+    levels_settings: T('Réglages des annonces modifiés', 'Announcement settings changed'), announce: T('Passage de niveau annoncé', 'Level-up announced'),
 };
 function sectionManagement() {
     const m = data.management;
@@ -418,6 +420,9 @@ function sectionManagement() {
               'Servers where the bot lacks some permissions of the new features (often invited with the old link).')],
         [`${T('Erreurs', 'Errors')} · ${periodLabel()}`, HG.fmt(m.errors_total), T('sur {n} action(s)', 'out of {n} action(s)', { n: HG.fmt(m.actions_total) }), m.errors_total ? 'warn' : 'ok',
             T('Actions du bot qui ont échoué (salon interdit, rôle trop haut…).', 'Bot actions that failed (forbidden channel, role too high…).')],
+        [T('Annonces de niveau', 'Level-up announcements'), HG.fmt(m.announces), `${T('sur {n} serveur(s) activé(s)', 'on {n} server(s) turned on', { n: HG.fmt(m.levels_on) })} · ${periodLabel()}`, m.announces_failed ? 'warn' : '',
+            T('Passages de niveau annoncés par le bot sur la période, et serveurs qui ont activé les annonces. En orange : certaines n’ont pas pu partir (voir le journal).',
+              'Level-ups announced by the bot over the period, and servers that turned the announcements on. In orange: some could not be sent (see the log).')],
         [T('Serveurs privés', 'Private servers'), HG.fmt(m.private), '', '', T('Serveurs en mode privé.', 'Servers in private mode.')],
     ]);
     lineChart('manageChart', m.labels, [bars(T('Actions', 'Actions'), m.daily_actions, '#717cf8'), bars(T('Erreurs', 'Errors'), m.daily_errors, '#e0675d')], { type: 'bar' });

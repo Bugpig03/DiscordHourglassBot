@@ -1,5 +1,18 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.9.0 - Annonces de Passage de Niveau - 20/11/2026
+
+- **Annonces de passage de niveau** sur les serveurs qui les activent (site, page « Gérer » > Niveaux) : quand un membre monte de niveau sur le serveur, le bot le félicite dans le salon choisi (ou dans celui où il vient d'écrire), avec sa carte image en option.
+- **La carte est l'image d'un message intégré**, chargée par Discord depuis le site à une adresse signée (personne ne peut fabriquer de carte en devinant l'adresse) : le bot n'a pas besoin de la permission « Joindre des fichiers », seulement « Intégrer des liens ». Variable optionnelle `WEB_PUBLIC_URL` (adresse publique du site, `https://hourglassbot.net` par défaut).
+- **Niveau du serveur**, calculé exactement comme sur le site : 1 minute en vocal ou 1 message = 1 XP sur ce serveur (les votes ne comptent pas, ils n'appartiennent à aucun serveur). Vérifié après chaque message, et chaque minute pour les membres en vocal (session en cours comprise).
+- **Jamais d'annonce en trop** :
+  - la première fois qu'un membre est vu, son niveau est seulement noté, donc les niveaux atteints avant l'activation ne sont jamais annoncés ;
+  - chaque niveau n'est annoncé qu'une fois, même si le bot redémarre ;
+  - « à partir du niveau N » et « tous les N niveaux » limitent les annonces, et plusieurs niveaux d'un coup ne donnent qu'une annonce.
+- **Sûr** : le message ne peut mentionner que le membre concerné (jamais @everyone, @here ou un rôle, même écrit dans le texte). Texte par défaut dans la langue du serveur (12 langues).
+- **Journal** : chaque annonce est notée, ainsi que les échecs avec leur raison (salon supprimé, permission manquante…), sur la page de gestion du serveur.
+- Nouvelles tables créées automatiquement (ou par `database/migrations/2026-11-20_bot_v3.9.0_levelup.sql`).
+
 ## Version 3.8.0 - Copie des Serveurs pour la Gestion - 20/11/2026
 
 - **Le bot tient une copie à jour de chaque serveur pour le site** (nouvelle page « Gérer » des propriétaires) :

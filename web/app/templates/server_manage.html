@@ -12,6 +12,8 @@
 </section>
 {% endmacro %}
 
+{% macro who(p) %}{% if p %}<span class="sm-who"{% if p.nickname %} data-tip="{{ tr('Pseudo sur le serveur : {name}', 'Nickname on the server: {name}', name=p.nickname) }}"{% endif %}>@{{ p.username }}</span>{% else %}—{% endif %}{% endmacro %}
+
 {% set action_labels = {
     'timezone': tr('Fuseau horaire modifié', 'Time zone changed'),
     'manager_added': tr('Gestionnaire ajouté', 'Manager added'),
@@ -19,6 +21,10 @@
     'bot_added': tr('Hourglass ajouté au serveur', 'Hourglass added to the server'),
     'bot_removed': tr('Hourglass retiré du serveur', 'Hourglass removed from the server'),
     'bot_synced': tr('Serveur relu par le bot', 'Server read again by the bot'),
+    'levels_on': tr('Annonces de niveau activées', 'Level-up announcements turned on'),
+    'levels_off': tr('Annonces de niveau désactivées', 'Level-up announcements turned off'),
+    'levels_settings': tr('Réglages des annonces modifiés', 'Announcement settings changed'),
+    'announce': tr('Passage de niveau annoncé', 'Level-up announced'),
 } %}
 {% set feature_labels = {
     'general': tr('Général', 'General'), 'levels': tr('Niveaux', 'Levels'),
@@ -33,6 +39,9 @@
     'already': ('warn', tr('Ce membre gère déjà le serveur.', 'This member already manages the server.')),
     'full': ('warn', tr('Maximum de {n} gestionnaires atteint.', 'Maximum of {n} managers reached.', n=max_managers)),
     'error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
+    'levels_saved': ('ok', tr('Annonces de niveau enregistrées : le bot les applique dans la minute.', 'Level-up announcements saved: the bot applies them within a minute.')),
+    'levels_channel': ('warn', tr('Choisis un salon pour les annonces.', 'Choose a channel for the announcements.')),
+    'levels_error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
 } %}
 
 {% block content %}
@@ -149,7 +158,7 @@
             {% for m in managers %}
             <li>
                 <img src="{{ m.avatar or url_for('static', filename='images/base_avatar_big.png') }}" alt="" width="32" height="32" data-fallback="{{ url_for('static', filename='images/base_avatar_big.png') }}">
-                <span class="sm-person"><b>{{ m.name }}</b>{% if not m.member %}<small class="sm-warn-text">{{ tr('N’est plus sur le serveur : sans droits', 'No longer on the server: no rights') }}</small>{% endif %}</span>
+                <span class="sm-person"><b{% if m.nickname %} class="sm-who" data-tip="{{ tr('Pseudo sur le serveur : {name}', 'Nickname on the server: {name}', name=m.nickname) }}"{% endif %}>@{{ m.name }}</b>{% if not m.member %}<small class="sm-warn-text">{{ tr('N’est plus sur le serveur : sans droits', 'No longer on the server: no rights') }}</small>{% endif %}</span>
                 <form method="post" action="{{ url_for('server_manage.remove_manager', server_id=server_id) }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="user_id" value="{{ m.id }}">
@@ -182,7 +191,85 @@
 
 <!-- ======================================================== Coming next -->
 <div class="sm-pane" id="levels" data-sm-pane="levels"{% if section != 'levels' %} hidden{% endif %}>
-    {{ soon(tr('Annonces de passage de niveau', 'Level-up announcements'), tr('Un message (et la carte du membre) dans le salon de ton choix quand un membre monte de niveau sur le serveur.', 'A message (and the member’s card) in the channel of your choice when a member levels up on the server.'), 'trophy') }}
+    <form method="post" action="{{ url_for('server_manage.save_levels', server_id=server_id) }}" class="sm-levels" id="smLevels"
+          data-default="{{ levelup_default }}" data-server="{{ server_name }}" data-user="{{ preview_member.name if preview_member else (current_user.username if current_user else '') }}" data-level="{{ preview_member.level if preview_member else 12 }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <section class="gray-box small-border-radius hg-card">
+            <div class="hg-card-head">
+                <div>
+                    <h2 class="hg-card-title">{{ tr('Annonces de passage de niveau', 'Level-up announcements') }}</h2>
+                    <p class="hg-card-desc">{{ tr('Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. C’est le niveau du serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.', 'When a member levels up on this server, the bot congratulates them in the channel of your choice. It is the server level: their voice and messages here (1 minute in voice or 1 message = 1 XP). Levels reached before turning it on are never announced.') }}</p>
+                </div>
+                <label class="sm-switch">
+                    <input type="checkbox" name="enabled" value="1"{% if levelup.enabled %} checked{% endif %} data-levels-enabled>
+                    <span class="sm-switch-track" aria-hidden="true"><i></i></span>
+                    <span class="sm-switch-label" data-on="{{ tr('Activées', 'On') }}" data-off="{{ tr('Désactivées', 'Off') }}">{{ tr('Activées', 'On') if levelup.enabled else tr('Désactivées', 'Off') }}</span>
+                </label>
+            </div>
+
+            <div class="sm-levels-grid" data-levels-body>
+                <div class="sm-levels-fields">
+                    <div class="sm-field">
+                        <label class="sm-label" for="smLevelChannel">{{ tr('Salon des annonces', 'Announcement channel') }}</label>
+                        <select id="smLevelChannel" name="channel_id" class="top-select sm-select">
+                            <option value="">{{ tr('Choisir un salon…', 'Choose a channel…') }}</option>
+                            {% for c in channels %}
+                            <option value="{{ c.id }}"{% if not c.can_send %} class="is-blocked"{% endif %}{% if c.id == levelup.channel_id %} selected{% endif %}>#{{ c.name }}{% if not c.can_send %} · {{ tr('le bot ne peut pas y écrire', 'the bot cannot write there') }}{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="sm-field">
+                        <span class="sm-label">{{ tr('Où annoncer', 'Where to announce') }}</span>
+                        <label class="sm-radio"><input type="radio" name="same_channel" value="0"{% if not levelup.same_channel %} checked{% endif %}><span>{{ tr('Toujours dans ce salon', 'Always in this channel') }}</span></label>
+                        <label class="sm-radio"><input type="radio" name="same_channel" value="1"{% if levelup.same_channel %} checked{% endif %}><span>{{ tr('Dans le salon où il vient d’écrire', 'In the channel where they just wrote') }}<small>{{ tr('Une montée de niveau en vocal reste annoncée dans le salon ci-dessus.', 'A level-up in voice is still announced in the channel above.') }}</small></span></label>
+                    </div>
+                    <div class="sm-field">
+                        <label class="sm-label" for="smLevelMessage">{{ tr('Message', 'Message') }} <small class="sm-counter" data-counter>0 / {{ levelup_max }}</small></label>
+                        <textarea id="smLevelMessage" name="message" rows="3" maxlength="{{ levelup_max }}" class="sm-textarea" placeholder="{{ levelup_default }}">{{ levelup.message }}</textarea>
+                        <div class="sm-vars">
+                            <span>{{ tr('Insérer :', 'Insert:') }}</span>
+                            <button type="button" data-var="{membre}">{membre}</button>
+                            <button type="button" data-var="{niveau}">{niveau}</button>
+                            <button type="button" data-var="{serveur}">{serveur}</button>
+                        </div>
+                        <p class="sm-help">{{ tr('Vide : le texte par défaut, dans la langue du serveur. **gras**, *italique* et les émojis fonctionnent comme sur Discord.', 'Empty: the default text, in the server’s language. **bold**, *italics* and emojis work as on Discord.') }}</p>
+                    </div>
+                    <div class="sm-field sm-row-fields">
+                        <label class="sm-check"><input type="checkbox" name="mention" value="1"{% if levelup.mention %} checked{% endif %}><span>{{ tr('Mentionner le membre', 'Mention the member') }}</span></label>
+                        <label class="sm-check"><input type="checkbox" name="with_card" value="1"{% if levelup.with_card %} checked{% endif %}><span>{{ tr('Ajouter sa carte image', 'Add their image card') }}</span></label>
+                    </div>
+                    {% if not can_embed %}<p class="sm-help sm-warn-text">{{ tr('Le bot n’a pas la permission « Intégrer des liens » : les annonces partiront sans la carte (voir l’onglet Général).', 'The bot lacks the “Embed links” permission: announcements will go without the card (see the General tab).') }}</p>{% endif %}
+                    <div class="sm-field sm-row-fields">
+                        <label class="sm-inline">{{ tr('À partir du niveau', 'From level') }}
+                            <input type="number" name="min_level" min="1" max="500" value="{{ levelup.min_level }}" class="sm-number">
+                        </label>
+                        <label class="sm-inline">{{ tr('Annoncer', 'Announce') }}
+                            <select name="every" class="top-select sm-select-sm">
+                                {% for n in levelup_every %}<option value="{{ n }}"{% if n == levelup.every %} selected{% endif %}>{{ tr('chaque niveau', 'every level') if n == 1 else tr('tous les {n} niveaux', 'every {n} levels', n=n) }}</option>{% endfor %}
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- What it will look like on Discord -->
+                <div class="sm-preview" aria-label="{{ tr('Aperçu', 'Preview') }}">
+                    <p class="sm-label">{{ tr('Aperçu sur Discord', 'Preview on Discord') }}</p>
+                    <div class="sm-discord">
+                        <img class="sm-discord-avatar" src="{{ url_for('static', filename='icons/icon-512.png') }}" alt="" width="40" height="40">
+                        <div class="sm-discord-body">
+                            <p class="sm-discord-head"><b>Hourglass</b><span class="sm-discord-bot">{{ tr('APP', 'APP') }}</span><time>{{ tr('Aujourd’hui', 'Today') }}</time></p>
+                            <p class="sm-discord-text" data-preview></p>
+                            <img class="sm-discord-card" data-preview-card src="{{ url_for('server_manage.levels_card_preview', server_id=server_id) }}" alt="" loading="lazy" data-fallback="hide">
+                        </div>
+                    </div>
+                    <p class="sm-help">{{ tr('Exemple avec ta carte (ou celle du membre le plus actif du serveur).', 'Example with your card (or the server’s most active member’s).') }}</p>
+                </div>
+            </div>
+        </section>
+        <div class="sm-actions">
+            <button type="submit" class="granularity-btn active sm-save">{{ tr('Enregistrer', 'Save') }}</button>
+        </div>
+    </form>
 </div>
 <div class="sm-pane" id="reports" data-sm-pane="reports"{% if section != 'reports' %} hidden{% endif %}>
     {{ soon(tr('Rapports automatiques', 'Automatic reports'), tr('Un bilan quotidien, hebdomadaire ou mensuel du serveur, en carte image, posté tout seul dans un salon.', 'A daily, weekly or monthly summary of the server, as an image card, posted by itself in a channel.'), 'chart') }}
@@ -210,9 +297,9 @@
                     <td><time data-utc="{{ e.at.isoformat() }}Z"></time></td>
                     <td>{{ feature_labels.get(e.feature, e.feature) }}</td>
                     <td>{% if not e.ok %}<span class="sm-tag is-warn">{{ tr('Erreur', 'Error') }}</span> {% endif %}{{ action_labels.get(e.action, e.action) }}</td>
-                    <td>{{ e.actor or '—' }}</td>
-                    <td>{{ e.target or '—' }}</td>
-                    <td class="sm-detail">{{ e.detail or '' }}</td>
+                    <td>{{ who(e.actor) }}</td>
+                    <td>{{ who(e.target) }}</td>
+                    <td class="sm-detail">{% if e.action == 'announce' and e.detail %}{% set parts = e.detail.split(' · ', 1) %}{{ tr('Niveau {n}', 'Level {n}', n=parts[0]) }}{% if parts | length > 1 %} · {{ parts[1] }}{% endif %}{% else %}{{ e.detail or '' }}{% endif %}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

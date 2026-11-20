@@ -183,6 +183,21 @@ var messages = map[string]map[string]string{
 	"version_local":   {"en": "local build", "fr": "build local"},
 	"version_started": {"en": "Started", "fr": "Démarré"},
 	"version_servers": {"en": "Servers", "fr": "Serveurs"},
+	// Level-up announcement (server management > Levels), in the server's language: {membre} {niveau} {serveur}
+	"levelup_default": {
+		"en": "🎉 {membre} reached **level {niveau}**!",
+		"fr": "🎉 {membre} passe au **niveau {niveau}** !",
+		"es": "🎉 ¡{membre} sube al **nivel {niveau}**!",
+		"pt": "🎉 {membre} chegou ao **nível {niveau}**!",
+		"it": "🎉 {membre} sale al **livello {niveau}**!",
+		"de": "🎉 {membre} erreicht **Level {niveau}**!",
+		"pl": "🎉 {membre} awansuje na **poziom {niveau}**!",
+		"tr": "🎉 {membre} **{niveau}. seviyeye** ulaştı!",
+		"ru": "🎉 {membre} достигает **уровня {niveau}**!",
+		"hi": "🎉 {membre} **लेवल {niveau}** पर पहुँचे!",
+		"ja": "🎉 {membre} が**レベル {niveau}** になりました！",
+		"ko": "🎉 {membre} 님이 **레벨 {niveau}**에 도달했어요!",
+	},
 	"vote_ready": {
 		"en": "You can vote now!",
 		"fr": "Tu peux voter maintenant !",

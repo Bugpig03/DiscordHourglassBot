@@ -64,6 +64,12 @@ def manage(server_id: int):
         managers=sa.managers(server_id) if role == "owner" else [],
         max_managers=sa.MAX_MANAGERS,
         journal=sa.journal(server_id),
+        levelup=sa.get_levelup(server_id),
+        levelup_every=sa.LEVELUP_EVERY,
+        levelup_max=sa.LEVELUP_MAX_MESSAGE,
+        levelup_default=sa.levelup_default_message((sa.guild_meta(server_id) or {}).get("locale")),
+        preview_member=_preview_member(server_id, int(user["id"])),
+        can_embed=any(c["key"] == "embed" and c["ok"] for c in sa.diagnostics(server_id, lang)["checks"]),
         invite_url=sa.invite_url(server_id),
         notice=request.args.get("notice", ""),
     ))
@@ -79,6 +85,48 @@ def save_general(server_id: int):
     _check_csrf(user, "gestion du serveur (général)")
     ok = sa.save_timezone(server_id, request.form.get("timezone", ""), int(user["id"]))
     return _back(server_id, "general", notice="saved" if ok else "error")
+
+
+@server_manage_bp.route("/server/<int:server_id>/manage/levels", methods=["POST"])
+def save_levels(server_id: int):
+    user, _ = _access(server_id)
+    _check_csrf(user, "gestion du serveur (niveaux)")
+    error = sa.save_levelup(server_id, request.form, int(user["id"]))
+    return _back(server_id, "levels", notice="levels_" + (error or "saved"))
+
+
+def _preview_member(server_id: int, user_id: int) -> dict | None:
+    """Member shown in the announcement preview: the visitor when they are active here, else the most active one."""
+    from app.database import Stats, Users
+    from app.gamification import calculate_user_xp_and_level
+
+    stat = Stats.get_or_none((Stats.user_id == user_id) & (Stats.server_id == server_id))
+    if not stat:
+        stat = Stats.select().where(Stats.server_id == server_id).order_by(Stats.seconds.desc()).first()
+    if not stat:
+        return None
+    member = Users.get_or_none(Users.user_id == stat.user_id)
+    level = calculate_user_xp_and_level(stat.seconds or 0, stat.messages or 0, 0)["level"]
+    return {"id": int(stat.user_id), "name": (member.username if member else None) or f"#{stat.user_id}", "level": level}
+
+
+@server_manage_bp.route("/server/<int:server_id>/manage/levels/card.svg", methods=["GET"])
+def levels_card_preview(server_id: int):
+    """Example of the card posted with an announcement (the member of the preview, at their current level)."""
+    from app.cards import builders
+
+    user, _ = _access(server_id)
+    member = _preview_member(server_id, int(user["id"]))
+    if not member:
+        abort(404)
+    try:
+        svg = builders.levelup_card(member["id"], server_id, None, current_lang())
+    except builders.CardNotFound:
+        abort(404)
+    response = make_response(svg)
+    response.mimetype = "image/svg+xml"
+    response.headers["Cache-Control"] = "private, max-age=300"
+    return response
 
 
 @server_manage_bp.route("/server/<int:server_id>/manage/managers/add", methods=["POST"])

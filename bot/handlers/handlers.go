@@ -76,6 +76,9 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 	syncer.readyAt = time.Now()
 	syncer.mu.Unlock()
 	h.startGuildSyncLoop(s)
+
+	// Annonces de passage de niveau (réglages du site relus chaque minute, membres en vocal vérifiés aussi)
+	h.startLevelups(s)
 }
 
 // OnMessageCreate enregistre chaque message textuel
@@ -99,6 +102,8 @@ func (h *BotHandler) OnMessageCreate(s *discordgo.Session, m *discordgo.MessageC
 	// 1. Mise à jour utilisateur & message
 	_ = h.DB.UpsertUser(ctx, userID, m.Author.Username, avatarURL, m.Author.Bot)
 	_ = h.DB.RecordMessageEvent(ctx, userID, serverID, channelID)
+	// Passage de niveau sur ce serveur (si le serveur a activé les annonces)
+	go h.checkLevelup(s, serverID, userID, m.ChannelID)
 
 	// 2. Mise à jour des métadonnées du salon textuel
 	if ch, err := s.State.Channel(m.ChannelID); err == nil {

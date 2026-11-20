@@ -3823,14 +3823,6 @@
   "Intégrer des liens",
   "Embed links"
  ],
- "p1055": [
-  "Messages mis en forme.",
-  "Formatted messages."
- ],
- "p1056": [
-  "Joindre des fichiers",
-  "Attach files"
- ],
  "p1057": [
   "Cartes images des annonces et des rapports.",
   "Image cards of announcements and reports."
@@ -3879,10 +3871,6 @@
   "Le détail des stats du serveur réservé à ses membres connectés au site. Les autres ne verront que le total d’heures et de messages, avec un cadenas.",
   "The server’s detailed stats only for its members signed in on the site. Others will only see the total hours and messages, with a padlock."
  ],
- "p1069": [
-  "Un message (et la carte du membre) dans le salon de ton choix quand un membre monte de niveau sur le serveur.",
-  "A message (and the member’s card) in the channel of your choice when a member levels up on the server."
- ],
  "p1070": [
   "Rapports automatiques",
   "Automatic reports"
@@ -3898,5 +3886,153 @@
  "p1073": [
   "Des rôles donnés et retirés tout seuls selon le temps en vocal, les messages ou le niveau, par paliers.",
   "Roles given and removed by themselves according to voice time, messages or level, by tiers."
+ ],
+ "p1074": [
+  "Niveau supérieur !",
+  "Level up!"
+ ],
+ "p1075": [
+  "{h} en vocal · {m} messages",
+  "{h} in voice · {m} messages"
+ ],
+ "p1076": [
+  "Prochain niveau : {n}",
+  "Next level: {n}"
+ ],
+ "p1077": [
+  "Pseudo sur le serveur : {name}",
+  "Nickname on the server: {name}"
+ ],
+ "p1078": [
+  "Annonces de niveau activées",
+  "Level-up announcements turned on"
+ ],
+ "p1079": [
+  "Annonces de niveau désactivées",
+  "Level-up announcements turned off"
+ ],
+ "p1080": [
+  "Réglages des annonces modifiés",
+  "Announcement settings changed"
+ ],
+ "p1081": [
+  "Passage de niveau annoncé",
+  "Level-up announced"
+ ],
+ "p1082": [
+  "Annonces de niveau enregistrées : le bot les applique dans la minute.",
+  "Level-up announcements saved: the bot applies them within a minute."
+ ],
+ "p1083": [
+  "Choisis un salon pour les annonces.",
+  "Choose a channel for the announcements."
+ ],
+ "p1084": [
+  "Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. C’est le niveau du serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.",
+  "When a member levels up on this server, the bot congratulates them in the channel of your choice. It is the server level: their voice and messages here (1 minute in voice or 1 message = 1 XP). Levels reached before turning it on are never announced."
+ ],
+ "p1085": [
+  "Activées",
+  "On"
+ ],
+ "p1086": [
+  "Désactivées",
+  "Off"
+ ],
+ "p1087": [
+  "Salon des annonces",
+  "Announcement channel"
+ ],
+ "p1088": [
+  "Choisir un salon…",
+  "Choose a channel…"
+ ],
+ "p1089": [
+  "le bot ne peut pas y écrire",
+  "the bot cannot write there"
+ ],
+ "p1090": [
+  "Où annoncer",
+  "Where to announce"
+ ],
+ "p1091": [
+  "Toujours dans ce salon",
+  "Always in this channel"
+ ],
+ "p1092": [
+  "Dans le salon où il vient d’écrire",
+  "In the channel where they just wrote"
+ ],
+ "p1093": [
+  "Une montée de niveau en vocal reste annoncée dans le salon ci-dessus.",
+  "A level-up in voice is still announced in the channel above."
+ ],
+ "p1094": [
+  "Message",
+  "Message"
+ ],
+ "p1095": [
+  "Insérer :",
+  "Insert:"
+ ],
+ "p1096": [
+  "Vide : le texte par défaut, dans la langue du serveur. **gras**, *italique* et les émojis fonctionnent comme sur Discord.",
+  "Empty: the default text, in the server’s language. **bold**, *italics* and emojis work as on Discord."
+ ],
+ "p1097": [
+  "Mentionner le membre",
+  "Mention the member"
+ ],
+ "p1098": [
+  "Ajouter sa carte image",
+  "Add their image card"
+ ],
+ "p1100": [
+  "À partir du niveau",
+  "From level"
+ ],
+ "p1101": [
+  "Annoncer",
+  "Announce"
+ ],
+ "p1102": [
+  "chaque niveau",
+  "every level"
+ ],
+ "p1103": [
+  "tous les {n} niveaux",
+  "every {n} levels"
+ ],
+ "p1104": [
+  "Aperçu sur Discord",
+  "Preview on Discord"
+ ],
+ "p1105": [
+  "APP",
+  "APP"
+ ],
+ "p1106": [
+  "Exemple avec ta carte (ou celle du membre le plus actif du serveur).",
+  "Example with your card (or the server’s most active member’s)."
+ ],
+ "p1107": [
+  "Annonces de niveau",
+  "Level-up announcements"
+ ],
+ "p1108": [
+  "sur {n} serveur(s) activé(s)",
+  "on {n} server(s) turned on"
+ ],
+ "p1109": [
+  "Passages de niveau annoncés par le bot sur la période, et serveurs qui ont activé les annonces. En orange : certaines n’ont pas pu partir (voir le journal).",
+  "Level-ups announced by the bot over the period, and servers that turned the announcements on. In orange: some could not be sent (see the log)."
+ ],
+ "p1110": [
+  "membre",
+  "member"
+ ],
+ "p1111": [
+  "Le bot n’a pas la permission « Intégrer des liens » : les annonces partiront sans la carte (voir l’onglet Général).",
+  "The bot lacks the “Embed links” permission: announcements will go without the card (see the General tab)."
  ]
 }

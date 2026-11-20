@@ -486,6 +486,9 @@ def _server_management(win: list[date], lang: str) -> dict:
     configured = _one("SELECT COUNT(DISTINCT server_id) FROM server_feature_log WHERE actor_id IS NOT NULL")
     managers, managed_servers = (_rows("SELECT COUNT(*), COUNT(DISTINCT server_id) FROM server_managers") or [(0, 0)])[0]
     private = _one("SELECT COUNT(*) FROM server_settings WHERE private")
+    levels_on = _one("SELECT COUNT(*) FROM server_levelup l JOIN guild_meta m ON m.server_id = l.server_id WHERE l.enabled AND m.bot_present")
+    announces = _rows("SELECT ok, COUNT(*) FROM server_feature_log WHERE feature = 'levels' AND action = 'announce' AND created_at >= %s "
+                      "GROUP BY ok", (start,))
     actions = _rows("SELECT created_at::date, COUNT(*) FROM server_feature_log WHERE created_at >= %s GROUP BY 1", (start,))
     errors = _rows("SELECT created_at::date, COUNT(*) FROM server_feature_log WHERE created_at >= %s AND NOT ok GROUP BY 1", (start,))
     top = _rows("SELECT server_id, COUNT(*) FROM server_feature_log WHERE created_at >= %s GROUP BY 1 ORDER BY 2 DESC LIMIT 10", (start,))
@@ -502,6 +505,8 @@ def _server_management(win: list[date], lang: str) -> dict:
         "servers_configured": int(configured or 0),
         "managers": int(managers or 0), "managed_servers": int(managed_servers or 0),
         "private": int(private or 0),
+        "levels_on": int(levels_on or 0),
+        "announces": sum(int(n) for ok, n in announces if ok), "announces_failed": sum(int(n) for ok, n in announces if not ok),
         "missing_count": len(missing_rows),
         "labels": [_day_label(d, lang) for d in win],
         "daily_actions": _series(actions, win),

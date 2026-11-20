@@ -1,5 +1,16 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.43.0 - Annonces de Passage de Niveau - 20/11/2026
+- **Onglet « Niveaux » de la page « Gérer »** : le propriétaire et ses gestionnaires activent les annonces de passage de niveau du bot sur leur serveur.
+  - **Salon des annonces** : les salons où le bot ne peut pas écrire sont signalés. On peut aussi annoncer dans le salon où le membre vient d'écrire.
+  - **Message personnalisable** avec `{membre}`, `{niveau}` et `{serveur}` (boutons pour les insérer), gras, italique et émojis. Vide, c'est le texte par défaut dans la langue du serveur.
+  - **Options** : mention du membre, carte image, « à partir du niveau N », « tous les 1, 2, 5 ou 10 niveaux ».
+  - **Aperçu en direct, comme sur Discord** : le message et la vraie carte qui sera postée, au niveau actuel du membre.
+- **Nouvelle carte « Niveau supérieur ! »** postée par le bot : le niveau en grand, l'avatar, le titre, le serveur, la barre vers le niveau suivant, aux couleurs et avec la bannière du membre. Discord la charge depuis le site, à une adresse signée par le bot : plus besoin de la permission « Joindre des fichiers », retirée de la liste et du lien d'invitation.
+- **Salons où le bot ne peut pas écrire** en rouge et en italique dans la liste des salons, même une fois choisis. Le bouton « Enregistrer » est plus grand. Les annonces sont désactivées par défaut.
+- **Journal plus clair** : les membres y sont nommés par leur nom d'utilisateur Discord (@nom), avec leur pseudo sur le serveur au survol ; de même dans la liste des gestionnaires et la recherche de membres. Les annonces envoyées et leurs échecs y apparaissent.
+- **Admin, onglet « Gestion des serveurs »** : annonces de niveau envoyées sur la période et serveurs qui les ont activées.
+
 ## Version 3.42.0 - Gestion des Serveurs - 20/11/2026
 - **Nouvelle page « Gérer » pour les propriétaires de serveurs** (bouton sur la fiche serveur, et « Mes serveurs » dans le menu du compte). Seuls le propriétaire et les membres qu'il a choisis la voient ; pour tous les autres, elle n'existe pas. Les droits sont revérifiés à chaque visite d'après ce que le bot voit sur Discord, pas seulement à la connexion.
 - **Ce que le bot peut faire ici** : chaque permission dont les nouvelles fonctionnalités ont besoin (voir les salons, écrire, liens riches, fichiers, historique, gérer les rôles), cochée ou en rouge avec à quoi elle sert, et la liste des salons où le bot ne peut pas écrire. Le bouton « Donner les permissions » ouvre Discord avec le serveur déjà choisi.

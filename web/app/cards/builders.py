@@ -263,6 +263,73 @@ def _member_card(user_id: int, server_id: int | None, lang: str, public: bool = 
 
 
 # ---------------------------------------------------------------------------
+# 1b. Level-up card (server management > Levels: posted by the bot when a member levels up on a server)
+# ---------------------------------------------------------------------------
+def levelup_card(user_id: int, server_id: int, level: int | None = None, lang: str = "en") -> str:
+    lang = card_lang(lang)
+    key = ("card_levelup", int(user_id), int(server_id), level, lang)
+    return card_cache.get_or_set(key, CARD_CACHE_SECONDS, lambda: _levelup_card(int(user_id), int(server_id), level, lang))
+
+
+def _levelup_card(user_id: int, server_id: int, level: int | None, lang: str) -> str:
+    user = Users.get_or_none(Users.user_id == user_id)
+    if not user:
+        raise CardNotFound("member")
+    server = Servers.get_or_none(Servers.server_id == server_id)
+    stat = Stats.get_or_none((Stats.user_id == user_id) & (Stats.server_id == server_id))
+    seconds, messages = (stat.seconds or 0, stat.messages or 0) if stat else (0, 0)
+    xp = calculate_user_xp_and_level(seconds, messages, 0)  # the level on this server (votes belong to no server)
+    level = int(level or xp["level"])
+    name = _name(user.username, tr("Membre {id}", "Member {id}", lang, id=user_id))
+    theme = _theme(user_id)
+    accent = theme["accent"]
+    h = 520
+
+    body = ""
+    # The member's banner faded in the background, when they chose one
+    if theme["banner"]:
+        uri = d.local_cover(theme["banner"], W, 300)
+        if uri:
+            body += (f'<image href="{uri}" x="0" y="0" width="{W}" height="300" preserveAspectRatio="xMidYMid slice" opacity="0.55"/>'
+                     f'<defs><linearGradient id="lvfade" x1="0" y1="0" x2="0" y2="1">'
+                     f'<stop offset="0.2" stop-color="{theme["bg"]}" stop-opacity="0"/>'
+                     f'<stop offset="1" stop-color="{theme["bg"]}" stop-opacity="1"/></linearGradient></defs>'
+                     f'<rect x="0" y="0" width="{W}" height="301" fill="url(#lvfade)"/>')
+
+    # The new level, huge, on the right (outlined copy behind, as on the site's rankings)
+    body += d.ghost(W - M + 10, 300, str(level), 330, opacity=0.07)
+    body += d.caption(W - M, 120, tr("Niveau", "Level", lang).upper(), 30, accent, anchor="end")
+    body += d.text(W - M, 290, str(level), 190, 700, accent, "end", italic=True)
+
+    # Who and where
+    av_r = 100
+    cy = 210
+    body += d.avatar(M + av_r + 8, cy, av_r, d.remote_square(get_user_avatar_url(user_id), 2 * av_r), name, accent, "lv")
+    x = M + 2 * av_r + 56
+    room = W - M - 330 - x
+    body += d.caption(x, cy - 62, tr("Niveau supérieur !", "Level up!", lang).upper(), 26, accent)
+    shown, size = d.fit_text(name.upper(), room, 64, 700, 36, spacing=1)
+    body += d.text(x, cy + 6, shown, size, 700, d.TEXT, spacing=1)
+    title = tr(xp["title_fr"], xp["title_en"], lang)
+    title_tag, title_w = d.tag(x, cy + 34, title, accent, 23, 46, solid=True, max_width=room * 0.55)
+    scope = _name(server.servername if server else None, tr("Ce serveur", "This server", lang))
+    scope_tag, _ = d.tag(x + title_w + 12, cy + 34, scope, d.SOFT, 23, 46, max_width=room - title_w - 12)
+    body += title_tag + scope_tag
+
+    # Progress to the next level, and what made it
+    bar_y = 380
+    body += d.text(M, bar_y - 18, f"{d.fmt_int(xp['total_xp'], lang)} XP", 30, 700, d.XP, italic=True)
+    body += d.text(W - M, bar_y - 18, tr("{h} en vocal · {m} messages", "{h} in voice · {m} messages", lang,
+                                          h=d.fmt_hours(seconds, lang), m=d.fmt_int(messages, lang)), 24, 600, d.MUTED, "end", font="body")
+    body += d.progress(M, bar_y, INNER, 16, xp["progress_percent"] / 100, accent)
+    nxt = tr("Prochain niveau : {n}", "Next level: {n}", lang, n=level + 1)
+    body += d.text(M, bar_y + 52, nxt, 23, 600, d.DIM, font="body")
+
+    body += _footer(h, accent)
+    return d.document(W, h, body, accent, theme["bg"])
+
+
+# ---------------------------------------------------------------------------
 # 2. Versus card (/versus, on this server or everywhere)
 # ---------------------------------------------------------------------------
 def _rounds(lang: str) -> list[tuple[str, str]]:

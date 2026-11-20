@@ -24,6 +24,20 @@ MAX_MANAGERS = 10
 ACCESS_CACHE_SECONDS = 15  # owner and member checks: short, a change on Discord shows up quickly
 
 TABLES = [
+    # Level-up announcements (also created by the bot, same definition)
+    """CREATE TABLE IF NOT EXISTS server_levelup (
+        server_id BIGINT PRIMARY KEY,
+        enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        channel_id BIGINT,
+        same_channel BOOLEAN NOT NULL DEFAULT FALSE,
+        message TEXT,
+        mention BOOLEAN NOT NULL DEFAULT TRUE,
+        min_level INTEGER NOT NULL DEFAULT 2,
+        every INTEGER NOT NULL DEFAULT 1,
+        with_card BOOLEAN NOT NULL DEFAULT TRUE,
+        updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_by BIGINT
+    )""",
     """CREATE TABLE IF NOT EXISTS server_settings (
         server_id BIGINT PRIMARY KEY,
         timezone VARCHAR(64) NOT NULL DEFAULT 'Europe/Paris',
@@ -57,7 +71,7 @@ TABLES = [
 
 # Discord permission bits the bot needs (key, bit); their names and uses are in permission_texts()
 PERMISSIONS = [
-    ("view", 1 << 10), ("send", 1 << 11), ("embed", 1 << 14), ("attach", 1 << 15), ("history", 1 << 16), ("roles", 1 << 28),
+    ("view", 1 << 10), ("send", 1 << 11), ("embed", 1 << 14), ("history", 1 << 16), ("roles", 1 << 28),
 ]
 
 
@@ -67,8 +81,7 @@ def permission_texts(lang: str) -> dict[str, tuple[str, str]]:
     return {
         "view": (tr("Voir les salons", "View channels", lang), tr("Pour lire les salons où il doit écrire.", "To see the channels it must write in.", lang)),
         "send": (tr("Envoyer des messages", "Send messages", lang), tr("Annonces de niveau et rapports.", "Level-up announcements and reports.", lang)),
-        "embed": (tr("Intégrer des liens", "Embed links", lang), tr("Messages mis en forme.", "Formatted messages.", lang)),
-        "attach": (tr("Joindre des fichiers", "Attach files", lang), tr("Cartes images des annonces et des rapports.", "Image cards of announcements and reports.", lang)),
+        "embed": (tr("Intégrer des liens", "Embed links", lang), tr("Cartes images des annonces et des rapports.", "Image cards of announcements and reports.", lang)),
         "history": (tr("Voir l’historique", "Read message history", lang), tr("Répondre dans le bon salon.", "Reply in the right channel.", lang)),
         "roles": (tr("Gérer les rôles", "Manage roles", lang), tr("Rôles automatiques.", "Automatic roles.", lang)),
     }
@@ -235,15 +248,102 @@ def save_timezone(server_id: int, tz: str, by: int) -> bool:
     return True
 
 
+# ------------------------------------------------------------------------------------------------ level-ups
+LEVELUP_EVERY = (1, 2, 5, 10)
+# Text posted when the server leaves the message empty, in its language (same as the bot, handlers/i18n.go)
+LEVELUP_DEFAULT_MESSAGES = {
+    "en": "🎉 {membre} reached **level {niveau}**!",
+    "fr": "🎉 {membre} passe au **niveau {niveau}** !",
+    "es": "🎉 ¡{membre} sube al **nivel {niveau}**!",
+    "pt": "🎉 {membre} chegou ao **nível {niveau}**!",
+    "it": "🎉 {membre} sale al **livello {niveau}**!",
+    "de": "🎉 {membre} erreicht **Level {niveau}**!",
+    "pl": "🎉 {membre} awansuje na **poziom {niveau}**!",
+    "tr": "🎉 {membre} **{niveau}. seviyeye** ulaştı!",
+    "ru": "🎉 {membre} достигает **уровня {niveau}**!",
+    "hi": "🎉 {membre} **लेवल {niveau}** पर पहुँचे!",
+    "ja": "🎉 {membre} が**レベル {niveau}** になりました！",
+    "ko": "🎉 {membre} 님이 **레벨 {niveau}**에 도달했어요!",
+}
+
+
+def levelup_default_message(locale: str | None) -> str:
+    code = (locale or "").split("-")[0].lower()
+    return LEVELUP_DEFAULT_MESSAGES.get(code, LEVELUP_DEFAULT_MESSAGES["en"])
+
+
+LEVELUP_MAX_MESSAGE = 300
+LEVELUP_DEFAULTS = {"enabled": False, "channel_id": None, "same_channel": False, "message": "", "mention": True,
+                    "min_level": 2, "every": 1, "with_card": True, "updated_at": None}
+
+
+def get_levelup(server_id: int) -> dict:
+    rows = _rows("SELECT enabled, channel_id, same_channel, message, mention, min_level, every, with_card, updated_at "
+                 "FROM server_levelup WHERE server_id = %s", (int(server_id),))
+    if not rows:
+        return dict(LEVELUP_DEFAULTS)
+    enabled, channel, same, message, mention, min_level, every, card, at = rows[0]
+    return {"enabled": bool(enabled), "channel_id": str(channel) if channel else None, "same_channel": bool(same),
+            "message": message or "", "mention": bool(mention), "min_level": int(min_level), "every": int(every),
+            "with_card": bool(card), "updated_at": at}
+
+
+def save_levelup(server_id: int, form: dict, by: int) -> str | None:
+    """Validated save of the announcement settings. None when saved, else the reason: "channel", "error"."""
+    known = {c["id"]: c for c in channels(server_id)}
+    enabled = form.get("enabled") == "1"
+    channel = form.get("channel_id") or ""
+    if channel and channel not in known:
+        return "channel"
+    if enabled and not channel:
+        return "channel"
+    try:
+        min_level = max(1, min(500, int(form.get("min_level") or 2)))
+    except ValueError:
+        min_level = 2
+    try:
+        every = int(form.get("every") or 1)
+    except ValueError:
+        every = 1
+    if every not in LEVELUP_EVERY:
+        every = 1
+    message = (form.get("message") or "").replace("\r", "").strip()[:LEVELUP_MAX_MESSAGE]
+    values = {"enabled": enabled, "channel_id": int(channel) if channel else None, "same_channel": form.get("same_channel") == "1",
+              "message": message or None, "mention": form.get("mention") == "1", "min_level": min_level, "every": every,
+              "with_card": form.get("with_card") == "1"}
+    before = get_levelup(server_id)
+    try:
+        db.execute_sql(
+            "INSERT INTO server_levelup (server_id, enabled, channel_id, same_channel, message, mention, min_level, every, with_card, "
+            "updated_at, updated_by) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (server_id) DO UPDATE SET enabled = EXCLUDED.enabled, channel_id = EXCLUDED.channel_id, "
+            "same_channel = EXCLUDED.same_channel, message = EXCLUDED.message, mention = EXCLUDED.mention, "
+            "min_level = EXCLUDED.min_level, every = EXCLUDED.every, with_card = EXCLUDED.with_card, "
+            "updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by",
+            (int(server_id), values["enabled"], values["channel_id"], values["same_channel"], values["message"], values["mention"],
+             values["min_level"], values["every"], values["with_card"], _now(), int(by)))
+    except Exception:
+        db.rollback()
+        return "error"
+    # Journal: turned on / off, or settings changed
+    if before["enabled"] != enabled:
+        action = "levels_on" if enabled else "levels_off"
+    else:
+        action = "levels_settings"
+    channel_name = known[channel]["name"] if channel else ""
+    log_action(server_id, "levels", action, actor=by, detail=f"#{channel_name}" if channel_name else None)
+    return None
+
+
 # ------------------------------------------------------------------------------------------------ managers
 def managers(server_id: int) -> list[dict]:
     """The owner's chosen managers, with their name on the server; those who left are flagged."""
     rows = _rows(
-        "SELECT sm.user_id, sm.added_at, COALESCE(gm.display_name, u.username), COALESCE(gm.avatar, u.avatar), gm.user_id IS NOT NULL "
+        "SELECT sm.user_id, sm.added_at, COALESCE(gm.username, u.username), gm.display_name, COALESCE(gm.avatar, u.avatar), gm.user_id IS NOT NULL "
         "FROM server_managers sm LEFT JOIN guild_members gm ON gm.server_id = sm.server_id AND gm.user_id = sm.user_id "
         "LEFT JOIN users u ON u.user_id = sm.user_id WHERE sm.server_id = %s ORDER BY sm.added_at", (int(server_id),))
-    return [{"id": str(uid), "added_at": at, "name": name or f"#{uid}", "avatar": avatar, "member": bool(member)}
-            for uid, at, name, avatar, member in rows]
+    return [{"id": str(uid), "added_at": at, "name": name or f"#{uid}", "nickname": nick if nick and nick != name else None,
+             "avatar": avatar, "member": bool(member)} for uid, at, name, nick, avatar, member in rows]
 
 
 def search_members(server_id: int, query: str, limit: int = 8) -> list[dict]:
@@ -258,8 +358,8 @@ def search_members(server_id: int, query: str, limit: int = 8) -> list[dict]:
         "AND gm.user_id <> COALESCE((SELECT owner_id FROM guild_meta WHERE server_id = gm.server_id), 0) "
         "ORDER BY display_name LIMIT %s",
         (int(server_id), f"%{q}%", f"%{q}%", limit))
-    return [{"id": str(uid), "name": display or username or f"#{uid}", "username": username or "", "avatar": avatar}
-            for uid, display, username, avatar in rows]
+    return [{"id": str(uid), "name": username or display or f"#{uid}", "nickname": display if display and display != username else "",
+             "avatar": avatar} for uid, display, username, avatar in rows]
 
 
 def add_manager(server_id: int, user_id: int, by: int) -> str | None:
@@ -314,14 +414,23 @@ def log_action(server_id: int, feature: str, action: str, actor: int | None = No
 
 
 def journal(server_id: int, limit: int = 200) -> list[dict]:
+    """Last lines of the server's journal. People are named by their Discord username (unique, clear), with their
+    nickname on this server as a tooltip."""
     rows = _rows(
-        "SELECT l.created_at, l.feature, l.action, l.ok, l.detail, l.actor_id, COALESCE(ga.display_name, ua.username), "
-        "l.target_id, COALESCE(gt.display_name, ut.username) FROM server_feature_log l "
+        "SELECT l.created_at, l.feature, l.action, l.ok, l.detail, "
+        "l.actor_id, COALESCE(ga.username, ua.username), ga.display_name, "
+        "l.target_id, COALESCE(gt.username, ut.username), gt.display_name FROM server_feature_log l "
         "LEFT JOIN guild_members ga ON ga.server_id = l.server_id AND ga.user_id = l.actor_id "
         "LEFT JOIN users ua ON ua.user_id = l.actor_id "
         "LEFT JOIN guild_members gt ON gt.server_id = l.server_id AND gt.user_id = l.target_id "
         "LEFT JOIN users ut ON ut.user_id = l.target_id "
         "WHERE l.server_id = %s ORDER BY l.created_at DESC LIMIT %s", (int(server_id), limit))
+
+    def person(uid, username, nickname):
+        if not uid:
+            return None
+        return {"id": str(uid), "username": username or f"#{uid}", "nickname": nickname if nickname and nickname != username else None}
+
     return [{"at": at, "feature": feature, "action": action, "ok": ok, "detail": detail,
-             "actor": actor_name or (f"#{actor}" if actor else None), "target": target_name or (f"#{target}" if target else None)}
-            for at, feature, action, ok, detail, actor, actor_name, target, target_name in rows]
+             "actor": person(actor, actor_user, actor_nick), "target": person(target, target_user, target_nick)}
+            for at, feature, action, ok, detail, actor, actor_user, actor_nick, target, target_user, target_nick in rows]

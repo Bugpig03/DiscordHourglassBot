@@ -57,6 +57,8 @@
         if (!button) return;
         const current = select.options[select.selectedIndex];
         button.querySelector('.hg-select-value').textContent = current ? current.textContent.trim() : '';
+        // A flagged option (e.g. class="is-blocked") keeps its look once chosen
+        button.classList.toggle('is-blocked', !!(current && current.classList.contains('is-blocked')));
         button.disabled = select.disabled;
     }
 
@@ -69,7 +71,7 @@
         list.setAttribute('role', 'listbox');
         list.tabIndex = -1;
         const opts = options(select);
-        list.innerHTML = opts.map((o, i) => `<div class="hg-select-opt${o.disabled ? ' is-disabled' : ''}" role="option" id="${list.id}-${i}" data-index="${i}" aria-selected="${o.selected}"${o.disabled ? ' aria-disabled="true"' : ''}><span class="hg-select-opt-text">${esc(o.textContent.trim())}</span><span class="hg-select-check">${CHECK}</span></div>`).join('');
+        list.innerHTML = opts.map((o, i) => `<div class="hg-select-opt${o.disabled ? ' is-disabled' : ''}${o.classList.contains('is-blocked') ? ' is-blocked' : ''}" role="option" id="${list.id}-${i}" data-index="${i}" aria-selected="${o.selected}"${o.disabled ? ' aria-disabled="true"' : ''}><span class="hg-select-opt-text">${esc(o.textContent.trim())}</span><span class="hg-select-check">${CHECK}</span></div>`).join('');
         document.body.appendChild(list);
         button.setAttribute('aria-expanded', 'true');
         button.setAttribute('aria-controls', list.id);

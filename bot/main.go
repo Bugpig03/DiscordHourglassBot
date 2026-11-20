@@ -49,6 +49,10 @@ func main() {
 	if err := db.EnsureGuildStateTables(ensureCtx); err != nil {
 		log.Printf("⚠️ Copie des serveurs pour le site désactivée (tables guild_* indisponibles): %v", err)
 	}
+	// Level-up announcements: settings (written by the website) and last level seen per member
+	if err := db.EnsureLevelupTables(ensureCtx); err != nil {
+		log.Printf("⚠️ Annonces de niveau désactivées (tables server_levelup / levelup_state indisponibles): %v", err)
+	}
 	// Log lines copied to bot_logs as well (website admin page, "Logs du bot")
 	if err := db.EnsureBotLogsTable(ensureCtx); err != nil {
 		log.Printf("⚠️ Copie des logs en base désactivée (table bot_logs indisponible): %v", err)

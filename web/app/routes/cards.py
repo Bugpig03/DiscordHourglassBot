@@ -67,6 +67,17 @@ def internal_member_card():
     return _png(("member", user_id, server_id, lang), lambda: builders.member_card(user_id, server_id, lang))
 
 
+@cards_bp.route("/internal/card/levelup.png")
+def internal_levelup_card():
+    """Card posted by the bot when a member levels up on a server (server management > Levels)."""
+    _check_token()
+    user_id, server_id, level = _int_arg("user"), _int_arg("server"), _int_arg("level")
+    if not user_id or not server_id:
+        abort(400)
+    lang = _lang()
+    return _png(("levelup", user_id, server_id, level, lang), lambda: builders.levelup_card(user_id, server_id, level, lang))
+
+
 @cards_bp.route("/internal/card/versus.png")
 def internal_versus_card():
     _check_token()
@@ -168,6 +179,24 @@ def _og_png(key: tuple, build) -> Response:
     resp = Response(png, mimetype="image/png")
     resp.headers["Cache-Control"] = f"public, max-age={OG_CACHE_SECONDS}"
     return resp
+
+
+def levelup_signature(user_id: int, server_id: int, level: int) -> str:
+    """Signature of a level-up card address (HMAC with CARD_TOKEN, same as the bot's card.LevelupImageURL)."""
+    key = (current_app.config.get("CARD_TOKEN") or "").encode()
+    return hmac.new(key, f"levelup:{user_id}:{server_id}:{level}".encode(), "sha256").hexdigest()[:32]
+
+
+@cards_bp.route("/card/levelup/<int:user_id>/<int:server_id>/<int:level>.png")
+def public_levelup_card(user_id: int, server_id: int, level: int):
+    """Image of a level-up announcement, loaded by Discord from the embed the bot posts (so the bot needs no
+    "Attach files" permission). Only the addresses the bot signed work: nobody can make cards by guessing them."""
+    if not current_app.config.get("CARD_TOKEN") or level < 1 or level > 10000:
+        abort(404)
+    if not hmac.compare_digest(request.args.get("sig", ""), levelup_signature(user_id, server_id, level)):
+        abort(404)
+    lang = _lang()
+    return _og_png(("levelup", user_id, server_id, level, lang), lambda: builders.levelup_card(user_id, server_id, level, lang))
 
 
 @cards_bp.route("/og/member/<int:user_id>.png")
