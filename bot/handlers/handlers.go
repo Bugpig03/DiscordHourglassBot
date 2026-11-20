@@ -79,6 +79,9 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 
 	// Annonces de passage de niveau (réglages du site relus chaque minute, membres en vocal vérifiés aussi)
 	h.startLevelups(s)
+
+	// Rapports automatiques (quotidien, hebdomadaire, mensuel) et tests demandés depuis le site
+	h.startReports(s)
 }
 
 // OnMessageCreate enregistre chaque message textuel

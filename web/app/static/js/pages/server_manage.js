@@ -79,6 +79,19 @@
         render();
     }
 
+    // ---------------------------------------------------------------- reports: each switch dims its card
+    document.querySelectorAll('[data-report]').forEach(card => {
+        const toggle = card.querySelector('[data-report-enabled]');
+        const label = card.querySelector('.sm-switch-label');
+        const body = card.querySelector('[data-report-body]');
+        const sync = () => {
+            label.textContent = toggle.checked ? label.dataset.on : label.dataset.off;
+            body.classList.toggle('is-off', !toggle.checked);
+        };
+        toggle.addEventListener('change', sync);
+        sync();
+    });
+
     // ---------------------------------------------------------------- choose a manager
     const form = document.getElementById('smAddManager');
     if (!form) return;

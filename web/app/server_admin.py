@@ -11,7 +11,7 @@ The list of managers and the private mode are the owner's only.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import available_timezones
 
 from app.cache import cache
@@ -24,6 +24,39 @@ MAX_MANAGERS = 10
 ACCESS_CACHE_SECONDS = 15  # owner and member checks: short, a change on Discord shows up quickly
 
 TABLES = [
+    # Automatic reports (also created by the bot, same definitions)
+    """CREATE TABLE IF NOT EXISTS server_reports (
+        server_id BIGINT NOT NULL,
+        kind VARCHAR(8) NOT NULL,
+        enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        channel_id BIGINT,
+        hour SMALLINT NOT NULL DEFAULT 20,
+        weekday SMALLINT NOT NULL DEFAULT 6,
+        mention_role_id BIGINT,
+        updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_by BIGINT,
+        PRIMARY KEY (server_id, kind)
+    )""",
+    """CREATE TABLE IF NOT EXISTS report_runs (
+        server_id BIGINT NOT NULL,
+        kind VARCHAR(8) NOT NULL,
+        period_start DATE NOT NULL,
+        sent_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        ok BOOLEAN,
+        detail TEXT,
+        PRIMARY KEY (server_id, kind, period_start)
+    )""",
+    """CREATE TABLE IF NOT EXISTS report_requests (
+        id BIGSERIAL PRIMARY KEY,
+        server_id BIGINT NOT NULL,
+        kind VARCHAR(8) NOT NULL,
+        requested_by BIGINT,
+        created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        done_at TIMESTAMP WITHOUT TIME ZONE,
+        ok BOOLEAN,
+        detail TEXT
+    )""",
+    "CREATE INDEX IF NOT EXISTS report_requests_pending ON report_requests (created_at) WHERE done_at IS NULL",
     # Level-up announcements (also created by the bot, same definition)
     """CREATE TABLE IF NOT EXISTS server_levelup (
         server_id BIGINT PRIMARY KEY,
@@ -344,6 +377,104 @@ def save_levelup(server_id: int, form: dict, by: int) -> str | None:
     channel_name = known[channel]["name"] if channel else ""
     log_action(server_id, "levels", action, actor=by, detail=f"#{channel_name}" if channel_name else None)
     return None
+
+
+# ------------------------------------------------------------------------------------------------ reports
+REPORT_KINDS = ("daily", "weekly", "monthly")
+REPORT_DEFAULTS = {
+    "daily": {"hour": 21, "weekday": 6},
+    "weekly": {"hour": 20, "weekday": 6},    # Sunday evening
+    "monthly": {"hour": 10, "weekday": 6},   # the 1st in the morning
+}
+REPORT_TEST_COOLDOWN = 120  # seconds between two tests of a server (the bot handles them within a minute)
+
+
+def get_reports(server_id: int) -> dict:
+    out = {kind: {"enabled": False, "channel_id": None, "hour": REPORT_DEFAULTS[kind]["hour"], "weekday": REPORT_DEFAULTS[kind]["weekday"],
+                  "mention_role_id": None, "updated_at": None} for kind in REPORT_KINDS}
+    for kind, enabled, channel, hour, weekday, role, at in _rows(
+            "SELECT kind, enabled, channel_id, hour, weekday, mention_role_id, updated_at FROM server_reports WHERE server_id = %s",
+            (int(server_id),)):
+        if kind in out:
+            out[kind] = {"enabled": bool(enabled), "channel_id": str(channel) if channel else None, "hour": int(hour),
+                         "weekday": int(weekday), "mention_role_id": str(role) if role else None, "updated_at": at}
+    return out
+
+
+def save_reports(server_id: int, form: dict, by: int) -> str | None:
+    """Validated save of the three reports. None when saved, else "channel:<kind>" or "error"."""
+    known_channels = {c["id"]: c for c in channels(server_id)}
+    known_roles = {r["id"] for r in roles(server_id) if not r["managed"]}
+    before = get_reports(server_id)
+    values = {}
+    for kind in REPORT_KINDS:
+        enabled = form.get(f"{kind}_enabled") == "1"
+        channel = form.get(f"{kind}_channel") or ""
+        if channel and channel not in known_channels:
+            channel = ""
+        if enabled and not channel:
+            return f"channel:{kind}"
+        try:
+            hour = min(23, max(0, int(form.get(f"{kind}_hour", REPORT_DEFAULTS[kind]["hour"]))))
+        except ValueError:
+            hour = REPORT_DEFAULTS[kind]["hour"]
+        try:
+            weekday = min(6, max(0, int(form.get(f"{kind}_weekday", REPORT_DEFAULTS[kind]["weekday"]))))
+        except ValueError:
+            weekday = REPORT_DEFAULTS[kind]["weekday"]
+        role = form.get(f"{kind}_role") or ""
+        values[kind] = (enabled, int(channel) if channel else None, hour, weekday, int(role) if role in known_roles else None)
+    try:
+        for kind, (enabled, channel, hour, weekday, role) in values.items():
+            db.execute_sql(
+                "INSERT INTO server_reports (server_id, kind, enabled, channel_id, hour, weekday, mention_role_id, updated_at, updated_by) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (server_id, kind) DO UPDATE SET enabled = EXCLUDED.enabled, "
+                "channel_id = EXCLUDED.channel_id, hour = EXCLUDED.hour, weekday = EXCLUDED.weekday, mention_role_id = EXCLUDED.mention_role_id, "
+                "updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by",
+                (int(server_id), kind, enabled, channel, hour, weekday, role, _now(), int(by)))
+    except Exception:
+        db.rollback()
+        return "error"
+    for kind, (enabled, channel, hour, weekday, role) in values.items():
+        old = before[kind]
+        changed = (old["enabled"], old["channel_id"], old["hour"], old["weekday"], old["mention_role_id"]) !=             (enabled, str(channel) if channel else None, hour, weekday, str(role) if role else None)
+        if not changed:
+            continue
+        action = ("reports_on" if enabled else "reports_off") if old["enabled"] != enabled else "reports_settings"
+        name = known_channels.get(str(channel), {}).get("name") if channel else None
+        log_action(server_id, "reports", action, actor=by, detail=kind + (f" · #{name}" if name else ""))
+    return None
+
+
+def request_report_test(server_id: int, kind: str, by: int) -> str | None:
+    """Ask the bot for a test report (the last finished period). None when asked, else "channel", "wait" or "error"."""
+    if kind not in REPORT_KINDS:
+        return "error"
+    if not get_reports(server_id)[kind]["channel_id"]:
+        return "channel"
+    recent = _rows("SELECT 1 FROM report_requests WHERE server_id = %s AND created_at > %s",
+                   (int(server_id), _now() - timedelta(seconds=REPORT_TEST_COOLDOWN)))
+    if recent:
+        return "wait"
+    try:
+        db.execute_sql("INSERT INTO report_requests (server_id, kind, requested_by, created_at) VALUES (%s, %s, %s, %s)",
+                       (int(server_id), kind, int(by), _now()))
+    except Exception:
+        db.rollback()
+        return "error"
+    return None
+
+
+def report_history(server_id: int, limit: int = 12) -> list[dict]:
+    """Last reports sent and tests asked, newest first (for the Reports tab)."""
+    rows = _rows(
+        "SELECT * FROM (SELECT sent_at AS at, kind, period_start::text AS period, ok, detail, FALSE AS test, FALSE AS pending "
+        "FROM report_runs WHERE server_id = %s "
+        "UNION ALL SELECT created_at, kind, NULL, ok, detail, TRUE, done_at IS NULL AND created_at > %s FROM report_requests WHERE server_id = %s) x "
+        "ORDER BY at DESC LIMIT %s",
+        (int(server_id), _now() - timedelta(hours=1), int(server_id), limit))
+    return [{"at": at, "kind": kind, "period": period, "ok": ok, "detail": detail, "test": test, "pending": pending}
+            for at, kind, period, ok, detail, test, pending in rows]
 
 
 # ------------------------------------------------------------------------------------------------ managers

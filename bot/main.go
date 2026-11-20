@@ -53,6 +53,10 @@ func main() {
 	if err := db.EnsureLevelupTables(ensureCtx); err != nil {
 		log.Printf("⚠️ Annonces de niveau désactivées (tables server_levelup / levelup_state indisponibles): %v", err)
 	}
+	// Automatic reports: settings, reports sent (never twice) and tests asked from the website
+	if err := db.EnsureReportTables(ensureCtx); err != nil {
+		log.Printf("⚠️ Rapports automatiques désactivés (tables server_reports / report_runs indisponibles): %v", err)
+	}
 	// Log lines copied to bot_logs as well (website admin page, "Logs du bot")
 	if err := db.EnsureBotLogsTable(ensureCtx); err != nil {
 		log.Printf("⚠️ Copie des logs en base désactivée (table bot_logs indisponible): %v", err)

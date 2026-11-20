@@ -1,5 +1,18 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.10.0 - Rapports Automatiques - 21/11/2026
+
+- **Rapports automatiques** sur les serveurs qui les activent (site, page « Gérer » > Rapports) : le bot poste le bilan du serveur dans un salon, en carte image.
+  - **Quotidien** : à l'heure choisie, la veille.
+  - **Hebdomadaire** : le jour et l'heure choisis, les 7 jours d'avant.
+  - **Mensuel** : le 1er du mois à l'heure choisie, le mois d'avant.
+- **À l'heure du serveur** : les heures et les jours suivent le fuseau horaire choisi sur le site, changements d'heure compris (fuseaux intégrés au bot).
+- **Jamais en double** : chaque rapport est réservé en base avant d'être envoyé, même si le bot redémarre. Un rapport manqué pendant une coupure part encore dans les 6 heures, puis il est abandonné. Rien ne part pour une période due avant l'activation.
+- **Mention d'un rôle** en option (seul ce rôle peut être mentionné, jamais @everyone ni @here).
+- **Tests** : le bouton « Enregistrer et envoyer un test » du site est traité par le bot dans la minute (dernière période terminée, marquée « test »).
+- **Journal** : chaque rapport et chaque échec (salon interdit, permission manquante…) sont notés sur la page de gestion du serveur.
+- Nouvelles tables créées automatiquement (ou par `database/migrations/2026-11-21_bot_v3.10.0_reports.sql`).
+
 ## Version 3.9.0 - Annonces de Passage de Niveau - 20/11/2026
 
 - **Annonces de passage de niveau** sur les serveurs qui les activent (site, page « Gérer » > Niveaux) : quand un membre monte de niveau sur le serveur, le bot le félicite dans le salon choisi (ou dans celui où il vient d'écrire), avec sa carte image en option.

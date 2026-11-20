@@ -487,6 +487,9 @@ def _server_management(win: list[date], lang: str) -> dict:
     managers, managed_servers = (_rows("SELECT COUNT(*), COUNT(DISTINCT server_id) FROM server_managers") or [(0, 0)])[0]
     private = _one("SELECT COUNT(*) FROM server_settings WHERE private")
     levels_on = _one("SELECT COUNT(*) FROM server_levelup l JOIN guild_meta m ON m.server_id = l.server_id WHERE l.enabled AND m.bot_present")
+    reports_on = _one("SELECT COUNT(DISTINCT r.server_id) FROM server_reports r JOIN guild_meta m ON m.server_id = r.server_id "
+                      "WHERE r.enabled AND m.bot_present")
+    report_runs = _rows("SELECT ok, COUNT(*) FROM report_runs WHERE sent_at >= %s GROUP BY ok", (start,))
     announces = _rows("SELECT ok, COUNT(*) FROM server_feature_log WHERE feature = 'levels' AND action = 'announce' AND created_at >= %s "
                       "GROUP BY ok", (start,))
     actions = _rows("SELECT created_at::date, COUNT(*) FROM server_feature_log WHERE created_at >= %s GROUP BY 1", (start,))
@@ -506,6 +509,8 @@ def _server_management(win: list[date], lang: str) -> dict:
         "managers": int(managers or 0), "managed_servers": int(managed_servers or 0),
         "private": int(private or 0),
         "levels_on": int(levels_on or 0),
+        "reports_on": int(reports_on or 0),
+        "reports_sent": sum(int(n) for ok, n in report_runs if ok), "reports_failed": sum(int(n) for ok, n in report_runs if ok is False),
         "announces": sum(int(n) for ok, n in announces if ok), "announces_failed": sum(int(n) for ok, n in announces if not ok),
         "missing_count": len(missing_rows),
         "labels": [_day_label(d, lang) for d in win],

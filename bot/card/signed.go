@@ -29,6 +29,19 @@ func sign(token, message string) string {
 	return hex.EncodeToString(mac.Sum(nil))[:32]
 }
 
+// ReportImageURL is the image of an automatic report (period: first day, YYYY-MM-DD); "" without CARD_TOKEN.
+func ReportImageURL(serverID int64, kind, period, lang string) string {
+	token := strings.TrimSpace(os.Getenv("CARD_TOKEN"))
+	if token == "" {
+		return ""
+	}
+	q := url.Values{"sig": {sign(token, fmt.Sprintf("report:%d:%s:%s", serverID, kind, period))}}
+	if lang != "" {
+		q.Set("lang", lang)
+	}
+	return fmt.Sprintf("%s/card/report/%d/%s/%s.png?%s", publicURL(), serverID, kind, period, q.Encode())
+}
+
 // LevelupImageURL is the image of a level-up announcement; "" while CARD_TOKEN is not configured.
 func LevelupImageURL(userID, serverID int64, level int, lang string) string {
 	token := strings.TrimSpace(os.Getenv("CARD_TOKEN"))

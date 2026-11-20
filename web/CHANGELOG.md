@@ -1,5 +1,22 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.45.0 - Rapports Automatiques - 21/11/2026
+- **Onglet « Rapports » de la page « Gérer »** (réservée aux administrateurs du site pendant la préparation) : trois rapports à activer chacun.
+  - **Quotidien, hebdomadaire ou mensuel**, avec pour chacun :
+    - le salon (ceux où le bot ne peut pas écrire sont en rouge) ;
+    - l'heure dans le fuseau du serveur, et le jour pour l'hebdomadaire ;
+    - un rôle à mentionner en option.
+  - **Aperçu** de la carte de la dernière période terminée, et bouton **« Enregistrer et envoyer un test »**.
+  - **« Derniers envois »** : les rapports partis, les tests en attente du bot, et les échecs avec leur raison.
+- **Nouvelle carte « Rapport »** aux couleurs du site :
+  - vocal, messages et membres actifs, avec l'évolution par rapport à la période d'avant ;
+  - les nouveaux membres ;
+  - le top 5 en vocal (sans les profils privés ni les bots) ;
+  - l'activité heure par heure (quotidien) ou jour par jour, et l'heure de pointe.
+  Le vocal est réparti exactement sur chaque heure ou jour où il a eu lieu, même pour une longue session, et les changements d'heure sont pris en compte.
+- La carte est chargée par Discord depuis le site, à une adresse signée par le bot : seule la permission « Intégrer des liens » est nécessaire.
+- **Admin, onglet « Gestion des serveurs »** : rapports envoyés sur la période et serveurs qui les ont activés.
+
 ## Version 3.44.0 - Prestige et Niveau - 21/11/2026
 - **Deux progressions, deux noms clairs** (même formule : 1 minute en vocal ou 1 message = 1 XP) :
   - **Prestige** : la progression sur tout Hourglass (toute l'activité, sur tous les serveurs, plus les votes). C'est l'ancien « niveau global » : il donne le titre (Champion, Vétéran…) et s'affiche sur le profil, dans les classements, la recherche, le survol d'un membre, Versus, les badges et la carte `/allstats`. Il ne baisse jamais.

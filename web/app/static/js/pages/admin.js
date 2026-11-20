@@ -403,6 +403,9 @@ const MANAGE_ACTIONS = {
     bot_removed: T('Hourglass retiré', 'Hourglass removed'), bot_synced: T('Serveur relu par le bot', 'Server read again by the bot'),
     levels_on: T('Annonces de niveau activées', 'Level-ups turned on'), levels_off: T('Annonces de niveau désactivées', 'Level-ups turned off'),
     levels_settings: T('Réglages des annonces modifiés', 'Announcement settings changed'), announce: T('Passage de niveau annoncé', 'Level-up announced'),
+    reports_on: T('Rapport activé', 'Report turned on'), reports_off: T('Rapport désactivé', 'Report turned off'),
+    reports_settings: T('Réglages du rapport modifiés', 'Report settings changed'), report_sent: T('Rapport envoyé', 'Report sent'),
+    report_test: T('Rapport de test envoyé', 'Test report sent'),
 };
 function sectionManagement() {
     const m = data.management;
@@ -423,6 +426,9 @@ function sectionManagement() {
         [T('Annonces de niveau', 'Level-up announcements'), HG.fmt(m.announces), `${T('sur {n} serveur(s) activé(s)', 'on {n} server(s) turned on', { n: HG.fmt(m.levels_on) })} · ${periodLabel()}`, m.announces_failed ? 'warn' : '',
             T('Passages de niveau annoncés par le bot sur la période, et serveurs qui ont activé les annonces. En orange : certaines n’ont pas pu partir (voir le journal).',
               'Level-ups announced by the bot over the period, and servers that turned the announcements on. In orange: some could not be sent (see the log).')],
+        [T('Rapports automatiques', 'Automatic reports'), HG.fmt(m.reports_sent), `${T('sur {n} serveur(s) activé(s)', 'on {n} server(s) turned on', { n: HG.fmt(m.reports_on) })} · ${periodLabel()}`, m.reports_failed ? 'warn' : '',
+            T('Rapports quotidiens, hebdomadaires et mensuels envoyés par le bot sur la période (sans les tests), et serveurs qui en ont activé au moins un. En orange : certains ont échoué (voir le journal).',
+              'Daily, weekly and monthly reports sent by the bot over the period (tests left out), and servers that turned at least one on. In orange: some failed (see the log).')],
         [T('Serveurs privés', 'Private servers'), HG.fmt(m.private), '', '', T('Serveurs en mode privé.', 'Servers in private mode.')],
     ]);
     lineChart('manageChart', m.labels, [bars(T('Actions', 'Actions'), m.daily_actions, '#717cf8'), bars(T('Erreurs', 'Errors'), m.daily_errors, '#e0675d')], { type: 'bar' });

@@ -271,3 +271,13 @@ html body .sm-fix { background: #717cf8; color: #fff; }
 }
 .sm-textarea { clip-path: var(--cut-s, none); }
 @media (max-width: 640px) { .sm-choices { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------------------------------------------------------------- Reports tab */
+.sm-report .sm-levels-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr); }
+.sm-fixed { display: inline-flex; align-items: center; min-height: 40px; color: #d0d2d8; font-size: 0.9rem; }
+.sm-report-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.sm-test { border: 1px solid var(--ar-line, #2e3138); }
+.sm-test svg { color: #f5b03b; }
+.sm-report-thumb { display: block; clip-path: var(--cut-s, none); background: rgba(255, 255, 255, 0.03); }
+.sm-report-thumb img { display: block; width: 100%; height: auto; }
+.sm-report-thumb:hover img { filter: brightness(1.08); }

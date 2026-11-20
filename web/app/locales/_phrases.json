@@ -3819,10 +3819,6 @@
   "Rapports automatiques",
   "Automatic reports"
  ],
- "p1071": [
-  "Un bilan quotidien, hebdomadaire ou mensuel du serveur, en carte image, posté tout seul dans un salon.",
-  "A daily, weekly or monthly summary of the server, as an image card, posted by itself in a channel."
- ],
  "p1072": [
   "Rôles automatiques",
   "Automatic roles"
@@ -4070,5 +4066,249 @@
  "p1138": [
   "{p} % vers le prestige {n}",
   "{p}% to prestige {n}"
+ ],
+ "p1139": [
+  "Rapport du jour",
+  "Daily report"
+ ],
+ "p1140": [
+  "Rapport de la semaine",
+  "Weekly report"
+ ],
+ "p1141": [
+  "Rapport du mois",
+  "Monthly report"
+ ],
+ "p1142": [
+  "Actifs",
+  "Active"
+ ],
+ "p1143": [
+  "Nouveaux",
+  "New"
+ ],
+ "p1144": [
+  "vs la veille",
+  "vs the day before"
+ ],
+ "p1145": [
+  "vs semaine passée",
+  "vs last week"
+ ],
+ "p1146": [
+  "vs mois dernier",
+  "vs last month"
+ ],
+ "p1147": [
+  "arrivés sur la période",
+  "joined in the period"
+ ],
+ "p1148": [
+  "Top 5 · vocal",
+  "Top 5 · voice"
+ ],
+ "p1149": [
+  "Aucune activité",
+  "No activity"
+ ],
+ "p1150": [
+  "Vocal par heure",
+  "Voice per hour"
+ ],
+ "p1151": [
+  "Vocal par jour",
+  "Voice per day"
+ ],
+ "p1152": [
+  "Heure de pointe : {h}",
+  "Peak hour: {h}"
+ ],
+ "p1153": [
+  "Aucune activité vocale",
+  "No voice activity"
+ ],
+ "p1154": [
+  "Rapport activé",
+  "Report turned on"
+ ],
+ "p1155": [
+  "Rapport désactivé",
+  "Report turned off"
+ ],
+ "p1156": [
+  "Réglages du rapport modifiés",
+  "Report settings changed"
+ ],
+ "p1157": [
+  "Rapport envoyé",
+  "Report sent"
+ ],
+ "p1158": [
+  "Rapport de test envoyé",
+  "Test report sent"
+ ],
+ "p1159": [
+  "Rapports enregistrés : le bot les applique dans la minute.",
+  "Reports saved: the bot applies them within a minute."
+ ],
+ "p1160": [
+  "Choisis un salon pour chaque rapport activé.",
+  "Choose a channel for each report turned on."
+ ],
+ "p1161": [
+  "Test demandé : le bot le poste dans la minute (voir « Derniers envois »).",
+  "Test asked: the bot posts it within a minute (see “Latest sends”)."
+ ],
+ "p1162": [
+  "Choisis d’abord un salon pour ce rapport.",
+  "Choose a channel for this report first."
+ ],
+ "p1163": [
+  "Un test vient d’être demandé : attends deux minutes avant le suivant.",
+  "A test was just asked: wait two minutes before the next one."
+ ],
+ "p1164": [
+  "Le test n’a pas pu être demandé. Réessaie dans un instant.",
+  "The test could not be asked. Try again in a moment."
+ ],
+ "p1165": [
+  "Rapport quotidien",
+  "Daily report"
+ ],
+ "p1166": [
+  "Rapport hebdomadaire",
+  "Weekly report"
+ ],
+ "p1167": [
+  "Rapport mensuel",
+  "Monthly report"
+ ],
+ "p1168": [
+  "Chaque jour à l’heure choisie : le bilan de la veille, heure par heure.",
+  "Every day at the chosen hour: the day before, hour by hour."
+ ],
+ "p1169": [
+  "Le jour et l’heure choisis : les 7 jours d’avant, jour par jour.",
+  "On the chosen day and hour: the 7 days before, day by day."
+ ],
+ "p1170": [
+  "Le 1er du mois à l’heure choisie : le mois d’avant, jour par jour.",
+  "On the 1st of the month at the chosen hour: the month before, day by day."
+ ],
+ "p1171": [
+  "Lundi",
+  "Monday"
+ ],
+ "p1172": [
+  "Mardi",
+  "Tuesday"
+ ],
+ "p1173": [
+  "Mercredi",
+  "Wednesday"
+ ],
+ "p1174": [
+  "Jeudi",
+  "Thursday"
+ ],
+ "p1175": [
+  "Vendredi",
+  "Friday"
+ ],
+ "p1176": [
+  "Samedi",
+  "Saturday"
+ ],
+ "p1177": [
+  "Dimanche",
+  "Sunday"
+ ],
+ "p1178": [
+  "Le bot poste tout seul le bilan du serveur dans un salon, en carte image : vocal et messages comparés à la période d’avant, membres actifs, nouveaux membres, top 5 et heure de pointe. Les heures sont celles du fuseau du serveur ({tz}, onglet Général). Les profils privés et les bots n’apparaissent pas dans le top.",
+  "The bot posts the server’s summary by itself in a channel, as an image card: voice and messages compared with the period before, active members, new members, top 5 and peak hour. Hours follow the server’s time zone ({tz}, General tab). Private profiles and bots stay out of the top."
+ ],
+ "p1179": [
+  "Le bot n’a pas la permission « Intégrer des liens » : les rapports ne pourront pas afficher leur carte (voir l’onglet Général).",
+  "The bot lacks the “Embed links” permission: reports will not be able to show their card (see the General tab)."
+ ],
+ "p1180": [
+  "Activé",
+  "On"
+ ],
+ "p1181": [
+  "Désactivé",
+  "Off"
+ ],
+ "p1182": [
+  "Salon",
+  "Channel"
+ ],
+ "p1183": [
+  "Jour",
+  "Day"
+ ],
+ "p1184": [
+  "Le 1er du mois",
+  "The 1st of the month"
+ ],
+ "p1185": [
+  "Heure",
+  "Hour"
+ ],
+ "p1186": [
+  "Mentionner",
+  "Mention"
+ ],
+ "p1187": [
+  "Personne",
+  "Nobody"
+ ],
+ "p1188": [
+  "Enregistrer et envoyer un test",
+  "Save and send a test"
+ ],
+ "p1189": [
+  "Le bot poste la dernière période terminée, marquée « test », dans la minute.",
+  "The bot posts the last finished period, marked “test”, within a minute."
+ ],
+ "p1190": [
+  "Aperçu de la dernière période",
+  "Preview of the last period"
+ ],
+ "p1191": [
+  "Derniers envois",
+  "Latest sends"
+ ],
+ "p1192": [
+  "Rapport",
+  "Report"
+ ],
+ "p1193": [
+  "État",
+  "Status"
+ ],
+ "p1194": [
+  "test",
+  "test"
+ ],
+ "p1195": [
+  "En attente du bot",
+  "Waiting for the bot"
+ ],
+ "p1196": [
+  "Envoyé",
+  "Sent"
+ ],
+ "p1197": [
+  "Échec",
+  "Failed"
+ ],
+ "p1198": [
+  "Expiré",
+  "Expired"
+ ],
+ "p1199": [
+  "Rapports quotidiens, hebdomadaires et mensuels envoyés par le bot sur la période (sans les tests), et serveurs qui en ont activé au moins un. En orange : certains ont échoué (voir le journal).",
+  "Daily, weekly and monthly reports sent by the bot over the period (tests left out), and servers that turned at least one on. In orange: some failed (see the log)."
  ]
 }

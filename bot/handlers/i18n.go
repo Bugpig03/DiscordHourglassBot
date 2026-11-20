@@ -198,6 +198,29 @@ var messages = map[string]map[string]string{
 		"ja": "🎉 {membre} が**レベル {niveau}** になりました！",
 		"ko": "🎉 {membre} 님이 **레벨 {niveau}**에 도달했어요!",
 	},
+	// Automatic reports (server management > Reports), in the server's language; %s is the server's name
+	"report_title_daily": {
+		"en": "📊 Daily report · %s", "fr": "📊 Rapport du jour · %s", "es": "📊 Informe del día · %s",
+		"pt": "📊 Relatório do dia · %s", "it": "📊 Rapporto del giorno · %s", "de": "📊 Tagesbericht · %s",
+		"pl": "📊 Raport dzienny · %s", "tr": "📊 Günlük rapor · %s", "ru": "📊 Отчёт за день · %s",
+		"hi": "📊 दैनिक रिपोर्ट · %s", "ja": "📊 日次レポート · %s", "ko": "📊 일간 리포트 · %s",
+	},
+	"report_title_weekly": {
+		"en": "📊 Weekly report · %s", "fr": "📊 Rapport de la semaine · %s", "es": "📊 Informe de la semana · %s",
+		"pt": "📊 Relatório da semana · %s", "it": "📊 Rapporto della settimana · %s", "de": "📊 Wochenbericht · %s",
+		"pl": "📊 Raport tygodniowy · %s", "tr": "📊 Haftalık rapor · %s", "ru": "📊 Отчёт за неделю · %s",
+		"hi": "📊 साप्ताहिक रिपोर्ट · %s", "ja": "📊 週次レポート · %s", "ko": "📊 주간 리포트 · %s",
+	},
+	"report_title_monthly": {
+		"en": "📊 Monthly report · %s", "fr": "📊 Rapport du mois · %s", "es": "📊 Informe del mes · %s",
+		"pt": "📊 Relatório do mês · %s", "it": "📊 Rapporto del mese · %s", "de": "📊 Monatsbericht · %s",
+		"pl": "📊 Raport miesięczny · %s", "tr": "📊 Aylık rapor · %s", "ru": "📊 Отчёт за месяц · %s",
+		"hi": "📊 मासिक रिपोर्ट · %s", "ja": "📊 月次レポート · %s", "ko": "📊 월간 리포트 · %s",
+	},
+	"report_test": {
+		"en": "test", "fr": "test", "es": "prueba", "pt": "teste", "it": "prova", "de": "Test",
+		"pl": "test", "tr": "deneme", "ru": "тест", "hi": "परीक्षण", "ja": "テスト", "ko": "테스트",
+	},
 	"vote_ready": {
 		"en": "You can vote now!",
 		"fr": "Tu peux voter maintenant !",

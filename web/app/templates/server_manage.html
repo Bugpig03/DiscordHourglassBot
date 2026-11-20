@@ -25,6 +25,11 @@
     'levels_off': tr('Annonces de niveau désactivées', 'Level-up announcements turned off'),
     'levels_settings': tr('Réglages des annonces modifiés', 'Announcement settings changed'),
     'announce': tr('Passage de niveau annoncé', 'Level-up announced'),
+    'reports_on': tr('Rapport activé', 'Report turned on'),
+    'reports_off': tr('Rapport désactivé', 'Report turned off'),
+    'reports_settings': tr('Réglages du rapport modifiés', 'Report settings changed'),
+    'report_sent': tr('Rapport envoyé', 'Report sent'),
+    'report_test': tr('Rapport de test envoyé', 'Test report sent'),
 } %}
 {% set feature_labels = {
     'general': tr('Général', 'General'), 'levels': tr('Niveaux', 'Levels'),
@@ -42,6 +47,13 @@
     'levels_saved': ('ok', tr('Annonces de niveau enregistrées : le bot les applique dans la minute.', 'Level-up announcements saved: the bot applies them within a minute.')),
     'levels_channel': ('warn', tr('Choisis un salon pour les annonces.', 'Choose a channel for the announcements.')),
     'levels_error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
+    'reports_saved': ('ok', tr('Rapports enregistrés : le bot les applique dans la minute.', 'Reports saved: the bot applies them within a minute.')),
+    'reports_channel': ('warn', tr('Choisis un salon pour chaque rapport activé.', 'Choose a channel for each report turned on.')),
+    'reports_error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
+    'reports_test_asked': ('ok', tr('Test demandé : le bot le poste dans la minute (voir « Derniers envois »).', 'Test asked: the bot posts it within a minute (see “Latest sends”).')),
+    'reports_test_channel': ('warn', tr('Choisis d’abord un salon pour ce rapport.', 'Choose a channel for this report first.')),
+    'reports_test_wait': ('warn', tr('Un test vient d’être demandé : attends deux minutes avant le suivant.', 'A test was just asked: wait two minutes before the next one.')),
+    'reports_test_error': ('error', tr('Le test n’a pas pu être demandé. Réessaie dans un instant.', 'The test could not be asked. Try again in a moment.')),
 } %}
 
 {% block content %}
@@ -284,7 +296,112 @@
     </form>
 </div>
 <div class="sm-pane" id="reports" data-sm-pane="reports"{% if section != 'reports' %} hidden{% endif %}>
-    {{ soon(tr('Rapports automatiques', 'Automatic reports'), tr('Un bilan quotidien, hebdomadaire ou mensuel du serveur, en carte image, posté tout seul dans un salon.', 'A daily, weekly or monthly summary of the server, as an image card, posted by itself in a channel.'), 'chart') }}
+    {% set report_titles = {'daily': tr('Rapport quotidien', 'Daily report'), 'weekly': tr('Rapport hebdomadaire', 'Weekly report'), 'monthly': tr('Rapport mensuel', 'Monthly report')} %}
+    {% set report_descs = {
+        'daily': tr('Chaque jour à l’heure choisie : le bilan de la veille, heure par heure.', 'Every day at the chosen hour: the day before, hour by hour.'),
+        'weekly': tr('Le jour et l’heure choisis : les 7 jours d’avant, jour par jour.', 'On the chosen day and hour: the 7 days before, day by day.'),
+        'monthly': tr('Le 1er du mois à l’heure choisie : le mois d’avant, jour par jour.', 'On the 1st of the month at the chosen hour: the month before, day by day.')} %}
+    {% set weekdays = [tr('Lundi', 'Monday'), tr('Mardi', 'Tuesday'), tr('Mercredi', 'Wednesday'), tr('Jeudi', 'Thursday'), tr('Vendredi', 'Friday'), tr('Samedi', 'Saturday'), tr('Dimanche', 'Sunday')] %}
+    <section class="gray-box small-border-radius hg-card">
+        <div class="hg-card-head">
+            <div>
+                <h2 class="hg-card-title">{{ tr('Rapports automatiques', 'Automatic reports') }}</h2>
+                <p class="hg-card-desc">{{ tr('Le bot poste tout seul le bilan du serveur dans un salon, en carte image : vocal et messages comparés à la période d’avant, membres actifs, nouveaux membres, top 5 et heure de pointe. Les heures sont celles du fuseau du serveur ({tz}, onglet Général). Les profils privés et les bots n’apparaissent pas dans le top.', 'The bot posts the server’s summary by itself in a channel, as an image card: voice and messages compared with the period before, active members, new members, top 5 and peak hour. Hours follow the server’s time zone ({tz}, General tab). Private profiles and bots stay out of the top.', tz=settings.timezone | replace('_', ' ')) }}</p>
+            </div>
+        </div>
+        {% if not can_embed %}<p class="sm-help sm-warn-text">{{ tr('Le bot n’a pas la permission « Intégrer des liens » : les rapports ne pourront pas afficher leur carte (voir l’onglet Général).', 'The bot lacks the “Embed links” permission: reports will not be able to show their card (see the General tab).') }}</p>{% endif %}
+    </section>
+
+    <form method="post" action="{{ url_for('server_manage.save_reports', server_id=server_id) }}" id="smReports">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% for kind in ['daily', 'weekly', 'monthly'] %}
+        {% set r = reports[kind] %}
+        <section class="gray-box small-border-radius hg-card sm-report" data-report="{{ kind }}">
+            <div class="hg-card-head">
+                <div>
+                    <h2 class="hg-card-title">{{ report_titles[kind] }}</h2>
+                    <p class="hg-card-desc">{{ report_descs[kind] }}</p>
+                </div>
+                <label class="sm-switch">
+                    <input type="checkbox" name="{{ kind }}_enabled" value="1"{% if r.enabled %} checked{% endif %} data-report-enabled>
+                    <span class="sm-switch-track" aria-hidden="true"><i></i></span>
+                    <span class="sm-switch-label" data-on="{{ tr('Activé', 'On') }}" data-off="{{ tr('Désactivé', 'Off') }}">{{ tr('Activé', 'On') if r.enabled else tr('Désactivé', 'Off') }}</span>
+                </label>
+            </div>
+            <div class="sm-levels-grid" data-report-body>
+                <div class="sm-levels-fields">
+                    <div class="sm-field">
+                        <label class="sm-label" for="smReport{{ kind }}Channel">{{ tr('Salon', 'Channel') }}</label>
+                        <select id="smReport{{ kind }}Channel" name="{{ kind }}_channel" class="top-select sm-select">
+                            <option value="">{{ tr('Choisir un salon…', 'Choose a channel…') }}</option>
+                            {% for c in channels %}
+                            <option value="{{ c.id }}"{% if not c.can_send %} class="is-blocked"{% endif %}{% if c.id == r.channel_id %} selected{% endif %}>#{{ c.name }}{% if not c.can_send %} · {{ tr('le bot ne peut pas y écrire', 'the bot cannot write there') }}{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="sm-field sm-row-fields">
+                        {% if kind == 'weekly' %}
+                        <label class="sm-inline"><span class="sm-label">{{ tr('Jour', 'Day') }}</span>
+                            <select name="weekly_weekday" class="top-select sm-select-sm">
+                                {% for name in weekdays %}<option value="{{ loop.index0 }}"{% if loop.index0 == r.weekday %} selected{% endif %}>{{ name }}</option>{% endfor %}
+                            </select>
+                        </label>
+                        {% elif kind == 'monthly' %}
+                        <label class="sm-inline"><span class="sm-label">{{ tr('Jour', 'Day') }}</span>
+                            <span class="sm-fixed">{{ tr('Le 1er du mois', 'The 1st of the month') }}</span>
+                        </label>
+                        {% endif %}
+                        <label class="sm-inline"><span class="sm-label">{{ tr('Heure', 'Hour') }}</span>
+                            <select name="{{ kind }}_hour" class="top-select sm-select-sm">
+                                {% for h in range(24) %}<option value="{{ h }}"{% if h == r.hour %} selected{% endif %}>{{ '%02d' % h }}:00</option>{% endfor %}
+                            </select>
+                        </label>
+                        <label class="sm-inline"><span class="sm-label">{{ tr('Mentionner', 'Mention') }}</span>
+                            <select name="{{ kind }}_role" class="top-select sm-select-sm">
+                                <option value="">{{ tr('Personne', 'Nobody') }}</option>
+                                {% for role in roles if not role.managed %}<option value="{{ role.id }}"{% if role.id == r.mention_role_id %} selected{% endif %}>@{{ role.name }}</option>{% endfor %}
+                            </select>
+                        </label>
+                    </div>
+                    <div class="sm-report-actions">
+                        <button type="submit" name="test" value="{{ kind }}" class="sm-toggle sm-test">{{ pixel_icon('zap', 12) }}<span>{{ tr('Enregistrer et envoyer un test', 'Save and send a test') }}</span></button>
+                        <small class="sm-help">{{ tr('Le bot poste la dernière période terminée, marquée « test », dans la minute.', 'The bot posts the last finished period, marked “test”, within a minute.') }}</small>
+                    </div>
+                </div>
+                <div class="sm-preview">
+                    <p class="sm-label">{{ tr('Aperçu de la dernière période', 'Preview of the last period') }}</p>
+                    <a href="{{ url_for('server_manage.reports_card_preview', server_id=server_id, kind=kind) }}" target="_blank" rel="noopener" class="sm-report-thumb">
+                        <img src="{{ url_for('server_manage.reports_card_preview', server_id=server_id, kind=kind) }}" alt="{{ report_titles[kind] }}" loading="lazy" data-fallback="hide">
+                    </a>
+                </div>
+            </div>
+        </section>
+        {% endfor %}
+        <div class="sm-actions">
+            <button type="submit" class="granularity-btn active sm-save">{{ tr('Enregistrer', 'Save') }}</button>
+        </div>
+    </form>
+
+    {% if report_history %}
+    <section class="gray-box small-border-radius hg-card">
+        <div class="hg-card-head"><div><h2 class="hg-card-title">{{ tr('Derniers envois', 'Latest sends') }}</h2></div></div>
+        <div class="sm-table-wrap">
+            <table class="sm-table">
+                <thead><tr><th>{{ tr('Quand', 'When') }}</th><th>{{ tr('Rapport', 'Report') }}</th><th>{{ tr('État', 'Status') }}</th><th>{{ tr('Détail', 'Detail') }}</th></tr></thead>
+                <tbody>
+                {% for h in report_history %}
+                <tr class="{{ 'is-error' if h.ok == false else '' }}">
+                    <td><time data-utc="{{ h.at.isoformat() }}Z"></time></td>
+                    <td>{{ report_titles[h.kind] }}{% if h.test %} · {{ tr('test', 'test') }}{% endif %}</td>
+                    <td>{% if h.pending %}<span class="sm-tag">{{ tr('En attente du bot', 'Waiting for the bot') }}</span>{% elif h.ok %}<span class="sm-tag is-ok">{{ tr('Envoyé', 'Sent') }}</span>{% elif h.ok == false %}<span class="sm-tag is-warn">{{ tr('Échec', 'Failed') }}</span>{% else %}<span class="sm-tag">{{ tr('Expiré', 'Expired') }}</span>{% endif %}</td>
+                    <td class="sm-detail">{{ h.detail or '' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
 </div>
 <div class="sm-pane" id="roles" data-sm-pane="roles"{% if section != 'roles' %} hidden{% endif %}>
     {{ soon(tr('Rôles automatiques', 'Automatic roles'), tr('Des rôles donnés et retirés tout seuls selon le temps en vocal, les messages ou le niveau, par paliers.', 'Roles given and removed by themselves according to voice time, messages or level, by tiers.'), 'users') }}

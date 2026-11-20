@@ -199,6 +199,29 @@ def public_levelup_card(user_id: int, server_id: int, level: int):
     return _og_png(("levelup", user_id, server_id, level, lang), lambda: builders.levelup_card(user_id, server_id, level, lang))
 
 
+def report_signature(server_id: int, kind: str, period: str) -> str:
+    """Signature of a report card address (same as the bot's card.ReportImageURL)."""
+    key = (current_app.config.get("CARD_TOKEN") or "").encode()
+    return hmac.new(key, f"report:{server_id}:{kind}:{period}".encode(), "sha256").hexdigest()[:32]
+
+
+@cards_bp.route("/card/report/<int:server_id>/<kind>/<period>.png")
+def public_report_card(server_id: int, kind: str, period: str):
+    """Image of an automatic report, loaded by Discord from the embed the bot posts. Signed addresses only."""
+    from datetime import date
+
+    if not current_app.config.get("CARD_TOKEN") or kind not in ("daily", "weekly", "monthly"):
+        abort(404)
+    if not hmac.compare_digest(request.args.get("sig", ""), report_signature(server_id, kind, period)):
+        abort(404)
+    try:
+        start = date.fromisoformat(period)
+    except ValueError:
+        abort(404)
+    lang = _lang()
+    return _og_png(("report", server_id, kind, period, lang), lambda: builders.report_card(server_id, kind, start, lang))
+
+
 @cards_bp.route("/og/member/<int:user_id>.png")
 def og_member_card(user_id: int):
     lang = _lang()

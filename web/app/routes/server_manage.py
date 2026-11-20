@@ -69,6 +69,9 @@ def manage(server_id: int):
         levelup_max=sa.LEVELUP_MAX_MESSAGE,
         levelup_default=sa.levelup_default_message((sa.guild_meta(server_id) or {}).get("locale")),
         preview_member=_preview_member(server_id, int(user["id"])),
+        reports=sa.get_reports(server_id),
+        report_history=sa.report_history(server_id),
+        roles=sa.roles(server_id),
         can_embed=any(c["key"] == "embed" and c["ok"] for c in sa.diagnostics(server_id, lang)["checks"]),
         invite_url=sa.invite_url(server_id),
         notice=request.args.get("notice", ""),
@@ -121,6 +124,41 @@ def levels_card_preview(server_id: int):
         abort(404)
     try:
         svg = builders.levelup_card(member["id"], server_id, None, current_lang())
+    except builders.CardNotFound:
+        abort(404)
+    response = make_response(svg)
+    response.mimetype = "image/svg+xml"
+    response.headers["Cache-Control"] = "private, max-age=300"
+    return response
+
+
+@server_manage_bp.route("/server/<int:server_id>/manage/reports", methods=["POST"])
+def save_reports(server_id: int):
+    """Saves the three reports; with a "test" button, also asks the bot for a test of that report."""
+    user, _ = _access(server_id)
+    _check_csrf(user, "gestion du serveur (rapports)")
+    error = sa.save_reports(server_id, request.form, int(user["id"]))
+    if error:
+        return _back(server_id, "reports", notice="reports_channel" if error.startswith("channel") else "reports_error")
+    test = request.form.get("test", "")
+    if test:
+        test_error = sa.request_report_test(server_id, test, int(user["id"]))
+        return _back(server_id, "reports", notice="reports_test_" + (test_error or "asked"))
+    return _back(server_id, "reports", notice="reports_saved")
+
+
+@server_manage_bp.route("/server/<int:server_id>/manage/reports/<kind>.svg", methods=["GET"])
+def reports_card_preview(server_id: int, kind: str):
+    """The report as it would be posted now (last finished period)."""
+    from app.cards import builders
+    from app.reports import KINDS, last_period_start, server_timezone
+
+    _access(server_id)
+    if kind not in KINDS:
+        abort(404)
+    start = last_period_start(kind, server_timezone(server_id))
+    try:
+        svg = builders.report_card(server_id, kind, start, current_lang())
     except builders.CardNotFound:
         abort(404)
     response = make_response(svg)

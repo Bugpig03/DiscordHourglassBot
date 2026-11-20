@@ -606,6 +606,129 @@ def _server_card(server_id: int, lang: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# 4b. Automatic report card (server management > Reports: daily, weekly or monthly summary of a server)
+# ---------------------------------------------------------------------------
+def report_card(server_id: int, kind: str, start, lang: str = "en") -> str:
+    from app.reports import KINDS, server_timezone
+
+    lang = card_lang(lang)
+    if kind not in KINDS:
+        raise CardNotFound("report")
+    tz = server_timezone(server_id)
+    key = ("card_report", int(server_id), kind, str(start), tz, lang)
+    return card_cache.get_or_set(key, CARD_CACHE_SECONDS, lambda: _report_card(int(server_id), kind, start, tz, lang))
+
+
+def _period_text(kind: str, first, last, lang: str) -> str:
+    from app.i18n import day_month, day_month_year, month_year
+
+    if kind == "daily":
+        return day_month_year(first.day, first.month, first.year, lang)
+    if kind == "monthly":
+        return month_year(first.month, first.year, lang)
+    return f"{day_month(first.day, first.month, lang)} – {day_month_year(last.day, last.month, last.year, lang)}"
+
+
+def _report_card(server_id: int, kind: str, start, tz: str, lang: str) -> str:
+    from app.reports import compute_report
+
+    server = Servers.get_or_none(Servers.server_id == server_id)
+    if not server:
+        raise CardNotFound("server")
+    r = compute_report(server_id, kind, start, tz)
+    name = _name(server.servername, tr("Serveur {id}", "Server {id}", lang, id=server_id))
+    accent = d.SERVER
+    title = {"daily": tr("Rapport du jour", "Daily report", lang), "weekly": tr("Rapport de la semaine", "Weekly report", lang),
+             "monthly": tr("Rapport du mois", "Monthly report", lang)}[kind]
+    h = 1040
+    top = 150
+
+    # Header: the server, the report and its period
+    body = d.server_icon(M + 6, top - 80, 160, d.remote_square(get_server_avatar_url(server_id), 160), name, accent, "srv")
+    name_x = M + 6 + 160 + 44
+    body += d.caption(name_x, top - 50, title.upper(), 26, accent)
+    shown, size = d.fit_text(name.upper(), W - M - name_x, 58, 700, 34, spacing=1)
+    body += d.text(name_x, top + 8, shown, size, 700, d.TEXT, spacing=1)
+    period_tag, _ = d.tag(name_x, top + 30, _period_text(kind, r["first"], r["last"], lang), d.SOFT, 23, 48, max_width=W - M - name_x)
+    body += period_tag
+
+    # Key figures, with the change since the period before
+    tiles_y = top + 124
+    tw = (INNER - 3 * 20) / 4
+    tiles = [
+        ("mic", tr("Vocal", "Voice", lang), d.fmt_hours(int(r["seconds"]), lang), d.VOICE, r["delta_seconds"]),
+        ("chat", tr("Messages", "Messages", lang), d.fmt_int(r["messages"], lang), d.MESSAGES, r["delta_messages"]),
+        ("users", tr("Actifs", "Active", lang), d.fmt_int(r["active"], lang), d.MEMBER, r["delta_active"]),
+        ("star", tr("Nouveaux", "New", lang), d.fmt_int(r["new_members"], lang), d.XP, None),
+    ]
+    since = {"daily": tr("vs la veille", "vs the day before", lang), "weekly": tr("vs semaine passée", "vs last week", lang),
+             "monthly": tr("vs mois dernier", "vs last month", lang)}[kind]
+    for i, (icon, caption, value, color, delta) in enumerate(tiles):
+        x = M + i * (tw + 20)
+        body += _tile(x, tiles_y, tw, 180, icon, caption, value, color)
+        # Change since the period before, on its own line under the caption
+        if delta is not None:
+            sign = "+" if delta >= 0 else "−"
+            change, csize = d.fit_text(f"{sign}{abs(delta)} % {since}", tw - 48, 21, 700, 15, font="body")
+            body += d.text(x + 24, tiles_y + 102, change, csize, 700, "#4ade80" if delta >= 0 else "#f87171", font="body")
+        elif icon == "star":
+            body += d.text(x + 24, tiles_y + 102, tr("arrivés sur la période", "joined in the period", lang), 21, 600, d.DIM, font="body")
+
+    # Top 5 (left) and activity over the period (right)
+    block_y, block_h = tiles_y + 204, 440
+    left_w = 520
+    body += d.panel(M, block_y, left_w, block_h)
+    body += d.caption(M + 28, block_y + 48, tr("Top 5 · vocal", "Top 5 · voice", lang), 23)
+    if r["top"]:
+        _prefetch([(m["avatar"], 56) for m in r["top"]])
+        for i, m in enumerate(r["top"]):
+            y = block_y + 84 + i * 70
+            rank_color = (d.GOLD, d.SILVER, d.BRONZE)[i] if i < 3 else d.MUTED
+            body += d.text(M + 28, y + 40, f"{i + 1}", 34, 700, rank_color, italic=True)
+            body += d.avatar(M + 100, y + 28, 26, d.remote_square(m["avatar"], 56), m["name"], rank_color, f"r{i}", ring_width=3)
+            who, wsize = d.fit_text(_name(m["name"], "?"), left_w - 300, 28, 700, 20)
+            body += d.text(M + 142, y + 38, who, wsize, 700, d.TEXT)
+            body += d.text(M + left_w - 28, y + 30, d.fmt_hours(int(m["seconds"]), lang), 26, 700, d.VOICE, "end", italic=True)
+            body += d.text(M + left_w - 28, y + 56, tr("{n} messages", "{n} messages", lang, n=d.fmt_int(m["messages"], lang)),
+                           19, 600, d.DIM, "end", font="body")
+    else:
+        body += d.text(M + left_w / 2, block_y + block_h / 2, tr("Aucune activité", "No activity", lang), 28, 600, d.MUTED, "middle", font="body")
+
+    cx, cw = M + left_w + 20, INNER - left_w - 20
+    body += d.panel(cx, block_y, cw, block_h)
+    chart_title = tr("Vocal par heure", "Voice per hour", lang) if kind == "daily" else tr("Vocal par jour", "Voice per day", lang)
+    body += d.caption(cx + 28, block_y + 48, chart_title, 23)
+    if r["peak_hour"] is not None:
+        peak = tr("Heure de pointe : {h}", "Peak hour: {h}", lang, h=(f"{r['peak_hour']}h" if lang == "fr" else f"{r['peak_hour']}:00"))
+        body += d.text(cx + cw - 28, block_y + 48, peak, 23, 700, d.XP, "end")
+    values = [x["hours"] for x in r["series"]]
+    x0, x1, y0, y1 = cx + 28, cx + cw - 28, block_y + 84, block_y + block_h - 56
+    if values and max(values) > 0:
+        n = len(values)
+        gap = 4 if n > 20 else 8
+        bw = max(3.0, (x1 - x0 - gap * (n - 1)) / n)
+        peak_v = max(values)
+        for i, v in enumerate(values):
+            bh = (v / peak_v) * (y1 - y0)
+            bx = x0 + i * (bw + gap)
+            if bh > 0:
+                body += f'<rect x="{bx:.1f}" y="{y1 - bh:.1f}" width="{bw:.1f}" height="{bh:.1f}" fill="{d.VOICE}" fill-opacity="{1 if v == peak_v else 0.75}"/>'
+        # A few labels under the bars
+        if kind == "daily":
+            marks = [(i, f"{i}h" if lang == "fr" else f"{i}:00") for i in (0, 6, 12, 18, 23)]
+        else:
+            step = 1 if n <= 7 else 7
+            marks = [(i, f"{r['series'][i]['key'].day}") for i in range(0, n, step)]
+        for i, label in marks:
+            body += d.text(x0 + i * (bw + gap) + bw / 2, y1 + 34, label, 20, 600, d.DIM, "middle", font="body")
+    else:
+        body += d.text(cx + cw / 2, block_y + block_h / 2, tr("Aucune activité vocale", "No voice activity", lang), 28, 600, d.MUTED, "middle", font="body")
+
+    body += _footer(h, accent)
+    return d.document(W, h, body, accent, halo=d.VOICE)
+
+
+# ---------------------------------------------------------------------------
 # 5. Help and error cards (embeddable SVG only; the bot answers /help with text)
 # ---------------------------------------------------------------------------
 def _help_commands(lang: str) -> list[tuple[str, str]]:
