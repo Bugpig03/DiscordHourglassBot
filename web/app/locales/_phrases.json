@@ -3458,5 +3458,445 @@
  "p0963": [
   "{n} personne(s) en vocal en ce moment",
   "{n} people in voice right now"
+ ],
+ "p0964": [
+  "Gestion des serveurs",
+  "Server management"
+ ],
+ "p0965": [
+  "Actions par jour",
+  "Actions per day"
+ ],
+ "p0966": [
+  "Réglages modifiés par les propriétaires et gestionnaires, et ce que le bot fait pour eux (annonces, rapports, rôles), avec les erreurs.",
+  "Settings changed by owners and managers, and what the bot does for them (announcements, reports, roles), with errors."
+ ],
+ "p0967": [
+  "Lignes de journal sur la période.",
+  "Log lines over the period."
+ ],
+ "p0968": [
+  "Permissions manquantes",
+  "Missing permissions"
+ ],
+ "p0969": [
+  "Serveurs où le bot n’a pas tout ce qu’il faut pour les nouvelles fonctionnalités.",
+  "Servers where the bot lacks what the new features need."
+ ],
+ "p0970": [
+  "Dernières actions",
+  "Latest actions"
+ ],
+ "p0971": [
+  "Les 40 dernières lignes du journal, tous serveurs confondus.",
+  "The last 40 log lines, all servers together."
+ ],
+ "p0972": [
+  "Mes serveurs",
+  "My servers"
+ ],
+ "p0973": [
+  "Les serveurs dont tu es propriétaire, et ceux que leur propriétaire t’a confiés. Hourglass y suit l’activité, et tu peux régler son comportement.",
+  "The servers you own, and those their owner entrusted to you. Hourglass tracks their activity, and you can set how it behaves."
+ ],
+ "p0974": [
+  "Propriétaire",
+  "Owner"
+ ],
+ "p0975": [
+  "Gestionnaire",
+  "Manager"
+ ],
+ "p0976": [
+  "Bot retiré",
+  "Bot removed"
+ ],
+ "p0977": [
+  "Aucun serveur à gérer",
+  "No server to manage"
+ ],
+ "p0978": [
+  "Ajoute Hourglass à un serveur dont tu es propriétaire : il apparaîtra ici quelques secondes plus tard.",
+  "Add Hourglass to a server you own: it will show up here a few seconds later."
+ ],
+ "p0979": [
+  "Ajouter Hourglass à un serveur",
+  "Add Hourglass to a server"
+ ],
+ "p0980": [
+  "Gérer {name}",
+  "Manage {name}"
+ ],
+ "p0981": [
+  "Bientôt",
+  "Coming soon"
+ ],
+ "p0982": [
+  "Fuseau horaire modifié",
+  "Time zone changed"
+ ],
+ "p0983": [
+  "Gestionnaire ajouté",
+  "Manager added"
+ ],
+ "p0984": [
+  "Gestionnaire retiré",
+  "Manager removed"
+ ],
+ "p0985": [
+  "Hourglass ajouté au serveur",
+  "Hourglass added to the server"
+ ],
+ "p0986": [
+  "Hourglass retiré du serveur",
+  "Hourglass removed from the server"
+ ],
+ "p0987": [
+  "Serveur relu par le bot",
+  "Server read again by the bot"
+ ],
+ "p0988": [
+  "Général",
+  "General"
+ ],
+ "p0989": [
+  "Niveaux",
+  "Levels"
+ ],
+ "p0990": [
+  "Rapports",
+  "Reports"
+ ],
+ "p0991": [
+  "Rôles",
+  "Roles"
+ ],
+ "p0992": [
+  "Réglages enregistrés.",
+  "Settings saved."
+ ],
+ "p0993": [
+  "Gestionnaire ajouté : il peut maintenant gérer le serveur.",
+  "Manager added: they can now manage the server."
+ ],
+ "p0994": [
+  "Gestionnaire retiré.",
+  "Manager removed."
+ ],
+ "p0995": [
+  "Tu es le propriétaire : tu gères déjà le serveur.",
+  "You are the owner: you already manage the server."
+ ],
+ "p0996": [
+  "Ce membre n’est pas sur le serveur.",
+  "This member is not on the server."
+ ],
+ "p0997": [
+  "Ce membre gère déjà le serveur.",
+  "This member already manages the server."
+ ],
+ "p0998": [
+  "Maximum de {n} gestionnaires atteint.",
+  "Maximum of {n} managers reached."
+ ],
+ "p0999": [
+  "L’enregistrement a échoué. Réessaie dans un instant.",
+  "Saving failed. Try again in a moment."
+ ],
+ "p1000": [
+  "Gestion du serveur",
+  "Server management"
+ ],
+ "p1001": [
+  "Hourglass présent",
+  "Hourglass present"
+ ],
+ "p1002": [
+  "Hourglass n’est plus sur ce serveur",
+  "Hourglass is no longer on this server"
+ ],
+ "p1003": [
+  "Fiche du serveur",
+  "Server page"
+ ],
+ "p1004": [
+  "Sections de la gestion",
+  "Management sections"
+ ],
+ "p1005": [
+  "Ce que le bot peut faire ici",
+  "What the bot can do here"
+ ],
+ "p1006": [
+  "Les permissions Discord du bot sur ce serveur. Il les relit tout seul à chaque changement.",
+  "The bot’s Discord permissions on this server. It reads them again by itself after every change."
+ ],
+ "p1007": [
+  "Dernière lecture :",
+  "Last read:"
+ ],
+ "p1008": [
+  "Donner les permissions",
+  "Grant the permissions"
+ ],
+ "p1009": [
+  "Le bot est administrateur : il a toutes les permissions.",
+  "The bot is an administrator: it has every permission."
+ ],
+ "p1010": [
+  "« Donner les permissions » ouvre Discord avec ce serveur déjà choisi : valide, et la page se met à jour d’elle-même en quelques secondes.",
+  "“Grant the permissions” opens Discord with this server already chosen: confirm, and this page updates by itself within seconds."
+ ],
+ "p1011": [
+  "Salons où le bot ne peut pas écrire",
+  "Channels the bot cannot write in"
+ ],
+ "p1012": [
+  "C’est normal pour les salons privés. Pour qu’il y écrive, ajoute le rôle Hourglass dans les permissions du salon.",
+  "This is normal for private channels. For it to write there, add the Hourglass role to the channel’s permissions."
+ ],
+ "p1013": [
+  "Fuseau horaire",
+  "Time zone"
+ ],
+ "p1014": [
+  "L’heure du serveur : les rapports partent à l’heure choisie dans ce fuseau, et les journées s’y arrêtent à minuit.",
+  "The server’s time: reports go out at the chosen hour in this zone, and days end at its midnight."
+ ],
+ "p1015": [
+  "Gestionnaires",
+  "Managers"
+ ],
+ "p1016": [
+  "Les membres que tu choisis peuvent tout régler ici, sauf cette liste et le mode privé, qui restent à toi. Un gestionnaire qui quitte le serveur perd ses droits tout seul.",
+  "The members you choose can set everything here, except this list and the private mode, which stay yours. A manager who leaves the server loses their rights by themselves."
+ ],
+ "p1017": [
+  "N’est plus sur le serveur : sans droits",
+  "No longer on the server: no rights"
+ ],
+ "p1018": [
+  "Retirer",
+  "Remove"
+ ],
+ "p1019": [
+  "Personne pour l’instant : tu es seul à gérer le serveur.",
+  "Nobody yet: you are the only one managing the server."
+ ],
+ "p1020": [
+  "Chercher un membre du serveur…",
+  "Search a member of the server…"
+ ],
+ "p1021": [
+  "Chercher un membre du serveur",
+  "Search a member of the server"
+ ],
+ "p1022": [
+  "Les réglages modifiés et tout ce que le bot fait sur ce serveur (annonces, rapports, rôles), avec les erreurs : les 200 dernières lignes.",
+  "Settings changed and everything the bot does on this server (announcements, reports, roles), with errors: the last 200 lines."
+ ],
+ "p1023": [
+  "Quand",
+  "When"
+ ],
+ "p1024": [
+  "Section",
+  "Section"
+ ],
+ "p1025": [
+  "Action",
+  "Action"
+ ],
+ "p1026": [
+  "Par",
+  "By"
+ ],
+ "p1027": [
+  "Concerne",
+  "About"
+ ],
+ "p1028": [
+  "Détail",
+  "Detail"
+ ],
+ "p1029": [
+  "Erreur",
+  "Error"
+ ],
+ "p1030": [
+  "Rien pour l’instant.",
+  "Nothing yet."
+ ],
+ "p1031": [
+  "Gérer",
+  "Manage"
+ ],
+ "p1032": [
+  "Hourglass ajouté",
+  "Hourglass added"
+ ],
+ "p1033": [
+  "Hourglass retiré",
+  "Hourglass removed"
+ ],
+ "p1034": [
+  "Serveurs lus par le bot",
+  "Servers read by the bot"
+ ],
+ "p1035": [
+  "copie à jour pour la page de gestion",
+  "copy up to date for the management page"
+ ],
+ "p1036": [
+  "Serveurs où le bot est présent et dont il tient la copie (propriétaire, salons, rôles, membres) : ce que la page de gestion utilise.",
+  "Servers the bot is in and keeps a copy of (owner, channels, roles, members): what the management page uses."
+ ],
+ "p1037": [
+  "Serveurs réglés",
+  "Servers set up"
+ ],
+ "p1038": [
+  "au moins un réglage modifié",
+  "at least one setting changed"
+ ],
+ "p1039": [
+  "Serveurs dont le propriétaire ou un gestionnaire a modifié au moins un réglage.",
+  "Servers whose owner or a manager changed at least one setting."
+ ],
+ "p1040": [
+  "sur {n} serveur(s)",
+  "on {n} server(s)"
+ ],
+ "p1041": [
+  "Membres choisis par un propriétaire pour gérer son serveur.",
+  "Members chosen by an owner to manage their server."
+ ],
+ "p1042": [
+  "serveurs à mettre à jour",
+  "servers to update"
+ ],
+ "p1043": [
+  "Serveurs où le bot n’a pas toutes les permissions des nouvelles fonctionnalités (souvent invité avec l’ancien lien).",
+  "Servers where the bot lacks some permissions of the new features (often invited with the old link)."
+ ],
+ "p1044": [
+  "sur {n} action(s)",
+  "out of {n} action(s)"
+ ],
+ "p1045": [
+  "Actions du bot qui ont échoué (salon interdit, rôle trop haut…).",
+  "Bot actions that failed (forbidden channel, role too high…)."
+ ],
+ "p1046": [
+  "Serveurs privés",
+  "Private servers"
+ ],
+ "p1047": [
+  "Serveurs en mode privé.",
+  "Servers in private mode."
+ ],
+ "p1048": [
+  "Actions",
+  "Actions"
+ ],
+ "p1049": [
+  "Aucun : le bot a tout ce qu’il faut partout.",
+  "None: the bot has everything it needs everywhere."
+ ],
+ "p1050": [
+  "Voir les salons",
+  "View channels"
+ ],
+ "p1051": [
+  "Pour lire les salons où il doit écrire.",
+  "To see the channels it must write in."
+ ],
+ "p1052": [
+  "Envoyer des messages",
+  "Send messages"
+ ],
+ "p1053": [
+  "Annonces de niveau et rapports.",
+  "Level-up announcements and reports."
+ ],
+ "p1054": [
+  "Intégrer des liens",
+  "Embed links"
+ ],
+ "p1055": [
+  "Messages mis en forme.",
+  "Formatted messages."
+ ],
+ "p1056": [
+  "Joindre des fichiers",
+  "Attach files"
+ ],
+ "p1057": [
+  "Cartes images des annonces et des rapports.",
+  "Image cards of announcements and reports."
+ ],
+ "p1058": [
+  "Voir l’historique",
+  "Read message history"
+ ],
+ "p1059": [
+  "Répondre dans le bon salon.",
+  "Reply in the right channel."
+ ],
+ "p1060": [
+  "Gérer les rôles",
+  "Manage roles"
+ ],
+ "p1061": [
+  "Rôles automatiques.",
+  "Automatic roles."
+ ],
+ "p1062": [
+  "Bot, fuseau, gestionnaires",
+  "Bot, time zone, managers"
+ ],
+ "p1063": [
+  "Annonces de passage de niveau",
+  "Level-up announcements"
+ ],
+ "p1064": [
+  "Bilans automatiques",
+  "Automatic reports"
+ ],
+ "p1065": [
+  "Rôles selon l’activité",
+  "Roles by activity"
+ ],
+ "p1066": [
+  "Ce que le bot a fait",
+  "What the bot did"
+ ],
+ "p1067": [
+  "Mode privé",
+  "Private mode"
+ ],
+ "p1068": [
+  "Le détail des stats du serveur réservé à ses membres connectés au site. Les autres ne verront que le total d’heures et de messages, avec un cadenas.",
+  "The server’s detailed stats only for its members signed in on the site. Others will only see the total hours and messages, with a padlock."
+ ],
+ "p1069": [
+  "Un message (et la carte du membre) dans le salon de ton choix quand un membre monte de niveau sur le serveur.",
+  "A message (and the member’s card) in the channel of your choice when a member levels up on the server."
+ ],
+ "p1070": [
+  "Rapports automatiques",
+  "Automatic reports"
+ ],
+ "p1071": [
+  "Un bilan quotidien, hebdomadaire ou mensuel du serveur, en carte image, posté tout seul dans un salon.",
+  "A daily, weekly or monthly summary of the server, as an image card, posted by itself in a channel."
+ ],
+ "p1072": [
+  "Rôles automatiques",
+  "Automatic roles"
+ ],
+ "p1073": [
+  "Des rôles donnés et retirés tout seuls selon le temps en vocal, les messages ou le niveau, par paliers.",
+  "Roles given and removed by themselves according to voice time, messages or level, by tiers."
  ]
 }

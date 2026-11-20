@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tr('Mes serveurs', 'My servers') }} - Hourglass{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/server_manage.css', v=asset_version('css/pages/server_manage.css')) }}">
+<br>
+<section class="gray-box small-border-radius hg-hero sm-hero">
+    <div class="hg-hero-body">
+        <p class="sm-kicker">{{ pixel_icon('wrench', 13) }}{{ tr('Gestion des serveurs', 'Server management') }}</p>
+        <h1 class="giant-bold-text sm-title">{{ tr('Mes serveurs', 'My servers') }}</h1>
+        <p class="hg-card-desc">{{ tr('Les serveurs dont tu es propriétaire, et ceux que leur propriétaire t’a confiés. Hourglass y suit l’activité, et tu peux régler son comportement.', 'The servers you own, and those their owner entrusted to you. Hourglass tracks their activity, and you can set how it behaves.') }}</p>
+    </div>
+</section>
+
+{% if servers %}
+<div class="ms-grid">
+    {% for s in servers %}
+    <a class="gray-box small-border-radius hg-card ms-card" href="{{ url_for('server_manage.manage', server_id=s.server_id) }}">
+        <img src="{{ s.avatar or url_for('static', filename='images/base_avatar_big.png') }}" alt="" data-fallback="{{ url_for('static', filename='images/base_avatar_big.png') }}">
+        <span class="ms-card-text">
+            <b>{{ s.name }}</b>
+            <span class="sm-badges">
+                <span class="sm-tag {{ 'is-owner' if s.role == 'owner' else 'is-manager' }}">{{ tr('Propriétaire', 'Owner') if s.role == 'owner' else tr('Gestionnaire', 'Manager') }}</span>
+                {% if not s.bot_present %}<span class="sm-tag is-warn">{{ tr('Bot retiré', 'Bot removed') }}</span>{% endif %}
+            </span>
+        </span>
+        {{ pixel_icon('chevron_right', 14) }}
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<section class="gray-box small-border-radius hg-card ms-empty">
+    <h2 class="hg-card-title">{{ tr('Aucun serveur à gérer', 'No server to manage') }}</h2>
+    <p class="hg-card-desc">{{ tr('Ajoute Hourglass à un serveur dont tu es propriétaire : il apparaîtra ici quelques secondes plus tard.', 'Add Hourglass to a server you own: it will show up here a few seconds later.') }}</p>
+    <a class="btn-hero-discord" href="{{ invite_url }}" target="_blank" rel="noopener">{{ tr('Ajouter Hourglass à un serveur', 'Add Hourglass to a server') }}</a>
+</section>
+{% endif %}
+{% endblock %}

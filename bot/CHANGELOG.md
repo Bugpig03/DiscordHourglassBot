@@ -1,5 +1,16 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.8.0 - Copie des Serveurs pour la Gestion - 20/11/2026
+
+- **Le bot tient une copie à jour de chaque serveur pour le site** (nouvelle page « Gérer » des propriétaires) :
+  - propriétaire, langue, et ses propres permissions sur le serveur ;
+  - les salons textuels et d'annonces, avec ce qu'il peut y faire (voir, écrire, liens riches, fichiers) ;
+  - les rôles, avec ceux qu'il peut donner (sous son propre rôle) et ceux qui portent des droits d'administration ou de modération, jamais donnés automatiquement ;
+  - les membres actuels du serveur (sans les bots).
+- **Mise à jour** : à l'arrivée du bot sur un serveur, quelques secondes après chaque changement sur Discord (salon, rôle, membre, propriétaire), puis de nouveau toutes les 15 minutes par sécurité. Le site n'a ainsi jamais besoin du token du bot.
+- **Journal** : l'ajout du bot sur un serveur et son retrait sont notés dans le journal de la page de gestion. Quand le bot est retiré, sa copie et les réglages du serveur sont gardés et reviennent s'il est invité à nouveau.
+- Nouvelles tables créées automatiquement au démarrage (ou par `database/migrations/2026-11-20_bot_v3.8.0_guild_state.sql`). Aucune table existante n'est modifiée.
+
 ## Version 3.7.6 - Retour au Calcul de Présence d'Origine - 06/11/2026
 
 - **Le graphique de présence global reprend le calcul d'avant la v3.7.1** : il additionne les membres de chaque serveur. Un membre présent sur 3 serveurs compte 3 fois, et les bots sont inclus. Les chiffres sont plus élevés, comme avant.

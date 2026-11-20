@@ -70,6 +70,12 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 
 	// Lancer la boucle de Heartbeat & actualisation présences (toutes les 30s)
 	go h.startHeartbeatLoop(s)
+
+	// Copie des serveurs pour le site (page de gestion), reprise toutes les 15 minutes
+	syncer.mu.Lock()
+	syncer.readyAt = time.Now()
+	syncer.mu.Unlock()
+	h.startGuildSyncLoop(s)
 }
 
 // OnMessageCreate enregistre chaque message textuel
@@ -443,6 +449,22 @@ func (h *BotHandler) OnGuildCreate(s *discordgo.Session, g *discordgo.GuildCreat
 	_ = h.DB.UpsertServer(ctx, serverID, g.Name, avatarURL)
 	log.Printf("📥 [GUILD] Bot présent sur le serveur %d (%s) avec %d membre(s) en vocal", serverID, g.Name, len(g.VoiceStates))
 
+	// Copie du serveur pour le site (propriétaire, salons, rôles), puis ses membres une fois la liste complète.
+	// Au démarrage la liste est demandée par OnReady ; pour un serveur rejoint ensuite, elle est demandée ici.
+	h.scheduleGuildSync(s, g.ID)
+	syncer.mu.Lock()
+	joinedLater := !syncer.readyAt.IsZero() && time.Since(syncer.readyAt) > time.Minute
+	syncer.mu.Unlock()
+	if joinedLater {
+		// Journal de la page de gestion du serveur
+		_ = h.DB.LogFeature(ctx, database.FeatureLog{ServerID: serverID, Feature: "general", Action: "bot_added", OK: true})
+	}
+	if joinedLater && len(g.Members) < g.MemberCount {
+		_ = s.RequestGuildMembers(g.ID, "", 0, "", true)
+	} else {
+		h.scheduleMemberSync(s, g.ID)
+	}
+
 	// Synchroniser / réactiver immédiatement les sessions de tous les membres déjà en vocal
 	for _, vs := range g.VoiceStates {
 		if vs.ChannelID != "" {
@@ -480,6 +502,9 @@ func (h *BotHandler) OnGuildDelete(s *discordgo.Session, g *discordgo.GuildDelet
 
 	serverID, _ := strconv.ParseInt(g.ID, 10, 64)
 	_ = h.DB.SetServerBotPresence(ctx, serverID, false)
+	// Sa copie et ses réglages sont gardés : tout revient si le bot est invité à nouveau
+	_ = h.DB.SetGuildBotPresence(ctx, serverID, false)
+	_ = h.DB.LogFeature(ctx, database.FeatureLog{ServerID: serverID, Feature: "general", Action: "bot_removed", OK: true})
 	log.Printf("📤 [GUILD] Bot retiré du serveur %d (%s) - Historique préservé", serverID, g.Name)
 }
 

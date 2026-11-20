@@ -36,6 +36,7 @@
             {{ nav('tab-accounts', 'user_check', tr('Comptes', 'Accounts')) }}
             {{ nav('tab-profiles', 'palette', tr('Profils', 'Profiles')) }}
             {{ nav('tab-community', 'users', tr('Communauté', 'Community')) }}
+            {{ nav('tab-manage', 'servers', tr('Gestion des serveurs', 'Server management'), 'navBadgeManage') }}
             <div class="adm-nav-group">{{tr('Technique', 'Technical')}}</div>
             {{ nav('tab-bot', 'bot', 'Bot', 'navBadgeBot') }}
             {{ nav('tab-tech', 'wrench', tr('Technique', 'Technical'), 'navBadgeTech') }}
@@ -173,6 +174,26 @@
                     <div class="adm-table-wrap"><table class="adm-table" id="recentServers"><tbody><tr><td>…</td></tr></tbody></table></div>
                 </section>
             </div>
+        </section>
+
+        <!-- ========================= Server management ========================= -->
+        <section id="tab-manage" class="graphs-tab-pane">
+            <div class="adm-stats" id="manageStats"></div>
+            <section class="an-card">
+                {{ card(tr('Actions par jour', 'Actions per day'), tr('Réglages modifiés par les propriétaires et gestionnaires, et ce que le bot fait pour eux (annonces, rapports, rôles), avec les erreurs.', 'Settings changed by owners and managers, and what the bot does for them (announcements, reports, roles), with errors.'), period=True) }}
+                <div class="an-chart an-chart-sm">{{ loading() }}<canvas id="manageChart"></canvas></div>
+            </section>
+            <div class="an-grid-2">
+                <section class="an-card">{{ card(tr('Serveurs les plus actifs', 'Most active servers'), tr('Lignes de journal sur la période.', 'Log lines over the period.'), period=True) }}<ol class="an-rank" data-list="management.top">{{ loading() }}</ol></section>
+                <section class="an-card">
+                    {{ card(tr('Permissions manquantes', 'Missing permissions'), tr('Serveurs où le bot n’a pas tout ce qu’il faut pour les nouvelles fonctionnalités.', 'Servers where the bot lacks what the new features need.')) }}
+                    <div class="adm-table-wrap"><table class="adm-table" id="manageMissing"><tbody><tr><td>…</td></tr></tbody></table></div>
+                </section>
+            </div>
+            <section class="an-card">
+                {{ card(tr('Dernières actions', 'Latest actions'), tr('Les 40 dernières lignes du journal, tous serveurs confondus.', 'The last 40 log lines, all servers together.')) }}
+                <div class="adm-table-wrap"><table class="adm-table adm-log" id="manageLog"><tbody><tr><td>…</td></tr></tbody></table></div>
+            </section>
         </section>
 
         <!-- ================================ Bot ================================ -->

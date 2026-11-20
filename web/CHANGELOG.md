@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.42.0 - Gestion des Serveurs - 20/11/2026
+- **Nouvelle page « Gérer » pour les propriétaires de serveurs** (bouton sur la fiche serveur, et « Mes serveurs » dans le menu du compte). Seuls le propriétaire et les membres qu'il a choisis la voient ; pour tous les autres, elle n'existe pas. Les droits sont revérifiés à chaque visite d'après ce que le bot voit sur Discord, pas seulement à la connexion.
+- **Ce que le bot peut faire ici** : chaque permission dont les nouvelles fonctionnalités ont besoin (voir les salons, écrire, liens riches, fichiers, historique, gérer les rôles), cochée ou en rouge avec à quoi elle sert, et la liste des salons où le bot ne peut pas écrire. Le bouton « Donner les permissions » ouvre Discord avec le serveur déjà choisi.
+- **Fuseau horaire du serveur**, utilisé par les futurs rapports automatiques.
+- **Gestionnaires** (réservé au propriétaire) : il choisit jusqu'à 10 membres du serveur, qui peuvent tout régler sauf cette liste et le mode privé. Un gestionnaire qui quitte le serveur perd ses droits automatiquement.
+- **Journal** : réglages modifiés (par qui, quoi) et tout ce que le bot fera pour le serveur, avec les erreurs.
+- Les onglets Niveaux, Rapports et Rôles et le mode privé sont annoncés (« Bientôt ») : ils arrivent dans les prochaines versions.
+- **Nouveau lien d'invitation du bot** sur tout le site : il demande les permissions des nouvelles fonctionnalités, au lieu d'aucune.
+- **Admin : nouvel onglet « Gestion des serveurs »** : serveurs lus par le bot, serveurs réglés, gestionnaires, serveurs auxquels il manque des permissions, actions et erreurs par jour, serveurs les plus actifs et dernières lignes du journal.
+
 ## Version 3.41.0 - Mini Classements qui Défilent, Top Voteurs et En Vocal Maintenant - 20/11/2026
 - **Accueil : quatre mini classements qui défilent tout seuls** : top membres, top serveurs, **top 3 des voteurs** des 30 derniers jours (votes sur top.gg, cœur rose comme partout sur le site) et **En vocal maintenant**, les 3 serveurs avec le plus de monde en vocal à l'instant, avec un point vert qui pulse. Ils défilent par pages toutes les 6 secondes : sur ordinateur, deux pages de deux (membres et serveurs, puis voteurs et en vocal), sur téléphone un classement par page, et on peut aussi glisser du doigt. Une barre par page en dessous : celle de la page affichée se remplit jusqu'au changement, et un clic sur une barre mène à sa page. Le défilement s'arrête quand la souris est dessus, et il est coupé pour les visiteurs qui limitent les animations.
 - **Même en-tête pour tous les mini classements** : titre avec sa période en dessous, et les boutons toujours au même endroit à droite (« Voir tout », plus « Voter » à côté sur le classement des voteurs). Sur téléphone, les boutons passent sur une ligne sous le titre.

@@ -23,6 +23,7 @@ from app.routes.hovercard import hovercard_bp
 from app.routes.cards import cards_bp
 from app.routes.versus import versus_bp
 from app.routes.timeline import timeline_bp
+from app.routes.server_manage import server_manage_bp
 from app.routes.badges import badges_bp
 from app.routes.customize import customize_bp
 from app.routes.admin import admin_bp
@@ -32,6 +33,7 @@ from app.best_records import init_best_records
 from app.badge_stats import init_badge_stats
 from app.topgg_votes import init_topgg_votes
 from app.admin import is_admin
+from app.server_admin import invite_url as bot_invite_url, managed_servers
 from app.profile_settings import ensure_table as ensure_profile_settings_table
 from app.pixel_icons import pixel_svg
 from app.auth import (
@@ -88,6 +90,9 @@ def create_app():
 
     # Profile customization table (created if the migration was not applied; never blocks startup)
     ensure_profile_settings_table()
+    # Server management (settings, managers, journal), created if the migration was not applied
+    from app.server_admin import ensure_tables as ensure_server_admin_tables
+    ensure_server_admin_tables()
 
     @app.before_request
     def _open_month_totals_scope():
@@ -207,6 +212,9 @@ def create_app():
             "current_user": get_current_user(),
             "is_authenticated": is_authenticated(),
             "is_admin": is_admin(),
+            # Servers the visitor owns or manages (account menu): a function, only run where a template calls it
+            "my_managed_servers": lambda: managed_servers((get_current_user() or {}).get("id")),
+            "bot_invite_url": bot_invite_url(),
             "can_view_user_sessions": can_view_user_sessions,
             "can_view_user_presence": can_view_user_presence,
             "can_view_server_private_data": can_view_server_private_data,
@@ -315,6 +323,7 @@ def create_app():
     app.register_blueprint(cards_bp)
     app.register_blueprint(versus_bp)
     app.register_blueprint(timeline_bp)
+    app.register_blueprint(server_manage_bp)
     app.register_blueprint(badges_bp)
     app.register_blueprint(customize_bp)
     app.register_blueprint(admin_bp)

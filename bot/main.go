@@ -45,6 +45,10 @@ func main() {
 	if err := db.EnsureUsersBotColumn(ensureCtx); err != nil {
 		log.Printf("⚠️ Repérage des bots désactivé (colonne users.is_bot indisponible): %v", err)
 	}
+	// Copy of each server for the website (server management page): owner, channels, roles, members, journal
+	if err := db.EnsureGuildStateTables(ensureCtx); err != nil {
+		log.Printf("⚠️ Copie des serveurs pour le site désactivée (tables guild_* indisponibles): %v", err)
+	}
 	// Log lines copied to bot_logs as well (website admin page, "Logs du bot")
 	if err := db.EnsureBotLogsTable(ensureCtx); err != nil {
 		log.Printf("⚠️ Copie des logs en base désactivée (table bot_logs indisponible): %v", err)
@@ -73,6 +77,18 @@ func main() {
 	dg.AddHandler(h.OnGuildCreate)
 	dg.AddHandler(h.OnGuildDelete)
 	dg.AddHandler(h.OnInteractionCreate)
+	// Copie des serveurs pour le site : membres, propriétaire, salons et rôles
+	dg.AddHandler(h.OnGuildMembersChunk)
+	dg.AddHandler(h.OnGuildMemberAdd)
+	dg.AddHandler(h.OnGuildMemberRemove)
+	dg.AddHandler(h.OnGuildMemberUpdate)
+	dg.AddHandler(h.OnGuildUpdate)
+	dg.AddHandler(h.OnChannelCreate)
+	dg.AddHandler(h.OnChannelUpdate)
+	dg.AddHandler(h.OnChannelDelete)
+	dg.AddHandler(h.OnGuildRoleCreate)
+	dg.AddHandler(h.OnGuildRoleUpdate)
+	dg.AddHandler(h.OnGuildRoleDelete)
 
 	// 5. Connexion à la Gateway Discord
 	if err := dg.Open(); err != nil {

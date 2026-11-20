@@ -81,3 +81,7 @@
     color: #a3a6b0;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Header buttons: "Manage" (owner and managers) next to Versus */
+.server-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-manage-server { background: rgba(113, 124, 248, 0.16) !important; color: #c5c9ff !important; }

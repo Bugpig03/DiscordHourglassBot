@@ -37,7 +37,8 @@ from app.functions import (
     get_hourly_punchcard_data,
 )
 from app.cache import cache
-from app.auth import can_view_server_private_data
+from app.auth import can_view_server_private_data, get_current_user
+from app.server_admin import server_role
 from app.i18n import current_lang, tr, day_month, month_year
 
 server_profile_bp = Blueprint("server_profile", __name__)
@@ -82,6 +83,8 @@ def server(server_id: str):
         can_view_presence=True,
         members_page_size=MEMBERS_PAGE_SIZE,
         show_all_members=request.args.get("all") == "1",
+        # "Manage" button: the owner of the server and the managers they chose (checked live, never cached)
+        manage_role=server_role((get_current_user() or {}).get("id"), int(server_id)),
     )
 
 

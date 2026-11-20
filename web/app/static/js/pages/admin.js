@@ -207,7 +207,7 @@ function deltaText(value, label) {
 const TAB_LABELS = {
     'tab-traffic': T('Site web', 'Website'), 'tab-accounts': T('Comptes', 'Accounts'), 'tab-profiles': T('Profils', 'Profiles'),
     'tab-community': T('Communauté', 'Community'), 'tab-bot': 'Bot', 'tab-tech': T('Technique', 'Technical'),
-    'tab-security': T('Sécurité', 'Security'),
+    'tab-security': T('Sécurité', 'Security'), 'tab-manage': T('Gestion des serveurs', 'Server management'),
 };
 
 // Descriptions of the figures shown in more than one place
@@ -394,6 +394,42 @@ function sectionBotStatus() {
                 T('Sessions vocales jamais refermées depuis plus de 24 h : le bot a sans doute manqué un départ (redémarrage, coupure). Elles gonflent le temps en vocal.',
                   'Voice sessions still open after more than 24 h: the bot probably missed someone leaving (restart, outage). They inflate voice time.')],
         ]);
+}
+
+// Server management (owners and managers of a server): adoption, actions, permission problems, journal
+const MANAGE_ACTIONS = {
+    timezone: T('Fuseau horaire modifié', 'Time zone changed'), manager_added: T('Gestionnaire ajouté', 'Manager added'),
+    manager_removed: T('Gestionnaire retiré', 'Manager removed'), bot_added: T('Hourglass ajouté', 'Hourglass added'),
+    bot_removed: T('Hourglass retiré', 'Hourglass removed'), bot_synced: T('Serveur relu par le bot', 'Server read again by the bot'),
+};
+function sectionManagement() {
+    const m = data.management;
+    if (!m) return;
+    renderStats(document.getElementById('manageStats'), [
+        [T('Serveurs lus par le bot', 'Servers read by the bot'), HG.fmt(m.servers_synced), T('copie à jour pour la page de gestion', 'copy up to date for the management page'), '',
+            T('Serveurs où le bot est présent et dont il tient la copie (propriétaire, salons, rôles, membres) : ce que la page de gestion utilise.',
+              'Servers the bot is in and keeps a copy of (owner, channels, roles, members): what the management page uses.')],
+        [T('Serveurs réglés', 'Servers set up'), HG.fmt(m.servers_configured), T('au moins un réglage modifié', 'at least one setting changed'), '',
+            T('Serveurs dont le propriétaire ou un gestionnaire a modifié au moins un réglage.', 'Servers whose owner or a manager changed at least one setting.')],
+        [T('Gestionnaires', 'Managers'), HG.fmt(m.managers), T('sur {n} serveur(s)', 'on {n} server(s)', { n: HG.fmt(m.managed_servers) }), '',
+            T('Membres choisis par un propriétaire pour gérer son serveur.', 'Members chosen by an owner to manage their server.')],
+        [T('Permissions manquantes', 'Missing permissions'), HG.fmt(m.missing_count), T('serveurs à mettre à jour', 'servers to update'), m.missing_count ? 'warn' : 'ok',
+            T('Serveurs où le bot n’a pas toutes les permissions des nouvelles fonctionnalités (souvent invité avec l’ancien lien).',
+              'Servers where the bot lacks some permissions of the new features (often invited with the old link).')],
+        [`${T('Erreurs', 'Errors')} · ${periodLabel()}`, HG.fmt(m.errors_total), T('sur {n} action(s)', 'out of {n} action(s)', { n: HG.fmt(m.actions_total) }), m.errors_total ? 'warn' : 'ok',
+            T('Actions du bot qui ont échoué (salon interdit, rôle trop haut…).', 'Bot actions that failed (forbidden channel, role too high…).')],
+        [T('Serveurs privés', 'Private servers'), HG.fmt(m.private), '', '', T('Serveurs en mode privé.', 'Servers in private mode.')],
+    ]);
+    lineChart('manageChart', m.labels, [bars(T('Actions', 'Actions'), m.daily_actions, '#717cf8'), bars(T('Erreurs', 'Errors'), m.daily_errors, '#e0675d')], { type: 'bar' });
+    document.querySelector('#manageMissing tbody').innerHTML = m.missing.map(r => `<tr>
+        <td><a href="${HG.esc(r.url)}">${HG.esc(r.name)}</a></td><td class="adm-muted">${r.missing.map(x => HG.esc(x)).join(', ')}</td></tr>`).join('')
+        || `<tr><td>${T('Aucun : le bot a tout ce qu’il faut partout.', 'None: the bot has everything it needs everywhere.')}</td></tr>`;
+    document.querySelector('#manageLog tbody').innerHTML = m.recent.map(r => `<tr class="${r.ok ? '' : 'adm-bad'}">
+        <td class="adm-muted">${HG.esc(dateText(r.at))}</td><td><a href="${HG.esc(r.url)}">${HG.esc(r.server)}</a></td>
+        <td>${HG.esc(MANAGE_ACTIONS[r.action] || r.action)}</td><td class="adm-muted">${HG.esc(r.detail)}</td></tr>`).join('')
+        || `<tr><td>${T('Pas encore de données', 'No data yet')}</td></tr>`;
+    const badge = document.getElementById('navBadgeManage');
+    if (badge) { badge.hidden = !m.missing_count; badge.textContent = m.missing_count; }
 }
 
 function sectionVotes() {
@@ -687,6 +723,7 @@ const TAB_SECTIONS = {
     'tab-bot': [sectionBotStatus, sectionCommands],
     'tab-tech': [sectionHealth, sectionDatabase],
     'tab-security': [sectionSecurity],
+    'tab-manage': [sectionManagement],
 };
 
 function initTab(tabId) {

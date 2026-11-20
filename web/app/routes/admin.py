@@ -447,8 +447,11 @@ def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
         "options": [{"name": o.replace("dm_refused", dm_label), "value": int(n)} for o, n in cmd_options],
     }
 
+    management = _server_management(win, lang)
+
     return {
         "commands": commands,
+        "management": management,
         "overview": {
             "days": days,
             "views_today": views_s[-1], "views": period(views_s, days), "views_prev": period(views_s, days, days),
@@ -467,6 +470,48 @@ def compute_admin_data(lang: str = "fr", days: int = DEFAULT_PERIOD) -> dict:
         "votes": votes,
         "health": health,
         "generated_at": datetime.utcnow().isoformat(timespec="seconds"),
+    }
+
+
+def _server_management(win: list[date], lang: str) -> dict:
+    """Server management features (owners and managers): adoption, actions per day, permission problems, journal."""
+    from app import server_admin as sa
+
+    start = datetime.combine(win[0], datetime.min.time())
+    needed = sum(bit for _, bit in sa.PERMISSIONS)
+    present = _one("SELECT COUNT(*) FROM guild_meta WHERE bot_present")
+    missing_rows = _rows(
+        "SELECT m.server_id, m.bot_permissions FROM guild_meta m WHERE m.bot_present "
+        "AND (m.bot_permissions & %s) = 0 AND (m.bot_permissions & %s) <> %s", (sa.ADMINISTRATOR, needed, needed))
+    configured = _one("SELECT COUNT(DISTINCT server_id) FROM server_feature_log WHERE actor_id IS NOT NULL")
+    managers, managed_servers = (_rows("SELECT COUNT(*), COUNT(DISTINCT server_id) FROM server_managers") or [(0, 0)])[0]
+    private = _one("SELECT COUNT(*) FROM server_settings WHERE private")
+    actions = _rows("SELECT created_at::date, COUNT(*) FROM server_feature_log WHERE created_at >= %s GROUP BY 1", (start,))
+    errors = _rows("SELECT created_at::date, COUNT(*) FROM server_feature_log WHERE created_at >= %s AND NOT ok GROUP BY 1", (start,))
+    top = _rows("SELECT server_id, COUNT(*) FROM server_feature_log WHERE created_at >= %s GROUP BY 1 ORDER BY 2 DESC LIMIT 10", (start,))
+    recent = _rows(
+        "SELECT created_at, server_id, feature, action, ok, detail FROM server_feature_log ORDER BY created_at DESC LIMIT 40")
+    names = _names("server", [str(r[0]) for r in missing_rows] + [str(r[0]) for r in top] + [str(r[1]) for r in recent])
+
+    def server(sid):
+        return names.get(str(sid), {"name": f"#{sid}", "avatar": None, "url": url_for("server_profile.server", server_id=sid)})
+
+    labels = {key: name for key, (name, _) in sa.permission_texts(lang).items()}
+    return {
+        "servers_synced": int(present or 0),
+        "servers_configured": int(configured or 0),
+        "managers": int(managers or 0), "managed_servers": int(managed_servers or 0),
+        "private": int(private or 0),
+        "missing_count": len(missing_rows),
+        "labels": [_day_label(d, lang) for d in win],
+        "daily_actions": _series(actions, win),
+        "daily_errors": _series(errors, win),
+        "actions_total": sum(int(n) for _, n in actions), "errors_total": sum(int(n) for _, n in errors),
+        "top": [dict(server(sid), value=int(n)) for sid, n in top],
+        "missing": [dict(server(sid), missing=[labels[key] for key, bit in sa.PERMISSIONS if not perms & bit])
+                    for sid, perms in missing_rows],
+        "recent": [{"at": at.isoformat(timespec="seconds"), "server": server(sid)["name"], "url": server(sid)["url"], "feature": feature,
+                    "action": action, "ok": ok, "detail": detail or ""} for at, sid, feature, action, ok, detail in recent],
     }
 
 
