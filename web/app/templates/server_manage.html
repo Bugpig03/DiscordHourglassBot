@@ -198,7 +198,7 @@
             <div class="hg-card-head">
                 <div>
                     <h2 class="hg-card-title">{{ tr('Annonces de passage de niveau', 'Level-up announcements') }}</h2>
-                    <p class="hg-card-desc">{{ tr('Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. C’est le niveau du serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.', 'When a member levels up on this server, the bot congratulates them in the channel of your choice. It is the server level: their voice and messages here (1 minute in voice or 1 message = 1 XP). Levels reached before turning it on are never announced.') }}</p>
+                    <p class="hg-card-desc">{{ tr('Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. Le niveau, c’est la progression sur ce serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Ce n’est pas le prestige des profils, qui compte toute son activité Hourglass et ses votes. Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.', 'When a member levels up on this server, the bot congratulates them in the channel of your choice. The level is the progression on this server: their voice and messages here (1 minute in voice or 1 message = 1 XP). It is not the prestige of the profiles, which counts all their Hourglass activity and votes. Levels reached before turning it on are never announced.') }}</p>
                 </div>
                 <label class="sm-switch">
                     <input type="checkbox" name="enabled" value="1"{% if levelup.enabled %} checked{% endif %} data-levels-enabled>

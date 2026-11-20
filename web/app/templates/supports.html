@@ -104,7 +104,7 @@
                 </div>
             </div>
             <p class="xp-guide-desc">
-                {{ tr('Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre niveau global (tous serveurs), pas pour celui d’un serveur, et font aussi monter le badge Soutien.', 'Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your global level (all servers), not for the level on one server, and also raise the Supporter badge.', n=xp_per_vote) }}
+                {{ tr('Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre prestige (tous serveurs), pas pour le niveau d’un serveur, et font aussi monter le badge Soutien.', 'Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your prestige (all servers), not for the level on one server, and also raise the Supporter badge.', n=xp_per_vote) }}
                 {% if vote_url %}<a class="xp-guide-link" href="{{ vote_url }}" target="_blank" rel="noopener">{{ tr('Voter sur top.gg ↗', 'Vote on top.gg ↗') }}</a>{% endif %}
             </p>
         </div>
@@ -153,19 +153,34 @@
     </div>
 </div>
 
-<!-- Titles by level -->
+<!-- Prestige and level: two progressions, same formula -->
+<div class="gray-box small-border-radius help-ladder-card" id="prestige">
+    <div class="medium-bold-text nomargin help-ladder-title">
+        {{ pixel_icon('crown', 22) }}
+        <span>{{ tr('Prestige et niveau', 'Prestige and level') }}</span>
+    </div>
+    <p class="small-text gray help-ladder-desc">
+        {{ tr('Hourglass suit deux progressions, avec la même formule (1 minute en vocal ou 1 message = 1 XP) :', 'Hourglass follows two progressions, with the same formula (1 minute in voice or 1 message = 1 XP):') }}
+    </p>
+    <ul class="help-prestige">
+        <li><b>{{ tr('Prestige', 'Prestige') }}</b> · {{ tr('ta progression sur tout Hourglass : toute ton activité, sur tous les serveurs, plus tes votes. Elle donne ton titre et s’affiche sur ton profil, dans les classements et sur /allstats. Elle ne baisse jamais.', 'your progression across all of Hourglass: all your activity, on every server, plus your votes. It gives your title and shows on your profile, in the leaderboards and on /allstats. It never goes down.') }}</li>
+        <li><b>{{ tr('Niveau', 'Level') }}</b> · {{ tr('ta progression sur un serveur : seulement ton vocal et tes messages sur ce serveur (sans les votes). Il s’affiche sur la fiche du serveur, sur /stats dans le serveur, et c’est lui que le bot annonce quand le serveur a activé les annonces de niveau.', 'your progression on one server: only your voice and messages on that server (no votes). It shows on the server page, on /stats in the server, and it is the one the bot announces when the server turned the level-up announcements on.') }}</li>
+    </ul>
+</div>
+
+<!-- Titles by prestige -->
 <div class="gray-box small-border-radius help-ladder-card" id="titres">
     <div class="medium-bold-text nomargin help-ladder-title">
         {{ pixel_icon('star', 22) }}
-        <span>{{ tr('Titres par niveau', 'Titles by level') }}</span>
+        <span>{{ tr('Titres par prestige', 'Titles by prestige') }}</span>
     </div>
     <p class="small-text gray help-ladder-desc">
-        {{ tr('Chaque palier de niveau donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.', 'Each level step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer.') }}
+        {{ tr('Chaque palier de prestige donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.', 'Each prestige step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer.') }}
     </p>
     <ol class="help-titles">
         {% for t in titles %}
         <li class="help-title group-{{ t.group }}">
-            <span class="help-title-level">{{ tr('Niv.', 'Lvl') }} {{ t.level }}</span>
+            <span class="help-title-level">{{ tr('Prestige', 'Prestige') }} {{ t.level }}</span>
             <span class="help-title-name">{{ t.title }}</span>
             <span class="help-title-req">{% if t.level == 1 %}{{ tr('Dès le départ', 'From the start') }}{% else %}{{ t.xp | num }} XP · ~{{ t.hours | num }} h{% endif %}</span>
         </li>

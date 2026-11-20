@@ -254,7 +254,7 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
             for p in UserPresence.select(UserPresence.user_id, UserPresence.status).where(UserPresence.user_id.in_(user_ids))
         }
 
-    votes = vote_totals()  # the level shown is the member's global one
+    votes = vote_totals()  # for the prestige (global), shown on hover
     result = []
     for rank, row in enumerate(filtered, start=1):
         default_username = tr("Membre {id}", "Member {id}", lang, id=row['user_id'])
@@ -263,6 +263,8 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
         messages = row["messages"] or 0
         g_sec, g_msg = global_map.get(row["user_id"], (seconds, messages))
         xp_info = calculate_user_xp_and_level(g_sec, g_msg, votes.get(int(row["user_id"]), 0))
+        # The level shown on a server is the level ON this server (its voice and messages here, no votes)
+        server_xp = calculate_user_xp_and_level(seconds, messages, 0)
 
         result.append({
             "rank": rank,
@@ -272,7 +274,8 @@ def load_users_from_server(server_id: str | int, search_query: str = "", lang: s
             "time_spent": round(seconds / 3600, 1),
             "formatted_time": ConvertSecondsToTime(seconds),
             "messages_count": messages,
-            "level": xp_info["level"],
+            "level": server_xp["level"],
+            "prestige": xp_info["level"],
             "total_xp": xp_info["total_xp"],
             "presence": format_presence(presence_by_user.get(row["user_id"])) if has_server_access else None,
             "is_in_voice": (row["user_id"] in active_voice_ids) if has_server_access else False,

@@ -44,7 +44,7 @@
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <span class="giant-bold-text" style="font-size: 1.35rem; color: #ffffff;">{{ u.username }}</span>
                             <span class="user-level-tag {% if u.level >= 40 %}tier-master{% elif u.level >= 20 %}tier-veteran{% elif u.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">
-                                {{ t('common.level_tag', level=u.level) }} • {{ u.title }}
+                                {{ tr('Prestige {n}', 'Prestige {n}', n=u.level) }} • {{ u.title }}
                             </span>
                         </div>
                         <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">

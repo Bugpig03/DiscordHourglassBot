@@ -5574,3 +5574,7 @@ html body .hg-hero .profile-hero-stats .dashboard-kpi-card + .dashboard-kpi-card
   .podium-card-actions { width: 100%; }
   .podium-card-actions > * { flex: 1; justify-content: center; text-align: center; }
 }
+
+/* Help page: prestige and level */
+.help-prestige { margin: 10px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; color: #c9ccd3; font-size: 0.92rem; line-height: 1.5; }
+.help-prestige b { color: #fff; }

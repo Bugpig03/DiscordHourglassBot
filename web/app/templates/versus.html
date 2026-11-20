@@ -4,7 +4,7 @@
 {# Link previews of a duel: who wins, the score and the voice time of both #}
 {# Member duels: the preview image (the bot's duel card, 5 rounds) shows the winner and its own score, so the text
    does not give the page's score (7 categories) next to it #}
-{% block meta_description %}{% if comparison and tab == 'users' %}{{ tr('Duel : {h1} h contre {h2} h en vocal · niveau {l1} contre {l2}', 'Duel: {h1} h vs {h2} h in voice · level {l1} vs {l2}', h1=entity1.hours | num(1), h2=entity2.hours | num(1), l1=entity1.level, l2=entity2.level) }}{% if selected_server %} · {{ selected_server.name }}{% endif %}{% elif comparison %}{% set n1 = entity1.username or entity1.name %}{% set n2 = entity2.username or entity2.name %}{% if comparison.overall_winner == 'tie' %}{{ tr('Égalité {a} : {b}', 'Tie {a} : {b}', a=comparison.score1, b=comparison.score2) }}{% else %}{{ tr('{name} gagne le duel {a} : {b}', '{name} wins the duel {a} : {b}', name=(n1 if comparison.overall_winner == '1' else n2), a=comparison.score1, b=comparison.score2) }}{% endif %} · {{ tr('{h1} h contre {h2} h en vocal', '{h1} h vs {h2} h in voice', h1=entity1.hours | num(1), h2=entity2.hours | num(1)) }}{% if selected_server %} · {{ selected_server.name }}{% endif %}{% else %}{{ t('versus.subtitle') }}{% endif %}{% endblock %}
+{% block meta_description %}{% if comparison and tab == 'users' %}{{ tr('Duel : {h1} h contre {h2} h en vocal · prestige {l1} contre {l2}', 'Duel: {h1} h vs {h2} h in voice · prestige {l1} vs {l2}', h1=entity1.hours | num(1), h2=entity2.hours | num(1), l1=entity1.level, l2=entity2.level) }}{% if selected_server %} · {{ selected_server.name }}{% endif %}{% elif comparison %}{% set n1 = entity1.username or entity1.name %}{% set n2 = entity2.username or entity2.name %}{% if comparison.overall_winner == 'tie' %}{{ tr('Égalité {a} : {b}', 'Tie {a} : {b}', a=comparison.score1, b=comparison.score2) }}{% else %}{{ tr('{name} gagne le duel {a} : {b}', '{name} wins the duel {a} : {b}', name=(n1 if comparison.overall_winner == '1' else n2), a=comparison.score1, b=comparison.score2) }}{% endif %} · {{ tr('{h1} h contre {h2} h en vocal', '{h1} h vs {h2} h in voice', h1=entity1.hours | num(1), h2=entity2.hours | num(1)) }}{% if selected_server %} · {{ selected_server.name }}{% endif %}{% else %}{{ t('versus.subtitle') }}{% endif %}{% endblock %}
 {% block og_url %}{{ request.url }}{% endblock %}
 {% block og_image %}{% if comparison and tab == 'users' %}{{ url_for('cards.og_versus_card', user1=entity1.id, user2=entity2.id, server=srv_val or None, lang=current_lang, _external=True) }}{% elif comparison %}{{ (entity1 if comparison.overall_winner != '2' else entity2).avatar or url_for('static', filename='icons/icon-512.png', _external=True) }}{% else %}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{% endif %}{% endblock %}
 {% block og_card %}{% if comparison and tab == 'users' %}summary_large_image{% else %}summary{% endif %}{% endblock %}
@@ -31,7 +31,7 @@
         </div>
         <div class="vs-subtitle">
             {% if tab == 'users' %}
-                <span class="vs-title-name">{{ e.tier_name }}</span> · {{ tr('Niveau {n}', 'Level {n}', n=e.level) }}
+                <span class="vs-title-name">{{ e.tier_name }}</span> · {{ tr('Prestige {n}', 'Prestige {n}', n=e.level) }}
             {% else %}
                 {{ tr('{n} membres', '{n} members', n=e.members_count | thousands_fr) }}
             {% endif %}

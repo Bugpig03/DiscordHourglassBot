@@ -89,7 +89,7 @@
                     <span class="cz-row-icon">{{ pixel_icon('palette', 18) }}</span>
                     <div class="cz-row-text">
                         <h2 class="cz-row-title">{{tr('Couleur du profil', 'Profile color')}}</h2>
-                        <p class="cz-row-desc">{{tr('Niveau, onglets, calendrier et graphiques.', 'Level, tabs, calendar and charts.')}}</p>
+                        <p class="cz-row-desc">{{tr('Prestige, onglets, calendrier et graphiques.', 'Prestige, tabs, calendar and charts.')}}</p>
                     </div>
                     <span class="cz-current" data-current="accent_color">{{ current_accent }}</span>
                 </div>
@@ -213,7 +213,7 @@
                 <label class="cz-switch-row cz-switch-main">
                     <span class="cz-switch-text">
                         <span class="cz-switch-label">{{tr('Profil privé', 'Private profile')}}</span>
-                        <span class="cz-switch-desc">{{tr('Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.', 'Visitors only see your header, level and totals. You stay visible in leaderboards, Versus and server pages.')}}</span>
+                        <span class="cz-switch-desc">{{tr('Les visiteurs ne voient que ton en-tête, ton prestige et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.', 'Visitors only see your header, prestige and totals. You stay visible in leaderboards, Versus and server pages.')}}</span>
                     </span>
                     <input type="checkbox" class="cz-switch" name="layout_private" value="1" id="layoutPrivate" {% if layout.private %}checked{% endif %}>
                 </label>
@@ -267,7 +267,7 @@
                     <div class="profile-level">
                         <div class="user-level-circle">
                             <span class="user-level-num">{{ xp.level }}</span>
-                            <span class="user-level-sub">LVL</span>
+                            <span class="user-level-sub" title="{{ tr('Prestige', 'Prestige') }}">{{ tr('PREST.', 'PREST.') }}</span>
                         </div>
                         <div class="profile-level-body">
                             <div class="profile-level-line">

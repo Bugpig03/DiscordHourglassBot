@@ -363,10 +363,6 @@
   "Profil privé",
   "Private profile"
  ],
- "p0119": [
-  "Les visiteurs ne voient que ton en-tête, ton niveau et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.",
-  "Visitors only see your header, level and totals. You stay visible in leaderboards, Versus and server pages."
- ],
  "p0120": [
   "Blocs visibles par les visiteurs",
   "Blocks visible to visitors"
@@ -635,10 +631,6 @@
   "Même place ",
   "Same spot "
  ],
- "p0196": [
-  "Niveau {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.",
-  "Level {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass."
- ],
  "p0197": [
   "Masqué aux visiteurs",
   "Hidden from visitors"
@@ -670,10 +662,6 @@
  "p0204": [
   "{name} a choisi de garder ses statistiques détaillées privées.",
   "{name} chose to keep their detailed statistics private."
- ],
- "p0205": [
-  "Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.",
-  "Your profile is private: visitors only see the header, level and totals."
  ],
  "p0206": [
   "Modifier",
@@ -874,10 +862,6 @@
  "p0262": [
   "Utilisateurs",
   "Users"
- ],
- "p0263": [
-  "Nv.",
-  "Lv."
  ],
  "p0264": [
   "Profil Utilisateur",
@@ -1391,10 +1375,6 @@
   "Niveau",
   "Level"
  ],
- "p0406": [
-  "Niveau atteint",
-  "Level reached"
- ],
  "p0407": [
   "Classement",
   "Ranking"
@@ -1839,14 +1819,6 @@
   "Rang serveur",
   "Server rank"
  ],
- "p0526": [
-  "Niveau {n} · {title}",
-  "Level {n} · {title}"
- ],
- "p0527": [
-  "{p} % vers le niveau {n}",
-  "{p}% to level {n}"
- ],
  "p0528": [
   "Suivi depuis",
   "Tracked since"
@@ -2019,10 +1991,6 @@
   "Afficher moins",
   "Show less"
  ],
- "p0571": [
-  "Niveau, onglets, calendrier et graphiques.",
-  "Level, tabs, calendar and charts."
- ],
  "p0572": [
   "Couleur derrière toute ta page.",
   "Color behind your whole page."
@@ -2186,18 +2154,6 @@
  "p0616": [
   "Duel entre deux membres, avec un vainqueur.",
   "Head-to-head duel between two members, with a winner."
- ],
- "p0617": [
-  "Titres par niveau",
-  "Titles by level"
- ],
- "p0618": [
-  "Chaque palier de niveau donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.",
-  "Each level step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer."
- ],
- "p0619": [
-  "Niv.",
-  "Lvl"
  ],
  "p0620": [
   "Dès le départ",
@@ -2587,10 +2543,6 @@
   "+{n} XP / vote",
   "+{n} XP / vote"
  ],
- "p0720": [
-  "Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre niveau global (tous serveurs), pas pour celui d’un serveur, et font aussi monter le badge Soutien.",
-  "Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your global level (all servers), not for the level on one server, and also raise the Supporter badge."
- ],
  "p0721": [
   "Voter sur top.gg ↗",
   "Vote on top.gg ↗"
@@ -2635,17 +2587,9 @@
   "Duel par catégorie",
   "Head-to-head by category"
  ],
- "p0732": [
-  "Niveau {level} · {hours} h en vocal · {messages} messages sur Hourglass.",
-  "Level {level} · {hours} h in voice · {messages} messages on Hourglass."
- ],
  "p0733": [
   "{a} vs {b} · Versus - Hourglass",
   "{a} vs {b} · Versus - Hourglass"
- ],
- "p0734": [
-  "Duel : {h1} h contre {h2} h en vocal · niveau {l1} contre {l2}",
-  "Duel: {h1} h vs {h2} h in voice · level {l1} vs {l2}"
  ],
  "p0735": [
   "Égalité {a} : {b}",
@@ -3927,10 +3871,6 @@
   "Choisis un salon pour les annonces.",
   "Choose a channel for the announcements."
  ],
- "p1084": [
-  "Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. C’est le niveau du serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.",
-  "When a member levels up on this server, the bot congratulates them in the channel of your choice. It is the server level: their voice and messages here (1 minute in voice or 1 message = 1 XP). Levels reached before turning it on are never announced."
- ],
  "p1085": [
   "Activées",
   "On"
@@ -4038,5 +3978,97 @@
  "p1115": [
   "Dans le salon de son dernier message. S’il monte de niveau en vocal, il n’y a pas de salon écrit : l’annonce part dans le salon des annonces.",
   "In the channel of their last message. If they level up in voice, there is no text channel: the announcement goes to the announcement channel."
+ ],
+ "p1116": [
+  "Prestige {n} · {title}",
+  "Prestige {n} · {title}"
+ ],
+ "p1117": [
+  "Prestige {n}",
+  "Prestige {n}"
+ ],
+ "p1118": [
+  "Prestige",
+  "Prestige"
+ ],
+ "p1119": [
+  "Prestige, onglets, calendrier et graphiques.",
+  "Prestige, tabs, calendar and charts."
+ ],
+ "p1120": [
+  "Les visiteurs ne voient que ton en-tête, ton prestige et tes totaux. Tu restes visible dans les classements, Versus et les fiches serveur.",
+  "Visitors only see your header, prestige and totals. You stay visible in leaderboards, Versus and server pages."
+ ],
+ "p1121": [
+  "PREST.",
+  "PREST."
+ ],
+ "p1122": [
+  "Niveau sur ce serveur · prestige {p}",
+  "Level on this server · prestige {p}"
+ ],
+ "p1123": [
+  "Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. Le niveau, c’est la progression sur ce serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Ce n’est pas le prestige des profils, qui compte toute son activité Hourglass et ses votes. Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.",
+  "When a member levels up on this server, the bot congratulates them in the channel of your choice. The level is the progression on this server: their voice and messages here (1 minute in voice or 1 message = 1 XP). It is not the prestige of the profiles, which counts all their Hourglass activity and votes. Levels reached before turning it on are never announced."
+ ],
+ "p1124": [
+  "Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre prestige (tous serveurs), pas pour le niveau d’un serveur, et font aussi monter le badge Soutien.",
+  "Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your prestige (all servers), not for the level on one server, and also raise the Supporter badge."
+ ],
+ "p1125": [
+  "Prestige et niveau",
+  "Prestige and level"
+ ],
+ "p1126": [
+  "Hourglass suit deux progressions, avec la même formule (1 minute en vocal ou 1 message = 1 XP) :",
+  "Hourglass follows two progressions, with the same formula (1 minute in voice or 1 message = 1 XP):"
+ ],
+ "p1127": [
+  "ta progression sur tout Hourglass : toute ton activité, sur tous les serveurs, plus tes votes. Elle donne ton titre et s’affiche sur ton profil, dans les classements et sur /allstats. Elle ne baisse jamais.",
+  "your progression across all of Hourglass: all your activity, on every server, plus your votes. It gives your title and shows on your profile, in the leaderboards and on /allstats. It never goes down."
+ ],
+ "p1128": [
+  "ta progression sur un serveur : seulement ton vocal et tes messages sur ce serveur (sans les votes). Il s’affiche sur la fiche du serveur, sur /stats dans le serveur, et c’est lui que le bot annonce quand le serveur a activé les annonces de niveau.",
+  "your progression on one server: only your voice and messages on that server (no votes). It shows on the server page, on /stats in the server, and it is the one the bot announces when the server turned the level-up announcements on."
+ ],
+ "p1129": [
+  "Titres par prestige",
+  "Titles by prestige"
+ ],
+ "p1130": [
+  "Chaque palier de prestige donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.",
+  "Each prestige step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer."
+ ],
+ "p1131": [
+  "Prestige {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.",
+  "Prestige {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass."
+ ],
+ "p1132": [
+  "Prestige {level} · {hours} h en vocal · {messages} messages sur Hourglass.",
+  "Prestige {level} · {hours} h in voice · {messages} messages on Hourglass."
+ ],
+ "p1133": [
+  "Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le prestige et les totaux.",
+  "Your profile is private: visitors only see the header, prestige and totals."
+ ],
+ "p1134": [
+  "Niveau sur ce serveur",
+  "Level on this server"
+ ],
+ "p1135": [
+  "Duel : {h1} h contre {h2} h en vocal · prestige {l1} contre {l2}",
+  "Duel: {h1} h vs {h2} h in voice · prestige {l1} vs {l2}"
+ ],
+ "p1136": [
+  "Prestige atteint",
+  "Prestige reached"
+ ],
+ "p1137": [
+  "{p} % vers le niveau {n}",
+  "{p}% to level {n}"
+ ],
+ "p1138": [
+  "{p} % vers le prestige {n}",
+  "{p}% to prestige {n}"
  ]
 }

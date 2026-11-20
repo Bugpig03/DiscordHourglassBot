@@ -320,6 +320,8 @@ def get_user_servers_stats(user_id: int) -> list[dict]:
             "time_spent": round((stat.seconds or 0) / 3600, 1),
             "messages_count": stat.messages,
             "rank": get_user_rank_in_server(user_id, stat.server_id),
+            # Level on this server: same formula as the prestige, on this server's activity only (no votes)
+            "level": int((((stat.seconds or 0) // 60 + (stat.messages or 0)) / 100) ** 0.5) + 1,
             "joined_at": format_date_localized(stat.date_creation)
         }
         for stat in query

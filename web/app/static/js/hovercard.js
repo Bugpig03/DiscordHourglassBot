@@ -40,7 +40,7 @@
                 <img class="hc-avatar" src="${esc(d.avatar || '/static/images/base_avatar_big.png')}" alt="">
                 <div class="hc-id"><b>${esc(d.name)}${d.bot ? '<span class="bot-tag">BOT</span>' : ''}</b><span class="hc-title">${esc(d.title)}</span></div>
             </div>
-            <div class="hc-level"><span class="hc-lvl">${num(d.level)}</span><span class="hc-bar"><i style="width:${Number(d.progress) || 0}%"></i></span><span class="hc-pct">${num(d.progress, 0)} %</span></div>
+            <div class="hc-level"><span class="hc-lvl" title="${HG.tr('Prestige {n}', 'Prestige {n}', { n: num(d.level) })}">${num(d.level)}</span><span class="hc-bar"><i style="width:${Number(d.progress) || 0}%"></i></span><span class="hc-pct">${num(d.progress, 0)} %</span></div>
             <div class="hc-stats">
                 ${stat(T('Rang global', 'Global rank'), rank(d))}
                 ${stat(T('Vocal total', 'Total voice'), `${num(d.hours, 1)} h`)}

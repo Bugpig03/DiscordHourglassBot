@@ -2121,3 +2121,6 @@ html body .voice-now-tag.is-live { color: #3fd1a0; background: rgba(63, 209, 160
 /* Drop-down option flagged as a problem (channel the bot cannot write in): red italics, in the list and once chosen */
 html body .hg-select-opt.is-blocked .hg-select-opt-text,
 html body .hg-select-btn.is-blocked .hg-select-value { color: #f87171; font-style: italic; }
+
+/* Prestige circle of the profile: a short label that fits the square */
+html body .user-level-circle .user-level-sub { letter-spacing: 0; font-size: 0.5rem; }

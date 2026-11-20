@@ -276,7 +276,7 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                                     <div class="search-item-info">
                                         <span class="search-item-name" style="display: inline-flex; align-items: center; gap: 6px;">
                                             <span>${HG.esc(u.username)}</span>
-                                            ${u.level ? `<span class="user-level-tag">${HG.tr('Nv.', 'Lv.')} ${HG.esc(u.level)}</span>` : ''}
+                                            ${u.level ? `<span class="user-level-tag">${HG.tr('Prestige {n}', 'Prestige {n}', { n: HG.esc(u.level) })}</span>` : ''}
                                         </span>
                                         <span class="search-item-sub">${HG.tr('Profil Utilisateur', 'User Profile')}</span>
                                     </div>

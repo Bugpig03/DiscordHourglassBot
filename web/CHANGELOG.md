@@ -1,5 +1,13 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.44.0 - Prestige et Niveau - 21/11/2026
+- **Deux progressions, deux noms clairs** (même formule : 1 minute en vocal ou 1 message = 1 XP) :
+  - **Prestige** : la progression sur tout Hourglass (toute l'activité, sur tous les serveurs, plus les votes). C'est l'ancien « niveau global » : il donne le titre (Champion, Vétéran…) et s'affiche sur le profil, dans les classements, la recherche, le survol d'un membre, Versus, les badges et la carte `/allstats`. Il ne baisse jamais.
+  - **Niveau** : la progression sur un serveur (seulement le vocal et les messages de ce serveur, sans les votes). C'est lui que le bot annonce quand un serveur active les annonces de niveau.
+- **Le niveau de chaque serveur est enfin visible** : dans la liste des membres de la fiche serveur (avec le prestige au survol), sur le profil d'un membre pour chacun de ses serveurs, et sur la carte `/stats` lancée dans un serveur (« Niveau 31 » + le serveur, au lieu du niveau global sans explication). Avant, la fiche serveur affichait le niveau global alors que `/stats` et les annonces utilisaient celui du serveur.
+- **Badge « Niveau » renommé « Prestige »** (mêmes paliers). La carte de passage de niveau indique « Sur [serveur] ».
+- **Page d'aide** : nouvel encadré « Prestige et niveau » qui explique la différence, et « Titres par prestige ».
+
 ## Version 3.43.1 - Gestion des Serveurs : Bientôt Disponible - 20/11/2026
 - **La gestion des serveurs (page « Gérer », « Mes serveurs ») sera bientôt disponible pour tous les propriétaires de serveurs.** En attendant, elle est réservée aux administrateurs du site, le temps de la finaliser : le bouton « Gérer » et le menu « Mes serveurs » ne s'affichent pas pour les autres.
 - **Onglet Niveaux aux couleurs du site** : « Où annoncer » devient deux tuiles à choisir aux coins coupés, les options (mention, carte image) deviennent des boutons à cocher dans le style Arène, et les champs niveau et message prennent le style des autres champs.

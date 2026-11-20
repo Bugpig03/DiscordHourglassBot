@@ -117,7 +117,7 @@
                      class="small-pp" alt="avatar">
                 <span class="username-fixed">
                     <span class="text-overflow">{{ user.username }}</span>{{ bot_tag(user.user_id) }}
-                    <span class="user-level-tag {% if user.level >= 40 %}tier-master{% elif user.level >= 20 %}tier-veteran{% elif user.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">{{ t('common.level_tag', level=user.level) }}</span>
+                    <span class="user-level-tag {% if user.level >= 40 %}tier-master{% elif user.level >= 20 %}tier-veteran{% elif user.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}">{{ tr('Prestige {n}', 'Prestige {n}', n=user.level) }}</span>
                 </span>
                 {% if user.arrival is defined %}<span class="arrival-tag" data-tip="{{ tr('Suivi par Hourglass depuis le {date}', 'Tracked by Hourglass since {date}', date=short_date(user.arrival)) if user.arrival else tr('Aucune activité enregistrée', 'No recorded activity') }}">{{ pixel_icon('calendar', 12) }}{{ short_date(user.arrival) if user.arrival else '—' }}</span>{% endif %}
                 <span class="hours-fixed">

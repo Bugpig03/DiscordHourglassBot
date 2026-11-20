@@ -131,7 +131,7 @@ function setupVersusAutocomplete(inputId, dropdownId, resultsId, clearBtnId, gro
                         : `ID: ${HG.esc(item.server_id)}`;
                     const badge = HG.tr('Choisir', 'Select');
                     const lvl = (type === 'users' && item.level)
-                        ? `<span class="user-level-tag">${HG.tr('Nv.', 'Lv.')} ${HG.esc(item.level)}</span>`
+                        ? `<span class="user-level-tag">${HG.tr('Prestige {n}', 'Prestige {n}', { n: HG.esc(item.level) })}</span>`
                         : '';
 
                     html += `
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const RADAR_SHORT = {
     hours: () => HG.tr('Vocal', 'Voice'),
     messages: () => HG.tr('Messages', 'Messages'),
-    level: () => HG.tr('Niveau', 'Level'),
+    level: () => HG.tr('Prestige', 'Prestige'),
     activity_30d: () => HG.tr('30 jours', '30 days'),
     rank: () => HG.tr('Rang', 'Rank'),
     badges: () => HG.tr('Badges', 'Badges'),

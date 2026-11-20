@@ -295,7 +295,7 @@ _SVG = {
 BADGE_DEFS = [
     ("voice", "Vocal", "Voice", "Temps passé en vocal", "Time spent in voice", "headphones", "hours", [1, 10, 100, 500, 1000, 2500, 5000]),
     ("messages", "Messages", "Messages", "Messages envoyés", "Messages sent", "chat", "messages", [25, 250, 1000, 5000, 10000, 25000, 50000]),
-    ("level", "Niveau", "Level", "Niveau atteint", "Level reached", "star", "level", [5, 10, 20, 30, 50, 70, 90]),
+    ("level", "Prestige", "Prestige", "Prestige atteint", "Prestige reached", "star", "level", [5, 10, 20, 30, 50, 70, 90]),
     ("rank", "Classement", "Ranking", "Meilleure place au classement vocal global", "Best spot in the global voice ranking", "trophy", "rank",
      [100, 50, 25, 10, 5, 3, 1]),
     ("servers", "Serveurs", "Servers", "Serveurs fréquentés", "Servers joined", "globe", "servers", [2, 3, 4, 6, 8, 12, 20]),
@@ -370,7 +370,7 @@ def _threshold_text(kind: str, threshold, lang: str) -> str:
     if kind == "messages":
         return tr("{n} messages", "{n} messages", lang, n=_fmt_number(threshold, lang))
     if kind == "level":
-        return tr("Niveau {n}", "Level {n}", lang, n=threshold)
+        return tr("Prestige {n}", "Prestige {n}", lang, n=threshold)
     if kind == "rank":
         if isinstance(threshold, tuple):
             return tr("N°1 + {n} h", "No. 1 + {n} h", lang, n=_fmt_number(threshold[1], lang))
@@ -390,7 +390,7 @@ def _current_text(kind: str, value, lang: str) -> str:
     if kind == "messages":
         return tr("{n} messages", "{n} messages", lang, n=_fmt_number(value or 0, lang))
     if kind == "level":
-        return tr("Niveau {n}", "Level {n}", lang, n=value)
+        return tr("Prestige {n}", "Prestige {n}", lang, n=value)
     if kind == "rank":
         return f"#{value[0]}" if isinstance(value[0], int) else tr("non classé", "unranked", lang)
     if kind == "servers":

@@ -211,7 +211,9 @@ def _member_card(user_id: int, server_id: int | None, lang: str, public: bool = 
     title = tr(xp["title_fr"], xp["title_en"], lang)
     # Level and scope share the line: smaller text first, then the level title is shortened (the scope stays whole)
     room = 930 - name_x   # up to the rank block
-    level_text = tr("Niveau {n} · {title}", "Level {n} · {title}", lang, n=xp["level"], title=title)
+    # On a server: the level on that server; everywhere: the prestige, with its title
+    level_text = (tr("Niveau {n}", "Level {n}", lang, n=xp["level"]) if server_id
+                  else tr("Prestige {n} · {title}", "Prestige {n} · {title}", lang, n=xp["level"], title=title))
     for tag_size in (23, 22, 21, 20, 19):
         level_tag, level_w = d.tag(name_x, top + 12, level_text, accent, tag_size, 48, solid=True)
         scope_tag, scope_w = d.tag(0, 0, scope, d.SOFT, tag_size, 48, max_width=room * 0.45)
@@ -226,8 +228,9 @@ def _member_card(user_id: int, server_id: int | None, lang: str, public: bool = 
     bar_y = top + 150
     body += d.text(M, bar_y - 16, f"{d.fmt_int(xp['total_xp'], lang)} XP", 28, 700, d.XP, italic=True)
     percent = xp["progress_percent"]
-    progress = tr("{p} % vers le niveau {n}", "{p}% to level {n}", lang,
-                  p=format_number(percent, 0 if float(percent).is_integer() else 1, lang), n=xp["level"] + 1)
+    pct = format_number(percent, 0 if float(percent).is_integer() else 1, lang)
+    progress = (tr("{p} % vers le niveau {n}", "{p}% to level {n}", lang, p=pct, n=xp["level"] + 1) if server_id
+                else tr("{p} % vers le prestige {n}", "{p}% to prestige {n}", lang, p=pct, n=xp["level"] + 1))
     body += d.text(W - M, bar_y - 16, progress, 24, 600, d.MUTED, "end", font="body")
     body += d.progress(M, bar_y, INNER, 14, xp["progress_percent"] / 100, accent)
 
@@ -310,11 +313,9 @@ def _levelup_card(user_id: int, server_id: int, level: int | None, lang: str) ->
     body += d.caption(x, cy - 62, tr("Niveau supérieur !", "Level up!", lang).upper(), 26, accent)
     shown, size = d.fit_text(name.upper(), room, 64, 700, 36, spacing=1)
     body += d.text(x, cy + 6, shown, size, 700, d.TEXT, spacing=1)
-    title = tr(xp["title_fr"], xp["title_en"], lang)
-    title_tag, title_w = d.tag(x, cy + 34, title, accent, 23, 46, solid=True, max_width=room * 0.55)
     scope = _name(server.servername if server else None, tr("Ce serveur", "This server", lang))
-    scope_tag, _ = d.tag(x + title_w + 12, cy + 34, scope, d.SOFT, 23, 46, max_width=room - title_w - 12)
-    body += title_tag + scope_tag
+    scope_tag, _ = d.tag(x, cy + 34, tr("Sur {server}", "On {server}", lang, server=scope), accent, 23, 46, solid=True, max_width=room)
+    body += scope_tag
 
     # Progress to the next level, and what made it
     bar_y = 380
@@ -393,7 +394,8 @@ def _versus_card(user1_id: int, user2_id: int, server_id: int | None, lang: str)
         room = (W / 2 - vs_half - 24) - tx if side == 0 else tx - (W / 2 + vs_half + 24)
         shown, size = d.fit_text(p["username"].upper(), room, 46, 700, 26, spacing=1)
         body += d.text(tx, 180, shown, size, 700, d.TEXT, anchor, spacing=1)
-        body += d.text(tx, 226, tr("Niveau {n}", "Level {n}", lang, n=p["level"]).upper(), 28, 700, color, anchor, spacing=2)
+        level_label = tr("Niveau {n}", "Level {n}", lang, n=p["level"]) if server_id else tr("Prestige {n}", "Prestige {n}", lang, n=p["level"])
+        body += d.text(tx, 226, level_label.upper(), 28, 700, color, anchor, spacing=2)
 
     body += d.shape(W / 2 - 56, 130, 112, 112, d.PANEL, 1, d.CUT, stroke=d.LINE)
     body += d.text(W / 2, 205, "VS", 52, 700, d.TEXT, "middle", italic=True)

@@ -2,7 +2,7 @@
 
 {% block title %}{{ t('user_profile.title', username=stats.username) }}{% endblock %}
 {# A private profile shows visitors its level and totals only: its badges stay out of the preview too #}
-{% block meta_description %}{% if layout.visible.tab_badges %}{{ tr('Niveau {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.', 'Level {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num, badges=gamification.unlocked_count, total=gamification.total_badges) }}{% else %}{{ tr('Niveau {level} · {hours} h en vocal · {messages} messages sur Hourglass.', 'Level {level} · {hours} h in voice · {messages} messages on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num) }}{% endif %}{% endblock %}
+{% block meta_description %}{% if layout.visible.tab_badges %}{{ tr('Prestige {level} · {hours} h en vocal · {messages} messages · {badges}/{total} badges sur Hourglass.', 'Prestige {level} · {hours} h in voice · {messages} messages · {badges}/{total} badges on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num, badges=gamification.unlocked_count, total=gamification.total_badges) }}{% else %}{{ tr('Prestige {level} · {hours} h en vocal · {messages} messages sur Hourglass.', 'Prestige {level} · {hours} h in voice · {messages} messages on Hourglass.', level=gamification.xp_info.level, hours=stats.total_time_hours | num(1), messages=stats.total_message | num) }}{% endif %}{% endblock %}
 {# Preview image: the member's stat card (the same one the bot posts), large under the text #}
 {% block og_image %}{{ url_for('cards.og_member_card', user_id=stats.user_id, lang=current_lang, _external=True) }}{% endblock %}
 {% block og_card %}summary_large_image{% endblock %}
@@ -105,7 +105,7 @@
         <div class="profile-level">
             <div class="user-level-circle">
                 <span class="user-level-num">{{ gamification.xp_info.level }}</span>
-                <span class="user-level-sub">LVL</span>
+                <span class="user-level-sub" title="{{ tr('Prestige', 'Prestige') }}">{{ tr('PREST.', 'PREST.') }}</span>
             </div>
             <div class="profile-level-body">
                 <div class="profile-level-line">
@@ -284,7 +284,7 @@
 </div>
 {% else %}
 {% if layout.private %}
-<div class="profile-private-owner"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg> {{tr('Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le niveau et les totaux.', 'Your profile is private: visitors only see the header, level and totals.')}} <a href="{{ url_for('customize.customize_profile') }}">{{tr('Modifier', 'Change')}}</a></div>
+<div class="profile-private-owner"><svg width="15" height="15" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="lock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM1 2h1v1h-1zM7 2h1v1h-1zM0 3h9v1h-9zM0 4h9v1h-9zM0 5h4v1h-4zM5 5h4v1h-4zM0 6h4v1h-4zM5 6h4v1h-4zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg> {{tr('Ton profil est en mode privé : les visiteurs ne voient que l’en-tête, le prestige et les totaux.', 'Your profile is private: visitors only see the header, prestige and totals.')}} <a href="{{ url_for('customize.customize_profile') }}">{{tr('Modifier', 'Change')}}</a></div>
 {% endif %}
 
 <!-- =================================================================== -->
@@ -677,6 +677,7 @@
 
                         <!-- Server metrics badges -->
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span class="user-level-tag {% if server.level >= 40 %}tier-master{% elif server.level >= 20 %}tier-veteran{% elif server.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}" data-tip="{{ tr('Niveau sur ce serveur', 'Level on this server') }}">{{ t('common.level_tag', level=server.level) }}</span>
                             <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 2px; padding: 4px 12px; font-weight: 700; font-size: 0.85rem;">
                                 {{ t('user_profile.server_rank', rank=server.rank, total=server.nb_user) }}
                             </span>
