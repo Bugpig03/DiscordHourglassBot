@@ -35,6 +35,8 @@
         <select name="sort_by" id="top-filter-sort" class="top-select">
             <option value="hours" {% if request.args.get('sort_by') == 'hours' or not request.args.get('sort_by') %}selected{% endif %}>{{ t('top.sort_hours') }}</option>
             <option value="messages" {% if request.args.get('sort_by') == 'messages' %}selected{% endif %}>{{ t('top.sort_messages') }}</option>
+            <option value="voice_now" {% if request.args.get('sort_by') == 'voice_now' %}selected{% endif %}>{{ tr('En vocal maintenant', 'In voice right now') }}</option>
+            <option value="members" {% if request.args.get('sort_by') == 'members' %}selected{% endif %}>{{ tr('Le plus de membres', 'Most members') }}</option>
             <option value="name" {% if request.args.get('sort_by') == 'name' %}selected{% endif %}>{{ t('top.sort_name') }}</option>
             <option value="arrival_old" {% if request.args.get('sort_by') == 'arrival_old' %}selected{% endif %}>{{ tr('Arrivée : plus anciens', 'Arrival: oldest first') }}</option>
             <option value="arrival_new" {% if request.args.get('sort_by') == 'arrival_new' %}selected{% endif %}>{{ tr('Arrivée : plus récents', 'Arrival: newest first') }}</option>
@@ -63,6 +65,8 @@
                      class="small-pp border-server" alt="avatar">
                 <span class="username-fixed">{{ server.servername }}</span>
                 {% if server.is_bot_present == False %}<span class="server-untracked-badge" data-tip="{{ t('servers.bot_inactive_tooltip') }}">{{ t('servers.bot_inactive') }}</span>{% endif %}
+                {% if server.voice_now is defined %}<span class="arrival-tag voice-now-tag{% if server.voice_now %} is-live{% endif %}" data-tip="{{ tr('{n} personne(s) en vocal en ce moment', '{n} people in voice right now', n=server.voice_now) }}"><i class="live-dot" aria-hidden="true"></i>{{ tr('{n} en vocal', '{n} in voice', n=server.voice_now) }}</span>{% endif %}
+                {% if server.members is defined %}<span class="arrival-tag members-tag" data-tip="{{ tr('{n} membres suivis par Hourglass', '{n} members tracked by Hourglass', n=server.members | num) }}">{{ pixel_icon('users', 12) }}{{ server.members | num }}</span>{% endif %}
                 {% if server.arrival is defined %}<span class="arrival-tag" data-tip="{{ tr('Suivi par Hourglass depuis le {date}', 'Tracked by Hourglass since {date}', date=short_date(server.arrival)) if server.arrival else tr('Aucune activité enregistrée', 'No recorded activity') }}">{{ pixel_icon('calendar', 12) }}{{ short_date(server.arrival) if server.arrival else '—' }}</span>{% endif %}
                 <span class="hours-fixed">
                     <svg width="13" height="13" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="clock"><path d="M2 0h5v1h-5zM1 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM0 5h1v1h-1zM8 5h1v1h-1zM0 6h1v1h-1zM8 6h1v1h-1zM1 7h1v1h-1zM7 7h1v1h-1zM2 8h5v1h-5z"/></svg>{{ (server.seconds / 3600) | num(1) }} {{ t('top.hours_unit') }}

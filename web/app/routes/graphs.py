@@ -7,7 +7,7 @@ import re
 import tempfile
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, current_app, jsonify, render_template, request
 from peewee import fn, JOIN
 from app.database import db, Stats, Servers
@@ -164,7 +164,7 @@ def _refresh_in_background(app, key: tuple[str, str], delay: float = 0) -> None:
             started = time.monotonic()
             _store(key, _compute_outside_request(app, key))
             elapsed_ms = (time.monotonic() - started) * 1000
-            LAST_REFRESH.update({"key": list(key), "at": datetime.utcnow().isoformat(timespec="seconds"), "ms": round(elapsed_ms)})
+            LAST_REFRESH.update({"key": list(key), "at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds"), "ms": round(elapsed_ms)})
             # Visitors never wait for this, but a slow refresh means the database needs attention
             (log.warning if elapsed_ms > 2000 else log.info)("Analytics cache %s refreshed in %.0f ms", key, elapsed_ms)
         except Exception:
@@ -371,7 +371,7 @@ def _movers(lang: str) -> dict:
 def compute_graphs_data(lang: str = "fr") -> dict:
     """All analytics of the page, grouped by tab (Tendances, Rythme, Communauté)."""
     # Summary cards: last 30 days compared with the 30 days before
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     current = _window_activity(now - timedelta(days=30))
     previous = _window_activity(now - timedelta(days=60), now - timedelta(days=30))
 

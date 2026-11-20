@@ -2106,3 +2106,14 @@ html body .hg-timeline-cta-btn { clip-path: var(--slant); }
   html body .nav-tools > .nav-dropdown-toggle .chevron-icon { display: none; }
   html body .nav-tools > .nav-dropdown-toggle.active::after { display: none; }
 }
+
+/* --------------------------------------------------------------- home podiums carousel */
+html body .podium-carousel .podium-track { display: flex; }
+html body .podium-vote-btn { clip-path: var(--slant); text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--ar-display); }
+html body .dashboard-podium-card:has(.icon-live) .podium-card-icon { background: #3fd1a0; color: #15161a; }
+html body .podium-carousel .podium-card-header { flex-wrap: nowrap; }
+html body .podium-carousel .podium-card-title-wrap { flex-wrap: nowrap; }
+html body .dashboard-podium-card:has(.icon-votes) .podium-card-icon { background: #ff6b8a; color: #15161a; }
+@media (max-width: 560px) { html body .podium-carousel .podium-card-header { flex-wrap: wrap; } }
+html body .voice-now-tag:not(.is-live) { color: var(--ar-dim); }
+html body .voice-now-tag.is-live { color: #3fd1a0; background: rgba(63, 209, 160, 0.12); }

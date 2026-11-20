@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, render_template
 from peewee import fn, SQL
 from app.database import db, Users, Servers, Stats, VoiceSessions, MessageEvents, LiveServerStatus
@@ -44,11 +44,51 @@ def _podium(kind: str, limit: int) -> list[dict]:
     return podium
 
 
+VOTERS_CACHE_SECONDS = 60
+
+
+def _top_voters(limit: int = 3) -> list[dict]:
+    """Members with the most top.gg votes over the last 30 days (number of votes, like the Supporter badge);
+    whoever got there first wins a tie. Bots and private profiles are left out."""
+    from app.timeline import hidden_user_ids
+
+    def compute() -> list[dict]:
+        since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=30)
+        try:
+            rows = db.execute_sql(
+                "SELECT v.user_id, COUNT(*), u.username, u.avatar FROM topgg_votes v LEFT JOIN users u ON u.user_id = v.user_id "
+                "WHERE v.created_at >= %s GROUP BY v.user_id, u.username, u.avatar "
+                "ORDER BY COUNT(*) DESC, MAX(v.created_at) ASC LIMIT %s", (since, limit + 20)).fetchall()
+        except Exception:
+            db.rollback()
+            return []
+        hidden = hidden_user_ids()
+        return [{"user_id": uid, "username": name or tr("Membre {id}", "Member {id}", id=uid), "avatar": avatar, "votes": int(n)}
+                for uid, n, name, avatar in rows if int(uid) not in hidden][:limit]
+
+    return cache.get_or_set(("home_top_voters", limit), VOTERS_CACHE_SECONDS, compute)
+
+
+def _voice_now_podium(limit: int = 3) -> list[dict]:
+    """The servers with the most people in voice right now (live, refreshed every 20 seconds)."""
+    from app.routes.top import voice_now_by_server
+
+    live = sorted(((sid, n) for sid, n in voice_now_by_server().items() if n > 0), key=lambda x: -x[1])[:limit]
+    if not live:
+        return []
+    names = {s.server_id: s for s in Servers.select(Servers.server_id, Servers.servername, Servers.avatar)
+             .where(Servers.server_id.in_([sid for sid, _ in live]))}
+    return [{"server_id": sid, "servername": (names[sid].servername if sid in names else None) or tr("Serveur {id}", "Server {id}", id=sid),
+             "avatar": names[sid].avatar if sid in names else None, "in_voice": n} for sid, n in live]
+
+
 @home_bp.route("/", methods=["GET"])
 def home():
     """Render the main dashboard with global application metrics, 30-day activity, and database statistics."""
+    from app.topgg_votes import VOTE_URL
     stats = load_dashboard_stats()
-    return render_template("home.html", stats=stats)
+    # Votes move every few minutes: read apart from the dashboard figures, with their own short cache
+    return render_template("home.html", stats=stats, top_voters=_top_voters(3), voice_now=_voice_now_podium(3), vote_url=VOTE_URL)
 
 
 @home_bp.route("/supports", methods=["GET"])

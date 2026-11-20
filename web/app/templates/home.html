@@ -139,8 +139,11 @@
     </div>
 </div>
 
-<!-- 4. Community Leaders: Podiums (Members & Servers) -->
-<div class="dashboard-podiums-grid">
+<!-- 4. Community leaders: members, servers and voters of the last 30 days, turning by themselves
+     (two at a time on a computer, one on a phone); the dots go straight to one -->
+<section class="podium-carousel" id="podiumCarousel" aria-roledescription="carousel" aria-label="{{ tr('Classements des 30 derniers jours', 'Rankings of the last 30 days') }}">
+<div class="podium-viewport">
+<div class="dashboard-podiums-grid podium-track">
     <!-- Top Members -->
     <div class="dashboard-podium-card">
         <div class="podium-card-header">
@@ -148,12 +151,14 @@
                 <div class="podium-card-icon icon-users">
                     <svg width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="user"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM3 3h3v1h-3zM2 5h5v1h-5zM1 6h7v1h-7zM0 7h9v1h-9zM0 8h9v1h-9z"/></svg>
                 </div>
-                <h3 class="podium-card-title">{{ t('home.podium_users_title') }}</h3>
-                <span class="podium-card-period">{{ tr('30 derniers jours', 'Last 30 days') }}</span>
+                <div class="podium-card-heading">
+                    <h3 class="podium-card-title">{{ t('home.podium_users_title') }}</h3>
+                    <span class="podium-card-period">{{ tr('30 derniers jours', 'Last 30 days') }}</span>
+                </div>
             </div>
-            <a href="{{ url_for('top.top_users', period='1m') }}" class="podium-card-more">
-                {{ t('home.see_all_rankings') }}
-            </a>
+            <div class="podium-card-actions">
+                <a href="{{ url_for('top.top_users', period='1m') }}" class="podium-card-more">{{ tr('Voir tout', 'See all') }}</a>
+            </div>
         </div>
         <div class="podium-list">
             {% for u in stats.top_users %}
@@ -180,12 +185,14 @@
                 <div class="podium-card-icon icon-servers">
                     <svg width="16" height="16" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="servers"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h1v1h-1zM8 1h1v1h-1zM0 2h9v1h-9zM0 4h9v1h-9zM0 5h1v1h-1zM2 5h1v1h-1zM8 5h1v1h-1zM0 6h9v1h-9zM3 8h3v1h-3z"/></svg>
                 </div>
-                <h3 class="podium-card-title">{{ t('home.podium_servers_title') }}</h3>
-                <span class="podium-card-period">{{ tr('30 derniers jours', 'Last 30 days') }}</span>
+                <div class="podium-card-heading">
+                    <h3 class="podium-card-title">{{ t('home.podium_servers_title') }}</h3>
+                    <span class="podium-card-period">{{ tr('30 derniers jours', 'Last 30 days') }}</span>
+                </div>
             </div>
-            <a href="{{ url_for('top.top_servers', period='1m') }}" class="podium-card-more">
-                {{ t('home.see_all_servers') }}
-            </a>
+            <div class="podium-card-actions">
+                <a href="{{ url_for('top.top_servers', period='1m') }}" class="podium-card-more">{{ tr('Voir tout', 'See all') }}</a>
+            </div>
         </div>
         <div class="podium-list">
             {% for s in stats.top_servers %}
@@ -204,7 +211,80 @@
             {% endfor %}
         </div>
     </div>
+
+    <!-- Top voters (top.gg) -->
+    <div class="dashboard-podium-card podium-voters">
+        <div class="podium-card-header">
+            <div class="podium-card-title-wrap">
+                <div class="podium-card-icon icon-votes">{{ pixel_icon('heart', 16) }}</div>
+                <div class="podium-card-heading">
+                    <h3 class="podium-card-title">{{ tr('Top voteurs', 'Top voters') }}</h3>
+                    <span class="podium-card-period">{{ tr('30 derniers jours', 'Last 30 days') }}</span>
+                </div>
+            </div>
+            <div class="podium-card-actions">
+                <a class="podium-vote-btn" href="{{ vote_url }}" target="_blank" rel="noopener">{{ pixel_icon('heart', 12) }}<span>{{ tr('Voter', 'Vote') }}</span></a>
+                <a href="{{ url_for('top.top_users', period='1m', sort_by='votes') }}" class="podium-card-more">{{ tr('Voir tout', 'See all') }}</a>
+            </div>
+        </div>
+        <div class="podium-list">
+            {% for v in top_voters %}
+            <a href="{{ url_for('user_profile.profile', username=v.username) }}" class="podium-item" data-hover="user:{{ v.user_id }}">
+                <div class="podium-rank rank-{{ loop.index }}">{{ loop.index }}</div>
+                <img src="{{ v.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                     alt="{{ v.username }}" class="podium-avatar">
+                <div class="podium-info">
+                    <span class="podium-name">{{ v.username }}</span>
+                    <span class="podium-sub">{{ tr('sur top.gg', 'on top.gg') }}</span>
+                </div>
+                <div class="podium-score">
+                    <span class="podium-value">{{ pixel_icon('heart', 12) }}{{ tr('{n} votes', '{n} votes', n=v.votes | num) if v.votes > 1 else tr('1 vote', '1 vote') }}</span>
+                </div>
+            </a>
+            {% else %}
+            <p class="podium-empty">{{ tr('Personne n’a voté ces 30 derniers jours : sois le premier !', 'Nobody has voted in the last 30 days: be the first!') }}</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- In voice right now (live) -->
+    <div class="dashboard-podium-card podium-live">
+        <div class="podium-card-header">
+            <div class="podium-card-title-wrap">
+                <div class="podium-card-icon icon-live">{{ pixel_icon('mic', 16) }}</div>
+                <div class="podium-card-heading">
+                    <h3 class="podium-card-title">{{ tr('En vocal maintenant', 'In voice right now') }}</h3>
+                    <span class="podium-card-period"><i class="live-dot" aria-hidden="true"></i>{{ tr('En direct', 'Live') }}</span>
+                </div>
+            </div>
+            <div class="podium-card-actions">
+                <a href="{{ url_for('top.top_servers', sort_by='voice_now') }}" class="podium-card-more">{{ tr('Voir tout', 'See all') }}</a>
+            </div>
+        </div>
+        <div class="podium-list">
+            {% for s in voice_now %}
+            <a href="{{ url_for('server_profile.server', server_id=s.server_id) }}" class="podium-item" data-hover="server:{{ s.server_id }}">
+                <div class="podium-rank rank-{{ loop.index }}">{{ loop.index }}</div>
+                <img src="{{ s.avatar or url_for('static', filename='images/base_avatar_big.png') }}"
+                     alt="{{ s.servername }}" class="podium-avatar border-server">
+                <div class="podium-info">
+                    <span class="podium-name">{{ s.servername }}</span>
+                    <span class="podium-sub">{{ tr('en ce moment', 'right now') }}</span>
+                </div>
+                <div class="podium-score">
+                    <span class="podium-value"><i class="live-dot" aria-hidden="true"></i>{{ tr('{n} en vocal', '{n} in voice', n=s.in_voice) }}</span>
+                </div>
+            </a>
+            {% else %}
+            <p class="podium-empty">{{ tr('Personne en vocal pour le moment.', 'Nobody in voice right now.') }}</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
+</div>
+
+<div class="podium-dots" role="tablist" aria-label="{{ tr('Choisir un classement', 'Pick a ranking') }}"></div>
+</section>
 
 <script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/home.js', v=asset_version('js/pages/home.js')) }}" defer></script>

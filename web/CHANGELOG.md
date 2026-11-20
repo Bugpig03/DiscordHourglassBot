@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.41.0 - Mini Classements qui Défilent, Top Voteurs et En Vocal Maintenant - 20/11/2026
+- **Accueil : quatre mini classements qui défilent tout seuls** : top membres, top serveurs, **top 3 des voteurs** des 30 derniers jours (votes sur top.gg, cœur rose comme partout sur le site) et **En vocal maintenant**, les 3 serveurs avec le plus de monde en vocal à l'instant, avec un point vert qui pulse. Ils défilent par pages toutes les 6 secondes : sur ordinateur, deux pages de deux (membres et serveurs, puis voteurs et en vocal), sur téléphone un classement par page, et on peut aussi glisser du doigt. Une barre par page en dessous : celle de la page affichée se remplit jusqu'au changement, et un clic sur une barre mène à sa page. Le défilement s'arrête quand la souris est dessus, et il est coupé pour les visiteurs qui limitent les animations.
+- **Même en-tête pour tous les mini classements** : titre avec sa période en dessous, et les boutons toujours au même endroit à droite (« Voir tout », plus « Voter » à côté sur le classement des voteurs). Sur téléphone, les boutons passent sur une ligne sous le titre.
+- **Serveurs : nouveau tri « En vocal maintenant »**, avec le nombre de personnes en vocal sur chaque serveur (point vert quand il y a du monde).
+- **Serveurs : nouveau tri « Le plus de membres »**, avec le nombre de membres suivis par Hourglass affiché sur chaque serveur.
+- **Carte Versus sur Discord** : un pseudo trop long passait sous le « VS » du milieu. Il rapetisse maintenant, puis se termine par « … », pour rester entre l'avatar et le « VS ».
+
 ## Version 3.40.0 - Menu Outils et Timeline - 12/11/2026
 - **Nouveau menu « Outils »** dans la barre du haut, après Analyses : il regroupe Versus et la nouvelle page Timeline. Sur ordinateur, c'est un menu déroulant ; sur téléphone, les deux pages s'affichent sous « Outils » dans le menu.
 - **Nouvelle page Timeline** : ta course au classement, sur mesure. Les courses au classement sont maintenant toutes réunies ici.

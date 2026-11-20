@@ -5474,3 +5474,103 @@ html body .hg-hero .profile-hero-stats .dashboard-kpi-card + .dashboard-kpi-card
   .hg-timeline-cta { flex-wrap: wrap; }
   .hg-timeline-cta-btn { width: 100%; text-align: center; }
 }
+
+/* Home podiums turning by themselves (members, servers, voters): two cards shown on a computer, one on a phone */
+.podium-carousel { --podium-gap: 20px; margin-bottom: 24px; }
+.podium-viewport { overflow: hidden; padding: 2px; margin: -2px; }
+.podium-carousel .podium-track {
+  display: flex;
+  gap: var(--podium-gap);
+  margin: 0;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.podium-carousel .podium-track > .dashboard-podium-card {
+  flex: 0 0 calc((100% - var(--podium-gap)) / 2);
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 899px) {
+  .podium-carousel .podium-track > .dashboard-podium-card { flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .podium-carousel .podium-track { transition: none; } }
+.podium-dots { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 16px; min-height: 12px; }
+/* One dot per page; the current one stretches into a bar that fills up until the next page */
+.podium-dot {
+  position: relative;
+  width: 14px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  transform: skewX(-20deg);
+  transition: width 0.3s ease, background-color 0.2s ease;
+}
+.podium-dot:hover { background: rgba(255, 255, 255, 0.4); }
+.podium-dot.active { width: 56px; background: rgba(113, 124, 248, 0.28); }
+.podium-dot i { position: absolute; inset: 0; width: 0; background: #717cf8; }
+.podium-dot.active i { width: 100%; }
+.podium-carousel.is-running .podium-dot.active i { width: 0; animation: podium-fill var(--podium-delay, 6s) linear forwards; }
+.podium-carousel.is-paused .podium-dot.active i { animation-play-state: paused; }
+@keyframes podium-fill { from { width: 0; } to { width: 100%; } }
+.podium-dot:focus-visible { outline: 2px solid #a5acff; outline-offset: 3px; }
+
+/* Top voters card: the heart pink of the votes */
+.podium-card-icon.icon-votes { background: #ff6b8a; color: #15161a; }
+.podium-voters .podium-value { display: inline-flex; align-items: center; gap: 5px; color: #ff6b8a; }
+.podium-empty { margin: 8px 0; color: #a3a6b0; font-size: 0.88rem; }
+
+/* One header for every mini ranking: icon, title with its period under it, buttons on the right (never wrapped
+   under the title, whatever the length of the title or the language) */
+.podium-carousel .podium-card-header { flex-wrap: nowrap; gap: 12px; }
+.podium-carousel .podium-card-title-wrap { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
+.podium-card-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.podium-card-heading .podium-card-title { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium-card-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.podium-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: rgba(255, 107, 138, 0.16);
+  color: #ff8aa3;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.podium-vote-btn:hover { background: rgba(255, 107, 138, 0.28); color: #ffb3c3; }
+
+/* In voice right now: the mint of "online", with a pulsing dot */
+.podium-card-icon.icon-live { background: #3fd1a0; color: #15161a; }
+.podium-live .podium-value { display: inline-flex; align-items: center; gap: 7px; color: #3fd1a0; }
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3fd1a0;
+  box-shadow: 0 0 0 0 rgba(63, 209, 160, 0.6);
+  animation: live-dot-pulse 1.8s ease-out infinite;
+  flex: none;
+}
+.podium-card-period .live-dot { margin-right: 6px; vertical-align: 1px; }
+@keyframes live-dot-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(63, 209, 160, 0.6); }
+  70% { box-shadow: 0 0 0 7px rgba(63, 209, 160, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(63, 209, 160, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+/* Servers page, sort "In voice right now" */
+.voice-now-tag { display: inline-flex; align-items: center; gap: 6px; }
+.voice-now-tag:not(.is-live) .live-dot { background: #6b6f78; animation: none; box-shadow: none; }
+.voice-now-tag.is-live { color: #3fd1a0; }
+/* Narrow phones: the buttons take their own row under the title, at the same place on every card */
+@media (max-width: 560px) {
+  .podium-carousel .podium-card-header { flex-wrap: wrap; }
+  .podium-card-actions { width: 100%; }
+  .podium-card-actions > * { flex: 1; justify-content: center; text-align: center; }
+}

@@ -86,3 +86,115 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error rendering home activity chart:', e);
     }
 });
+
+/* Podiums (members, servers, voters, in voice now): shown by pages, two cards side by side on a computer, one on a
+   phone. The pages turn by themselves every 6 s, always forward (after the last one comes the first again); one dot
+   per page, the current one filling up like a progress bar until the next turn. Clicking a dot goes to its page;
+   hovering, focusing, touching or a hidden tab pauses; visitors who prefer less motion get no automatic turn. */
+document.addEventListener('DOMContentLoaded', function () {
+    const root = document.getElementById('podiumCarousel');
+    if (!root) return;
+    const track = root.querySelector('.podium-track');
+    const dotsBox = root.querySelector('.podium-dots');
+    const cards = Array.from(track.children);
+    const DELAY = 6000;
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    root.style.setProperty('--podium-delay', `${DELAY}ms`);
+
+    // Copies of the cards at the end: going from the last page to the first keeps moving forward
+    cards.forEach(card => {
+        const copy = card.cloneNode(true);
+        copy.setAttribute('aria-hidden', 'true');
+        copy.setAttribute('inert', '');
+        copy.classList.add('is-copy');
+        track.appendChild(copy);
+    });
+
+    let perView = 0, pages = 0, page = 0, timer = 0, paused = false, dots = [];
+    const wide = () => (window.matchMedia('(min-width: 900px)').matches ? 2 : 1);
+
+    function buildDots() {
+        perView = wide();
+        pages = Math.ceil(cards.length / perView);
+        dotsBox.innerHTML = '';
+        dots = Array.from({ length: pages }, (_, i) => {
+            const names = cards.slice(i * perView, i * perView + perView)
+                .map(c => (c.querySelector('.podium-card-title') || {}).textContent || '').map(t => t.trim()).join(' · ');
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'podium-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', names);
+            dot.title = names;
+            dot.innerHTML = '<i></i>';
+            dot.addEventListener('click', () => { go(i); restart(); });
+            dotsBox.appendChild(dot);
+            return dot;
+        });
+    }
+
+    function place(animate) {
+        if (!animate) track.style.transition = 'none';
+        track.style.transform = `translateX(calc(${-page} * (100% + var(--podium-gap))))`;
+        if (!animate) { void track.offsetWidth; track.style.transition = ''; }
+        const current = page % pages;
+        dots.forEach((d, i) => {
+            d.classList.toggle('active', i === current);
+            d.setAttribute('aria-selected', String(i === current));
+        });
+        cards.forEach((card, i) => card.toggleAttribute('inert', Math.floor(i / perView) !== current));
+    }
+    function go(i, animate = true) { page = i; place(animate); }
+    track.addEventListener('transitionend', e => {
+        if (e.target === track && page >= pages) go(page - pages, false);
+    });
+
+    // The progress bar of the current dot restarts with each page (CSS animation over --podium-delay)
+    function restartBar() {
+        root.classList.remove('is-running');
+        void root.offsetWidth;
+        if (!calm && pages > 1) root.classList.add('is-running');
+    }
+    function restart() {
+        clearInterval(timer);
+        restartBar();
+        if (calm || pages < 2) return;
+        timer = setInterval(() => { if (!paused && !document.hidden) { go(page + 1); restartBar(); } }, DELAY);
+    }
+    function setPaused(on) {
+        paused = on;
+        root.classList.toggle('is-paused', on);
+        if (!on) restart();  // a fresh full turn after a pause, rather than a jump right away
+    }
+    root.addEventListener('mouseenter', () => setPaused(true));
+    root.addEventListener('mouseleave', () => setPaused(false));
+    root.addEventListener('focusin', () => setPaused(true));
+    root.addEventListener('focusout', e => { if (!root.contains(e.relatedTarget)) setPaused(false); });
+
+    // Swipe on phones
+    let startX = null;
+    root.addEventListener('touchstart', e => { startX = e.touches[0].clientX; setPaused(true); }, { passive: true });
+    root.addEventListener('touchend', e => {
+        if (startX !== null) {
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) go(dx < 0 ? page % pages + 1 : (page % pages + pages - 1) % pages);
+        }
+        startX = null;
+        setPaused(false);
+    });
+
+    let lastWide = wide();
+    window.addEventListener('resize', () => {
+        if (wide() !== lastWide) {  // computer <-> phone: the page count changes
+            lastWide = wide();
+            const firstCard = (page % pages) * perView;
+            buildDots();
+            page = Math.floor(firstCard / perView);
+            restart();
+        }
+        place(false);
+    });
+    buildDots();
+    place(false);
+    restart();
+});

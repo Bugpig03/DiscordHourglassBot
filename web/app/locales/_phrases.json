@@ -1113,7 +1113,7 @@
  ],
  "p0329": [
   "En vocal maintenant",
-  "In voice now"
+  "In voice right now"
  ],
  "p0330": [
   "messages sur 24 h",
@@ -3398,5 +3398,65 @@
  "p0939": [
   "Membres choisis",
   "Chosen members"
+ ],
+ "p0944": [
+  "Le plus de membres",
+  "Most members"
+ ],
+ "p0945": [
+  "{n} membres suivis par Hourglass",
+  "{n} members tracked by Hourglass"
+ ],
+ "p0951": [
+  "{n} votes",
+  "{n} votes"
+ ],
+ "p0952": [
+  "Classements des 30 derniers jours",
+  "Rankings of the last 30 days"
+ ],
+ "p0953": [
+  "Top voteurs",
+  "Top voters"
+ ],
+ "p0954": [
+  "Voir tout",
+  "See all"
+ ],
+ "p0955": [
+  "sur top.gg",
+  "on top.gg"
+ ],
+ "p0956": [
+  "1 vote",
+  "1 vote"
+ ],
+ "p0957": [
+  "Personne n’a voté ces 30 derniers jours : sois le premier !",
+  "Nobody has voted in the last 30 days: be the first!"
+ ],
+ "p0958": [
+  "Choisir un classement",
+  "Pick a ranking"
+ ],
+ "p0959": [
+  "En direct",
+  "Live"
+ ],
+ "p0960": [
+  "en ce moment",
+  "right now"
+ ],
+ "p0961": [
+  "{n} en vocal",
+  "{n} in voice"
+ ],
+ "p0962": [
+  "Personne en vocal pour le moment.",
+  "Nobody in voice right now."
+ ],
+ "p0963": [
+  "{n} personne(s) en vocal en ce moment",
+  "{n} people in voice right now"
  ]
 }

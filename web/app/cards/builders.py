@@ -316,12 +316,15 @@ def _versus_card(user1_id: int, user2_id: int, server_id: int | None, lang: str)
     body += scope_tag
 
     av_r = 78
+    vs_half = 56  # the VS box in the middle
     for side, (p, color) in enumerate(((p1, c1), (p2, c2))):
         cx = M + av_r + 10 if side == 0 else W - M - av_r - 10
         body += d.avatar(cx, 186, av_r, d.remote_square(p.get("avatar"), 2 * av_r), p["username"], color, f"v{side}")
         anchor = "start" if side == 0 else "end"
         tx = cx + av_r + 32 if side == 0 else cx - av_r - 32
-        shown, size = d.fit_text(p["username"].upper(), 320, 46, 700, 28, spacing=1)
+        # Room between the avatar and the VS box (a long name used to run under it): shrink, then shorten with "…"
+        room = (W / 2 - vs_half - 24) - tx if side == 0 else tx - (W / 2 + vs_half + 24)
+        shown, size = d.fit_text(p["username"].upper(), room, 46, 700, 26, spacing=1)
         body += d.text(tx, 180, shown, size, 700, d.TEXT, anchor, spacing=1)
         body += d.text(tx, 226, tr("Niveau {n}", "Level {n}", lang, n=p["level"]).upper(), 28, 700, color, anchor, spacing=2)
 

@@ -83,6 +83,55 @@ def _user_arrivals(server_id: str) -> dict:
     return cache.get_or_set(("arrivals", "members", server_id), ARRIVAL_CACHE_SECONDS, compute)
 
 
+def _server_member_counts() -> dict:
+    """Members tracked on each server (the "Members" figure of the server page), refreshed every 10 minutes."""
+    def compute():
+        rows = (Stats.select(Stats.server_id, fn.COUNT(Stats.user_id.distinct()).alias("n")).group_by(Stats.server_id))
+        return {row.server_id: int(row.n or 0) for row in rows}
+    return cache.get_or_set(("server_member_counts",), ARRIVAL_CACHE_SECONDS, compute)
+
+
+VOICE_NOW_CACHE_SECONDS = 20
+
+
+def voice_now_by_server() -> dict:
+    """{server_id: people in voice right now}, same rule as the "Members in voice" chart: an open session counts
+    while the bot keeps its heartbeat (every 30 s). Refreshed every 20 seconds."""
+    from app.database import db
+
+    def compute():
+        try:
+            rows = db.execute_sql(
+                "SELECT server_id, COUNT(DISTINCT user_id) FROM voice_sessions WHERE left_at IS NULL "
+                "AND NOT COALESCE(is_legacy, FALSE) AND last_heartbeat >= NOW()::timestamp - INTERVAL '5 minutes' "
+                "GROUP BY server_id").fetchall()
+        except Exception:
+            db.rollback()
+            return {}
+        return {int(sid): int(n) for sid, n in rows}
+    return cache.get_or_set(("voice_now_by_server",), VOICE_NOW_CACHE_SECONDS, compute)
+
+
+def sort_by_voice_now(results: list[dict]) -> list[dict]:
+    """Servers with the most people in voice right now first (voice time of the period breaks ties), ranked."""
+    live = voice_now_by_server()
+    rows = [dict(r, voice_now=live.get(r["server_id"], 0)) for r in results]
+    rows.sort(key=lambda r: (r["voice_now"], r.get("seconds") or 0), reverse=True)
+    for i, row in enumerate(rows, 1):
+        row["rank"], row["move"], row["is_new"] = i, 0, False
+    return rows
+
+
+def sort_by_members(results: list[dict]) -> list[dict]:
+    """Servers with the most members first (voice time breaks ties), ranked, without movement (no history)."""
+    counts = _server_member_counts()
+    rows = [dict(r, members=counts.get(r["server_id"], 0)) for r in results]
+    rows.sort(key=lambda r: (r["members"], r.get("seconds") or 0), reverse=True)
+    for i, row in enumerate(rows, 1):
+        row["rank"], row["move"], row["is_new"] = i, 0, False
+    return rows
+
+
 def _server_arrivals() -> dict:
     """Day Hourglass started tracking each server: first_tracked_at or its first stats row, whichever is older
     (same rule as the server page and the /server card), else its first voice session."""
@@ -497,6 +546,10 @@ def load_servers() -> tuple[list[dict], int]:
         results = sorted(results, key=lambda x: (x["servername"] or "").lower())
     elif sort_by in ARRIVAL_SORTS:
         results = sort_by_arrival(results, _server_arrivals(), "server_id", ARRIVAL_SORTS[sort_by])
+    elif sort_by == "members":
+        results = sort_by_members(results)
+    elif sort_by == "voice_now":
+        results = sort_by_voice_now(results)
     else:
         results = rank_with_moves(results, SERVER_SORT_KEYS.get(sort_by, SERVER_SORT_KEYS["hours"]))
     if search_query:
