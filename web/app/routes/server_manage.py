@@ -75,6 +75,8 @@ def manage(server_id: int):
         role_grants=sa.role_grant_counts(server_id),
         max_role_rules=sa.MAX_ROLE_RULES,
         max_role_conditions=sa.MAX_ROLE_CONDITIONS,
+        max_role_tiers=sa.MAX_ROLE_TIERS,
+        max_role_tiers_total=sa.MAX_ROLE_TIERS_TOTAL,
         bot_top_position=(sa.guild_meta(server_id) or {}).get("bot_top_role_position", 0),
         report_history=sa.report_history(server_id),
         roles=sa.roles(server_id),

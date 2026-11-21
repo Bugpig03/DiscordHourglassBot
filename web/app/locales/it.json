@@ -1127,5 +1127,19 @@
  "p1254": "Rimuovi la condizione",
  "p1255": "{n} regola/e",
  "p1258": "membro/i",
- "p1259": "{n} già assegnati dal bot"
+ "p1259": "{n} già assegnati dal bot",
+ "p1260": "Massimo: {n} regole, {t} livelli per regola e {total} livelli in tutto.",
+ "p1261": "Una regola è una progressione di livelli: ogni livello assegna un ruolo quando le sue condizioni sono soddisfatte (fino a {n} per livello). Per esempio 10 h in vocale → @Habitué, 50 h → @Veterano, 100 h → @Leggenda. Il numero a destra di ogni livello conta i membri che avrebbero quel ruolo oggi.",
+ "p1262": "Più livelli raggiunti",
+ "p1263": "Solo il più alto",
+ "p1264": "Cumulare",
+ "p1265": "Sposta su la regola",
+ "p1266": "Sposta giù la regola",
+ "p1267": "Il membro tiene solo il ruolo del livello più alto che raggiunge: salendo, scambia il suo ruolo con il successivo. Ordina i livelli dal più facile al più difficile.",
+ "p1268": "Il membro riceve il ruolo di ogni livello che raggiunge e li tiene tutti.",
+ "p1269": "Aggiungi un livello",
+ "p1270": "Elimina il livello",
+ "p1271": "Regola {n}",
+ "p1272": "Livello {n}",
+ "p1273": "Ruolo"
 }

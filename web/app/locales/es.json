@@ -1127,5 +1127,19 @@
  "p1254": "Quitar la condición",
  "p1255": "{n} regla(s)",
  "p1258": "miembro(s)",
- "p1259": "{n} ya otorgados por el bot"
+ "p1259": "{n} ya otorgados por el bot",
+ "p1260": "Máximo: {n} reglas, {t} niveles por regla y {total} niveles en total.",
+ "p1261": "Una regla es una progresión de niveles: cada nivel otorga un rol cuando se cumplen sus condiciones (hasta {n} por nivel). Por ejemplo 10 h en voz → @Habitual, 50 h → @Veterano, 100 h → @Leyenda. La cifra a la derecha de cada nivel cuenta los miembros que tendrían ese rol hoy.",
+ "p1262": "Varios niveles alcanzados",
+ "p1263": "Solo el más alto",
+ "p1264": "Acumular",
+ "p1265": "Subir la regla",
+ "p1266": "Bajar la regla",
+ "p1267": "El miembro solo conserva el rol del nivel más alto que alcanza: al subir, cambia su rol por el siguiente. Ordena los niveles del más fácil al más difícil.",
+ "p1268": "El miembro recibe el rol de cada nivel que alcanza y los conserva todos.",
+ "p1269": "Añadir un nivel",
+ "p1270": "Borrar el nivel",
+ "p1271": "Regla {n}",
+ "p1272": "Nivel {n}",
+ "p1273": "Rol"
 }

@@ -1127,5 +1127,19 @@
  "p1254": "Usuń warunek",
  "p1255": "{n} reguł(y)",
  "p1258": "członków",
- "p1259": "{n} już nadanych przez bota"
+ "p1259": "{n} już nadanych przez bota",
+ "p1260": "Maksymalnie: {n} reguł, {t} progów na regułę i {total} progów łącznie.",
+ "p1261": "Reguła to ścieżka progów: każdy próg nadaje rolę, gdy jego warunki są spełnione (maksymalnie {n} na próg). Na przykład 10 h na kanałach głosowych → @Bywalec, 50 h → @Weteran, 100 h → @Legenda. Liczba po prawej stronie każdego progu to członkowie, którzy mieliby dziś tę rolę.",
+ "p1262": "Osiągnięto kilka progów",
+ "p1263": "Tylko najwyższy",
+ "p1264": "Sumuj",
+ "p1265": "Przesuń regułę w górę",
+ "p1266": "Przesuń regułę w dół",
+ "p1267": "Członek zachowuje tylko rolę najwyższego osiągniętego progu: idąc wyżej, wymienia swoją rolę na następną. Ułóż progi od najłatwiejszego do najtrudniejszego.",
+ "p1268": "Członek dostaje rolę każdego osiągniętego progu i zachowuje je wszystkie.",
+ "p1269": "Dodaj próg",
+ "p1270": "Usuń próg",
+ "p1271": "Reguła {n}",
+ "p1272": "Próg {n}",
+ "p1273": "Rola"
 }

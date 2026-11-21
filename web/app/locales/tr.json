@@ -1127,5 +1127,19 @@
  "p1254": "Koşulu kaldır",
  "p1255": "{n} kural",
  "p1258": "üye",
- "p1259": "{n} tanesi zaten bot tarafından verildi"
+ "p1259": "{n} tanesi zaten bot tarafından verildi",
+ "p1260": "En fazla: {n} kural, kural başına {t} kademe ve toplamda {total} kademe.",
+ "p1261": "Bir kural, kademelerden oluşan bir ilerlemedir: her kademe, koşulları karşılandığında bir rol verir (kademe başına en fazla {n}). Örneğin seste 10 sa → @Müdavim, 50 sa → @Kıdemli, 100 sa → @Efsane. Her kademenin sağındaki sayı, bugün o role sahip olacak üyeleri sayar.",
+ "p1262": "Birden fazla kademeye ulaşıldı",
+ "p1263": "Yalnızca en yüksek",
+ "p1264": "Biriktir",
+ "p1265": "Kuralı yukarı taşı",
+ "p1266": "Kuralı aşağı taşı",
+ "p1267": "Üye yalnızca ulaştığı en yüksek kademenin rolünü tutar: yükseldikçe rolünü bir sonrakiyle değiştirir. Kademeleri en kolaydan en zora sırala.",
+ "p1268": "Üye ulaştığı her kademenin rolünü alır ve hepsini tutar.",
+ "p1269": "Kademe ekle",
+ "p1270": "Kademeyi sil",
+ "p1271": "Kural {n}",
+ "p1272": "Kademe {n}",
+ "p1273": "Rol"
 }

@@ -1,5 +1,13 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.12.0 - Rôles par Progressions - 21/11/2026
+
+- **Une règle peut gérer plusieurs rôles** : c'est maintenant une progression de paliers (par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende), chaque palier avec son rôle et ses conditions.
+- **« Seul le plus haut » ou « Cumuler » se choisit dans chaque règle** (avant : un seul choix pour tout le serveur). Une progression peut échanger les rôles en montant pendant qu'une autre règle les cumule.
+- Un rôle remplacé par le palier suivant d'une progression reste si une autre règle le donne aussi.
+- **Reprise automatique** : au démarrage, les règles de la 3.11.0 deviennent une seule règle à plusieurs paliers par serveur, avec le choix qu'avait le serveur. Elles fonctionnent exactement comme avant.
+- Nouvelles tables créées automatiquement (ou par `database/migrations/2026-11-21_bot_v3.12.0_role_tiers.sql`).
+
 ## Version 3.11.0 - Rôles Automatiques - 21/11/2026
 
 - **Rôles automatiques** sur les serveurs qui les activent (site, page « Gérer » > Rôles) : le bot donne et retire des rôles selon l'activité de chaque membre sur le serveur.

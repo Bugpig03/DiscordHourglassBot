@@ -50,10 +50,13 @@ func TestRuleMatch(t *testing.T) {
 }
 
 func TestPlanMember(t *testing.T) {
-	rules := []database.RoleRule{
+	tiers := []database.RoleRule{
 		{RoleID: 1, Match: "all", Conditions: []database.RoleCondition{cond("voice", "total", 1)}},
 		{RoleID: 2, Match: "all", Conditions: []database.RoleCondition{cond("voice", "total", 10)}},
 		{RoleID: 3, Match: "all", Conditions: []database.RoleCondition{cond("voice", "total", 100)}},
+	}
+	ladder := func(keep bool, t ...database.RoleRule) database.RoleLadder {
+		return database.RoleLadder{KeepHighest: keep, Tiers: t}
 	}
 	m := database.MemberMetrics{VoiceTotal: 20 * 3600}
 	set := func(ids ...int64) map[int64]bool {
@@ -64,42 +67,51 @@ func TestPlanMember(t *testing.T) {
 		return out
 	}
 
-	// Cumulative: both met roles given
-	st := &database.RoleSettings{Rules: rules, RemoveUnmet: true}
+	// Cumulative rule: both met roles given
+	st := &database.RoleSettings{Ladders: []database.RoleLadder{ladder(false, tiers...)}, RemoveUnmet: true}
 	if got := planMember(st, m, set(), set()); !reflect.DeepEqual(got.Add, []int64{1, 2}) || got.Remove != nil {
 		t.Errorf("cumulative: %+v", got)
 	}
 
-	// Tiers: only the highest met; the lower one the bot gave is removed, even without RemoveUnmet
-	st = &database.RoleSettings{Rules: rules, KeepHighest: true}
+	// Progression: only the highest met; the lower one the bot gave is removed, even without RemoveUnmet
+	st = &database.RoleSettings{Ladders: []database.RoleLadder{ladder(true, tiers...)}}
 	got := planMember(st, m, set(1), set(1))
 	if !reflect.DeepEqual(got.Add, []int64{2}) || !reflect.DeepEqual(got.Remove, []int64{1}) {
-		t.Errorf("tiers: %+v", got)
+		t.Errorf("progression: %+v", got)
 	}
 
 	// A role given by hand is never removed
-	got = planMember(st, m, set(1), set())
-	if got.Remove != nil {
+	if got := planMember(st, m, set(1), set()); got.Remove != nil {
 		t.Errorf("hand-given role removed: %+v", got)
 	}
 
 	// No longer met: removed with RemoveUnmet only
-	low := database.MemberMetrics{VoiceTotal: 0}
-	if got := planMember(&database.RoleSettings{Rules: rules, RemoveUnmet: true}, low, set(2), set(2)); !reflect.DeepEqual(got.Remove, []int64{2}) {
+	low := database.MemberMetrics{}
+	all := []database.RoleLadder{ladder(false, tiers...)}
+	if got := planMember(&database.RoleSettings{Ladders: all, RemoveUnmet: true}, low, set(2), set(2)); !reflect.DeepEqual(got.Remove, []int64{2}) {
 		t.Errorf("remove unmet: %+v", got)
 	}
-	if got := planMember(&database.RoleSettings{Rules: rules}, low, set(2), set(2)); got.Remove != nil {
+	if got := planMember(&database.RoleSettings{Ladders: all}, low, set(2), set(2)); got.Remove != nil {
 		t.Errorf("kept when RemoveUnmet is off: %+v", got)
 	}
 
 	// Grant of a role removed by hand, no longer wanted: forgotten
-	if got := planMember(&database.RoleSettings{Rules: rules}, low, set(), set(3)); !reflect.DeepEqual(got.Forget, []int64{3}) {
+	if got := planMember(&database.RoleSettings{Ladders: all}, low, set(), set(3)); !reflect.DeepEqual(got.Forget, []int64{3}) {
 		t.Errorf("forget: %+v", got)
 	}
 
-	// Two rules giving the same role (an "or" across rules): one add only
-	dup := append([]database.RoleRule{}, rules[0], database.RoleRule{RoleID: 1, Match: "all", Conditions: []database.RoleCondition{cond("messages", "total", 1)}})
-	if got := planMember(&database.RoleSettings{Rules: dup}, m, set(), set()); !reflect.DeepEqual(got.Add, []int64{1}) {
-		t.Errorf("duplicate role: %+v", got)
+	// Two rules, each with its own mode: a voice progression (highest only) and a stacked messages rule
+	msgs := database.RoleRule{RoleID: 9, Match: "all", Conditions: []database.RoleCondition{cond("messages", "total", 1)}}
+	two := &database.RoleSettings{Ladders: []database.RoleLadder{ladder(true, tiers...), ladder(false, msgs)}}
+	mm := database.MemberMetrics{VoiceTotal: 20 * 3600, MessagesAll: 5}
+	if got := planMember(two, mm, set(), set()); !reflect.DeepEqual(got.Add, []int64{2, 9}) {
+		t.Errorf("two rules: %+v", got)
+	}
+
+	// A role replaced in one progression but wanted by another rule is kept
+	other := database.RoleRule{RoleID: 1, Match: "all", Conditions: []database.RoleCondition{cond("messages", "total", 1)}}
+	both := &database.RoleSettings{Ladders: []database.RoleLadder{ladder(true, tiers...), ladder(false, other)}}
+	if got := planMember(both, mm, set(1, 2), set(1, 2)); got.Remove != nil {
+		t.Errorf("role wanted elsewhere removed: %+v", got)
 	}
 }

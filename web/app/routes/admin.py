@@ -491,7 +491,7 @@ def _server_management(win: list[date], lang: str) -> dict:
                       "WHERE r.enabled AND m.bot_present")
     report_runs = _rows("SELECT ok, COUNT(*) FROM report_runs WHERE sent_at >= %s GROUP BY ok", (start,))
     roles_on = _one("SELECT COUNT(*) FROM server_roles r JOIN guild_meta m ON m.server_id = r.server_id WHERE r.enabled AND m.bot_present")
-    role_rules = _one("SELECT COUNT(*) FROM server_role_rules r JOIN server_roles s ON s.server_id = r.server_id WHERE s.enabled")
+    role_rules = _one("SELECT COUNT(*) FROM server_role_ladders r JOIN server_roles s ON s.server_id = r.server_id WHERE s.enabled")
     role_moves = _rows("SELECT action, ok, COUNT(*) FROM server_feature_log WHERE feature = 'roles' "
                        "AND action IN ('role_added', 'role_removed', 'role_blocked') AND created_at >= %s GROUP BY 1, 2", (start,))
     roles_held = _one("SELECT COUNT(*) FROM role_grants")

@@ -81,36 +81,38 @@ type rolePlan struct {
 }
 
 // planMember compares what the rules want with the member's roles (has) and the roles the bot gave them (granted).
-//   - wanted: roles of the rules met; with tiers (KeepHighest), only the role of the last rule met.
+//   - wanted: in each rule, the roles of the tiers met, or only the last tier met when the rule keeps the highest;
+//     a role wanted by any rule is wanted;
 //   - a wanted role the member lacks is given;
-//   - a role no longer wanted is removed only when the bot gave it, and only when RemoveUnmet is set or when a higher
-//     tier replaces it (its own rule still met);
+//   - a role no longer wanted is removed only when the bot gave it, and only when RemoveUnmet is set or when a
+//     higher tier replaces it (its own tier still met);
 //   - a grant whose role the member no longer has (removed by hand) is forgotten.
 func planMember(settings *database.RoleSettings, m database.MemberMetrics, has, granted map[int64]bool) rolePlan {
-	managed := map[int64]bool{}
+	var order []int64 // each role once, in the order of the page
+	seen := map[int64]bool{}
 	met := map[int64]bool{}
-	var highest int64
-	for _, r := range settings.Rules {
-		managed[r.RoleID] = true
-		if ruleMet(r, m) {
-			met[r.RoleID] = true
-			highest = r.RoleID
+	wanted := map[int64]bool{}
+	for _, ladder := range settings.Ladders {
+		var highest int64
+		for _, t := range ladder.Tiers {
+			if !seen[t.RoleID] {
+				seen[t.RoleID] = true
+				order = append(order, t.RoleID)
+			}
+			if ruleMet(t, m) {
+				met[t.RoleID] = true
+				highest = t.RoleID
+				if !ladder.KeepHighest {
+					wanted[t.RoleID] = true
+				}
+			}
 		}
-	}
-	wanted := met
-	if settings.KeepHighest {
-		wanted = map[int64]bool{}
-		if highest != 0 {
+		if ladder.KeepHighest && highest != 0 {
 			wanted[highest] = true
 		}
 	}
 	var plan rolePlan
-	for _, r := range settings.Rules {
-		role := r.RoleID
-		if !managed[role] {
-			continue
-		}
-		delete(managed, role) // each role once, in the order of the rules
+	for _, role := range order {
 		switch {
 		case wanted[role] && !has[role]:
 			plan.Add = append(plan.Add, role)
@@ -219,7 +221,7 @@ func (h *BotHandler) runRoleChecks(s *discordgo.Session) {
 	autoRoles.mu.Unlock()
 
 	for _, j := range jobs {
-		if len(j.settings.Rules) == 0 {
+		if len(j.settings.Ladders) == 0 {
 			continue
 		}
 		if j.full {

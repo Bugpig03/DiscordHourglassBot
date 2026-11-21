@@ -72,7 +72,7 @@
     'roles_empty': ('warn', tr('Ajoute au moins une règle avant d’activer les rôles automatiques.', 'Add at least one rule before turning automatic roles on.')),
     'roles_dangerous': ('error', tr('Un rôle choisi donne des droits de modération ou est géré par une intégration : il ne peut pas être donné automatiquement.', 'A chosen role gives moderation rights or is managed by an integration: it cannot be given automatically.')),
     'roles_role': ('warn', tr('Un rôle choisi n’existe plus sur le serveur. Vérifie les règles.', 'A chosen role no longer exists on the server. Check the rules.')),
-    'roles_full': ('warn', tr('Maximum de {n} règles.', 'Maximum of {n} rules.', n=max_role_rules)),
+    'roles_full': ('warn', tr('Maximum : {n} règles, {t} paliers par règle et {total} paliers en tout.', 'Maximum: {n} rules, {t} tiers per rule and {total} tiers in all.', n=max_role_rules, t=max_role_tiers, total=max_role_tiers_total)),
     'roles_invalid': ('warn', tr('Une règle est incomplète : choisis un rôle et un seuil d’au moins 1 pour chaque condition.', 'A rule is incomplete: choose a role and a threshold of at least 1 for each condition.')),
     'roles_error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
 } %}
@@ -426,7 +426,7 @@
 </div>
 <div class="sm-pane" id="roles" data-sm-pane="roles"{% if section != 'roles' %} hidden{% endif %}>
     {% set can_manage_roles = diag.admin or (diag.checks | selectattr('key', 'equalto', 'roles') | selectattr('ok') | list | length > 0) %}
-    <form method="post" action="{{ url_for('server_manage.save_roles', server_id=server_id) }}" id="smRoles" data-max-rules="{{ max_role_rules }}" data-max-conditions="{{ max_role_conditions }}">
+    <form method="post" action="{{ url_for('server_manage.save_roles', server_id=server_id) }}" id="smRoles" data-max-rules="{{ max_role_rules }}" data-max-conditions="{{ max_role_conditions }}" data-max-tiers="{{ max_role_tiers }}" data-max-tiers-total="{{ max_role_tiers_total }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="rules_json" value="">
         <section class="gray-box small-border-radius hg-card">
@@ -449,23 +449,6 @@
             </div>
             {% endif %}
             <div class="sm-rules-intro" data-roles-body>
-                <div class="sm-field">
-                    <span class="sm-label">{{ tr('Plusieurs règles remplies', 'Several rules met') }}</span>
-                    <div class="sm-choices" role="radiogroup">
-                        <label class="sm-choice">
-                            <input type="radio" name="keep_highest" value="0"{% if not roles_settings.keep_highest %} checked{% endif %}>
-                            <span class="sm-choice-mark" aria-hidden="true"></span>
-                            <span class="sm-choice-text"><b>{{ tr('Cumuler les rôles', 'Stack the roles') }}</b>
-                                <small>{{ tr('Le membre reçoit le rôle de chaque règle qu’il remplit.', 'The member gets the role of every rule they meet.') }}</small></span>
-                        </label>
-                        <label class="sm-choice">
-                            <input type="radio" name="keep_highest" value="1"{% if roles_settings.keep_highest %} checked{% endif %}>
-                            <span class="sm-choice-mark" aria-hidden="true"></span>
-                            <span class="sm-choice-text"><b>{{ tr('Paliers : seul le plus haut', 'Tiers: only the highest') }}</b>
-                                <small>{{ tr('Le membre ne garde que le rôle de la dernière règle de la liste qu’il remplit (Habitué, puis Vétéran, puis Légende). Range les règles du plus facile au plus dur.', 'The member only keeps the role of the last rule of the list they meet (Regular, then Veteran, then Legend). Order the rules from easiest to hardest.') }}</small></span>
-                        </label>
-                    </div>
-                </div>
                 <div class="sm-field sm-row-fields">
                     <label class="sm-toggle"><input type="checkbox" name="remove_unmet" value="1"{% if roles_settings.remove_unmet %} checked{% endif %}><span class="sm-toggle-box" aria-hidden="true">{{ pixel_icon('check', 12) }}</span><span>{{ tr('Retirer le rôle quand la règle n’est plus remplie', 'Remove the role when the rule is no longer met') }}</span></label>
                 </div>
@@ -477,7 +460,7 @@
             <div class="hg-card-head">
                 <div>
                     <h2 class="hg-card-title">{{ tr('Règles', 'Rules') }} <span class="sm-count" data-rule-count>{{ roles_settings.rules | length }} / {{ max_role_rules }}</span></h2>
-                    <p class="hg-card-desc">{{ tr('Une règle = un rôle et jusqu’à {n} conditions. Le chiffre à droite de chaque règle compte les membres qui la remplissent aujourd’hui.', 'A rule = a role and up to {n} conditions. The figure on the right of each rule counts the members who meet it today.', n=max_role_conditions) }}</p>
+                    <p class="hg-card-desc">{{ tr('Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui.', 'A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today.', n=max_role_conditions) }}</p>
                 </div>
             </div>
             <ol class="sm-rules" data-rules></ol>
@@ -503,7 +486,27 @@
         <li class="sm-rule">
             <div class="sm-rule-head">
                 <span class="sm-rule-num" data-rule-num></span>
-                <select class="top-select sm-rule-role" data-rule-role aria-label="{{ tr('Rôle donné', 'Role given') }}">
+                <div class="sm-seg" role="group" aria-label="{{ tr('Plusieurs paliers atteints', 'Several tiers reached') }}" data-rule-mode>
+                    <button type="button" data-mode="1">{{ tr('Seul le plus haut', 'Highest only') }}</button>
+                    <button type="button" data-mode="0">{{ tr('Cumuler', 'Stack') }}</button>
+                </div>
+                <span class="sm-rule-tools">
+                    <button type="button" class="sm-icon-btn" data-rule-up aria-label="{{ tr('Monter la règle', 'Move the rule up') }}">{{ pixel_icon('chevron_up', 12) }}</button>
+                    <button type="button" class="sm-icon-btn" data-rule-down aria-label="{{ tr('Descendre la règle', 'Move the rule down') }}">{{ pixel_icon('chevron_down', 12) }}</button>
+                    <button type="button" class="sm-icon-btn is-danger" data-rule-delete aria-label="{{ tr('Supprimer la règle', 'Delete the rule') }}">{{ pixel_icon('close', 12) }}</button>
+                </span>
+            </div>
+            <p class="sm-help sm-rule-mode-help" data-mode-help="1">{{ tr('Le membre ne garde que le rôle du palier le plus haut qu’il atteint : en montant, il échange son rôle contre le suivant. Range les paliers du plus facile au plus dur.', 'The member only keeps the role of the highest tier they reach: going up, they swap their role for the next one. Order the tiers from easiest to hardest.') }}</p>
+            <p class="sm-help sm-rule-mode-help" data-mode-help="0">{{ tr('Le membre reçoit le rôle de chaque palier qu’il atteint, et les garde tous.', 'The member gets the role of every tier they reach, and keeps them all.') }}</p>
+            <ol class="sm-tiers" data-tiers></ol>
+            <button type="button" class="sm-link-btn" data-add-tier>{{ pixel_icon('plus', 10) }}{{ tr('Ajouter un palier', 'Add a tier') }}</button>
+        </li>
+    </template>
+    <template id="smTierTpl">
+        <li class="sm-tier">
+            <div class="sm-tier-head">
+                <span class="sm-tier-num" data-tier-num></span>
+                <select class="top-select sm-rule-role" data-tier-role aria-label="{{ tr('Rôle donné', 'Role given') }}">
                     <option value="">{{ tr('Choisir un rôle…', 'Choose a role…') }}</option>
                     {% for r in roles %}
                     {% if r.dangerous %}<option value="{{ r.id }}" disabled>@{{ r.name }} · {{ tr('droits de modération', 'moderation rights') }}</option>
@@ -512,17 +515,17 @@
                     {% else %}<option value="{{ r.id }}">@{{ r.name }}</option>{% endif %}
                     {% endfor %}
                 </select>
-                <span class="sm-rule-count" data-rule-match-count></span>
+                <span class="sm-rule-count" data-tier-count></span>
                 <span class="sm-rule-tools">
-                    <button type="button" class="sm-icon-btn" data-rule-up aria-label="{{ tr('Monter', 'Move up') }}">{{ pixel_icon('chevron_up', 12) }}</button>
-                    <button type="button" class="sm-icon-btn" data-rule-down aria-label="{{ tr('Descendre', 'Move down') }}">{{ pixel_icon('chevron_down', 12) }}</button>
-                    <button type="button" class="sm-icon-btn is-danger" data-rule-delete aria-label="{{ tr('Supprimer la règle', 'Delete the rule') }}">{{ pixel_icon('close', 12) }}</button>
+                    <button type="button" class="sm-icon-btn" data-tier-up aria-label="{{ tr('Monter', 'Move up') }}">{{ pixel_icon('chevron_up', 12) }}</button>
+                    <button type="button" class="sm-icon-btn" data-tier-down aria-label="{{ tr('Descendre', 'Move down') }}">{{ pixel_icon('chevron_down', 12) }}</button>
+                    <button type="button" class="sm-icon-btn is-danger" data-tier-delete aria-label="{{ tr('Supprimer le palier', 'Delete the tier') }}">{{ pixel_icon('close', 12) }}</button>
                 </span>
             </div>
-            <p class="sm-help sm-warn-text" data-rule-blocked hidden>{{ tr('Le bot ne peut pas encore donner ce rôle : il est placé au-dessus de son rôle « Hourglass » (voir l’aide plus bas).', 'The bot cannot give this role yet: it is placed above its “Hourglass” role (see the help below).') }}</p>
-            <div class="sm-rule-match" data-rule-match-wrap>
+            <p class="sm-help sm-warn-text" data-tier-blocked hidden>{{ tr('Le bot ne peut pas encore donner ce rôle : il est placé au-dessus de son rôle « Hourglass » (voir l’aide plus bas).', 'The bot cannot give this role yet: it is placed above its “Hourglass” role (see the help below).') }}</p>
+            <div class="sm-rule-match" data-tier-match-wrap>
                 <span>{{ tr('Le membre doit remplir', 'The member must meet') }}</span>
-                <select class="top-select sm-select-sm" data-rule-match aria-label="{{ tr('Conditions à remplir', 'Conditions to meet') }}">
+                <select class="top-select sm-select-sm" data-tier-match aria-label="{{ tr('Conditions à remplir', 'Conditions to meet') }}">
                     <option value="all">{{ tr('toutes les conditions (ET)', 'all the conditions (AND)') }}</option>
                     <option value="any">{{ tr('au moins une condition (OU)', 'at least one condition (OR)') }}</option>
                 </select>

@@ -1,5 +1,15 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.47.0 - Rôles par Progressions - 21/11/2026
+- **Onglet « Rôles » : une règle est maintenant une progression de paliers.** Chaque palier donne un rôle quand ses conditions sont remplies, par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende.
+  - **« Seul le plus haut » / « Cumuler » dans chaque règle**, avec l'explication sous le choix. Le choix unique pour tout le serveur disparaît.
+  - **« Ajouter un palier »** reprend les critères du palier d'avant avec des seuils doublés : il ne reste qu'à ajuster.
+  - Les paliers sont reliés par une ligne, comme des marches, et se rangent avec leurs propres flèches.
+  - Le chiffre à côté de chaque palier compte les membres qui auraient ce rôle aujourd'hui, selon le mode de la règle.
+  - Une règle à un seul palier s'affiche simplement, comme avant.
+- Jusqu'à 10 règles, 10 paliers par règle et 30 paliers en tout ; tout est revérifié côté serveur.
+- Les règles déjà créées sont reprises telles quelles, en une règle à plusieurs paliers.
+
 ## Version 3.46.0 - Rôles Automatiques - 21/11/2026
 - **Onglet « Rôles » de la page « Gérer »** (réservée aux administrateurs du site pendant la préparation) : des rôles donnés et retirés tout seuls par le bot selon l'activité sur le serveur.
   - **Règles** : un rôle et jusqu'à 3 conditions (heures en vocal ou messages, au total ou sur 30 jours, ou niveau sur le serveur), toutes (ET) ou au moins une (OU). Jusqu'à 10 règles, rangées avec les flèches.

@@ -42,6 +42,23 @@ TABLES = [
         conditions TEXT NOT NULL
     )""",
     "CREATE INDEX IF NOT EXISTS server_role_rules_server ON server_role_rules (server_id, position)",
+    """CREATE TABLE IF NOT EXISTS server_role_ladders (
+        id BIGSERIAL PRIMARY KEY,
+        server_id BIGINT NOT NULL,
+        position INTEGER NOT NULL DEFAULT 0,
+        keep_highest BOOLEAN NOT NULL DEFAULT TRUE
+    )""",
+    "CREATE INDEX IF NOT EXISTS server_role_ladders_server ON server_role_ladders (server_id, position)",
+    """CREATE TABLE IF NOT EXISTS server_role_tiers (
+        id BIGSERIAL PRIMARY KEY,
+        ladder_id BIGINT NOT NULL,
+        server_id BIGINT NOT NULL,
+        position INTEGER NOT NULL DEFAULT 0,
+        role_id BIGINT NOT NULL,
+        match VARCHAR(3) NOT NULL DEFAULT 'all',
+        conditions TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS server_role_tiers_server ON server_role_tiers (server_id, ladder_id, position)",
     """CREATE TABLE IF NOT EXISTS role_grants (
         server_id BIGINT NOT NULL,
         user_id BIGINT NOT NULL,
@@ -503,35 +520,87 @@ def report_history(server_id: int, limit: int = 12) -> list[dict]:
 
 
 # ------------------------------------------------------------------------------------------------ automatic roles
+# A rule is a progression of tiers (10 h -> Regular, 50 h -> Veteran, 100 h -> Legend): each tier gives one role
+# when its conditions are met; the rule stacks the roles of every tier met, or keeps the highest one only.
 MAX_ROLE_RULES = 10
-MAX_ROLE_CONDITIONS = 3
+MAX_ROLE_TIERS = 10        # per rule
+MAX_ROLE_TIERS_TOTAL = 30  # per server
+MAX_ROLE_CONDITIONS = 3    # per tier
 ROLE_METRICS = ("voice", "messages", "level")
 ROLE_SCOPES = ("total", "30d")
 ROLE_LIMITS = {"voice": 100000, "messages": 10000000, "level": 500}  # highest threshold accepted per metric
 
 
-def get_roles_settings(server_id: int) -> dict:
-    """The automatic roles of a server: switches and rules in their order (easiest first)."""
+def _tier(role, match, conditions) -> dict | None:
     import json
 
-    out = {"enabled": False, "keep_highest": False, "remove_unmet": True, "updated_at": None, "rules": []}
-    rows = _rows("SELECT enabled, keep_highest, remove_unmet, updated_at FROM server_roles WHERE server_id = %s", (int(server_id),))
+    try:
+        conds = json.loads(conditions)
+    except ValueError:
+        return None
+    return {"role_id": str(role), "match": match if match in ("all", "any") else "all", "conditions": conds}
+
+
+def get_roles_settings(server_id: int) -> dict:
+    """The automatic roles of a server: switches and rules (each with its tiers), in the order of the page."""
+    sid = int(server_id)
+    out = {"enabled": False, "remove_unmet": True, "updated_at": None, "rules": []}
+    rows = _rows("SELECT enabled, keep_highest, remove_unmet, updated_at FROM server_roles WHERE server_id = %s", (sid,))
+    old_keep = False
     if rows:
-        enabled, keep, remove, at = rows[0]
-        out.update(enabled=bool(enabled), keep_highest=bool(keep), remove_unmet=bool(remove), updated_at=at)
-    for role, match, conditions in _rows(
-            "SELECT role_id, match, conditions FROM server_role_rules WHERE server_id = %s ORDER BY position, id", (int(server_id),)):
-        try:
-            conds = json.loads(conditions)
-        except ValueError:
-            continue
-        out["rules"].append({"role_id": str(role), "match": match if match in ("all", "any") else "all", "conditions": conds})
+        enabled, old_keep, remove, at = rows[0]
+        out.update(enabled=bool(enabled), remove_unmet=bool(remove), updated_at=at)
+    ladders = {}
+    for ladder_id, keep, role, match, conditions in _rows(
+            "SELECT l.id, l.keep_highest, t.role_id, t.match, t.conditions FROM server_role_ladders l "
+            "JOIN server_role_tiers t ON t.ladder_id = l.id WHERE l.server_id = %s ORDER BY l.position, l.id, t.position, t.id", (sid,)):
+        if ladder_id not in ladders:
+            ladders[ladder_id] = {"keep_highest": bool(keep), "tiers": []}
+            out["rules"].append(ladders[ladder_id])
+        tier = _tier(role, match, conditions)
+        if tier:
+            ladders[ladder_id]["tiers"].append(tier)
+    if not out["rules"]:
+        # Rules of web 3.46.0 not yet turned into tiers by the bot: shown as one rule, as they worked
+        old = [t for t in (_tier(r, m, c) for r, m, c in _rows(
+            "SELECT role_id, match, conditions FROM server_role_rules WHERE server_id = %s ORDER BY position, id", (sid,))) if t]
+        if old:
+            out["rules"].append({"keep_highest": bool(old_keep), "tiers": old})
     return out
 
 
+def _parse_tier(item, known_roles: dict) -> tuple[dict | None, str | None]:
+    if not isinstance(item, dict):
+        return None, "invalid"
+    role = str(item.get("role_id") or "")
+    if role not in known_roles:
+        return None, "role"
+    if known_roles[role]["dangerous"] or known_roles[role]["managed"]:
+        return None, "dangerous"
+    match = item.get("match") if item.get("match") in ("all", "any") else "all"
+    conds = item.get("conditions")
+    if not isinstance(conds, list) or not 1 <= len(conds) <= MAX_ROLE_CONDITIONS:
+        return None, "invalid"
+    clean = []
+    for c in conds:
+        if not isinstance(c, dict) or c.get("metric") not in ROLE_METRICS:
+            return None, "invalid"
+        metric = c["metric"]
+        scope = "total" if metric == "level" else (c.get("scope") if c.get("scope") in ROLE_SCOPES else "total")
+        try:
+            value = int(float(c.get("min")))
+        except (TypeError, ValueError, OverflowError):
+            return None, "invalid"
+        if not 1 <= value <= ROLE_LIMITS[metric]:
+            return None, "invalid"
+        clean.append({"metric": metric, "scope": scope, "min": value})
+    return {"role_id": role, "match": match, "conditions": clean}, None
+
+
 def parse_role_rules(raw: str, known_roles: dict) -> tuple[list[dict] | None, str | None]:
-    """Rules sent by the page (JSON), checked one by one: (rules, None) or (None, reason).
-    Reasons: "invalid" (malformed), "role" (unknown role), "dangerous" (moderation rights or managed role), "full"."""
+    """Rules sent by the page (JSON: [{keep_highest, tiers: [{role_id, match, conditions}]}]), checked one by one:
+    (rules, None) or (None, reason). Reasons: "invalid" (malformed), "role" (unknown role), "dangerous" (moderation
+    rights or managed role), "full" (too many rules or tiers)."""
     import json
 
     try:
@@ -542,33 +611,22 @@ def parse_role_rules(raw: str, known_roles: dict) -> tuple[list[dict] | None, st
         return None, "invalid"
     if len(data) > MAX_ROLE_RULES:
         return None, "full"
-    rules = []
+    rules, total = [], 0
     for item in data:
-        if not isinstance(item, dict):
+        if not isinstance(item, dict) or not isinstance(item.get("tiers"), list) or not item["tiers"]:
             return None, "invalid"
-        role = str(item.get("role_id") or "")
-        if role not in known_roles:
-            return None, "role"
-        if known_roles[role]["dangerous"] or known_roles[role]["managed"]:
-            return None, "dangerous"
-        match = item.get("match") if item.get("match") in ("all", "any") else "all"
-        conds = item.get("conditions")
-        if not isinstance(conds, list) or not 1 <= len(conds) <= MAX_ROLE_CONDITIONS:
-            return None, "invalid"
-        clean = []
-        for c in conds:
-            if not isinstance(c, dict) or c.get("metric") not in ROLE_METRICS:
-                return None, "invalid"
-            metric = c["metric"]
-            scope = "total" if metric == "level" else (c.get("scope") if c.get("scope") in ROLE_SCOPES else "total")
-            try:
-                value = int(float(c.get("min")))
-            except (TypeError, ValueError, OverflowError):
-                return None, "invalid"
-            if not 1 <= value <= ROLE_LIMITS[metric]:
-                return None, "invalid"
-            clean.append({"metric": metric, "scope": scope, "min": value})
-        rules.append({"role_id": role, "match": match, "conditions": clean})
+        if len(item["tiers"]) > MAX_ROLE_TIERS:
+            return None, "full"
+        total += len(item["tiers"])
+        if total > MAX_ROLE_TIERS_TOTAL:
+            return None, "full"
+        tiers = []
+        for t in item["tiers"]:
+            tier, error = _parse_tier(t, known_roles)
+            if error:
+                return None, error
+            tiers.append(tier)
+        rules.append({"keep_highest": item.get("keep_highest") is True, "tiers": tiers})
     return rules, None
 
 
@@ -577,34 +635,41 @@ def save_roles(server_id: int, form: dict, by: int) -> str | None:
     "full", "empty" (turned on without a rule) or "error"."""
     import json
 
-    known = {r["id"]: r for r in roles(server_id)}
+    sid = int(server_id)
+    known = {r["id"]: r for r in roles(sid)}
     rules, error = parse_role_rules(form.get("rules_json", ""), known)
     if error:
         return error
     enabled = form.get("enabled") == "1"
     if enabled and not rules:
         return "empty"
-    keep = form.get("keep_highest") == "1"
     remove = form.get("remove_unmet") == "1"
-    before = get_roles_settings(server_id)
+    before = get_roles_settings(sid)
     try:
         with db.atomic():
             db.execute_sql(
-                "INSERT INTO server_roles (server_id, enabled, keep_highest, remove_unmet, updated_at, updated_by) VALUES (%s, %s, %s, %s, %s, %s) "
-                "ON CONFLICT (server_id) DO UPDATE SET enabled = EXCLUDED.enabled, keep_highest = EXCLUDED.keep_highest, "
-                "remove_unmet = EXCLUDED.remove_unmet, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by",
-                (int(server_id), enabled, keep, remove, _now(), int(by)))
-            db.execute_sql("DELETE FROM server_role_rules WHERE server_id = %s", (int(server_id),))
+                "INSERT INTO server_roles (server_id, enabled, remove_unmet, updated_at, updated_by) VALUES (%s, %s, %s, %s, %s) "
+                "ON CONFLICT (server_id) DO UPDATE SET enabled = EXCLUDED.enabled, remove_unmet = EXCLUDED.remove_unmet, "
+                "updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by",
+                (sid, enabled, remove, _now(), int(by)))
+            db.execute_sql("DELETE FROM server_role_tiers WHERE server_id = %s", (sid,))
+            db.execute_sql("DELETE FROM server_role_ladders WHERE server_id = %s", (sid,))
+            db.execute_sql("DELETE FROM server_role_rules WHERE server_id = %s", (sid,))  # web 3.46.0 rows, replaced
             for position, rule in enumerate(rules):
-                db.execute_sql("INSERT INTO server_role_rules (server_id, position, role_id, match, conditions) VALUES (%s, %s, %s, %s, %s)",
-                               (int(server_id), position, int(rule["role_id"]), rule["match"], json.dumps(rule["conditions"])))
+                ladder_id = db.execute_sql(
+                    "INSERT INTO server_role_ladders (server_id, position, keep_highest) VALUES (%s, %s, %s) RETURNING id",
+                    (sid, position, rule["keep_highest"])).fetchone()[0]
+                for tier_position, tier in enumerate(rule["tiers"]):
+                    db.execute_sql(
+                        "INSERT INTO server_role_tiers (ladder_id, server_id, position, role_id, match, conditions) VALUES (%s, %s, %s, %s, %s, %s)",
+                        (ladder_id, sid, tier_position, int(tier["role_id"]), tier["match"], json.dumps(tier["conditions"])))
     except Exception:
         db.rollback()
         return "error"
-    changed = (before["enabled"], before["keep_highest"], before["remove_unmet"], before["rules"]) != (enabled, keep, remove, rules)
+    changed = (before["enabled"], before["remove_unmet"], before["rules"]) != (enabled, remove, rules)
     if changed:
         action = ("roles_on" if enabled else "roles_off") if before["enabled"] != enabled else "roles_settings"
-        log_action(server_id, "roles", action, actor=by, detail=str(len(rules)))
+        log_action(sid, "roles", action, actor=by, detail=str(len(rules)))
     return None
 
 

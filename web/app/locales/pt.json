@@ -1127,5 +1127,19 @@
  "p1254": "Remover a condição",
  "p1255": "{n} regra(s)",
  "p1258": "membro(s)",
- "p1259": "{n} já atribuídos pelo bot"
+ "p1259": "{n} já atribuídos pelo bot",
+ "p1260": "Máximo: {n} regras, {t} níveis por regra e {total} níveis no total.",
+ "p1261": "Uma regra é uma progressão de níveis: cada nível atribui um cargo quando suas condições são cumpridas (até {n} por nível). Por exemplo 10 h em voz → @Frequente, 50 h → @Veterano, 100 h → @Lenda. O número à direita de cada nível conta os membros que teriam esse cargo hoje.",
+ "p1262": "Vários níveis alcançados",
+ "p1263": "Só o mais alto",
+ "p1264": "Acumular",
+ "p1265": "Subir a regra",
+ "p1266": "Descer a regra",
+ "p1267": "O membro só mantém o cargo do nível mais alto que alcança: ao subir, troca seu cargo pelo seguinte. Ordene os níveis do mais fácil ao mais difícil.",
+ "p1268": "O membro recebe o cargo de cada nível que alcança e mantém todos.",
+ "p1269": "Adicionar um nível",
+ "p1270": "Excluir o nível",
+ "p1271": "Regra {n}",
+ "p1272": "Nível {n}",
+ "p1273": "Cargo"
 }

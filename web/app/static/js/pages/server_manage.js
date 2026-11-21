@@ -93,8 +93,9 @@
     });
 
     // ---------------------------------------------------------------- automatic roles: rules editor
-    // The rules are drawn from the JSON of the page and sent back as JSON (rules_json) on save. The figure of each
-    // rule counts the members who meet it today, from their activity (no names) read the same way as by the bot.
+    // A rule is a progression of tiers, each tier a role and its conditions; the rule keeps the highest tier reached
+    // or stacks them all. Drawn from the JSON of the page and sent back as JSON (rules_json) on save. The figure of
+    // each tier counts the members who would have its role today, from their activity (no names) read like the bot.
     const rolesForm = document.getElementById('smRoles');
     if (rolesForm) {
         const data = JSON.parse(document.getElementById('smRoleData').textContent || '{}');
@@ -103,8 +104,11 @@
         const addRule = rolesForm.querySelector('[data-add-rule]');
         const counter = rolesForm.querySelector('[data-rule-count]');
         const ruleTpl = document.getElementById('smRuleTpl');
+        const tierTpl = document.getElementById('smTierTpl');
         const condTpl = document.getElementById('smCondTpl');
         const maxRules = Number(rolesForm.dataset.maxRules) || 10;
+        const maxTiers = Number(rolesForm.dataset.maxTiers) || 10;
+        const maxTiersTotal = Number(rolesForm.dataset.maxTiersTotal) || 30;
         const maxConds = Number(rolesForm.dataset.maxConditions) || 3;
         const metrics = data.metrics || [];
         const grants = data.grants || {};
@@ -114,80 +118,122 @@
         // Index in a member's row: [voice hours, voice hours 30 d, messages, messages 30 d, level]
         const column = c => c.metric === 'level' ? 4 : (c.metric === 'voice' ? 0 : 2) + (c.scope === '30d' ? 1 : 0);
         const condMet = (c, row) => row[column(c)] >= c.min;
-        const ruleMet = (r, row) => r.conditions.length > 0 && (r.match === 'any' ? r.conditions.some(c => condMet(c, row)) : r.conditions.every(c => condMet(c, row)));
+        const tierMet = (t, row) => t.conditions.length > 0 && (t.match === 'any' ? t.conditions.some(c => condMet(c, row)) : t.conditions.every(c => condMet(c, row)));
 
         const readCond = li => ({
             metric: li.querySelector('[data-cond-metric]').value,
             scope: li.querySelector('[data-cond-scope]').value,
             min: Math.max(0, Number(li.querySelector('[data-cond-min]').value) || 0),
         });
+        const readTier = li => ({
+            role_id: li.querySelector('[data-tier-role]').value,
+            match: li.querySelector('[data-tier-match]').value,
+            conditions: Array.from(li.querySelector('[data-conds]').children).map(readCond),
+        });
         const readRule = li => ({
-            role_id: li.querySelector('[data-rule-role]').value,
-            match: li.querySelector('[data-rule-match]').value,
-            conditions: Array.from(li.querySelectorAll('.sm-cond')).map(readCond),
+            keep_highest: li.dataset.mode !== '0',
+            tiers: Array.from(li.querySelector('[data-tiers]').children).map(readTier),
         });
 
-        function addCond(rule, cond) {
+        function addCond(tier, cond) {
             const li = condTpl.content.firstElementChild.cloneNode(true);
             if (cond) {
                 li.querySelector('[data-cond-metric]').value = cond.metric;
                 li.querySelector('[data-cond-scope]').value = cond.scope || 'total';
                 li.querySelector('[data-cond-min]').value = cond.min;
             }
-            rule.querySelector('[data-conds]').appendChild(li);
+            tier.querySelector('[data-conds]').appendChild(li);
+        }
+
+        function addTier(rule, tier) {
+            const li = tierTpl.content.firstElementChild.cloneNode(true);
+            const tiers = rule.querySelector('[data-tiers]');
+            if (tier) {
+                li.querySelector('[data-tier-role]').value = tier.role_id;
+                li.querySelector('[data-tier-match]').value = tier.match || 'all';
+            }
+            tiers.appendChild(li);
+            if (tier && tier.conditions && tier.conditions.length) {
+                tier.conditions.forEach(c => addCond(li, c));
+            } else {
+                // A new tier starts from the previous one's criteria, a step higher: 10 h -> 50 h -> 100 h…
+                const prev = li.previousElementSibling ? readTier(li.previousElementSibling) : null;
+                if (prev && prev.conditions.length) {
+                    li.querySelector('[data-tier-match]').value = prev.match;
+                    prev.conditions.forEach(c => addCond(li, { ...c, min: Math.max(1, c.min * 2) }));
+                } else {
+                    addCond(li, null);
+                }
+            }
         }
 
         function addRuleItem(rule) {
             const li = ruleTpl.content.firstElementChild.cloneNode(true);
-            if (rule) {
-                li.querySelector('[data-rule-role]').value = rule.role_id;
-                li.querySelector('[data-rule-match]').value = rule.match || 'all';
-            }
+            li.dataset.mode = rule && rule.keep_highest === false ? '0' : '1';
             list.appendChild(li);
-            (rule && rule.conditions && rule.conditions.length ? rule.conditions : [null]).forEach(c => addCond(li, c));
+            (rule && rule.tiers && rule.tiers.length ? rule.tiers : [null]).forEach(t => addTier(li, t));
         }
 
         const fmt = n => new Intl.NumberFormat(HG.locale).format(n);
+        const totalTiers = () => list.querySelectorAll('.sm-tier').length;
         function refresh() {
-            const items = Array.from(list.children);
-            const keepHighest = rolesForm.querySelector('input[name="keep_highest"]:checked').value === '1';
-            const rules = items.map(readRule);
-            // Members who would have each rule's role: with tiers, only the last rule met counts
-            const counts = rules.map(() => 0);
-            metrics.forEach(row => {
-                if (keepHighest) {
-                    for (let i = rules.length - 1; i >= 0; i--) if (ruleMet(rules[i], row)) { counts[i]++; break; }
-                } else {
-                    rules.forEach((r, i) => { if (ruleMet(r, row)) counts[i]++; });
-                }
-            });
-            items.forEach((li, i) => {
-                li.querySelector('[data-rule-num]').textContent = `#${i + 1}`;
-                const conds = Array.from(li.querySelectorAll('.sm-cond'));
-                conds.forEach(c => {
-                    const level = c.querySelector('[data-cond-metric]').value === 'level';
-                    const scope = c.querySelector('[data-cond-scope]');
-                    scope.disabled = level;
-                    if (level) scope.value = 'total';
-                    if (scope._hgButton) scope._hgButton.hidden = level;
-                    c.classList.toggle('is-level', level);
-                    c.querySelector('[data-cond-delete]').hidden = conds.length < 2;
+            const rules = Array.from(list.children);
+            const full = totalTiers() >= maxTiersTotal;
+            rules.forEach((ruleLi, i) => {
+                const rule = readRule(ruleLi);
+                const tierItems = Array.from(ruleLi.querySelector('[data-tiers]').children);
+                // Members who would have each tier's role: with "highest only", only the last tier reached counts
+                const counts = rule.tiers.map(() => 0);
+                metrics.forEach(row => {
+                    if (rule.keep_highest) {
+                        for (let k = rule.tiers.length - 1; k >= 0; k--) if (tierMet(rule.tiers[k], row)) { counts[k]++; break; }
+                    } else {
+                        rule.tiers.forEach((t, k) => { if (tierMet(t, row)) counts[k]++; });
+                    }
                 });
-                li.querySelector('[data-rule-match-wrap]').hidden = conds.length < 2;
-                li.querySelector('[data-add-cond]').hidden = conds.length >= maxConds;
-                li.querySelector('[data-rule-up]').disabled = i === 0;
-                li.querySelector('[data-rule-down]').disabled = i === items.length - 1;
-                const role = li.querySelector('[data-rule-role]');
-                const option = role.options[role.selectedIndex];
-                li.querySelector('[data-rule-blocked]').hidden = !(option && option.dataset.blocked);
-                const given = grants[role.value] || 0;
-                li.querySelector('[data-rule-match-count]').innerHTML = role.value
-                    ? `<b>${fmt(counts[i])}</b> ${esc(T('membre(s)', 'member(s)'))}${given ? `<small>${esc(T('{n} déjà donnés par le bot', '{n} already given by the bot', { n: fmt(given) }))}</small>` : ''}`
-                    : '';
+                const several = tierItems.length > 1;
+                ruleLi.querySelector('[data-rule-num]').textContent = T('Règle {n}', 'Rule {n}', { n: i + 1 });
+                ruleLi.querySelector('[data-rule-mode]').hidden = !several;
+                ruleLi.querySelectorAll('[data-rule-mode] button').forEach(b => {
+                    const on = b.dataset.mode === ruleLi.dataset.mode;
+                    b.classList.toggle('is-on', on);
+                    b.setAttribute('aria-pressed', String(on));
+                });
+                ruleLi.querySelectorAll('[data-mode-help]').forEach(p => { p.hidden = !several || p.dataset.modeHelp !== ruleLi.dataset.mode; });
+                ruleLi.querySelector('[data-rule-up]').disabled = i === 0;
+                ruleLi.querySelector('[data-rule-down]').disabled = i === rules.length - 1;
+                ruleLi.querySelector('[data-add-tier]').hidden = tierItems.length >= maxTiers || full;
+                ruleLi.classList.toggle('is-ladder', several);
+
+                tierItems.forEach((li, k) => {
+                    li.querySelector('[data-tier-num]').textContent = several ? T('Palier {n}', 'Tier {n}', { n: k + 1 }) : T('Rôle', 'Role');
+                    const conds = Array.from(li.querySelector('[data-conds]').children);
+                    conds.forEach(c => {
+                        const level = c.querySelector('[data-cond-metric]').value === 'level';
+                        const scope = c.querySelector('[data-cond-scope]');
+                        scope.disabled = level;
+                        if (level) scope.value = 'total';
+                        if (scope._hgButton) scope._hgButton.hidden = level;
+                        c.querySelector('[data-cond-delete]').hidden = conds.length < 2;
+                    });
+                    li.querySelector('[data-tier-match-wrap]').hidden = conds.length < 2;
+                    li.querySelector('[data-add-cond]').hidden = conds.length >= maxConds;
+                    li.querySelector('[data-tier-up]').hidden = li.querySelector('[data-tier-down]').hidden = !several;
+                    li.querySelector('[data-tier-up]').disabled = k === 0;
+                    li.querySelector('[data-tier-down]').disabled = k === tierItems.length - 1;
+                    li.querySelector('[data-tier-delete]').hidden = !several;
+                    const role = li.querySelector('[data-tier-role]');
+                    const option = role.options[role.selectedIndex];
+                    li.querySelector('[data-tier-blocked]').hidden = !(option && option.dataset.blocked);
+                    const given = grants[role.value] || 0;
+                    li.querySelector('[data-tier-count]').innerHTML = role.value
+                        ? `<b>${fmt(counts[k])}</b> ${esc(T('membre(s)', 'member(s)'))}${given ? `<small>${esc(T('{n} déjà donnés par le bot', '{n} already given by the bot', { n: fmt(given) }))}</small>` : ''}`
+                        : '';
+                });
             });
-            empty.hidden = items.length > 0;
-            addRule.hidden = items.length >= maxRules;
-            counter.textContent = `${items.length} / ${maxRules}`;
+            empty.hidden = rules.length > 0;
+            addRule.hidden = rules.length >= maxRules || full;
+            counter.textContent = `${rules.length} / ${maxRules}`;
             switchLabel.textContent = toggle.checked ? switchLabel.dataset.on : switchLabel.dataset.off;
             rolesForm.querySelectorAll('[data-roles-body]').forEach(b => b.classList.toggle('is-off', !toggle.checked));
         }
@@ -200,8 +246,14 @@
             const btn = e.target.closest('button');
             if (!btn) return;
             const rule = btn.closest('.sm-rule');
-            if (btn.matches('[data-add-cond]')) addCond(rule, null);
+            const tier = btn.closest('.sm-tier');
+            if (btn.closest('[data-rule-mode]')) rule.dataset.mode = btn.dataset.mode;
+            else if (btn.matches('[data-add-tier]')) addTier(rule, null);
+            else if (btn.matches('[data-add-cond]')) addCond(tier, null);
             else if (btn.matches('[data-cond-delete]')) btn.closest('.sm-cond').remove();
+            else if (btn.matches('[data-tier-delete]')) tier.remove();
+            else if (btn.matches('[data-tier-up]') && tier.previousElementSibling) tier.previousElementSibling.before(tier);
+            else if (btn.matches('[data-tier-down]') && tier.nextElementSibling) tier.nextElementSibling.after(tier);
             else if (btn.matches('[data-rule-delete]')) rule.remove();
             else if (btn.matches('[data-rule-up]') && rule.previousElementSibling) rule.previousElementSibling.before(rule);
             else if (btn.matches('[data-rule-down]') && rule.nextElementSibling) rule.nextElementSibling.after(rule);

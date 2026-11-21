@@ -1127,5 +1127,19 @@
  "p1254": "Bedingung entfernen",
  "p1255": "{n} Regel(n)",
  "p1258": "Mitglied(er)",
- "p1259": "{n} bereits vom Bot vergeben"
+ "p1259": "{n} bereits vom Bot vergeben",
+ "p1260": "Maximal {n} Regeln, {t} Stufen pro Regel und {total} Stufen insgesamt.",
+ "p1261": "Eine Regel ist eine Abfolge von Stufen: Jede Stufe vergibt eine Rolle, wenn ihre Bedingungen erfüllt sind (bis zu {n} pro Stufe). Zum Beispiel 10 h im Sprachkanal → @Stammgast, 50 h → @Veteran, 100 h → @Legende. Die Zahl rechts neben jeder Stufe zählt die Mitglieder, die diese Rolle heute hätten.",
+ "p1262": "Mehrere Stufen erreicht",
+ "p1263": "Nur die höchste",
+ "p1264": "Sammeln",
+ "p1265": "Regel nach oben",
+ "p1266": "Regel nach unten",
+ "p1267": "Das Mitglied behält nur die Rolle der höchsten erreichten Stufe: Beim Aufstieg tauscht es seine Rolle gegen die nächste. Ordne die Stufen von der leichtesten zur schwersten.",
+ "p1268": "Das Mitglied erhält die Rolle jeder erreichten Stufe und behält sie alle.",
+ "p1269": "Stufe hinzufügen",
+ "p1270": "Stufe löschen",
+ "p1271": "Regel {n}",
+ "p1272": "Stufe {n}",
+ "p1273": "Rolle"
 }
