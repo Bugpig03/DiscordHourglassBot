@@ -490,6 +490,11 @@ def _server_management(win: list[date], lang: str) -> dict:
     reports_on = _one("SELECT COUNT(DISTINCT r.server_id) FROM server_reports r JOIN guild_meta m ON m.server_id = r.server_id "
                       "WHERE r.enabled AND m.bot_present")
     report_runs = _rows("SELECT ok, COUNT(*) FROM report_runs WHERE sent_at >= %s GROUP BY ok", (start,))
+    roles_on = _one("SELECT COUNT(*) FROM server_roles r JOIN guild_meta m ON m.server_id = r.server_id WHERE r.enabled AND m.bot_present")
+    role_rules = _one("SELECT COUNT(*) FROM server_role_rules r JOIN server_roles s ON s.server_id = r.server_id WHERE s.enabled")
+    role_moves = _rows("SELECT action, ok, COUNT(*) FROM server_feature_log WHERE feature = 'roles' "
+                       "AND action IN ('role_added', 'role_removed', 'role_blocked') AND created_at >= %s GROUP BY 1, 2", (start,))
+    roles_held = _one("SELECT COUNT(*) FROM role_grants")
     announces = _rows("SELECT ok, COUNT(*) FROM server_feature_log WHERE feature = 'levels' AND action = 'announce' AND created_at >= %s "
                       "GROUP BY ok", (start,))
     actions = _rows("SELECT created_at::date, COUNT(*) FROM server_feature_log WHERE created_at >= %s GROUP BY 1", (start,))
@@ -510,6 +515,10 @@ def _server_management(win: list[date], lang: str) -> dict:
         "private": int(private or 0),
         "levels_on": int(levels_on or 0),
         "reports_on": int(reports_on or 0),
+        "roles_on": int(roles_on or 0), "role_rules": int(role_rules or 0), "roles_held": int(roles_held or 0),
+        "roles_added": sum(int(n) for action, ok, n in role_moves if action == "role_added" and ok),
+        "roles_removed": sum(int(n) for action, ok, n in role_moves if action == "role_removed" and ok),
+        "roles_failed": sum(int(n) for action, ok, n in role_moves if not ok),
         "reports_sent": sum(int(n) for ok, n in report_runs if ok), "reports_failed": sum(int(n) for ok, n in report_runs if ok is False),
         "announces": sum(int(n) for ok, n in announces if ok), "announces_failed": sum(int(n) for ok, n in announces if not ok),
         "missing_count": len(missing_rows),

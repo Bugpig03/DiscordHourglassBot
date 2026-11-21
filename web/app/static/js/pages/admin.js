@@ -406,6 +406,9 @@ const MANAGE_ACTIONS = {
     reports_on: T('Rapport activé', 'Report turned on'), reports_off: T('Rapport désactivé', 'Report turned off'),
     reports_settings: T('Réglages du rapport modifiés', 'Report settings changed'), report_sent: T('Rapport envoyé', 'Report sent'),
     report_test: T('Rapport de test envoyé', 'Test report sent'),
+    roles_on: T('Rôles automatiques activés', 'Automatic roles turned on'), roles_off: T('Rôles automatiques désactivés', 'Automatic roles turned off'),
+    roles_settings: T('Règles des rôles modifiées', 'Role rules changed'), role_added: T('Rôle donné', 'Role given'),
+    role_removed: T('Rôle retiré', 'Role removed'), role_blocked: T('Rôle impossible à donner', 'Role cannot be given'),
 };
 function sectionManagement() {
     const m = data.management;
@@ -429,6 +432,10 @@ function sectionManagement() {
         [T('Rapports automatiques', 'Automatic reports'), HG.fmt(m.reports_sent), `${T('sur {n} serveur(s) activé(s)', 'on {n} server(s) turned on', { n: HG.fmt(m.reports_on) })} · ${periodLabel()}`, m.reports_failed ? 'warn' : '',
             T('Rapports quotidiens, hebdomadaires et mensuels envoyés par le bot sur la période (sans les tests), et serveurs qui en ont activé au moins un. En orange : certains ont échoué (voir le journal).',
               'Daily, weekly and monthly reports sent by the bot over the period (tests left out), and servers that turned at least one on. In orange: some failed (see the log).')],
+        [T('Rôles automatiques', 'Automatic roles'), HG.fmt(m.roles_added), `${T('donnés, {r} retirés', 'given, {r} removed', { r: HG.fmt(m.roles_removed) })} · ${periodLabel()}`, m.roles_failed ? 'warn' : '',
+            T('Rôles donnés et retirés par le bot sur la période. Activés sur {s} serveur(s), {n} règle(s) en tout, {h} rôle(s) actuellement tenus grâce au bot. En orange : des rôles n’ont pas pu être donnés (rôle au-dessus du bot, permission manquante : voir le journal).',
+              'Roles given and removed by the bot over the period. Turned on for {s} server(s), {n} rule(s) in all, {h} role(s) currently held thanks to the bot. In orange: some roles could not be given (role above the bot, missing permission: see the log).',
+              { s: HG.fmt(m.roles_on), n: HG.fmt(m.role_rules), h: HG.fmt(m.roles_held) })],
         [T('Serveurs privés', 'Private servers'), HG.fmt(m.private), '', '', T('Serveurs en mode privé.', 'Servers in private mode.')],
     ]);
     lineChart('manageChart', m.labels, [bars(T('Actions', 'Actions'), m.daily_actions, '#717cf8'), bars(T('Erreurs', 'Errors'), m.daily_errors, '#e0675d')], { type: 'bar' });

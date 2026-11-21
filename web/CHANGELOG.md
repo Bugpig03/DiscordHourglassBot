@@ -1,5 +1,17 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.46.0 - Rôles Automatiques - 21/11/2026
+- **Onglet « Rôles » de la page « Gérer »** (réservée aux administrateurs du site pendant la préparation) : des rôles donnés et retirés tout seuls par le bot selon l'activité sur le serveur.
+  - **Règles** : un rôle et jusqu'à 3 conditions (heures en vocal ou messages, au total ou sur 30 jours, ou niveau sur le serveur), toutes (ET) ou au moins une (OU). Jusqu'à 10 règles, rangées avec les flèches.
+  - **Cumuler les rôles** ou **paliers** (seul le rôle de la dernière règle remplie est gardé), et option « Retirer le rôle quand la règle n'est plus remplie ».
+  - **Aperçu en direct** : à côté de chaque règle, le nombre de membres qui la remplissent aujourd'hui, recalculé à chaque modification, et le nombre de rôles déjà donnés par le bot.
+  - **Rôles proposés** : ceux qui donnent des droits de modération ou d'administration et ceux gérés par une intégration sont grisés. Ceux placés au-dessus du rôle du bot sont en rouge, avec la marche à suivre sur Discord.
+  - Alerte quand le bot n'a pas la permission « Gérer les rôles ».
+- **Vérifié côté serveur** : rôle inconnu, rôle dangereux ou géré, seuil hors limites, règle incomplète ou trop de règles sont refusés, même si la page est modifiée.
+- **Journal** : rôles donnés, retirés ou impossibles à donner (avec la raison), et changements de règles.
+- **Admin, onglet « Gestion des serveurs »** : rôles donnés et retirés sur la période, serveurs et règles actifs, rôles tenus grâce au bot.
+- Nouvelles icônes pixel « plus » et « chevron haut ».
+
 ## Version 3.45.1 - Prestige Fixe et Votes à 1000 XP - 21/11/2026
 - **Le prestige ne dépend plus des filtres** : sur la page Membres (période, serveur, tri) et dans un Versus limité à un serveur, il changeait selon les filtres choisis, alors qu'il doit toujours être le même. Il est maintenant toujours calculé sur tout : le vocal et les messages sur tous les serveurs depuis le début, plus tous les votes. Les filtres ne choisissent plus que qui est listé et les autres chiffres. Le tri « Prestige & XP » classe donc par prestige.
 - **Chaque vote sur top.gg rapporte 1000 XP de prestige** (au lieu de 100) : voter compte enfin vraiment. Le badge Prestige, les titres et les classements en tiennent compte.

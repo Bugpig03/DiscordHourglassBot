@@ -82,6 +82,9 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 
 	// Rapports automatiques (quotidien, hebdomadaire, mensuel) et tests demandés depuis le site
 	h.startReports(s)
+
+	// Rôles automatiques : membres actifs vérifiés chaque minute, tout le serveur chaque heure
+	h.startRoles(s)
 }
 
 // OnMessageCreate enregistre chaque message textuel
@@ -107,6 +110,8 @@ func (h *BotHandler) OnMessageCreate(s *discordgo.Session, m *discordgo.MessageC
 	_ = h.DB.RecordMessageEvent(ctx, userID, serverID, channelID)
 	// Passage de niveau sur ce serveur (si le serveur a activé les annonces)
 	go h.checkLevelup(s, serverID, userID, m.ChannelID)
+	// Rôles automatiques : le membre sera vérifié à la prochaine minute
+	markRoleActivity(serverID, userID)
 
 	// 2. Mise à jour des métadonnées du salon textuel
 	if ch, err := s.State.Channel(m.ChannelID); err == nil {

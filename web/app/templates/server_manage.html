@@ -30,6 +30,20 @@
     'reports_settings': tr('Réglages du rapport modifiés', 'Report settings changed'),
     'report_sent': tr('Rapport envoyé', 'Report sent'),
     'report_test': tr('Rapport de test envoyé', 'Test report sent'),
+    'roles_on': tr('Rôles automatiques activés', 'Automatic roles turned on'),
+    'roles_off': tr('Rôles automatiques désactivés', 'Automatic roles turned off'),
+    'roles_settings': tr('Règles des rôles modifiées', 'Role rules changed'),
+    'role_added': tr('Rôle donné', 'Role given'),
+    'role_removed': tr('Rôle retiré', 'Role removed'),
+    'role_blocked': tr('Rôle impossible à donner', 'Role cannot be given'),
+} %}
+{% set role_problems = {
+    'role above the bot': tr('placé au-dessus du rôle du bot', 'placed above the bot’s role'),
+    'Manage Roles missing': tr('permission « Gérer les rôles » manquante', '“Manage roles” permission missing'),
+    'dangerous role': tr('droits de modération', 'moderation rights'),
+    'managed role': tr('géré par une intégration', 'managed by an integration'),
+    'role deleted': tr('rôle supprimé', 'role deleted'),
+    'Missing Permissions': tr('permissions manquantes', 'missing permissions'),
 } %}
 {% set feature_labels = {
     'general': tr('Général', 'General'), 'levels': tr('Niveaux', 'Levels'),
@@ -54,6 +68,13 @@
     'reports_test_channel': ('warn', tr('Choisis d’abord un salon pour ce rapport.', 'Choose a channel for this report first.')),
     'reports_test_wait': ('warn', tr('Un test vient d’être demandé : attends deux minutes avant le suivant.', 'A test was just asked: wait two minutes before the next one.')),
     'reports_test_error': ('error', tr('Le test n’a pas pu être demandé. Réessaie dans un instant.', 'The test could not be asked. Try again in a moment.')),
+    'roles_saved': ('ok', tr('Rôles automatiques enregistrés : le bot les applique dans la minute, progressivement sur un gros serveur.', 'Automatic roles saved: the bot applies them within a minute, gradually on a big server.')),
+    'roles_empty': ('warn', tr('Ajoute au moins une règle avant d’activer les rôles automatiques.', 'Add at least one rule before turning automatic roles on.')),
+    'roles_dangerous': ('error', tr('Un rôle choisi donne des droits de modération ou est géré par une intégration : il ne peut pas être donné automatiquement.', 'A chosen role gives moderation rights or is managed by an integration: it cannot be given automatically.')),
+    'roles_role': ('warn', tr('Un rôle choisi n’existe plus sur le serveur. Vérifie les règles.', 'A chosen role no longer exists on the server. Check the rules.')),
+    'roles_full': ('warn', tr('Maximum de {n} règles.', 'Maximum of {n} rules.', n=max_role_rules)),
+    'roles_invalid': ('warn', tr('Une règle est incomplète : choisis un rôle et un seuil d’au moins 1 pour chaque condition.', 'A rule is incomplete: choose a role and a threshold of at least 1 for each condition.')),
+    'roles_error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
 } %}
 
 {% block content %}
@@ -404,7 +425,128 @@
     {% endif %}
 </div>
 <div class="sm-pane" id="roles" data-sm-pane="roles"{% if section != 'roles' %} hidden{% endif %}>
-    {{ soon(tr('Rôles automatiques', 'Automatic roles'), tr('Des rôles donnés et retirés tout seuls selon le temps en vocal, les messages ou le niveau, par paliers.', 'Roles given and removed by themselves according to voice time, messages or level, by tiers.'), 'users') }}
+    {% set can_manage_roles = diag.admin or (diag.checks | selectattr('key', 'equalto', 'roles') | selectattr('ok') | list | length > 0) %}
+    <form method="post" action="{{ url_for('server_manage.save_roles', server_id=server_id) }}" id="smRoles" data-max-rules="{{ max_role_rules }}" data-max-conditions="{{ max_role_conditions }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="rules_json" value="">
+        <section class="gray-box small-border-radius hg-card">
+            <div class="hg-card-head">
+                <div>
+                    <h2 class="hg-card-title">{{ tr('Rôles automatiques', 'Automatic roles') }}</h2>
+                    <p class="hg-card-desc">{{ tr('Le bot donne tout seul des rôles aux membres selon leur activité sur ce serveur : heures en vocal, messages ou niveau, au total ou sur les 30 derniers jours. Un membre est vérifié dans la minute quand il écrit ou est en vocal, et tout le serveur l’est chaque heure.', 'The bot gives roles to members by itself according to their activity on this server: voice hours, messages or level, in total or over the last 30 days. A member is checked within a minute when they write or are in voice, and the whole server every hour.') }}</p>
+                </div>
+                <label class="sm-switch">
+                    <input type="checkbox" name="enabled" value="1"{% if roles_settings.enabled %} checked{% endif %} data-roles-enabled>
+                    <span class="sm-switch-track" aria-hidden="true"><i></i></span>
+                    <span class="sm-switch-label" data-on="{{ tr('Activés', 'On') }}" data-off="{{ tr('Désactivés', 'Off') }}">{{ tr('Activés', 'On') if roles_settings.enabled else tr('Désactivés', 'Off') }}</span>
+                </label>
+            </div>
+            {% if not can_manage_roles %}
+            <div class="sm-alert">
+                {{ pixel_icon('shield', 16) }}
+                <p>{{ tr('Le bot n’a pas la permission « Gérer les rôles » : il ne pourra donner aucun rôle.', 'The bot lacks the “Manage roles” permission: it will not be able to give any role.') }}</p>
+                <a class="btn-versus-action sm-fix" href="{{ invite_url }}" target="_blank" rel="noopener">{{ pixel_icon('shield', 14) }}<span>{{ tr('Donner les permissions', 'Grant the permissions') }}</span></a>
+            </div>
+            {% endif %}
+            <div class="sm-rules-intro" data-roles-body>
+                <div class="sm-field">
+                    <span class="sm-label">{{ tr('Plusieurs règles remplies', 'Several rules met') }}</span>
+                    <div class="sm-choices" role="radiogroup">
+                        <label class="sm-choice">
+                            <input type="radio" name="keep_highest" value="0"{% if not roles_settings.keep_highest %} checked{% endif %}>
+                            <span class="sm-choice-mark" aria-hidden="true"></span>
+                            <span class="sm-choice-text"><b>{{ tr('Cumuler les rôles', 'Stack the roles') }}</b>
+                                <small>{{ tr('Le membre reçoit le rôle de chaque règle qu’il remplit.', 'The member gets the role of every rule they meet.') }}</small></span>
+                        </label>
+                        <label class="sm-choice">
+                            <input type="radio" name="keep_highest" value="1"{% if roles_settings.keep_highest %} checked{% endif %}>
+                            <span class="sm-choice-mark" aria-hidden="true"></span>
+                            <span class="sm-choice-text"><b>{{ tr('Paliers : seul le plus haut', 'Tiers: only the highest') }}</b>
+                                <small>{{ tr('Le membre ne garde que le rôle de la dernière règle de la liste qu’il remplit (Habitué, puis Vétéran, puis Légende). Range les règles du plus facile au plus dur.', 'The member only keeps the role of the last rule of the list they meet (Regular, then Veteran, then Legend). Order the rules from easiest to hardest.') }}</small></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="sm-field sm-row-fields">
+                    <label class="sm-toggle"><input type="checkbox" name="remove_unmet" value="1"{% if roles_settings.remove_unmet %} checked{% endif %}><span class="sm-toggle-box" aria-hidden="true">{{ pixel_icon('check', 12) }}</span><span>{{ tr('Retirer le rôle quand la règle n’est plus remplie', 'Remove the role when the rule is no longer met') }}</span></label>
+                </div>
+                <p class="sm-help">{{ tr('Utile pour les critères sur 30 jours (« actif ce mois-ci »). Le bot ne retire jamais un rôle donné à la main : seulement ceux qu’il a donnés lui-même. Supprimer une règle ou tout désactiver ne retire aucun rôle.', 'Useful for criteria over 30 days (“active this month”). The bot never removes a role given by hand: only the ones it gave itself. Deleting a rule or turning everything off removes no role.') }}</p>
+            </div>
+        </section>
+
+        <section class="gray-box small-border-radius hg-card" data-roles-body>
+            <div class="hg-card-head">
+                <div>
+                    <h2 class="hg-card-title">{{ tr('Règles', 'Rules') }} <span class="sm-count" data-rule-count>{{ roles_settings.rules | length }} / {{ max_role_rules }}</span></h2>
+                    <p class="hg-card-desc">{{ tr('Une règle = un rôle et jusqu’à {n} conditions. Le chiffre à droite de chaque règle compte les membres qui la remplissent aujourd’hui.', 'A rule = a role and up to {n} conditions. The figure on the right of each rule counts the members who meet it today.', n=max_role_conditions) }}</p>
+                </div>
+            </div>
+            <ol class="sm-rules" data-rules></ol>
+            <p class="sm-muted" data-rules-empty hidden>{{ tr('Aucune règle pour l’instant.', 'No rule yet.') }}</p>
+            <button type="button" class="sm-toggle sm-add-rule" data-add-rule>{{ pixel_icon('plus', 12) }}<span>{{ tr('Ajouter une règle', 'Add a rule') }}</span></button>
+            <details class="sm-hint">
+                <summary>{{ tr('Un rôle n’apparaît pas ou est en rouge ?', 'A role is missing or in red?') }}</summary>
+                <ul>
+                    <li>{{ tr('Le bot ne peut donner que les rôles placés sous son propre rôle « Hourglass ». Sur Discord : Paramètres du serveur > Rôles, puis glisse « Hourglass » au-dessus des rôles à donner.', 'The bot can only give the roles placed under its own “Hourglass” role. On Discord: Server Settings > Roles, then drag “Hourglass” above the roles to give.') }}</li>
+                    <li>{{ tr('Les rôles qui donnent des droits de modération ou d’administration (Administrateur, Gérer le serveur, Bannir, Expulser, Gérer les messages…) ne sont jamais proposés : sinon il suffirait d’écrire beaucoup pour les obtenir.', 'Roles giving moderation or administration rights (Administrator, Manage server, Ban, Kick, Manage messages…) are never offered: otherwise writing a lot would be enough to get them.') }}</li>
+                    <li>{{ tr('Les rôles gérés par une intégration (bots, boosts) ne peuvent pas être donnés.', 'Roles managed by an integration (bots, boosts) cannot be given.') }}</li>
+                </ul>
+            </details>
+        </section>
+        <div class="sm-actions">
+            <button type="submit" class="granularity-btn active sm-save">{{ tr('Enregistrer', 'Save') }}</button>
+        </div>
+    </form>
+
+    <!-- Data and models of the rules editor (server_manage.js) -->
+    <script type="application/json" id="smRoleData">{{ {'rules': roles_settings.rules, 'metrics': role_metrics, 'grants': role_grants} | tojson }}</script>
+    <template id="smRuleTpl">
+        <li class="sm-rule">
+            <div class="sm-rule-head">
+                <span class="sm-rule-num" data-rule-num></span>
+                <select class="top-select sm-rule-role" data-rule-role aria-label="{{ tr('Rôle donné', 'Role given') }}">
+                    <option value="">{{ tr('Choisir un rôle…', 'Choose a role…') }}</option>
+                    {% for r in roles %}
+                    {% if r.dangerous %}<option value="{{ r.id }}" disabled>@{{ r.name }} · {{ tr('droits de modération', 'moderation rights') }}</option>
+                    {% elif r.managed %}<option value="{{ r.id }}" disabled>@{{ r.name }} · {{ tr('géré par une intégration', 'managed by an integration') }}</option>
+                    {% elif not r.assignable %}<option value="{{ r.id }}" class="is-blocked" data-blocked="1">@{{ r.name }} · {{ tr('au-dessus du bot', 'above the bot') }}</option>
+                    {% else %}<option value="{{ r.id }}">@{{ r.name }}</option>{% endif %}
+                    {% endfor %}
+                </select>
+                <span class="sm-rule-count" data-rule-match-count></span>
+                <span class="sm-rule-tools">
+                    <button type="button" class="sm-icon-btn" data-rule-up aria-label="{{ tr('Monter', 'Move up') }}">{{ pixel_icon('chevron_up', 12) }}</button>
+                    <button type="button" class="sm-icon-btn" data-rule-down aria-label="{{ tr('Descendre', 'Move down') }}">{{ pixel_icon('chevron_down', 12) }}</button>
+                    <button type="button" class="sm-icon-btn is-danger" data-rule-delete aria-label="{{ tr('Supprimer la règle', 'Delete the rule') }}">{{ pixel_icon('close', 12) }}</button>
+                </span>
+            </div>
+            <p class="sm-help sm-warn-text" data-rule-blocked hidden>{{ tr('Le bot ne peut pas encore donner ce rôle : il est placé au-dessus de son rôle « Hourglass » (voir l’aide plus bas).', 'The bot cannot give this role yet: it is placed above its “Hourglass” role (see the help below).') }}</p>
+            <div class="sm-rule-match" data-rule-match-wrap>
+                <span>{{ tr('Le membre doit remplir', 'The member must meet') }}</span>
+                <select class="top-select sm-select-sm" data-rule-match aria-label="{{ tr('Conditions à remplir', 'Conditions to meet') }}">
+                    <option value="all">{{ tr('toutes les conditions (ET)', 'all the conditions (AND)') }}</option>
+                    <option value="any">{{ tr('au moins une condition (OU)', 'at least one condition (OR)') }}</option>
+                </select>
+            </div>
+            <ul class="sm-conds" data-conds></ul>
+            <button type="button" class="sm-link-btn" data-add-cond>{{ pixel_icon('plus', 10) }}{{ tr('Ajouter une condition', 'Add a condition') }}</button>
+        </li>
+    </template>
+    <template id="smCondTpl">
+        <li class="sm-cond">
+            <select class="top-select sm-select-sm" data-cond-metric aria-label="{{ tr('Critère', 'Criterion') }}">
+                <option value="voice">{{ tr('Heures en vocal', 'Voice hours') }}</option>
+                <option value="messages">{{ tr('Messages', 'Messages') }}</option>
+                <option value="level">{{ tr('Niveau sur le serveur', 'Level on the server') }}</option>
+            </select>
+            <select class="top-select sm-select-sm" data-cond-scope aria-label="{{ tr('Période', 'Period') }}">
+                <option value="total">{{ tr('au total', 'in total') }}</option>
+                <option value="30d">{{ tr('sur 30 jours', 'over 30 days') }}</option>
+            </select>
+            <span class="sm-cond-op" aria-hidden="true">≥</span>
+            <input type="number" class="sm-number" data-cond-min min="1" step="1" value="10" aria-label="{{ tr('Seuil', 'Threshold') }}">
+            <button type="button" class="sm-icon-btn is-danger" data-cond-delete aria-label="{{ tr('Retirer la condition', 'Remove the condition') }}">{{ pixel_icon('close', 11) }}</button>
+        </li>
+    </template>
 </div>
 
 <!-- ======================================================== Journal -->
@@ -428,7 +570,7 @@
                     <td>{% if not e.ok %}<span class="sm-tag is-warn">{{ tr('Erreur', 'Error') }}</span> {% endif %}{{ action_labels.get(e.action, e.action) }}</td>
                     <td>{{ who(e.actor) }}</td>
                     <td>{{ who(e.target) }}</td>
-                    <td class="sm-detail">{% if e.action == 'announce' and e.detail %}{% set parts = e.detail.split(' · ', 1) %}{{ tr('Niveau {n}', 'Level {n}', n=parts[0]) }}{% if parts | length > 1 %} · {{ parts[1] }}{% endif %}{% else %}{{ e.detail or '' }}{% endif %}</td>
+                    <td class="sm-detail">{% if e.action in ('roles_on', 'roles_settings') and e.detail %}{{ tr('{n} règle(s)', '{n} rule(s)', n=e.detail) }}{% elif e.action == 'roles_off' %}{% elif e.action == 'role_blocked' and e.detail %}{% set parts = e.detail.split(' · ', 1) %}{{ parts[0] }}{% if parts | length > 1 %} · {{ role_problems.get(parts[1], parts[1]) }}{% endif %}{% elif e.action in ('role_added', 'role_removed') and e.detail and ' · ' in e.detail %}{% set parts = e.detail.split(' · ', 1) %}{{ parts[0] }} · {{ role_problems.get(parts[1], parts[1]) }}{% elif e.action == 'announce' and e.detail %}{% set parts = e.detail.split(' · ', 1) %}{{ tr('Niveau {n}', 'Level {n}', n=parts[0]) }}{% if parts | length > 1 %} · {{ parts[1] }}{% endif %}{% else %}{{ e.detail or '' }}{% endif %}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

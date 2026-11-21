@@ -92,6 +92,130 @@
         sync();
     });
 
+    // ---------------------------------------------------------------- automatic roles: rules editor
+    // The rules are drawn from the JSON of the page and sent back as JSON (rules_json) on save. The figure of each
+    // rule counts the members who meet it today, from their activity (no names) read the same way as by the bot.
+    const rolesForm = document.getElementById('smRoles');
+    if (rolesForm) {
+        const data = JSON.parse(document.getElementById('smRoleData').textContent || '{}');
+        const list = rolesForm.querySelector('[data-rules]');
+        const empty = rolesForm.querySelector('[data-rules-empty]');
+        const addRule = rolesForm.querySelector('[data-add-rule]');
+        const counter = rolesForm.querySelector('[data-rule-count]');
+        const ruleTpl = document.getElementById('smRuleTpl');
+        const condTpl = document.getElementById('smCondTpl');
+        const maxRules = Number(rolesForm.dataset.maxRules) || 10;
+        const maxConds = Number(rolesForm.dataset.maxConditions) || 3;
+        const metrics = data.metrics || [];
+        const grants = data.grants || {};
+        const toggle = rolesForm.querySelector('[data-roles-enabled]');
+        const switchLabel = toggle.closest('.sm-switch').querySelector('.sm-switch-label');
+
+        // Index in a member's row: [voice hours, voice hours 30 d, messages, messages 30 d, level]
+        const column = c => c.metric === 'level' ? 4 : (c.metric === 'voice' ? 0 : 2) + (c.scope === '30d' ? 1 : 0);
+        const condMet = (c, row) => row[column(c)] >= c.min;
+        const ruleMet = (r, row) => r.conditions.length > 0 && (r.match === 'any' ? r.conditions.some(c => condMet(c, row)) : r.conditions.every(c => condMet(c, row)));
+
+        const readCond = li => ({
+            metric: li.querySelector('[data-cond-metric]').value,
+            scope: li.querySelector('[data-cond-scope]').value,
+            min: Math.max(0, Number(li.querySelector('[data-cond-min]').value) || 0),
+        });
+        const readRule = li => ({
+            role_id: li.querySelector('[data-rule-role]').value,
+            match: li.querySelector('[data-rule-match]').value,
+            conditions: Array.from(li.querySelectorAll('.sm-cond')).map(readCond),
+        });
+
+        function addCond(rule, cond) {
+            const li = condTpl.content.firstElementChild.cloneNode(true);
+            if (cond) {
+                li.querySelector('[data-cond-metric]').value = cond.metric;
+                li.querySelector('[data-cond-scope]').value = cond.scope || 'total';
+                li.querySelector('[data-cond-min]').value = cond.min;
+            }
+            rule.querySelector('[data-conds]').appendChild(li);
+        }
+
+        function addRuleItem(rule) {
+            const li = ruleTpl.content.firstElementChild.cloneNode(true);
+            if (rule) {
+                li.querySelector('[data-rule-role]').value = rule.role_id;
+                li.querySelector('[data-rule-match]').value = rule.match || 'all';
+            }
+            list.appendChild(li);
+            (rule && rule.conditions && rule.conditions.length ? rule.conditions : [null]).forEach(c => addCond(li, c));
+        }
+
+        const fmt = n => new Intl.NumberFormat(HG.locale).format(n);
+        function refresh() {
+            const items = Array.from(list.children);
+            const keepHighest = rolesForm.querySelector('input[name="keep_highest"]:checked').value === '1';
+            const rules = items.map(readRule);
+            // Members who would have each rule's role: with tiers, only the last rule met counts
+            const counts = rules.map(() => 0);
+            metrics.forEach(row => {
+                if (keepHighest) {
+                    for (let i = rules.length - 1; i >= 0; i--) if (ruleMet(rules[i], row)) { counts[i]++; break; }
+                } else {
+                    rules.forEach((r, i) => { if (ruleMet(r, row)) counts[i]++; });
+                }
+            });
+            items.forEach((li, i) => {
+                li.querySelector('[data-rule-num]').textContent = `#${i + 1}`;
+                const conds = Array.from(li.querySelectorAll('.sm-cond'));
+                conds.forEach(c => {
+                    const level = c.querySelector('[data-cond-metric]').value === 'level';
+                    const scope = c.querySelector('[data-cond-scope]');
+                    scope.disabled = level;
+                    if (level) scope.value = 'total';
+                    if (scope._hgButton) scope._hgButton.hidden = level;
+                    c.classList.toggle('is-level', level);
+                    c.querySelector('[data-cond-delete]').hidden = conds.length < 2;
+                });
+                li.querySelector('[data-rule-match-wrap]').hidden = conds.length < 2;
+                li.querySelector('[data-add-cond]').hidden = conds.length >= maxConds;
+                li.querySelector('[data-rule-up]').disabled = i === 0;
+                li.querySelector('[data-rule-down]').disabled = i === items.length - 1;
+                const role = li.querySelector('[data-rule-role]');
+                const option = role.options[role.selectedIndex];
+                li.querySelector('[data-rule-blocked]').hidden = !(option && option.dataset.blocked);
+                const given = grants[role.value] || 0;
+                li.querySelector('[data-rule-match-count]').innerHTML = role.value
+                    ? `<b>${fmt(counts[i])}</b> ${esc(T('membre(s)', 'member(s)'))}${given ? `<small>${esc(T('{n} déjà donnés par le bot', '{n} already given by the bot', { n: fmt(given) }))}</small>` : ''}`
+                    : '';
+            });
+            empty.hidden = items.length > 0;
+            addRule.hidden = items.length >= maxRules;
+            counter.textContent = `${items.length} / ${maxRules}`;
+            switchLabel.textContent = toggle.checked ? switchLabel.dataset.on : switchLabel.dataset.off;
+            rolesForm.querySelectorAll('[data-roles-body]').forEach(b => b.classList.toggle('is-off', !toggle.checked));
+        }
+
+        (data.rules || []).forEach(addRuleItem);
+        // New selects get their Arène button just after being added (select.js): drawn again once they have it
+        const refreshSoon = () => { refresh(); setTimeout(refresh, 0); };
+        addRule.addEventListener('click', () => { addRuleItem(null); refreshSoon(); });
+        list.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const rule = btn.closest('.sm-rule');
+            if (btn.matches('[data-add-cond]')) addCond(rule, null);
+            else if (btn.matches('[data-cond-delete]')) btn.closest('.sm-cond').remove();
+            else if (btn.matches('[data-rule-delete]')) rule.remove();
+            else if (btn.matches('[data-rule-up]') && rule.previousElementSibling) rule.previousElementSibling.before(rule);
+            else if (btn.matches('[data-rule-down]') && rule.nextElementSibling) rule.nextElementSibling.after(rule);
+            else return;
+            refreshSoon();
+        });
+        rolesForm.addEventListener('input', refresh);
+        rolesForm.addEventListener('change', refresh);
+        rolesForm.addEventListener('submit', () => {
+            rolesForm.querySelector('input[name="rules_json"]').value = JSON.stringify(Array.from(list.children).map(readRule));
+        });
+        refreshSoon();
+    }
+
     // ---------------------------------------------------------------- choose a manager
     const form = document.getElementById('smAddManager');
     if (!form) return;

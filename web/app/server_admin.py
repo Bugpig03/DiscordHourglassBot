@@ -24,6 +24,31 @@ MAX_MANAGERS = 10
 ACCESS_CACHE_SECONDS = 15  # owner and member checks: short, a change on Discord shows up quickly
 
 TABLES = [
+    # Automatic roles (also created by the bot, same definitions)
+    """CREATE TABLE IF NOT EXISTS server_roles (
+        server_id BIGINT PRIMARY KEY,
+        enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        keep_highest BOOLEAN NOT NULL DEFAULT FALSE,
+        remove_unmet BOOLEAN NOT NULL DEFAULT TRUE,
+        updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_by BIGINT
+    )""",
+    """CREATE TABLE IF NOT EXISTS server_role_rules (
+        id BIGSERIAL PRIMARY KEY,
+        server_id BIGINT NOT NULL,
+        position INTEGER NOT NULL DEFAULT 0,
+        role_id BIGINT NOT NULL,
+        match VARCHAR(3) NOT NULL DEFAULT 'all',
+        conditions TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS server_role_rules_server ON server_role_rules (server_id, position)",
+    """CREATE TABLE IF NOT EXISTS role_grants (
+        server_id BIGINT NOT NULL,
+        user_id BIGINT NOT NULL,
+        role_id BIGINT NOT NULL,
+        granted_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (server_id, user_id, role_id)
+    )""",
     # Automatic reports (also created by the bot, same definitions)
     """CREATE TABLE IF NOT EXISTS server_reports (
         server_id BIGINT NOT NULL,
@@ -475,6 +500,148 @@ def report_history(server_id: int, limit: int = 12) -> list[dict]:
         (int(server_id), _now() - timedelta(hours=1), int(server_id), limit))
     return [{"at": at, "kind": kind, "period": period, "ok": ok, "detail": detail, "test": test, "pending": pending}
             for at, kind, period, ok, detail, test, pending in rows]
+
+
+# ------------------------------------------------------------------------------------------------ automatic roles
+MAX_ROLE_RULES = 10
+MAX_ROLE_CONDITIONS = 3
+ROLE_METRICS = ("voice", "messages", "level")
+ROLE_SCOPES = ("total", "30d")
+ROLE_LIMITS = {"voice": 100000, "messages": 10000000, "level": 500}  # highest threshold accepted per metric
+
+
+def get_roles_settings(server_id: int) -> dict:
+    """The automatic roles of a server: switches and rules in their order (easiest first)."""
+    import json
+
+    out = {"enabled": False, "keep_highest": False, "remove_unmet": True, "updated_at": None, "rules": []}
+    rows = _rows("SELECT enabled, keep_highest, remove_unmet, updated_at FROM server_roles WHERE server_id = %s", (int(server_id),))
+    if rows:
+        enabled, keep, remove, at = rows[0]
+        out.update(enabled=bool(enabled), keep_highest=bool(keep), remove_unmet=bool(remove), updated_at=at)
+    for role, match, conditions in _rows(
+            "SELECT role_id, match, conditions FROM server_role_rules WHERE server_id = %s ORDER BY position, id", (int(server_id),)):
+        try:
+            conds = json.loads(conditions)
+        except ValueError:
+            continue
+        out["rules"].append({"role_id": str(role), "match": match if match in ("all", "any") else "all", "conditions": conds})
+    return out
+
+
+def parse_role_rules(raw: str, known_roles: dict) -> tuple[list[dict] | None, str | None]:
+    """Rules sent by the page (JSON), checked one by one: (rules, None) or (None, reason).
+    Reasons: "invalid" (malformed), "role" (unknown role), "dangerous" (moderation rights or managed role), "full"."""
+    import json
+
+    try:
+        data = json.loads(raw or "[]")
+    except ValueError:
+        return None, "invalid"
+    if not isinstance(data, list):
+        return None, "invalid"
+    if len(data) > MAX_ROLE_RULES:
+        return None, "full"
+    rules = []
+    for item in data:
+        if not isinstance(item, dict):
+            return None, "invalid"
+        role = str(item.get("role_id") or "")
+        if role not in known_roles:
+            return None, "role"
+        if known_roles[role]["dangerous"] or known_roles[role]["managed"]:
+            return None, "dangerous"
+        match = item.get("match") if item.get("match") in ("all", "any") else "all"
+        conds = item.get("conditions")
+        if not isinstance(conds, list) or not 1 <= len(conds) <= MAX_ROLE_CONDITIONS:
+            return None, "invalid"
+        clean = []
+        for c in conds:
+            if not isinstance(c, dict) or c.get("metric") not in ROLE_METRICS:
+                return None, "invalid"
+            metric = c["metric"]
+            scope = "total" if metric == "level" else (c.get("scope") if c.get("scope") in ROLE_SCOPES else "total")
+            try:
+                value = int(float(c.get("min")))
+            except (TypeError, ValueError, OverflowError):
+                return None, "invalid"
+            if not 1 <= value <= ROLE_LIMITS[metric]:
+                return None, "invalid"
+            clean.append({"metric": metric, "scope": scope, "min": value})
+        rules.append({"role_id": role, "match": match, "conditions": clean})
+    return rules, None
+
+
+def save_roles(server_id: int, form: dict, by: int) -> str | None:
+    """Validated save of the automatic roles. None when saved, else the reason: "invalid", "role", "dangerous",
+    "full", "empty" (turned on without a rule) or "error"."""
+    import json
+
+    known = {r["id"]: r for r in roles(server_id)}
+    rules, error = parse_role_rules(form.get("rules_json", ""), known)
+    if error:
+        return error
+    enabled = form.get("enabled") == "1"
+    if enabled and not rules:
+        return "empty"
+    keep = form.get("keep_highest") == "1"
+    remove = form.get("remove_unmet") == "1"
+    before = get_roles_settings(server_id)
+    try:
+        with db.atomic():
+            db.execute_sql(
+                "INSERT INTO server_roles (server_id, enabled, keep_highest, remove_unmet, updated_at, updated_by) VALUES (%s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (server_id) DO UPDATE SET enabled = EXCLUDED.enabled, keep_highest = EXCLUDED.keep_highest, "
+                "remove_unmet = EXCLUDED.remove_unmet, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by",
+                (int(server_id), enabled, keep, remove, _now(), int(by)))
+            db.execute_sql("DELETE FROM server_role_rules WHERE server_id = %s", (int(server_id),))
+            for position, rule in enumerate(rules):
+                db.execute_sql("INSERT INTO server_role_rules (server_id, position, role_id, match, conditions) VALUES (%s, %s, %s, %s, %s)",
+                               (int(server_id), position, int(rule["role_id"]), rule["match"], json.dumps(rule["conditions"])))
+    except Exception:
+        db.rollback()
+        return "error"
+    changed = (before["enabled"], before["keep_highest"], before["remove_unmet"], before["rules"]) != (enabled, keep, remove, rules)
+    if changed:
+        action = ("roles_on" if enabled else "roles_off") if before["enabled"] != enabled else "roles_settings"
+        log_action(server_id, "roles", action, actor=by, detail=str(len(rules)))
+    return None
+
+
+def role_member_metrics(server_id: int) -> list[list]:
+    """Activity of each member of the server as the rules read it, without who they are (live preview of the Roles
+    tab): [voice hours in total, voice hours over 30 days, messages, messages over 30 days, level on the server].
+    Same reading as the bot (database/roles.go)."""
+    from app.gamification import calculate_user_xp_and_level
+
+    def load():
+        sid = int(server_id)
+        rows = _rows(
+            "WITH m AS (SELECT user_id FROM guild_members WHERE server_id = %s), "
+            "live AS (SELECT user_id, SUM(GREATEST(0, EXTRACT(EPOCH FROM (NOW() - joined_at))))::BIGINT AS sec FROM voice_sessions "
+            "  WHERE server_id = %s AND left_at IS NULL AND NOT COALESCE(is_legacy, FALSE) GROUP BY user_id), "
+            "v30 AS (SELECT user_id, SUM(COALESCE(duration_seconds, 0))::BIGINT AS sec FROM voice_sessions "
+            "  WHERE server_id = %s AND left_at IS NOT NULL AND joined_at >= NOW() - INTERVAL '30 days' GROUP BY user_id), "
+            "m30 AS (SELECT user_id, SUM(COALESCE(count, 1))::BIGINT AS n FROM message_events "
+            "  WHERE server_id = %s AND created_at >= NOW() - INTERVAL '30 days' GROUP BY user_id) "
+            "SELECT COALESCE(s.seconds, 0)::BIGINT + COALESCE(live.sec, 0), COALESCE(v30.sec, 0) + COALESCE(live.sec, 0), "
+            "COALESCE(s.messages, 0)::BIGINT, COALESCE(m30.n, 0) "
+            "FROM m LEFT JOIN stats s ON s.user_id = m.user_id AND s.server_id = %s "
+            "LEFT JOIN live ON live.user_id = m.user_id LEFT JOIN v30 ON v30.user_id = m.user_id LEFT JOIN m30 ON m30.user_id = m.user_id",
+            (sid, sid, sid, sid, sid))
+        out = []
+        for voice, voice30, msgs, msgs30 in rows:
+            voice, voice30, msgs, msgs30 = int(voice or 0), int(voice30 or 0), int(msgs or 0), int(msgs30 or 0)
+            level = calculate_user_xp_and_level(voice, msgs, 0)["level"]
+            out.append([round(voice / 3600, 2), round(voice30 / 3600, 2), msgs, msgs30, level])
+        return out
+    return cache.get_or_set(("role_member_metrics", int(server_id)), 60, load)
+
+
+def role_grant_counts(server_id: int) -> dict[str, int]:
+    """{role id: members who have it from the bot} on this server."""
+    return {str(role): int(n) for role, n in _rows(
+        "SELECT role_id, COUNT(*) FROM role_grants WHERE server_id = %s GROUP BY role_id", (int(server_id),))}
 
 
 # ------------------------------------------------------------------------------------------------ managers

@@ -57,6 +57,10 @@ func main() {
 	if err := db.EnsureReportTables(ensureCtx); err != nil {
 		log.Printf("⚠️ Rapports automatiques désactivés (tables server_reports / report_runs indisponibles): %v", err)
 	}
+	// Automatic roles: settings and rules (written by the website) and the roles the bot gave
+	if err := db.EnsureRoleTables(ensureCtx); err != nil {
+		log.Printf("⚠️ Rôles automatiques désactivés (tables server_roles / role_grants indisponibles): %v", err)
+	}
 	// Log lines copied to bot_logs as well (website admin page, "Logs du bot")
 	if err := db.EnsureBotLogsTable(ensureCtx); err != nil {
 		log.Printf("⚠️ Copie des logs en base désactivée (table bot_logs indisponible): %v", err)

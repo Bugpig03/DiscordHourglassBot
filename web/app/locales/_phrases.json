@@ -3815,10 +3815,6 @@
   "Rôles automatiques",
   "Automatic roles"
  ],
- "p1073": [
-  "Des rôles donnés et retirés tout seuls selon le temps en vocal, les messages ou le niveau, par paliers.",
-  "Roles given and removed by themselves according to voice time, messages or level, by tiers."
- ],
  "p1074": [
   "Niveau supérieur !",
   "Level up!"
@@ -4310,5 +4306,237 @@
  "p1201": [
   "Tous les votes enregistrés depuis le début : chacun rapporte 1000 XP de prestige et compte pour le badge Soutien.",
   "Every vote recorded since the start: each one gives 1000 prestige XP and counts for the Supporter badge."
+ ],
+ "p1202": [
+  "Rôles automatiques activés",
+  "Automatic roles turned on"
+ ],
+ "p1203": [
+  "Rôles automatiques désactivés",
+  "Automatic roles turned off"
+ ],
+ "p1204": [
+  "Règles des rôles modifiées",
+  "Role rules changed"
+ ],
+ "p1205": [
+  "Rôle donné",
+  "Role given"
+ ],
+ "p1206": [
+  "Rôle retiré",
+  "Role removed"
+ ],
+ "p1207": [
+  "Rôle impossible à donner",
+  "Role cannot be given"
+ ],
+ "p1208": [
+  "placé au-dessus du rôle du bot",
+  "placed above the bot’s role"
+ ],
+ "p1209": [
+  "permission « Gérer les rôles » manquante",
+  "“Manage roles” permission missing"
+ ],
+ "p1210": [
+  "droits de modération",
+  "moderation rights"
+ ],
+ "p1211": [
+  "géré par une intégration",
+  "managed by an integration"
+ ],
+ "p1212": [
+  "rôle supprimé",
+  "role deleted"
+ ],
+ "p1213": [
+  "permissions manquantes",
+  "missing permissions"
+ ],
+ "p1214": [
+  "Rôles automatiques enregistrés : le bot les applique dans la minute, progressivement sur un gros serveur.",
+  "Automatic roles saved: the bot applies them within a minute, gradually on a big server."
+ ],
+ "p1215": [
+  "Ajoute au moins une règle avant d’activer les rôles automatiques.",
+  "Add at least one rule before turning automatic roles on."
+ ],
+ "p1216": [
+  "Un rôle choisi donne des droits de modération ou est géré par une intégration : il ne peut pas être donné automatiquement.",
+  "A chosen role gives moderation rights or is managed by an integration: it cannot be given automatically."
+ ],
+ "p1217": [
+  "Un rôle choisi n’existe plus sur le serveur. Vérifie les règles.",
+  "A chosen role no longer exists on the server. Check the rules."
+ ],
+ "p1218": [
+  "Maximum de {n} règles.",
+  "Maximum of {n} rules."
+ ],
+ "p1219": [
+  "Une règle est incomplète : choisis un rôle et un seuil d’au moins 1 pour chaque condition.",
+  "A rule is incomplete: choose a role and a threshold of at least 1 for each condition."
+ ],
+ "p1220": [
+  "Le bot donne tout seul des rôles aux membres selon leur activité sur ce serveur : heures en vocal, messages ou niveau, au total ou sur les 30 derniers jours. Un membre est vérifié dans la minute quand il écrit ou est en vocal, et tout le serveur l’est chaque heure.",
+  "The bot gives roles to members by itself according to their activity on this server: voice hours, messages or level, in total or over the last 30 days. A member is checked within a minute when they write or are in voice, and the whole server every hour."
+ ],
+ "p1221": [
+  "Activés",
+  "On"
+ ],
+ "p1222": [
+  "Désactivés",
+  "Off"
+ ],
+ "p1223": [
+  "Le bot n’a pas la permission « Gérer les rôles » : il ne pourra donner aucun rôle.",
+  "The bot lacks the “Manage roles” permission: it will not be able to give any role."
+ ],
+ "p1224": [
+  "Plusieurs règles remplies",
+  "Several rules met"
+ ],
+ "p1225": [
+  "Cumuler les rôles",
+  "Stack the roles"
+ ],
+ "p1226": [
+  "Le membre reçoit le rôle de chaque règle qu’il remplit.",
+  "The member gets the role of every rule they meet."
+ ],
+ "p1227": [
+  "Paliers : seul le plus haut",
+  "Tiers: only the highest"
+ ],
+ "p1228": [
+  "Le membre ne garde que le rôle de la dernière règle de la liste qu’il remplit (Habitué, puis Vétéran, puis Légende). Range les règles du plus facile au plus dur.",
+  "The member only keeps the role of the last rule of the list they meet (Regular, then Veteran, then Legend). Order the rules from easiest to hardest."
+ ],
+ "p1229": [
+  "Retirer le rôle quand la règle n’est plus remplie",
+  "Remove the role when the rule is no longer met"
+ ],
+ "p1230": [
+  "Utile pour les critères sur 30 jours (« actif ce mois-ci »). Le bot ne retire jamais un rôle donné à la main : seulement ceux qu’il a donnés lui-même. Supprimer une règle ou tout désactiver ne retire aucun rôle.",
+  "Useful for criteria over 30 days (“active this month”). The bot never removes a role given by hand: only the ones it gave itself. Deleting a rule or turning everything off removes no role."
+ ],
+ "p1231": [
+  "Règles",
+  "Rules"
+ ],
+ "p1232": [
+  "Une règle = un rôle et jusqu’à {n} conditions. Le chiffre à droite de chaque règle compte les membres qui la remplissent aujourd’hui.",
+  "A rule = a role and up to {n} conditions. The figure on the right of each rule counts the members who meet it today."
+ ],
+ "p1233": [
+  "Aucune règle pour l’instant.",
+  "No rule yet."
+ ],
+ "p1234": [
+  "Ajouter une règle",
+  "Add a rule"
+ ],
+ "p1235": [
+  "Un rôle n’apparaît pas ou est en rouge ?",
+  "A role is missing or in red?"
+ ],
+ "p1236": [
+  "Le bot ne peut donner que les rôles placés sous son propre rôle « Hourglass ». Sur Discord : Paramètres du serveur > Rôles, puis glisse « Hourglass » au-dessus des rôles à donner.",
+  "The bot can only give the roles placed under its own “Hourglass” role. On Discord: Server Settings > Roles, then drag “Hourglass” above the roles to give."
+ ],
+ "p1237": [
+  "Les rôles qui donnent des droits de modération ou d’administration (Administrateur, Gérer le serveur, Bannir, Expulser, Gérer les messages…) ne sont jamais proposés : sinon il suffirait d’écrire beaucoup pour les obtenir.",
+  "Roles giving moderation or administration rights (Administrator, Manage server, Ban, Kick, Manage messages…) are never offered: otherwise writing a lot would be enough to get them."
+ ],
+ "p1238": [
+  "Les rôles gérés par une intégration (bots, boosts) ne peuvent pas être donnés.",
+  "Roles managed by an integration (bots, boosts) cannot be given."
+ ],
+ "p1239": [
+  "Choisir un rôle…",
+  "Choose a role…"
+ ],
+ "p1240": [
+  "au-dessus du bot",
+  "above the bot"
+ ],
+ "p1241": [
+  "Monter",
+  "Move up"
+ ],
+ "p1242": [
+  "Descendre",
+  "Move down"
+ ],
+ "p1243": [
+  "Supprimer la règle",
+  "Delete the rule"
+ ],
+ "p1244": [
+  "Le bot ne peut pas encore donner ce rôle : il est placé au-dessus de son rôle « Hourglass » (voir l’aide plus bas).",
+  "The bot cannot give this role yet: it is placed above its “Hourglass” role (see the help below)."
+ ],
+ "p1245": [
+  "Le membre doit remplir",
+  "The member must meet"
+ ],
+ "p1246": [
+  "Conditions à remplir",
+  "Conditions to meet"
+ ],
+ "p1247": [
+  "toutes les conditions (ET)",
+  "all the conditions (AND)"
+ ],
+ "p1248": [
+  "au moins une condition (OU)",
+  "at least one condition (OR)"
+ ],
+ "p1249": [
+  "Ajouter une condition",
+  "Add a condition"
+ ],
+ "p1250": [
+  "Critère",
+  "Criterion"
+ ],
+ "p1251": [
+  "Niveau sur le serveur",
+  "Level on the server"
+ ],
+ "p1252": [
+  "sur 30 jours",
+  "over 30 days"
+ ],
+ "p1253": [
+  "Seuil",
+  "Threshold"
+ ],
+ "p1254": [
+  "Retirer la condition",
+  "Remove the condition"
+ ],
+ "p1255": [
+  "{n} règle(s)",
+  "{n} rule(s)"
+ ],
+ "p1256": [
+  "donnés, {r} retirés",
+  "given, {r} removed"
+ ],
+ "p1257": [
+  "Rôles donnés et retirés par le bot sur la période. Activés sur {s} serveur(s), {n} règle(s) en tout, {h} rôle(s) actuellement tenus grâce au bot. En orange : des rôles n’ont pas pu être donnés (rôle au-dessus du bot, permission manquante : voir le journal).",
+  "Roles given and removed by the bot over the period. Turned on for {s} server(s), {n} rule(s) in all, {h} role(s) currently held thanks to the bot. In orange: some roles could not be given (role above the bot, missing permission: see the log)."
+ ],
+ "p1258": [
+  "membre(s)",
+  "member(s)"
+ ],
+ "p1259": [
+  "{n} déjà donnés par le bot",
+  "{n} already given by the bot"
  ]
 }

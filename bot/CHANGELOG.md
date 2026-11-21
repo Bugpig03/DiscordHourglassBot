@@ -1,5 +1,20 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.11.0 - Rôles Automatiques - 21/11/2026
+
+- **Rôles automatiques** sur les serveurs qui les activent (site, page « Gérer » > Rôles) : le bot donne et retire des rôles selon l'activité de chaque membre sur le serveur.
+  - **Critères** : heures en vocal, messages (au total ou sur les 30 derniers jours) ou niveau sur le serveur.
+  - Jusqu'à 3 conditions par règle, reliées par ET ou par OU, et jusqu'à 10 règles par serveur.
+  - **Cumul ou paliers** : le membre reçoit le rôle de chaque règle remplie, ou seulement celui de la plus haute (Habitué, puis Vétéran, puis Légende).
+- **Quand** : un membre est vérifié dans la minute quand il écrit ou est en vocal, et tout le serveur chaque heure (les critères sur 30 jours redescendent tout seuls) ainsi que juste après un changement des règles.
+- **Sécurité**
+  - Le bot ne retire **que les rôles qu'il a donnés lui-même** : un rôle donné à la main n'est jamais touché. Supprimer une règle ou tout désactiver ne retire aucun rôle.
+  - Jamais de rôle avec des droits de modération ou d'administration, ni de rôle géré par une intégration, ni de rôle au-dessus du sien : c'est revérifié sur Discord juste avant chaque changement, pas seulement en base.
+  - Les changements passent par une file, un à la fois : à l'activation sur un gros serveur, les rôles partent progressivement, sans dépasser les limites de Discord. Si Discord refuse (permission retirée), les changements de ce serveur sont mis en pause une heure.
+  - Chaque changement est signé « Hourglass: automatic role » dans les logs d'audit du serveur.
+- **Journal** : chaque rôle donné ou retiré, et chaque rôle impossible à donner avec la raison (au plus une fois toutes les 6 heures par rôle), sont notés sur la page de gestion du serveur.
+- Nouvelles tables créées automatiquement (ou par `database/migrations/2026-11-21_bot_v3.11.0_roles.sql`).
+
 ## Version 3.10.0 - Rapports Automatiques - 21/11/2026
 
 - **Rapports automatiques** sur les serveurs qui les activent (site, page « Gérer » > Rapports) : le bot poste le bilan du serveur dans un salon, en carte image.

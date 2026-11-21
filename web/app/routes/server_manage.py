@@ -70,6 +70,12 @@ def manage(server_id: int):
         levelup_default=sa.levelup_default_message((sa.guild_meta(server_id) or {}).get("locale")),
         preview_member=_preview_member(server_id, int(user["id"])),
         reports=sa.get_reports(server_id),
+        roles_settings=sa.get_roles_settings(server_id),
+        role_metrics=sa.role_member_metrics(server_id),
+        role_grants=sa.role_grant_counts(server_id),
+        max_role_rules=sa.MAX_ROLE_RULES,
+        max_role_conditions=sa.MAX_ROLE_CONDITIONS,
+        bot_top_position=(sa.guild_meta(server_id) or {}).get("bot_top_role_position", 0),
         report_history=sa.report_history(server_id),
         roles=sa.roles(server_id),
         can_embed=any(c["key"] == "embed" and c["ok"] for c in sa.diagnostics(server_id, lang)["checks"]),
@@ -165,6 +171,14 @@ def reports_card_preview(server_id: int, kind: str):
     response.mimetype = "image/svg+xml"
     response.headers["Cache-Control"] = "private, max-age=300"
     return response
+
+
+@server_manage_bp.route("/server/<int:server_id>/manage/roles", methods=["POST"])
+def save_roles(server_id: int):
+    user, _ = _access(server_id)
+    _check_csrf(user, "gestion du serveur (rôles)")
+    error = sa.save_roles(server_id, request.form, int(user["id"]))
+    return _back(server_id, "roles", notice="roles_" + (error or "saved"))
 
 
 @server_manage_bp.route("/server/<int:server_id>/manage/managers/add", methods=["POST"])
