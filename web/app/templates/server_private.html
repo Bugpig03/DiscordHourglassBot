@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{# A private server seen by someone who is not one of its members: its name, its icon, a padlock and its totals. #}
+{% block title %}{{ t('server_profile.title', servername=server.servername) }}{% endblock %}
+{% block meta_description %}{{ tr('{server} : serveur privé suivi par Hourglass.', '{server}: private server tracked by Hourglass.', server=server.servername) }}{% endblock %}
+{% block og_image %}{{ url_for('cards.og_server_card', server_id=server.server_id, lang=current_lang, _external=True) }}{% endblock %}
+{% block og_card %}summary_large_image{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/server_profile.css', v=asset_version('css/pages/server_profile.css')) }}">
+<br>
+<section class="gray-box small-border-radius hg-hero server-hero">
+    <div class="hg-hero-body">
+        <div class="sp-locked-head">
+            <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp border-server" alt="">
+            <div class="sp-locked-id">
+                <h1 class="giant-bold-text" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ server.servername }}</h1>
+                <span class="sp-locked-tag">{{ pixel_icon('lock', 13) }}{{ tr('Serveur privé', 'Private server') }}</span>
+            </div>
+            {% if manage_role %}
+            <a href="{{ url_for('server_manage.manage', server_id=server.server_id) }}" class="btn-versus-action btn-manage-server">{{ pixel_icon('wrench', 16) }}<span>{{ tr('Gérer', 'Manage') }}</span></a>
+            {% endif %}
+        </div>
+        <div class="home-stats-container stats-2 profile-hero-stats">
+            <div class="home-stats-box tone-voice">
+                <div class="home-stats-icon">{{ pixel_icon('hourglass', 22) }}</div>
+                <div class="home-stats-content">
+                    <span class="home-stats-label">{{ t('server_profile.total_voice') }}</span>
+                    <span class="home-stats-value">{{ server.total_hours | num(1) }} {{ t('top.hours_unit') }}</span>
+                </div>
+            </div>
+            <div class="home-stats-box tone-msg">
+                <div class="home-stats-icon">{{ pixel_icon('chat', 22) }}</div>
+                <div class="home-stats-content">
+                    <span class="home-stats-label">{{ t('server_profile.total_messages') }}</span>
+                    <span class="home-stats-value">{{ server.total_messages | num }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="gray-box small-border-radius hg-card sp-locked-note">
+    <span class="sp-locked-icon">{{ pixel_icon('lock', 26) }}</span>
+    <div>
+        <h2 class="hg-card-title">{{ tr('Stats réservées aux membres', 'Stats for members only') }}</h2>
+        {% if current_user %}
+        <p class="hg-card-desc">{{ tr('Ce serveur est en mode privé : seuls ses membres voient ses graphiques, ses membres et ses classements.', 'This server is in private mode: only its members see its charts, its members and its rankings.') }}</p>
+        {% else %}
+        <p class="hg-card-desc">{{ tr('Ce serveur est en mode privé. Tu en es membre ? Connecte-toi avec Discord pour voir ses stats.', 'This server is in private mode. Are you a member? Sign in with Discord to see its stats.') }}</p>
+        <a class="btn-versus-action sp-locked-login" href="{{ url_for('auth.login', next=request.path) }}">{{ pixel_icon('discord', 16) }}<span>{{ tr('Se connecter', 'Sign in') }}</span></a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

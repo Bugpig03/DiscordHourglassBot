@@ -85,3 +85,25 @@
 /* Header buttons: "Manage" (owner and managers) next to Versus */
 .server-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn-manage-server { background: rgba(113, 124, 248, 0.16) !important; color: #c5c9ff !important; }
+
+/* Private server (web 3.48.0): the locked page and the padlock tag */
+.sp-locked-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(245, 197, 66, 0.12);
+  color: #f5c542;
+  font: 700 0.8rem/1.1 var(--ar-display, sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  clip-path: var(--slant, none);
+}
+.sp-locked-head { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.sp-locked-id { flex: 1; min-width: 220px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.sp-locked-id h1 { margin: 0; }
+html body .home-stats-container.stats-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.sp-locked-note { display: flex; align-items: flex-start; gap: 18px; margin-top: 20px; }
+.sp-locked-icon { display: grid; place-items: center; flex: none; width: 56px; height: 56px; background: rgba(245, 197, 66, 0.1); color: #f5c542; clip-path: var(--cut-s, none); }
+.sp-locked-login { margin-top: 14px; display: inline-flex; }
+@media (max-width: 640px) { html body .home-stats-container.stats-2 { grid-template-columns: minmax(0, 1fr); } }

@@ -1160,6 +1160,8 @@ html body .hc-chip {
 html body .hc-chip.ok { background: rgba(59, 165, 93, 0.16); color: #7ee0a0; }
 html body .hc-chip.off { background: rgba(237, 66, 69, 0.16); color: #f79a9c; }
 html body .hc-chip.live { background: var(--ar-accent-soft); color: var(--ar-accent-hi); }
+html body .hc-chip.private { background: rgba(245, 197, 66, 0.14); color: #f5c542; }
+html body .search-private { padding: 1px 6px; font-size: 0.7rem; margin-right: 4px; }
 html body .hc-chip.live i { width: 6px; height: 6px; border-radius: 50%; background: #3ba55d; }
 html body .hc-foot { font-size: 0.75rem; color: var(--ar-dim); }
 
@@ -2117,6 +2119,8 @@ html body .dashboard-podium-card:has(.icon-votes) .podium-card-icon { background
 @media (max-width: 560px) { html body .podium-carousel .podium-card-header { flex-wrap: wrap; } }
 html body .voice-now-tag:not(.is-live) { color: var(--ar-dim); }
 html body .voice-now-tag.is-live { color: #3fd1a0; background: rgba(63, 209, 160, 0.12); }
+/* Private server (web 3.48.0): padlock tag in the lists, the search and the profiles */
+html body .private-tag { color: #f5c542; background: rgba(245, 197, 66, 0.12); }
 
 /* Drop-down option flagged as a problem (channel the bot cannot write in): red italics, in the list and once chosen */
 html body .hg-select-opt.is-blocked .hg-select-opt-text,

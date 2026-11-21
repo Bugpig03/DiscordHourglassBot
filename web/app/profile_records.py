@@ -5,6 +5,7 @@ from datetime import datetime
 from app.database import Servers, VoiceSessions
 from app.pixel_icons import name_for_lucide, pixel_svg
 from app.i18n import day_month_year, format_number, month_year, tr
+from app.server_admin import is_private
 from app.functions import (
     get_month_abbr,
     get_monthly_hours_diff,
@@ -69,7 +70,7 @@ def query_record_sources(user_id: int) -> dict:
     """Database part of the records (cached by the caller, identical for every visitor)."""
     longest = (
         VoiceSessions
-        .select(VoiceSessions.duration_seconds, VoiceSessions.joined_at, Servers.servername)
+        .select(VoiceSessions.duration_seconds, VoiceSessions.joined_at, VoiceSessions.server_id, Servers.servername)
         .join(Servers, on=(VoiceSessions.server_id == Servers.server_id))
         .where(
             (VoiceSessions.user_id == user_id)
@@ -87,6 +88,7 @@ def query_record_sources(user_id: int) -> dict:
             "seconds": int(longest.duration_seconds or 0),
             "joined_at": longest.joined_at,
             "server": longest.servers.servername if longest.servers else None,
+            "server_id": longest.server_id,
         } if longest and longest.duration_seconds else None,
         "best_month_voice": max(months_voice, key=lambda m: m["hours_this_month"]) if months_voice else None,
         "best_month_messages": max(months_msgs, key=lambda m: m["messages_this_month"]) if months_msgs else None,
@@ -106,7 +108,7 @@ def build_records(sources: dict, stats: dict, heatmap: dict, companions: list, p
             sub = f"{joined.day} {get_month_abbr(joined.month, lang).lower()} {joined.year}"
         else:
             sub = day_month_year(joined.day, joined.month, joined.year, lang)
-        if longest["server"]:
+        if longest["server"] and not is_private(longest.get("server_id")):  # a private server is not named
             sub = f"{sub} · {longest['server']}" if sub else longest["server"]
         values["longest_session"] = {"value": _duration(longest["seconds"], lang), "sub": sub}
 
@@ -129,7 +131,8 @@ def build_records(sources: dict, stats: dict, heatmap: dict, companions: list, p
     if month:
         values["best_month_messages"] = {"value": month["messages_this_month"], "unit": tr("messages", "messages", lang), "sub": _month_label(month["month"], lang)}
 
-    servers = stats.get("user_servers_stats") or []
+    # Main server: the first public one (records are the same for every visitor)
+    servers = [s for s in (stats.get("user_servers_stats") or []) if not s.get("locked") and not is_private(s["server_id"])]
     if servers and servers[0]["time_spent"] > 0:
         top = servers[0]
         values["top_server"] = {"value": top["server_name"], "sub": f"{format_number(top['time_spent'], 1, lang)} h · #{top['rank']}"}

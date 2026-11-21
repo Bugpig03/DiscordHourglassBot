@@ -156,6 +156,10 @@ def badge_page(badge_id: str):
         {"id": int(sid), "name": name or str(sid)} for sid, name in db.execute_sql(
             "SELECT server_id, servername FROM servers WHERE server_id IN (SELECT DISTINCT server_id FROM stats) "
             "ORDER BY LOWER(servername)").fetchall()])
+    # Private servers the visitor is not a member of: neither offered nor accepted (their member list stays theirs)
+    from app.server_admin import hidden_servers
+    hidden = hidden_servers()
+    servers = [s for s in servers if s["id"] not in hidden]
     if server_id is not None and not any(s["id"] == server_id for s in servers):
         server_id = None
 

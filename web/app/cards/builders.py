@@ -537,18 +537,22 @@ def _top_card(metric: str, period: str, server_id: int | None, lang: str) -> str
 # ---------------------------------------------------------------------------
 # 4. Server card (/server)
 # ---------------------------------------------------------------------------
-def server_card(server_id: int, lang: str = "en") -> str:
+def server_card(server_id: int, lang: str = "en", locked: bool = False) -> str:
+    """The server card; locked: the public version of a private server (name, icon, padlock and totals only)."""
     lang = card_lang(lang)
-    return card_cache.get_or_set(("card_server", int(server_id), lang), CARD_CACHE_SECONDS, lambda: _server_card(int(server_id), lang))
+    return card_cache.get_or_set(("card_server", int(server_id), lang, locked), CARD_CACHE_SECONDS,
+                                 lambda: _server_card(int(server_id), lang, locked))
 
 
-def _server_card(server_id: int, lang: str) -> str:
+def _server_card(server_id: int, lang: str, locked: bool = False) -> str:
     server = Servers.get_or_none(Servers.server_id == server_id)
     if not server:
         raise CardNotFound("server")
     name = _name(server.servername, tr("Serveur {id}", "Server {id}", lang, id=server_id))
     seconds = get_total_seconds_by_server_id(server_id) or 0
     messages = get_total_message_by_server_id(server_id) or 0
+    if locked:
+        return _locked_server_card(server_id, name, seconds, messages, lang)
     members = get_user_count_by_server_id(server_id) or 0
     live = get_server_live_status(server_id)
     daily = get_daily_hours_diff(server_id=server_id, days=30)
@@ -601,6 +605,25 @@ def _server_card(server_id: int, lang: str) -> str:
         body += d.text(W / 2, chart_y + 150, tr("Aucune activité vocale ces 30 derniers jours", "No voice activity in the last 30 days", lang),
                        28, 600, d.MUTED, "middle", font="body")
 
+    body += _footer(h, accent)
+    return d.document(W, h, body, accent, halo=d.VOICE)
+
+
+def _locked_server_card(server_id: int, name: str, seconds: int, messages: int, lang: str) -> str:
+    """Public card of a private server: name, icon, a padlock and the two totals."""
+    accent = d.SERVER
+    h = 520
+    top = 150
+    body = d.server_icon(M + 6, top - 80, 160, d.remote_square(get_server_avatar_url(server_id), 160), name, accent, "srv")
+    name_x = M + 6 + 160 + 44
+    shown, size = d.fit_text(name.upper(), W - M - name_x, 58, 700, 36, spacing=1)
+    body += d.text(name_x, top - 12, shown, size, 700, d.TEXT, spacing=1)
+    lock_tag, _ = d.tag(name_x, top + 14, tr("Serveur privé", "Private server", lang), "#f5c542", 23, 48, max_width=W - M - name_x)
+    body += lock_tag
+    tiles_y = top + 120
+    tw = (INNER - 20) / 2
+    body += _tile(M, tiles_y, tw, 150, "mic", tr("Vocal", "Voice", lang), d.fmt_hours(seconds, lang), d.VOICE)
+    body += _tile(M + tw + 20, tiles_y, tw, 150, "chat", tr("Messages", "Messages", lang), d.fmt_int(messages, lang), d.MESSAGES)
     body += _footer(h, accent)
     return d.document(W, h, body, accent, halo=d.VOICE)
 

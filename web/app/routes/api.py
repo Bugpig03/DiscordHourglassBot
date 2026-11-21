@@ -28,12 +28,15 @@ def get_users():
 @api_bp.route("/api/servers", methods=["GET"])
 def get_servers():
     """Retrieve all servers with their IDs, names, and icon URLs."""
+    from app.server_admin import private_server_ids
+    private = private_server_ids()
     servers = Servers.select(Servers.server_id, Servers.servername, Servers.avatar)
     data = [
         {
             "server_id": s.server_id,
             "servername": s.servername,
             "avatar": s.avatar,
+            "private": int(s.server_id) in private,
         }
         for s in servers
     ]
@@ -59,10 +62,12 @@ def get_server(server_id: int):
     """Retrieve details for a single server by server ID."""
     try:
         server = Servers.get(Servers.server_id == server_id)
+        from app.server_admin import is_private
         return jsonify({
             "server_id": server.server_id,
             "servername": server.servername,
             "avatar": server.avatar,
+            "private": is_private(server.server_id),
         })
     except Servers.DoesNotExist:
         return jsonify({"error": "Server not found"}), 404
@@ -114,7 +119,10 @@ def get_stats(user_id: int | None, server_id: int | None):
                 "score": stat["score"] or 0
             })
 
-        # Case 3: Precise stats for a user on a specific server
+        # Case 3: Precise stats for a user on a specific server (a private server: for its members only)
+        from app.server_admin import can_see_server
+        if not can_see_server(server_id):
+            return jsonify({"error": "Stats not found"}), 404
         stat = Stats.get((Stats.user_id == user_id) & (Stats.server_id == server_id))
         return jsonify({
             "scope": f"user:{user_id}-server:{server_id}",
@@ -180,12 +188,15 @@ def search_global():
             .order_by(Servers.servername)
             .limit(limit)
         )
+        from app.server_admin import private_server_ids
+        private = private_server_ids()
         servers_data = [
             {
                 "server_id": str(s.server_id),
                 "servername": s.servername,
                 "avatar": s.avatar or "/static/icons/server.png",
-                "url": f"/server/{s.server_id}"
+                "url": f"/server/{s.server_id}",
+                "private": int(s.server_id) in private,
             }
             for s in matched_servers
         ]

@@ -21,7 +21,9 @@ def _server_arg() -> int | None:
         server_id = int(request.args.get("srv") or 0)
     except (TypeError, ValueError):
         return None
-    return server_id if server_id and server_exists(server_id) else None
+    from app.server_admin import can_see_server
+    # A private server the visitor is not a member of: the race covers every server instead
+    return server_id if server_id and server_exists(server_id) and can_see_server(server_id) else None
 
 
 def _picks_arg() -> list[int]:
@@ -35,6 +37,12 @@ def _picks_arg() -> list[int]:
     return picks
 
 
+def _visible_servers() -> list[dict]:
+    from app.server_admin import hidden_servers
+    hidden = hidden_servers()
+    return [s for s in timeline_servers() if int(s["id"]) not in hidden]
+
+
 @timeline_bp.route("/timeline", methods=["GET"])
 def timeline():
     """The builder; the settings live in the address (shared links open the same race)."""
@@ -44,7 +52,7 @@ def timeline():
         me = {"id": str(user["id"]), "name": user.get("username") or "", "avatar": user.get("avatar")}
     return render_template(
         "timeline.html",
-        servers=timeline_servers(),
+        servers=_visible_servers(),
         me=me,
         tops=TOPS,
         default_top=DEFAULT_TOP,

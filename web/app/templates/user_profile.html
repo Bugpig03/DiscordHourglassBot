@@ -77,7 +77,7 @@
                 {% if can_view_presence and stats.active_voice %}
                 <span class="profile-live-voice">
                     <span class="profile-live-dot"></span>
-                    {{tr('En vocal', 'In voice')}} : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }})
+                    {% if stats.active_voice.locked %}{{tr('En vocal', 'In voice')}} : {{ tr('serveur privé', 'private server') }}{% else %}{{tr('En vocal', 'In voice')}} : {{ stats.active_voice.channel_name }} ({{ stats.active_voice.server_name }}){% endif %}
                 </span>
                 {% endif %}
             </div>
@@ -247,7 +247,8 @@
                 <img src="{{ favorite_server.avatar or url_for('static', filename='icons/server.png') }}" data-fallback="{{ url_for('static', filename='icons/server.png') }}" alt="">
                 <span class="profile-vitrine-server-text">
                     <span class="profile-vitrine-server-name">{{ favorite_server.server_name }}</span>
-                    <span class="profile-vitrine-server-meta">#{{ favorite_server.rank }} {{tr('sur', 'of')}} {{ favorite_server.nb_user }} · {{ favorite_server.time_spent | num(1) }} h</span>
+                    {% if favorite_server.locked %}<span class="profile-vitrine-server-meta">{{ pixel_icon('lock', 11) }} {{ tr('Serveur privé', 'Private server') }}</span>
+                    {% else %}<span class="profile-vitrine-server-meta">#{{ favorite_server.rank }} {{tr('sur', 'of')}} {{ favorite_server.nb_user }} · {{ favorite_server.time_spent | num(1) }} h</span>{% endif %}
                 </span>
             </a>
         </div>
@@ -669,13 +670,16 @@
                                  class="small-pp border-server" alt="avatar">
                             <div style="min-width: 0;">
                                 <div class="medium-bold-text nomargin text-overflow" style="font-size: 1.1rem;">{{ server.server_name }}</div>
-                                <div class="small-text gray nomargin" style="font-size: 0.85rem; margin-top: 3px;">
+                                {% if not server.locked %}<div class="small-text gray nomargin" style="font-size: 0.85rem; margin-top: 3px;">
                                     {{ t('user_profile.joined_at') }} {{ server.joined_at }}
-                                </div>
+                                </div>{% endif %}
                             </div>
                         </div>
 
-                        <!-- Server metrics badges -->
+                        <!-- Server metrics badges (a private server the visitor is not a member of: padlock only) -->
+                        {% if server.locked %}
+                        <span class="arrival-tag private-tag" data-tip="{{ tr('Serveur privé : seuls ses membres voient l’activité de chacun dessus.', 'Private server: only its members see everyone’s activity on it.') }}">{{ pixel_icon('lock', 12) }}{{ tr('Privé', 'Private') }}</span>
+                        {% else %}
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <span class="user-level-tag {% if server.level >= 40 %}tier-master{% elif server.level >= 20 %}tier-veteran{% elif server.level >= 10 %}tier-adept{% else %}tier-novice{% endif %}" data-tip="{{ tr('Niveau sur ce serveur', 'Level on this server') }}">{{ t('common.level_tag', level=server.level) }}</span>
                             <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 2px; padding: 4px 12px; font-weight: 700; font-size: 0.85rem;">
@@ -688,6 +692,7 @@
                                 <svg width="13" height="13" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>{{ server.messages_count | thousands_fr }} {{ t('top.msgs_unit') }}
                             </span>
                         </div>
+                        {% endif %}
 
                     </div>
                 </a>

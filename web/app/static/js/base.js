@@ -294,7 +294,7 @@ const BASE_CFG = JSON.parse(document.getElementById('hgBaseConfig').textContent)
                                     <img src="${HG.esc(s.avatar)}" class="search-item-avatar border-server" alt="${HG.esc(s.servername)}" data-fallback="/static/icons/server.png">
                                     <div class="search-item-info">
                                         <span class="search-item-name">${HG.esc(s.servername)}</span>
-                                        <span class="search-item-sub">ID: ${HG.esc(s.server_id)}</span>
+                                        <span class="search-item-sub">${s.private ? `<span class="private-tag search-private">${HG.tr('Privé', 'Private')}</span> ` : ''}ID: ${HG.esc(s.server_id)}</span>
                                     </div>
                                     <span class="search-item-badge">Voir</span>
                                 </a>

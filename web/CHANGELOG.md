@@ -1,5 +1,22 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.48.0 - Mode Privé des Serveurs - 22/11/2026
+- **Mode privé** (page « Gérer » > Général, réservé au propriétaire du serveur) : un interrupteur qui réserve le détail des stats aux membres du serveur connectés au site.
+  - **Ce que tout le monde voit** : le nom, l'icône, un cadenas « Privé », et le total d'heures en vocal et de messages.
+  - **Ce qui est réservé aux membres** : la fiche complète (graphiques, membres, salons, sessions), les classements sur ce serveur, les cartes, le Versus et la Timeline limités à ce serveur, et les données en direct.
+  - **Les membres** voient la fiche complète, avec un cadenas « Privé » à côté du nom.
+- **Membre = vérifié en direct** par la liste du bot, et non plus par « a des stats sur ce serveur ». Quelqu'un qui a quitté le serveur n'y a plus accès. Cette règle s'applique aussi aux sessions et à la présence en direct de tous les serveurs : une faille où un ancien membre gardait l'accès à ces données est ainsi corrigée.
+- **Toutes les sorties sont fermées pour un serveur privé** :
+  - **Fiche serveur** : une page verrouillée avec les totaux, et un bouton de connexion pour les visiteurs.
+  - **Serveurs** : listé avec un cadenas et ses totaux dans le classement « Tout le temps », absent des classements par période et des tris « Le plus de membres » et « En vocal maintenant ».
+  - **Membres, Timeline, Versus et page d'un badge** : le serveur n'est plus proposé dans les filtres, et un lien direct revient à « Tous les serveurs ».
+  - **Profil d'un membre** : le serveur apparaît avec son nom et un cadenas, sans les heures, le rang ni le niveau du membre dessus. Le graphique par serveur regroupe les serveurs privés en une part « Serveurs privés ». Les records et le « En vocal » ne nomment plus le serveur. Les totaux, le prestige et les badges du membre ne changent pas.
+  - **Accueil et Analyses** : absent des mini classements, de « En vocal maintenant » et des listes de progression et de nouveaux venus. Ses heures restent comptées dans les totaux du site.
+  - **Survol, recherche Ctrl+K et API** : seulement le nom, l'icône, le cadenas et les totaux. Les stats d'un membre sur ce serveur sont réservées aux membres.
+  - **Cartes images et aperçus Discord** : une carte verrouillée (nom, icône, cadenas, totaux). Les cartes de classement, de membre et de Versus sur ce serveur ne sont pas disponibles.
+  - **Pages des membres** : jamais gardées par un cache partagé, ni indexées par les moteurs de recherche.
+- Un changement de mode s'applique partout en 20 secondes au plus. Il est noté dans le journal du serveur.
+
 ## Version 3.47.1 - Page Gérer Allégée - 21/11/2026
 - **Rapports : « Enregistrer » et « Envoyer un test » sont séparés.** Le test envoie les réglages enregistrés. Après une modification, il attend l'enregistrement et le signale.
 - **Moins de texte sur toute la page Gérer** : les explications passent dans un petit « ? » à côté des titres et des champs, et s'affichent au survol (ou au toucher sur mobile). Il ne reste qu'une phrase courte par section.

@@ -41,6 +41,7 @@
             <div style="flex: 1; min-width: 220px;">
                 <h1 class="giant-bold-text" data-ghost="{{ '#' ~ stats.rank if stats.rank else '' }}" style="font-size: clamp(1.8rem, 3.5vw, 2.5rem);">{{ stats.servername }}</h1>
                 <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
+                    {% if is_private %}<span class="sp-locked-tag" data-tip="{{ tr('Mode privé : tu vois ces stats parce que tu es membre du serveur. Les autres visiteurs ne voient que le total d’heures et de messages.', 'Private mode: you see these stats because you are a member of the server. Other visitors only see the total hours and messages.') }}" tabindex="0">{{ pixel_icon('lock', 13) }}{{ tr('Privé', 'Private') }}</span>{% endif %}
                     {% if stats.is_bot_present %}
                     <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 2px; padding: 4px 12px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
                         <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block;"></span>

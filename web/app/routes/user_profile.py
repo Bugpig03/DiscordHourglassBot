@@ -167,6 +167,22 @@ def profile(username: str):
     # Données Heatmap GitHub-style, Compagnons vocaux et records personnels
     extras = load_profile_extras(user_id, stats, charts, lang)
 
+    # Private servers the visitor is not a member of: name, icon and padlock only, at the end of the list; the
+    # member's own totals, level and badges above do not change
+    from app.server_admin import hidden_servers
+    hidden = hidden_servers()
+    if hidden:
+        shown, locked = [], []
+        for s in stats["user_servers_stats"]:
+            if int(s["server_id"]) in hidden:
+                locked.append({"server_id": s["server_id"], "server_name": s["server_name"], "avatar": s["avatar"], "locked": True})
+            else:
+                shown.append(s)
+        stats = dict(stats, user_servers_stats=shown + locked)
+        voice = stats.get("active_voice")
+        if voice and voice.get("server_id") and int(voice["server_id"]) in hidden:
+            stats["active_voice"] = dict(voice, locked=True, channel_name=None, server_name=None)
+
     # Customization chosen by the member (read live: a saved change shows up immediately)
     settings = get_profile_settings(user_id)
     favorite_server = next(
@@ -349,12 +365,20 @@ def _build_public_user_charts(user_id: int, user_servers_stats: list[dict], lang
         "partial": get_partial_period(daily_messages_diff_data, "day"),
     })
 
-    # 5. User's servers distribution doughnut (Top 10 servers by time spent + Autres)
-    top_servers = user_servers_stats[:10]
-    remaining_servers = user_servers_stats[10:]
+    # 5. User's servers distribution doughnut (Top 10 servers by time spent + Autres); private servers are one
+    # "Private servers" slice, for every visitor (this chart is shared by all of them)
+    from app.server_admin import private_server_ids
+    private = private_server_ids()
+    public_servers = [s for s in user_servers_stats if int(s["server_id"]) not in private]
+    private_hours = round(sum(s["time_spent"] for s in user_servers_stats if int(s["server_id"]) in private), 1)
+    top_servers = public_servers[:10]
+    remaining_servers = public_servers[10:]
 
     server_labels = [s["server_name"] for s in top_servers]
     server_hours = [s["time_spent"] for s in top_servers]
+    if private_hours > 0:
+        server_labels.append(tr("Serveurs privés", "Private servers", lang))
+        server_hours.append(private_hours)
     if remaining_servers:
         other_hours = round(sum(s["time_spent"] for s in remaining_servers), 1)
         other_text = tr("Autres ({n} serveurs)", "Others ({n} servers)", lang, n=len(remaining_servers))

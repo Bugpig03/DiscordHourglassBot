@@ -53,9 +53,11 @@ def versus():
             .limit(300)
         )
     ]
+    from app.server_admin import hidden_servers
+    hidden = hidden_servers()
     all_servers = [
         {"id": str(row.server_id), "name": row.servername or tr("Serveur {id}", "Server {id}", id=row.server_id)}
-        for row in Servers.select().order_by(Servers.servername.asc())
+        for row in Servers.select().order_by(Servers.servername.asc()) if int(row.server_id) not in hidden
     ]
 
     if tab == "users":
@@ -72,6 +74,10 @@ def get_common_servers(user_id1: int, user_id2: int) -> list[dict]:
     if not common_ids:
         return []
 
+    from app.server_admin import hidden_servers
+    common_ids = set(common_ids) - hidden_servers()  # private servers the visitor is not a member of
+    if not common_ids:
+        return []
     servers = (
         Servers
         .select(Servers.server_id, Servers.servername, Servers.avatar)
@@ -166,12 +172,14 @@ def render_servers_versus(lang: str, all_users: list[str], all_servers: list[dic
     s1_query = request.args.get("s1", "").strip()
     s2_query = request.args.get("s2", "").strip()
 
-    top_two = list(
-        Stats.select(Stats.server_id, fn.SUM(Stats.seconds).alias("tot"))
-        .group_by(Stats.server_id)
-        .order_by(fn.SUM(Stats.seconds).desc())
-        .limit(2)
-    )
+    from app.server_admin import hidden_servers
+    hidden = hidden_servers()
+    top_two = [row for row in
+               Stats.select(Stats.server_id, fn.SUM(Stats.seconds).alias("tot"))
+               .group_by(Stats.server_id)
+               .order_by(fn.SUM(Stats.seconds).desc())
+               .limit(2 + len(hidden))
+               if int(row.server_id) not in hidden][:2]
 
     server1 = resolve_server(s1_query) if s1_query else (Servers.get_or_none(Servers.server_id == top_two[0].server_id) if top_two else None)
 
@@ -235,7 +243,15 @@ def resolve_user(query: str) -> Users | None:
 
 
 def resolve_server(query: str) -> Servers | None:
-    """Find a server record by exact server ID or name contains query."""
+    """Find a server the visitor may compare: by exact server ID or name contains query (a private server only
+    for its members)."""
+    from app.server_admin import can_see_server
+
+    srv = _find_server(query)
+    return srv if srv and can_see_server(srv.server_id) else None
+
+
+def _find_server(query: str) -> Servers | None:
     if not query:
         return None
     s = query.strip()

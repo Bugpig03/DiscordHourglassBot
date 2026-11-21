@@ -119,6 +119,15 @@ def _svg(build, max_age: int = 180) -> Response:
     return resp
 
 
+def _public_server(server_id: int | None) -> int | None:
+    """A server for a public card: a private one is "not found" (its details are for its members only)."""
+    from app.server_admin import is_private
+
+    if server_id and is_private(server_id):
+        raise builders.CardNotFound("server")
+    return server_id
+
+
 def _user_or_404(identifier: str) -> int:
     user_id = builders.resolve_user_id(identifier)
     if user_id is None:
@@ -135,18 +144,18 @@ def svg_member_card(username: str):
 @cards_bp.route("/api/card/user/<username>/server/<int:server_id>")
 @cards_bp.route("/api/card/stats/<username>/<int:server_id>")
 def svg_member_server_card(username: str, server_id: int):
-    return _svg(lambda: builders.member_card(_user_or_404(username), server_id, _lang(), public=True))
+    return _svg(lambda: builders.member_card(_user_or_404(username), _public_server(server_id), _lang(), public=True))
 
 
 @cards_bp.route("/api/card/versus/<user1>/<user2>")
 def svg_versus_card(user1: str, user2: str):
-    return _svg(lambda: builders.versus_card(_user_or_404(user1), _user_or_404(user2), _int_arg("server"), _lang()))
+    return _svg(lambda: builders.versus_card(_user_or_404(user1), _user_or_404(user2), _public_server(_int_arg("server")), _lang()))
 
 
 @cards_bp.route("/api/card/top/server/<int:server_id>")
 @cards_bp.route("/api/card/server/<int:server_id>/top")
 def svg_server_top_card(server_id: int):
-    return _svg(lambda: builders.top_card(request.args.get("type", "voice"), request.args.get("period", "all"), server_id, _lang()))
+    return _svg(lambda: builders.top_card(request.args.get("type", "voice"), request.args.get("period", "all"), _public_server(server_id), _lang()))
 
 
 @cards_bp.route("/api/card/top")
@@ -158,7 +167,8 @@ def svg_global_top_card():
 
 @cards_bp.route("/api/card/server/<int:server_id>")
 def svg_server_card(server_id: int):
-    return _svg(lambda: builders.server_card(server_id, _lang()))
+    from app.server_admin import is_private
+    return _svg(lambda: builders.server_card(server_id, _lang(), locked=is_private(server_id)))
 
 
 @cards_bp.route("/api/card/commands")
@@ -231,10 +241,15 @@ def og_member_card(user_id: int):
 @cards_bp.route("/og/server/<int:server_id>.png")
 def og_server_card(server_id: int):
     lang = _lang()
-    return _og_png(("server", server_id, lang), lambda: builders.server_card(server_id, lang))
+    from app.server_admin import is_private
+    locked = is_private(server_id)
+    return _og_png(("server", server_id, lang, locked), lambda: builders.server_card(server_id, lang, locked=locked))
 
 
 @cards_bp.route("/og/versus/<int:user1>/<int:user2>.png")
 def og_versus_card(user1: int, user2: int):
     lang, server_id = _lang(), _int_arg("server")
+    from app.server_admin import is_private
+    if server_id and is_private(server_id):
+        abort(404)
     return _og_png(("versus", user1, user2, server_id, lang), lambda: builders.versus_card(user1, user2, server_id, lang))

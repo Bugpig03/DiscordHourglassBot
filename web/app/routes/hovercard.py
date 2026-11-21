@@ -101,5 +101,15 @@ def hover_user(user_id: int):
 @hovercard_bp.route("/api/hover/server/<int:server_id>", methods=["GET"])
 def hover_server(server_id: int):
     lang = _lang()
+    from app.server_admin import can_see_server
+
     data = cache.get_or_set(("hover_server", server_id, lang), HOVER_CACHE_SECONDS, lambda: _server_card(server_id, lang))
-    return (jsonify(data), 200) if data else (jsonify({"error": "not_found"}), 404)
+    if not data:
+        return jsonify({"error": "not_found"}), 404
+    if not can_see_server(server_id):
+        # Private server, visitor not a member: name, icon, padlock and totals only
+        data = {key: data[key] for key in ("kind", "name", "avatar", "hours", "messages", "bot_present")}
+        data["locked"] = True
+    response = jsonify(data)
+    response.headers["Cache-Control"] = "private, no-store"
+    return response

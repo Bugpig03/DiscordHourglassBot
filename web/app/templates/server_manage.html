@@ -2,21 +2,14 @@
 
 {% block title %}{{ tr('Gérer {name}', 'Manage {name}', name=server_name) }} - Hourglass{% endblock %}
 
-{% macro soon(title, text, icon) %}
-<section class="gray-box small-border-radius hg-card sm-soon">
-    <span class="sm-soon-icon">{{ pixel_icon(icon, 22) }}</span>
-    <div>
-        <h2 class="hg-card-title">{{ title }} {{ tip(text) }} <span class="sm-tag">{{ tr('Bientôt', 'Coming soon') }}</span></h2>
-    </div>
-</section>
-{% endmacro %}
-
 {% macro tip(text) %}<span class="sm-info" data-tip="{{ text }}" tabindex="0" role="note" aria-label="{{ text }}">?</span>{% endmacro %}
 
 {% macro who(p) %}{% if p %}<span class="sm-who"{% if p.nickname %} data-tip="{{ tr('Pseudo sur le serveur : {name}', 'Nickname on the server: {name}', name=p.nickname) }}"{% endif %}>@{{ p.username }}</span>{% else %}—{% endif %}{% endmacro %}
 
 {% set action_labels = {
     'timezone': tr('Fuseau horaire modifié', 'Time zone changed'),
+    'private_on': tr('Mode privé activé', 'Private mode turned on'),
+    'private_off': tr('Mode privé désactivé', 'Private mode turned off'),
     'manager_added': tr('Gestionnaire ajouté', 'Manager added'),
     'manager_removed': tr('Gestionnaire retiré', 'Manager removed'),
     'bot_added': tr('Hourglass ajouté au serveur', 'Hourglass added to the server'),
@@ -59,6 +52,8 @@
     'already': ('warn', tr('Ce membre gère déjà le serveur.', 'This member already manages the server.')),
     'full': ('warn', tr('Maximum de {n} gestionnaires atteint.', 'Maximum of {n} managers reached.', n=max_managers)),
     'error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
+    'private_on': ('ok', tr('Serveur passé en mode privé : ses détails sont réservés à ses membres d’ici quelques secondes.', 'Server switched to private mode: its details are for its members within a few seconds.')),
+    'private_off': ('ok', tr('Serveur de nouveau public.', 'Server public again.')),
     'levels_saved': ('ok', tr('Annonces de niveau enregistrées : le bot les applique dans la minute.', 'Level-up announcements saved: the bot applies them within a minute.')),
     'levels_channel': ('warn', tr('Choisis un salon pour les annonces.', 'Choose a channel for the announcements.')),
     'levels_error': ('error', tr('L’enregistrement a échoué. Réessaie dans un instant.', 'Saving failed. Try again in a moment.')),
@@ -91,6 +86,7 @@
                 <h1 class="giant-bold-text sm-title">{{ server_name }}</h1>
                 <div class="sm-badges">
                     <span class="sm-tag {{ 'is-owner' if role == 'owner' else 'is-manager' }}">{{ pixel_icon('crown' if role == 'owner' else 'user', 12) }}{{ tr('Propriétaire', 'Owner') if role == 'owner' else tr('Gestionnaire', 'Manager') }}</span>
+                    {% if settings.private %}<span class="sm-tag is-private">{{ pixel_icon('lock', 12) }}{{ tr('Privé', 'Private') }}</span>{% endif %}
                     {% if diag.bot_present %}
                     <span class="sm-tag is-ok">{{ tr('Hourglass présent', 'Hourglass present') }}</span>
                     {% else %}
@@ -212,8 +208,23 @@
         {% endif %}
     </section>
 
-    <!-- Private mode (owner only, step 4) -->
-    {{ soon(tr('Mode privé', 'Private mode'), tr('Le détail des stats du serveur réservé à ses membres connectés au site. Les autres ne verront que le total d’heures et de messages, avec un cadenas.', 'The server’s detailed stats only for its members signed in on the site. Others will only see the total hours and messages, with a padlock.'), 'lock') }}
+    <!-- Private mode (owner only) -->
+    <section class="gray-box small-border-radius hg-card" id="private">
+        <form method="post" action="{{ url_for('server_manage.save_private', server_id=server_id) }}" class="sm-private" data-autosubmit>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="hg-card-head">
+                <div>
+                    <h2 class="hg-card-title">{{ pixel_icon('lock', 16) }} {{ tr('Mode privé', 'Private mode') }} {{ tip(tr('Les autres visiteurs ne voient que le nom, l’icône, un cadenas et le total d’heures et de messages. Tout le reste (graphiques, membres, classements sur ce serveur, cartes, Versus, Timeline, données en direct) est réservé aux membres du serveur connectés au site, vérifiés en direct par le bot. Les heures comptent toujours dans les totaux des membres et du site, sans nommer le serveur.', 'Other visitors only see the name, the icon, a padlock and the total hours and messages. Everything else (charts, members, rankings on this server, cards, Versus, Timeline, live data) is for the server’s members signed in on the site, checked live by the bot. The hours still count in the members’ and the site’s totals, without naming the server.')) }}</h2>
+                    <p class="hg-card-desc">{{ tr('Le détail des stats réservé aux membres du serveur.', 'The detailed stats only for the server’s members.') }}</p>
+                </div>
+                <label class="sm-switch">
+                    <input type="checkbox" name="private" value="1"{% if settings.private %} checked{% endif %}>
+                    <span class="sm-switch-track" aria-hidden="true"><i></i></span>
+                    <span class="sm-switch-label">{{ tr('Privé', 'Private') if settings.private else tr('Public', 'Public') }}</span>
+                </label>
+            </div>
+        </form>
+    </section>
     {% endif %}
 </div>
 

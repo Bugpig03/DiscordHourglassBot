@@ -28,9 +28,11 @@ def _podium(kind: str, limit: int) -> list[dict]:
         # Real members only: Discord bots and apps (and Hourglass itself) are left out
         rows = rank_with_moves([r for r in without_bots(rows) if int(r["user_id"]) != HOURGLASS_BOT_ID], USER_SORT_KEYS["hours"])
     else:
+        from app.server_admin import private_server_ids
+        private = private_server_ids()  # a 30-day ranking is a detail of the server: private ones stay out
         rows = cache.get_or_set(("servers", PODIUM_PERIOD), RANKING_CACHE_SECONDS,
                                 lambda: _compute_server_ranking(PODIUM_PERIOD))
-        rows = rank_with_moves(rows, SERVER_SORT_KEYS["hours"])
+        rows = rank_with_moves([r for r in rows if int(r["server_id"]) not in private], SERVER_SORT_KEYS["hours"])
     podium = []
     for r in rows:
         if len(podium) == limit or not (r["seconds"] or r["messages"]):
@@ -73,7 +75,9 @@ def _voice_now_podium(limit: int = 3) -> list[dict]:
     """The servers with the most people in voice right now (live, refreshed every 20 seconds)."""
     from app.routes.top import voice_now_by_server
 
-    live = sorted(((sid, n) for sid, n in voice_now_by_server().items() if n > 0), key=lambda x: -x[1])[:limit]
+    from app.server_admin import private_server_ids
+    private = private_server_ids()  # live data of a private server stays with its members
+    live = sorted(((sid, n) for sid, n in voice_now_by_server().items() if n > 0 and sid not in private), key=lambda x: -x[1])[:limit]
     if not live:
         return []
     names = {s.server_id: s for s in Servers.select(Servers.server_id, Servers.servername, Servers.avatar)

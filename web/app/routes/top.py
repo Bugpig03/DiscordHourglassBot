@@ -243,8 +243,11 @@ def rank_with_moves(results: list[dict], sort_keys: tuple) -> list[dict]:
 @top_bp.route("/members", methods=["GET"])
 def top_users():
     """Members page: ranking by voice/messages/XP/top.gg votes, A–Z or arrival date, with search, period and server filters."""
+    from app.server_admin import hidden_servers
+
     users, total_pages = load_users()
-    servers = list(Servers.select().order_by(Servers.servername))
+    hidden = hidden_servers()
+    servers = [s for s in Servers.select().order_by(Servers.servername) if int(s.server_id) not in hidden]
     selected_server = None
     server_id = request.args.get("server_id", "all")
     if server_id and server_id != "all":
@@ -430,6 +433,10 @@ def load_users() -> tuple[list[dict], int]:
     server_id = request.args.get("server_id", "all")
     if not str(server_id).isdigit():
         server_id = "all"
+    if server_id != "all":
+        from app.server_admin import can_see_server
+        if not can_see_server(server_id):
+            server_id = "all"  # private server, visitor not a member: no ranking on it
     if period not in PERIOD_MAP:
         period = "all"
     page = request.args.get("page", 1, type=int)
@@ -567,7 +574,14 @@ def load_servers() -> tuple[list[dict], int]:
     page = request.args.get("page", 1, type=int)
     search_query = request.args.get("q", "").strip()
 
+    from app.server_admin import hidden_servers
+
     results = cache.get_or_set(("servers", period), RANKING_CACHE_SECONDS, lambda: _compute_server_ranking(period))
+    # Private servers the visitor may not see: listed with a padlock and their totals in the all-time list only;
+    # left out of the period rankings, the "most members" and the "in voice now" sorts (details of the server)
+    hidden = hidden_servers()
+    if hidden and (period != "all" or sort_by in ("members", "voice_now")):
+        results = [r for r in results if int(r["server_id"]) not in hidden]
     # Rank the whole list first, so a search still shows each server's real rank and movement
     if sort_by == "name":
         results = sorted(results, key=lambda x: (x["servername"] or "").lower())
@@ -579,6 +593,8 @@ def load_servers() -> tuple[list[dict], int]:
         results = sort_by_voice_now(results)
     else:
         results = rank_with_moves(results, SERVER_SORT_KEYS.get(sort_by, SERVER_SORT_KEYS["hours"]))
+    if hidden:
+        results = [dict(r, locked=True, move=0, is_new=False) if int(r["server_id"]) in hidden else r for r in results]
     if search_query:
         needle = search_query.lower()
         results = [r for r in results if needle in (r["servername"] or "").lower()]

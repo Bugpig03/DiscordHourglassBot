@@ -300,6 +300,84 @@ def diagnostics(server_id: int, lang: str) -> dict:
     }
 
 
+# ------------------------------------------------------------------------------------------------ private mode
+# A private server shows everyone its name, icon, a padlock and its total voice hours and messages; everything else
+# (charts, members, rankings on it, cards, live data…) is for its members signed in on the site. Membership is
+# the bot's live member list (guild_members), never "has stats there": someone who left is no longer a member.
+PRIVATE_CACHE_SECONDS = 20
+
+
+def private_server_ids() -> frozenset:
+    """Servers in private mode (re-read every 20 seconds: a change shows up everywhere within that time)."""
+    def load():
+        return frozenset(int(sid) for sid, in _rows("SELECT server_id FROM server_settings WHERE private"))
+    return cache.get_or_set(("private_servers",), PRIVATE_CACHE_SECONDS, load)
+
+
+def is_private(server_id) -> bool:
+    try:
+        return int(server_id) in private_server_ids()
+    except (TypeError, ValueError):
+        return False
+
+
+def user_is_member(user_id, server_id) -> bool:
+    """Member of the server right now: the bot's live list when it has one, else the server list Discord gave at
+    login (servers the bot left, or not yet read)."""
+    from app.auth import get_current_user, get_current_user_guild_ids
+
+    try:
+        uid, sid = int(user_id), int(server_id)
+    except (TypeError, ValueError):
+        return False
+    meta = guild_meta(sid)
+    if meta and meta["bot_present"] and meta["members_synced_at"]:
+        return is_member(uid, sid)
+    current = get_current_user() or {}
+    return str(current.get("id")) == str(uid) and sid in get_current_user_guild_ids()
+
+
+def viewer_is_member(server_id) -> bool:
+    """The signed-in visitor is a member of this server right now (remembered for the request)."""
+    from flask import g, has_request_context
+    from app.auth import get_current_user
+
+    user = get_current_user() if has_request_context() else None
+    if not user or not str(user.get("id", "")).isdigit():
+        return False
+    memo = g.setdefault("server_membership", {})
+    key = int(server_id)
+    if key not in memo:
+        memo[key] = user_is_member(user["id"], key)
+    return memo[key]
+
+
+def can_see_server(server_id) -> bool:
+    """The visitor may see the details of this server: it is public, or they are one of its members."""
+    return not is_private(server_id) or viewer_is_member(server_id)
+
+
+def hidden_servers() -> set:
+    """Private servers whose details this visitor may not see."""
+    return {sid for sid in private_server_ids() if not viewer_is_member(sid)}
+
+
+def save_private(server_id: int, private: bool, by: int) -> bool:
+    before = get_settings(server_id)["private"]
+    try:
+        db.execute_sql(
+            "INSERT INTO server_settings (server_id, private, updated_at, updated_by) VALUES (%s, %s, %s, %s) "
+            "ON CONFLICT (server_id) DO UPDATE SET private = EXCLUDED.private, updated_at = EXCLUDED.updated_at, "
+            "updated_by = EXCLUDED.updated_by", (int(server_id), bool(private), _now(), int(by)))
+    except Exception:
+        db.rollback()
+        return False
+    cache.delete(("private_servers",))
+    if before != bool(private):
+        log_action(server_id, "general", "private_on" if private else "private_off", actor=by)
+    return True
+
+
 # ------------------------------------------------------------------------------------------------ settings
 def get_settings(server_id: int) -> dict:
     rows = _rows("SELECT timezone, private, updated_at, updated_by FROM server_settings WHERE server_id = %s", (int(server_id),))

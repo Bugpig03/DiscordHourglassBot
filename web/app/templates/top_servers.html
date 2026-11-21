@@ -56,7 +56,8 @@
                 <span class="rank-badge {% if server_rank == 1 %}rank-1{% elif server_rank == 2 %}rank-2{% elif server_rank == 3 %}rank-3{% else %}rank-other{% endif %}">
                     #{{ server_rank }}
                 </span>
-                {% if server.move > 0 %}<span class="rank-move up" title="{{ tr('+%d place(s) ', '+%d spot(s) ')|format(server.move) }}{{ move_label }}">▲{{ server.move }}</span>
+                {% if server.locked %}
+                {% elif server.move > 0 %}<span class="rank-move up" title="{{ tr('+%d place(s) ', '+%d spot(s) ')|format(server.move) }}{{ move_label }}">▲{{ server.move }}</span>
                 {% elif server.move < 0 %}<span class="rank-move down" title="{{ tr('%d place(s) ', '%d spot(s) ')|format(server.move) }}{{ move_label }}">▼{{ -server.move }}</span>
                 {% elif server.is_new %}<span class="rank-move new" title="{{ tr('Nouveau dans le classement ', 'New in the ranking ') }}{{ move_label }}">{{tr('NOUV.', 'NEW')}}</span>
                 {% elif server.rank is defined %}<span class="rank-move same" title="{{ tr('Même place ', 'Same spot ') }}{{ move_label }}">=</span>{% endif %}
@@ -64,6 +65,7 @@
                 <img src="{{ server.avatar_url or url_for('static', filename='images/base_avatar_big.png') }}"
                      class="small-pp border-server" alt="avatar">
                 <span class="username-fixed">{{ server.servername }}</span>
+                {% if server.locked %}<span class="arrival-tag private-tag" data-tip="{{ tr('Serveur privé : seuls ses membres voient ses détails.', 'Private server: only its members see its details.') }}">{{ pixel_icon('lock', 12) }}{{ tr('Privé', 'Private') }}</span>{% endif %}
                 {% if server.is_bot_present == False %}<span class="server-untracked-badge" data-tip="{{ t('servers.bot_inactive_tooltip') }}">{{ t('servers.bot_inactive') }}</span>{% endif %}
                 {% if server.voice_now is defined %}<span class="arrival-tag voice-now-tag{% if server.voice_now %} is-live{% endif %}" data-tip="{{ tr('{n} personne(s) en vocal en ce moment', '{n} people in voice right now', n=server.voice_now) }}"><i class="live-dot" aria-hidden="true"></i>{{ tr('{n} en vocal', '{n} in voice', n=server.voice_now) }}</span>{% endif %}
                 {% if server.members is defined %}<span class="arrival-tag members-tag" data-tip="{{ tr('{n} membres suivis par Hourglass', '{n} members tracked by Hourglass', n=server.members | num) }}">{{ pixel_icon('users', 12) }}{{ server.members | num }}</span>{% endif %}

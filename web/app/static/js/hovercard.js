@@ -52,6 +52,17 @@
     }
 
     function renderServer(d) {
+        if (d.locked) {
+            // Private server, visitor not a member: name, icon, padlock and totals only
+            return `<div class="hc-top">
+                <img class="hc-avatar hc-square" src="${esc(d.avatar || '/static/images/base_avatar_big.png')}" alt="">
+                <div class="hc-id"><b>${esc(d.name)}</b><span class="hc-chips"><span class="hc-chip private">${T('Serveur privé', 'Private server')}</span></span></div>
+            </div>
+            <div class="hc-stats">
+                ${stat(T('Vocal total', 'Total voice'), `${num(d.hours, 1)} h`)}
+                ${stat(T('Messages', 'Messages'), num(d.messages))}
+            </div>`;
+        }
         const status = d.bot_present
             ? `<span class="hc-chip ok">${T('Bot actif', 'Bot active')}</span>`
             : `<span class="hc-chip off">${T('Bot parti', 'Bot left')}</span>`;

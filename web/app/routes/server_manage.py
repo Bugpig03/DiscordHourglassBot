@@ -188,6 +188,16 @@ def save_roles(server_id: int):
     return _back(server_id, "roles", notice="roles_" + (error or "saved"))
 
 
+@server_manage_bp.route("/server/<int:server_id>/manage/private", methods=["POST"])
+def save_private(server_id: int):
+    """Private mode: the owner's only (a decision on what the whole server shows)."""
+    user, _ = _access(server_id, owner_only=True)
+    _check_csrf(user, "gestion du serveur (mode privé)")
+    private = request.form.get("private") == "1"
+    ok = sa.save_private(server_id, private, int(user["id"]))
+    return _back(server_id, "general", notice=("private_on" if private else "private_off") if ok else "error")
+
+
 @server_manage_bp.route("/server/<int:server_id>/manage/managers/add", methods=["POST"])
 def add_manager(server_id: int):
     user, _ = _access(server_id, owner_only=True)

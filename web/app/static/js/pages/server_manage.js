@@ -91,6 +91,9 @@
         toggle.addEventListener('change', sync);
         sync();
     });
+    // Private mode: the switch saves at once
+    document.querySelectorAll('form[data-autosubmit]').forEach(f => f.addEventListener('change', () => f.submit()));
+
     // A test sends the saved settings: after a change, saving comes first
     const reportsForm = document.getElementById('smReports');
     if (reportsForm) {

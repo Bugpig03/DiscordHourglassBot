@@ -382,3 +382,7 @@ html body .sm-tier-head .hg-select-btn { width: auto; flex: 1 1 220px; min-width
 /* Switch: the knob is slanted like the track */
 .sm-switch-track i { top: 4px; left: 4px; width: 20px; height: 16px; clip-path: var(--slant, none); }
 .sm-switch input:checked + .sm-switch-track i { transform: translateX(20px); }
+
+/* Private mode */
+.sm-tag.is-private { background: rgba(245, 197, 66, 0.12); color: #f5c542; }
+#private .hg-card-title svg { color: #f5c542; vertical-align: -2px; }

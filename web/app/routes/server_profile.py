@@ -38,7 +38,7 @@ from app.functions import (
 )
 from app.cache import cache
 from app.auth import can_view_server_private_data, get_current_user
-from app.server_admin import server_role
+from app.server_admin import can_see_server, is_private, server_role
 from app.i18n import current_lang, tr, day_month, month_year
 
 server_profile_bp = Blueprint("server_profile", __name__)
@@ -63,6 +63,20 @@ def server(server_id: str):
 
     g.tracked_entity = ("server", str(int(server_id)))
     lang = current_lang()
+    manage_role = server_role((get_current_user() or {}).get("id"), int(server_id))
+    private = is_private(server_id)
+    if private and not can_see_server(server_id):
+        # Private server, visitor not a member: name, icon, padlock and totals only
+        response = make_response(render_template("server_private.html", manage_role=manage_role, server={
+            "server_id": str(int(server_id)),
+            "servername": servername,
+            "avatar_url": get_server_avatar_url(server_id),
+            "total_hours": round((get_total_seconds_by_server_id(server_id) or 0) / 3600, 1),
+            "total_messages": get_total_message_by_server_id(server_id) or 0,
+        }))
+        response.headers["Cache-Control"] = "private, no-store"
+        response.headers["X-Robots-Tag"] = "noindex"
+        return response
     search_query = request.args.get("q", "").strip()
     has_server_access = can_view_server_private_data(server_id)
 
@@ -74,7 +88,7 @@ def server(server_id: str):
         ("punchcard", int(server_id), lang, get_user_timezone()), SERVER_CACHE_SECONDS, lambda: get_hourly_punchcard_data(server_id)
     )
 
-    return render_template(
+    response = make_response(render_template(
         "server_profile.html",
         stats=stats,
         charts=charts,
@@ -84,14 +98,20 @@ def server(server_id: str):
         members_page_size=MEMBERS_PAGE_SIZE,
         show_all_members=request.args.get("all") == "1",
         # "Manage" button: the owner of the server and the managers they chose (checked live, never cached)
-        manage_role=server_role((get_current_user() or {}).get("id"), int(server_id)),
-    )
+        manage_role=manage_role,
+        is_private=private,
+    ))
+    if private:
+        # A member's view of a private server: never stored by a shared cache, never indexed
+        response.headers["Cache-Control"] = "private, no-store"
+        response.headers["X-Robots-Tag"] = "noindex"
+    return response
 
 
 @server_profile_bp.route("/server/<server_id>/members", methods=["GET"])
 def server_members_page(server_id: str):
     """Return the next slice of the ranked member list as HTML rows (used by the "Voir plus" button)."""
-    if not str(server_id).isdigit() or get_servername_by_server_id(server_id) is None:
+    if not str(server_id).isdigit() or get_servername_by_server_id(server_id) is None or not can_see_server(server_id):
         abort(404)
 
     offset = max(0, request.args.get("offset", 0, type=int))

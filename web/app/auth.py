@@ -122,8 +122,8 @@ def can_view_user_presence(target_user_id: int | str) -> bool:
 def can_view_server_private_data(server_id: int | str) -> bool:
     """Determine if current visitor can view private server details (voice sessions & live presence).
 
-    Strict rule: Must be authenticated AND present on the target server.
-    Verified via Discord OAuth2 guilds list, with cross-check in database Stats table.
+    Strict rule: Must be authenticated AND a member of the target server right now (the bot's live member
+    list, else the Discord OAuth2 guilds list of the login).
     """
     if not is_authenticated():
         return False
@@ -136,19 +136,10 @@ def can_view_server_private_data(server_id: int | str) -> bool:
     except (ValueError, TypeError):
         return False
 
-    # 1. Verification via Discord OAuth2 guilds retrieved on login
-    guild_ids = get_current_user_guild_ids()
-    if int_server_id in guild_ids:
-        return True
-
-    # 2. Database cross-check: has the user recorded activity on this server?
-    try:
-        int_user_id = int(current_user.get("id", 0))
-        return Stats.select().where(
-            (Stats.user_id == int_user_id) & (Stats.server_id == int_server_id)
-        ).exists()
-    except Exception:
-        return False
+    # Member right now: the bot's live member list, else the server list Discord gave at login. Having stats on
+    # the server is not enough any more (web 3.48.0): someone who left it no longer sees its live data.
+    from app.server_admin import viewer_is_member
+    return viewer_is_member(int_server_id)
 
 
 def _safe_redirect_target(target: str | None) -> str:

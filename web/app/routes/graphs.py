@@ -323,8 +323,12 @@ def _movers(lang: str) -> dict:
             rows = db.execute_sql("SELECT server_id, servername, avatar FROM servers WHERE server_id = ANY(%s)", (ids,)).fetchall()
         return {int(i): (n, a) for i, n, a in rows}
 
+    from app.server_admin import private_server_ids
+    private = private_server_ids()
+
     def entries(kind: str, rows, value, extra) -> list[dict]:
-        rows = [r for r in rows if kind != "members" or not is_bot_user(r[0])][:MOVERS_LIMIT]
+        # Bots are not members; private servers are not named (their hours still count in the totals)
+        rows = [r for r in rows if (kind != "members" or not is_bot_user(r[0])) and (kind != "servers" or int(r[0]) not in private)][:MOVERS_LIMIT]
         known = names(kind, [int(r[0]) for r in rows])
         out = []
         for r in rows:
