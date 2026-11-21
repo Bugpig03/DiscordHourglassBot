@@ -290,8 +290,12 @@ def load_user_versus_data(user: Users, lang: str = "fr", server_id: int | None =
 
     badges = calculate_user_badges(stats_dict, lang=lang)
     unlocked_badges = sum(b["tier"] for b in badges)  # tiers reached, 7 per badge
-    # Votes belong to no server: they only count in the global comparison
-    xp_info = calculate_user_xp_and_level(tot_sec, tot_msg, 0 if server_id else member_votes(uid))
+    # The prestige is the member's own, whatever the scope: all their voice, messages and votes on every server
+    if server_id:
+        g_sec, g_msg = get_total_seconds_by_user_id(uid) or 0, get_total_message_by_user_id(uid) or 0
+    else:
+        g_sec, g_msg = tot_sec, tot_msg
+    xp_info = calculate_user_xp_and_level(g_sec, g_msg, member_votes(uid))
 
     theme = resolve_profile_theme(uid, get_profile_settings(uid))
     return {
@@ -422,9 +426,10 @@ def compare_user_metrics(u1: dict, u2: dict) -> dict:
         _compare("level", "versus.stat_level", u1["level"], u2["level"]),
         _compare("activity_30d", "versus.stat_activity_30d", u1["activity_30d_hours"], u2["activity_30d_hours"], is_float=True, unit="h"),
         _compare("rank", "versus.stat_server_rank" if is_server else "versus.stat_rank", u1["rank"], u2["rank"], higher_is_better=False),
-        _compare("badges", "versus.stat_badges", u1["unlocked_badges"], u2["unlocked_badges"]),
     ]
+    # Badges and servers belong to the member as a whole: compared only in the all-servers duel
     if not is_server:
+        metrics.append(_compare("badges", "versus.stat_badges", u1["unlocked_badges"], u2["unlocked_badges"]))
         metrics.append(_compare("servers", "versus.stat_servers", u1["servers_count"], u2["servers_count"]))
     return _scoreboard(metrics)
 

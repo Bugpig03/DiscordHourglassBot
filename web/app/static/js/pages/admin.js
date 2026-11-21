@@ -460,7 +460,7 @@ function sectionVotes() {
         [T('Votes en cours', 'Active votes'), HG.fmt(v.active), T('membres qui ont voté depuis moins de 12 h', 'members who voted less than 12 h ago'), '',
             T('Membres dont le vote compte encore : un vote dure 12 heures, ensuite ils peuvent revoter.', 'Members whose vote still counts: a vote lasts 12 hours, then they can vote again.')],
         [T('Total enregistré', 'Total recorded'), HG.fmt(v.total), '', '',
-            T('Tous les votes enregistrés depuis le début : chacun rapporte 100 XP et compte pour le badge Soutien.', 'Every vote recorded since the start: each one gives 100 XP and counts for the Supporter badge.')],
+            T('Tous les votes enregistrés depuis le début : chacun rapporte 1000 XP de prestige et compte pour le badge Soutien.', 'Every vote recorded since the start: each one gives 1000 prestige XP and counts for the Supporter badge.')],
     ]);
     lineChart('votesChart', v.labels, [bars(T('Votes', 'Votes'), v.daily, '#ff6b8a')], { type: 'bar' });
 }

@@ -83,8 +83,8 @@ def label(fr: str, en: str) -> tuple[str, str]:
 HOW = {
     "voice": label("Toutes les heures passées en vocal, sur tous les serveurs suivis.", "Every hour spent in voice, on every tracked server."),
     "messages": label("Tous les messages envoyés dans les salons textuels suivis.", "Every message sent in the tracked text channels."),
-    "level": label("Le niveau global : 1 XP par minute en vocal, 1 XP par message et 100 XP par vote sur top.gg.",
-                   "The global level: 1 XP per voice minute, 1 XP per message and 100 XP per top.gg vote."),
+    "level": label("Le prestige : 1 XP par minute en vocal, 1 XP par message et 1000 XP par vote sur top.gg, sur tous les serveurs.",
+                   "The prestige: 1 XP per voice minute, 1 XP per message and 1000 XP per top.gg vote, on every server."),
     "rank": label("La meilleure place jamais atteinte au classement vocal global. Une place perdue ensuite ne fait pas redescendre le palier.",
                   "The best spot ever reached in the global voice ranking. Losing it later never takes the tier away."),
     "servers": label("Le nombre de serveurs suivis par Hourglass sur lesquels le membre a été actif.", "How many servers tracked by Hourglass the member has been active on."),

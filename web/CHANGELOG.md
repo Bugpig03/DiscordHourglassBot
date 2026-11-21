@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.45.1 - Prestige Fixe et Votes à 1000 XP - 21/11/2026
+- **Le prestige ne dépend plus des filtres** : sur la page Membres (période, serveur, tri) et dans un Versus limité à un serveur, il changeait selon les filtres choisis, alors qu'il doit toujours être le même. Il est maintenant toujours calculé sur tout : le vocal et les messages sur tous les serveurs depuis le début, plus tous les votes. Les filtres ne choisissent plus que qui est listé et les autres chiffres. Le tri « Prestige & XP » classe donc par prestige.
+- **Chaque vote sur top.gg rapporte 1000 XP de prestige** (au lieu de 100) : voter compte enfin vraiment. Le badge Prestige, les titres et les classements en tiennent compte.
+- **Versus limité à un serveur** : les catégories « Badges » et « Serveurs » sont retirées (sur le site comme sur la carte du bot). Elles appartiennent au membre tous serveurs confondus et n'avaient pas de sens dans un duel sur un seul serveur. Elles restent dans le Versus « Tous les serveurs ».
+
 ## Version 3.45.0 - Rapports Automatiques - 21/11/2026
 - **Onglet « Rapports » de la page « Gérer »** (réservée aux administrateurs du site pendant la préparation) : trois rapports à activer chacun.
   - **Quotidien, hebdomadaire ou mensuel**, avec pour chacun :

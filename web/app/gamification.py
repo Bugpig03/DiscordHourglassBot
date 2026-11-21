@@ -31,7 +31,7 @@ def level_title(level: int) -> tuple:
 
 
 # Each vote for Hourglass on top.gg (one per 12 h) awards this XP, to the member's global level
-XP_PER_VOTE = 100
+XP_PER_VOTE = 1000
 
 
 def xp_for_level(level: int) -> int:
@@ -77,7 +77,7 @@ def calculate_user_xp_and_level(total_seconds: int, total_messages: int, votes: 
     Formula:
       - 1 minute in voice = 1 XP
       - 1 text message = 1 XP (5 XP before v3.26.0)
-      - 1 vote for Hourglass on top.gg = 100 XP (v3.34.0; global level only, votes belong to no server)
+      - 1 vote for Hourglass on top.gg = 1000 XP (100 XP before v3.45.1; prestige only, votes belong to no server)
       - Level curve: quadratic progression where Level = int((XP / 100) ** 0.5) + 1
     """
     total_seconds = max(0, total_seconds or 0)

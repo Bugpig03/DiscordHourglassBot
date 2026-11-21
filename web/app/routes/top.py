@@ -383,17 +383,44 @@ def _compute_user_ranking(period: str, server_id: str) -> list[dict]:
             for user in query
         ]
 
-    # Compute XP and level for all users; the votes of the period count on the all-servers ranking only
+    # The prestige is the member's own, whatever the filters: all their voice, messages and votes, on every
+    # server since the start (the period and server filters only choose who is listed and the other figures)
     _add_previous(results, "user_id", period, server_id)
-    votes = _vote_counts(period) if server_id == "all" else {}
+    prestige = _prestige_map()
     for r in results:
-        cur, prev = votes.get(int(r["user_id"]), (0, 0))
-        xp_info = calculate_user_xp_and_level(r["seconds"], r["messages"], cur)
-        r["xp"] = xp_info["total_xp"]
-        r["level"] = xp_info["level"]
-        r["prev_xp"] = calculate_user_xp_and_level(r["prev_seconds"], r["prev_messages"], prev)["total_xp"]
+        xp, level, prev_xp = prestige.get(int(r["user_id"]), (0, 1, 0))
+        r["xp"], r["level"], r["prev_xp"] = xp, level, prev_xp
 
     return results
+
+
+PRESTIGE_CACHE_SECONDS = 60
+
+
+def _prestige_map() -> dict:
+    """{user_id: (prestige XP, prestige, prestige XP move_days ago)} of every member: all servers, all time, all votes."""
+    def compute():
+        from app.database import db
+        from app.topgg_votes import vote_counts, vote_totals
+
+        totals = {int(uid): (int(sec or 0), int(msg or 0)) for uid, sec, msg in
+                  db.execute_sql("SELECT user_id, SUM(seconds), SUM(messages) FROM stats GROUP BY user_id").fetchall()}
+        votes = vote_totals()
+        # What was earned over the last move_days: removed to get the prestige XP back then (rank movement)
+        now = datetime.utcnow()
+        since = now - timedelta(days=move_days("all"))
+        recent_voice, recent_msgs = _activity_maps("user_id", since, None, "all")
+        recent_votes = vote_counts(since, None, now)
+        out = {}
+        for uid in set(totals) | set(votes):
+            sec, msg = totals.get(uid, (0, 0))
+            info = calculate_user_xp_and_level(sec, msg, votes.get(uid, 0))
+            prev = calculate_user_xp_and_level(max(0, sec - recent_voice.get(uid, 0)), max(0, msg - recent_msgs.get(uid, 0)),
+                                               max(0, votes.get(uid, 0) - recent_votes.get(uid, (0, 0))[0]))
+            out[uid] = (info["total_xp"], info["level"], prev["total_xp"])
+        return out
+
+    return cache.get_or_set(("prestige_map",), PRESTIGE_CACHE_SECONDS, compute)
 
 
 def load_users() -> tuple[list[dict], int]:

@@ -2723,10 +2723,6 @@
   "Membres dont le vote compte encore : un vote dure 12 heures, ensuite ils peuvent revoter.",
   "Members whose vote still counts: a vote lasts 12 hours, then they can vote again."
  ],
- "p0768": [
-  "Tous les votes enregistrés depuis le début : chacun rapporte 100 XP et compte pour le badge Soutien.",
-  "Every vote recorded since the start: each one gives 100 XP and counts for the Supporter badge."
- ],
  "p0769": [
   "Parmi eux, ceux qui étaient en ligne, absents ou occupés sur Discord au moment du relevé (pas forcément sur le serveur).",
   "Among them, those online, idle or busy on Discord at the time of the snapshot (not necessarily on the server)."
@@ -2962,10 +2958,6 @@
  "p0827": [
   "Tous les messages envoyés dans les salons textuels suivis.",
   "Every message sent in the tracked text channels."
- ],
- "p0828": [
-  "Le niveau global : 1 XP par minute en vocal, 1 XP par message et 100 XP par vote sur top.gg.",
-  "The global level: 1 XP per voice minute, 1 XP per message and 100 XP per top.gg vote."
  ],
  "p0829": [
   "La meilleure place jamais atteinte au classement vocal global. Une place perdue ensuite ne fait pas redescendre le palier.",
@@ -4310,5 +4302,13 @@
  "p1199": [
   "Rapports quotidiens, hebdomadaires et mensuels envoyés par le bot sur la période (sans les tests), et serveurs qui en ont activé au moins un. En orange : certains ont échoué (voir le journal).",
   "Daily, weekly and monthly reports sent by the bot over the period (tests left out), and servers that turned at least one on. In orange: some failed (see the log)."
+ ],
+ "p1200": [
+  "Le prestige : 1 XP par minute en vocal, 1 XP par message et 1000 XP par vote sur top.gg, sur tous les serveurs.",
+  "The prestige: 1 XP per voice minute, 1 XP per message and 1000 XP per top.gg vote, on every server."
+ ],
+ "p1201": [
+  "Tous les votes enregistrés depuis le début : chacun rapporte 1000 XP de prestige et compte pour le badge Soutien.",
+  "Every vote recorded since the start: each one gives 1000 prestige XP and counts for the Supporter badge."
  ]
 }
