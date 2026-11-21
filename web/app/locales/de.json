@@ -1141,5 +1141,12 @@
  "p1270": "Stufe löschen",
  "p1271": "Regel {n}",
  "p1272": "Stufe {n}",
- "p1273": "Rolle"
+ "p1273": "Rolle",
+ "p1274": "Der Bot gratuliert Mitgliedern, die auf diesem Server ein Level aufsteigen.",
+ "p1275": "Ihr letzter Textkanal; im Sprachkanal der Ankündigungskanal.",
+ "p1276": "Die Bilanz des Servers, automatisch als Bildkarte in einem Kanal gepostet.",
+ "p1277": "Test senden",
+ "p1278": "Speichere zuerst deine Änderungen, um sie zu testen.",
+ "p1280": "Jede Regel ist eine Folge von Stufen, jede mit ihrer Rolle.",
+ "p1279": "Rollen, die je nach Sprachzeit, Nachrichten oder Level von selbst vergeben und entzogen werden, in Stufen."
 }

@@ -1141,5 +1141,12 @@
  "p1270": "Excluir o nível",
  "p1271": "Regra {n}",
  "p1272": "Nível {n}",
- "p1273": "Cargo"
+ "p1273": "Cargo",
+ "p1274": "O bot parabeniza os membros que sobem de nível neste servidor.",
+ "p1275": "Seu último canal de texto; em voz, o canal de anúncios.",
+ "p1276": "O resumo do servidor publicado sozinho em um canal, como cartão de imagem.",
+ "p1277": "Enviar um teste",
+ "p1278": "Salve suas alterações primeiro para testá-las.",
+ "p1280": "Cada regra é uma série de níveis, cada um com seu cargo.",
+ "p1279": "Cargos dados e removidos sozinhos conforme o tempo em voz, as mensagens ou o nível, por patamares."
 }

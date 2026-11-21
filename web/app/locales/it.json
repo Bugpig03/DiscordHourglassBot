@@ -1141,5 +1141,12 @@
  "p1270": "Elimina il livello",
  "p1271": "Regola {n}",
  "p1272": "Livello {n}",
- "p1273": "Ruolo"
+ "p1273": "Ruolo",
+ "p1274": "Il bot si congratula con i membri che salgono di livello su questo server.",
+ "p1275": "Il suo ultimo canale testuale; in vocale, il canale degli annunci.",
+ "p1276": "Il bilancio del server pubblicato da solo in un canale, come scheda immagine.",
+ "p1277": "Invia un test",
+ "p1278": "Salva prima le modifiche per testarle.",
+ "p1280": "Ogni regola è una serie di livelli, ciascuno con il suo ruolo.",
+ "p1279": "Ruoli dati e tolti da soli in base al tempo in vocale, ai messaggi o al livello, a scaglioni."
 }

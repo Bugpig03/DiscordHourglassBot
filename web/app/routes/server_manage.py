@@ -142,17 +142,22 @@ def levels_card_preview(server_id: int):
 
 @server_manage_bp.route("/server/<int:server_id>/manage/reports", methods=["POST"])
 def save_reports(server_id: int):
-    """Saves the three reports; with a "test" button, also asks the bot for a test of that report."""
+    """Saves the three reports."""
     user, _ = _access(server_id)
     _check_csrf(user, "gestion du serveur (rapports)")
     error = sa.save_reports(server_id, request.form, int(user["id"]))
     if error:
         return _back(server_id, "reports", notice="reports_channel" if error.startswith("channel") else "reports_error")
-    test = request.form.get("test", "")
-    if test:
-        test_error = sa.request_report_test(server_id, test, int(user["id"]))
-        return _back(server_id, "reports", notice="reports_test_" + (test_error or "asked"))
     return _back(server_id, "reports", notice="reports_saved")
+
+
+@server_manage_bp.route("/server/<int:server_id>/manage/reports/<kind>/test", methods=["POST"])
+def test_report(server_id: int, kind: str):
+    """Asks the bot for a test of one report, with its saved settings (nothing is saved here)."""
+    user, _ = _access(server_id)
+    _check_csrf(user, "gestion du serveur (test de rapport)")
+    error = sa.request_report_test(server_id, kind, int(user["id"]))
+    return _back(server_id, "reports", notice="reports_test_" + (error or "asked"))
 
 
 @server_manage_bp.route("/server/<int:server_id>/manage/reports/<kind>.svg", methods=["GET"])

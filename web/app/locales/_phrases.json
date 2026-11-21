@@ -4251,10 +4251,6 @@
   "Personne",
   "Nobody"
  ],
- "p1188": [
-  "Enregistrer et envoyer un test",
-  "Save and send a test"
- ],
  "p1189": [
   "Le bot poste la dernière période terminée, marquée « test », dans la minute.",
   "The bot posts the last finished period, marked “test”, within a minute."
@@ -4566,5 +4562,33 @@
  "p1273": [
   "Rôle",
   "Role"
+ ],
+ "p1274": [
+  "Le bot félicite les membres qui montent de niveau sur ce serveur.",
+  "The bot congratulates the members who level up on this server."
+ ],
+ "p1275": [
+  "Son dernier salon écrit ; en vocal, le salon des annonces.",
+  "Their last text channel; in voice, the announcement channel."
+ ],
+ "p1276": [
+  "Le bilan du serveur posté tout seul dans un salon, en carte image.",
+  "The server’s summary posted by itself in a channel, as an image card."
+ ],
+ "p1277": [
+  "Envoyer un test",
+  "Send a test"
+ ],
+ "p1278": [
+  "Enregistre d’abord tes changements pour les tester.",
+  "Save your changes first to test them."
+ ],
+ "p1279": [
+  "Des rôles donnés et retirés tout seuls selon le temps en vocal, les messages ou le niveau, par paliers.",
+  "Roles given and removed by themselves according to voice time, messages or level, by tiers."
+ ],
+ "p1280": [
+  "Chaque règle est une suite de paliers, chacun avec son rôle.",
+  "Each rule is a series of tiers, each with its role."
  ]
 }

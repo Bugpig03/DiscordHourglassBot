@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.47.1 - Page Gérer Allégée - 21/11/2026
+- **Rapports : « Enregistrer » et « Envoyer un test » sont séparés.** Le test envoie les réglages enregistrés. Après une modification, il attend l'enregistrement et le signale.
+- **Moins de texte sur toute la page Gérer** : les explications passent dans un petit « ? » à côté des titres et des champs, et s'affichent au survol (ou au toucher sur mobile). Il ne reste qu'une phrase courte par section.
+- **Interrupteurs** : le curseur est en diagonale, comme le reste de l'interrupteur.
+
 ## Version 3.47.0 - Rôles par Progressions - 21/11/2026
 - **Onglet « Rôles » : une règle est maintenant une progression de paliers.** Chaque palier donne un rôle quand ses conditions sont remplies, par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende.
   - **« Seul le plus haut » / « Cumuler » dans chaque règle**, avec l'explication sous le choix. Le choix unique pour tout le serveur disparaît.

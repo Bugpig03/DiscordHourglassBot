@@ -356,3 +356,29 @@ html body .sm-cond .hg-select-btn[hidden] { display: none; }
 .sm-tier-num { flex: none; min-width: 64px; color: var(--ar-accent-hi, #a5acff); font: 700 0.74rem/1 var(--ar-display, sans-serif); letter-spacing: 0.1em; text-transform: uppercase; }
 html body .sm-tier-head .hg-select-btn { width: auto; flex: 1 1 220px; min-width: 0; max-width: 340px; }
 .sm-tier-head .sm-rule-tools { display: inline-flex; gap: 4px; }
+
+/* "?" next to a title or a field: the longer explanation, on hover, focus or tap (ui.js data-tip) */
+.sm-info {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  background: rgba(113, 124, 248, 0.14);
+  color: #a5acff;
+  font: 700 0.74rem/1 var(--ar-display, sans-serif);
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: middle;
+  clip-path: var(--slant, none);
+  cursor: help;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sm-info:hover, .sm-info:focus-visible { background: var(--ar-accent-soft, rgba(113, 124, 248, 0.16)); color: #fff; outline: none; }
+.sm-checks li[data-tip] { cursor: help; }
+.sm-label > span { display: inline-flex; align-items: center; }
+.sm-test:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Switch: the knob is slanted like the track */
+.sm-switch-track i { top: 4px; left: 4px; width: 20px; height: 16px; clip-path: var(--slant, none); }
+.sm-switch input:checked + .sm-switch-track i { transform: translateX(20px); }

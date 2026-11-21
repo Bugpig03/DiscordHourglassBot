@@ -1141,5 +1141,12 @@
  "p1270": "Kademeyi sil",
  "p1271": "Kural {n}",
  "p1272": "Kademe {n}",
- "p1273": "Rol"
+ "p1273": "Rol",
+ "p1274": "Bot, bu sunucuda seviye atlayan üyeleri tebrik eder.",
+ "p1275": "Son yazı kanalı; seste, duyuru kanalı.",
+ "p1276": "Sunucunun özeti, bir kanala kendiliğinden görsel kart olarak gönderilir.",
+ "p1277": "Test gönder",
+ "p1278": "Test etmek için önce değişikliklerini kaydet.",
+ "p1280": "Her kural, her biri kendi rolüne sahip bir kademe dizisidir.",
+ "p1279": "Sesli süreye, mesajlara veya seviyeye göre kademeli olarak kendiliğinden verilen ve alınan roller."
 }

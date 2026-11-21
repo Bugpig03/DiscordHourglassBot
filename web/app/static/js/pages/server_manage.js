@@ -91,6 +91,16 @@
         toggle.addEventListener('change', sync);
         sync();
     });
+    // A test sends the saved settings: after a change, saving comes first
+    const reportsForm = document.getElementById('smReports');
+    if (reportsForm) {
+        const dirty = () => {
+            reportsForm.querySelectorAll('[data-report-test]').forEach(b => { b.disabled = true; });
+            reportsForm.querySelectorAll('[data-test-hint]').forEach(h => { h.hidden = false; });
+        };
+        reportsForm.addEventListener('change', dirty);
+        reportsForm.addEventListener('input', dirty);
+    }
 
     // ---------------------------------------------------------------- automatic roles: rules editor
     // A rule is a progression of tiers, each tier a role and its conditions; the rule keeps the highest tier reached
@@ -199,7 +209,6 @@
                     b.classList.toggle('is-on', on);
                     b.setAttribute('aria-pressed', String(on));
                 });
-                ruleLi.querySelectorAll('[data-mode-help]').forEach(p => { p.hidden = !several || p.dataset.modeHelp !== ruleLi.dataset.mode; });
                 ruleLi.querySelector('[data-rule-up]').disabled = i === 0;
                 ruleLi.querySelector('[data-rule-down]').disabled = i === rules.length - 1;
                 ruleLi.querySelector('[data-add-tier]').hidden = tierItems.length >= maxTiers || full;

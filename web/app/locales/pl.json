@@ -1141,5 +1141,12 @@
  "p1270": "Usuń próg",
  "p1271": "Reguła {n}",
  "p1272": "Próg {n}",
- "p1273": "Rola"
+ "p1273": "Rola",
+ "p1274": "Bot gratuluje członkom, którzy awansują na tym serwerze.",
+ "p1275": "Ich ostatni kanał tekstowy; na głosowym — kanał ogłoszeń.",
+ "p1276": "Podsumowanie serwera publikowane automatycznie na kanale jako karta graficzna.",
+ "p1277": "Wyślij test",
+ "p1278": "Najpierw zapisz zmiany, aby je przetestować.",
+ "p1280": "Każda reguła to seria progów, każdy z własną rolą.",
+ "p1279": "Role nadawane i odbierane same według czasu na głosowym, wiadomości lub poziomu, progami."
 }

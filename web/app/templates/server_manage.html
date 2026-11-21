@@ -6,11 +6,12 @@
 <section class="gray-box small-border-radius hg-card sm-soon">
     <span class="sm-soon-icon">{{ pixel_icon(icon, 22) }}</span>
     <div>
-        <h2 class="hg-card-title">{{ title }} <span class="sm-tag">{{ tr('Bientôt', 'Coming soon') }}</span></h2>
-        <p class="hg-card-desc">{{ text }}</p>
+        <h2 class="hg-card-title">{{ title }} {{ tip(text) }} <span class="sm-tag">{{ tr('Bientôt', 'Coming soon') }}</span></h2>
     </div>
 </section>
 {% endmacro %}
+
+{% macro tip(text) %}<span class="sm-info" data-tip="{{ text }}" tabindex="0" role="note" aria-label="{{ text }}">?</span>{% endmacro %}
 
 {% macro who(p) %}{% if p %}<span class="sm-who"{% if p.nickname %} data-tip="{{ tr('Pseudo sur le serveur : {name}', 'Nickname on the server: {name}', name=p.nickname) }}"{% endif %}>@{{ p.username }}</span>{% else %}—{% endif %}{% endmacro %}
 
@@ -132,30 +133,26 @@
     <section class="gray-box small-border-radius hg-card">
         <div class="hg-card-head">
             <div>
-                <h2 class="hg-card-title">{{ tr('Ce que le bot peut faire ici', 'What the bot can do here') }}</h2>
-                <p class="hg-card-desc">{{ tr('Les permissions Discord du bot sur ce serveur. Il les relit tout seul à chaque changement.', 'The bot’s Discord permissions on this server. It reads them again by itself after every change.') }}{% if diag.synced_at %} <span class="sm-muted">{{ tr('Dernière lecture :', 'Last read:') }} <time data-utc="{{ diag.synced_at.isoformat() }}Z"></time></span>{% endif %}</p>
+                <h2 class="hg-card-title">{{ tr('Ce que le bot peut faire ici', 'What the bot can do here') }} {{ tip(tr('Les permissions Discord du bot sur ce serveur. Il les relit tout seul à chaque changement.', 'The bot’s Discord permissions on this server. It reads them again by itself after every change.')) }}</h2>
+                {% if diag.synced_at %}<p class="hg-card-desc sm-muted">{{ tr('Dernière lecture :', 'Last read:') }} <time data-utc="{{ diag.synced_at.isoformat() }}Z"></time></p>{% endif %}
             </div>
-            {% if diag.missing %}<a class="btn-versus-action sm-fix" href="{{ invite_url }}" target="_blank" rel="noopener">{{ pixel_icon('shield', 14) }}<span>{{ tr('Donner les permissions', 'Grant the permissions') }}</span></a>{% endif %}
+            {% if diag.missing %}<a class="btn-versus-action sm-fix" href="{{ invite_url }}" target="_blank" rel="noopener" data-tip="{{ tr('« Donner les permissions » ouvre Discord avec ce serveur déjà choisi : valide, et la page se met à jour d’elle-même en quelques secondes.', '“Grant the permissions” opens Discord with this server already chosen: confirm, and this page updates by itself within seconds.') }}">{{ pixel_icon('shield', 14) }}<span>{{ tr('Donner les permissions', 'Grant the permissions') }}</span></a>{% endif %}
         </div>
         {% if diag.admin %}
         <p class="sm-ok-line">{{ pixel_icon('check', 14) }}{{ tr('Le bot est administrateur : il a toutes les permissions.', 'The bot is an administrator: it has every permission.') }}</p>
         {% endif %}
         <ul class="sm-checks">
             {% for c in diag.checks %}
-            <li class="{{ 'is-ok' if c.ok else 'is-missing' }}">
+            <li class="{{ 'is-ok' if c.ok else 'is-missing' }}" data-tip="{{ c.why }}" tabindex="0">
                 <span class="sm-check-icon">{{ pixel_icon('check' if c.ok else 'close', 13) }}</span>
-                <span class="sm-check-text"><b>{{ c.label }}</b><small>{{ c.why }}</small></span>
+                <span class="sm-check-text"><b>{{ c.label }}</b></span>
             </li>
             {% endfor %}
         </ul>
-        {% if diag.missing %}
-        <p class="sm-help">{{ tr('« Donner les permissions » ouvre Discord avec ce serveur déjà choisi : valide, et la page se met à jour d’elle-même en quelques secondes.', '“Grant the permissions” opens Discord with this server already chosen: confirm, and this page updates by itself within seconds.') }}</p>
-        {% endif %}
         {% if diag.channels_blocked %}
         <div class="sm-blocked">
-            <p><b>{{ tr('Salons où le bot ne peut pas écrire', 'Channels the bot cannot write in') }}</b> ({{ diag.channels_blocked | length }} / {{ diag.channels_total }})</p>
+            <p><b>{{ tr('Salons où le bot ne peut pas écrire', 'Channels the bot cannot write in') }}</b> ({{ diag.channels_blocked | length }} / {{ diag.channels_total }}) {{ tip(tr('C’est normal pour les salons privés. Pour qu’il y écrive, ajoute le rôle Hourglass dans les permissions du salon.', 'This is normal for private channels. For it to write there, add the Hourglass role to the channel’s permissions.')) }}</p>
             <div class="sm-chips">{% for c in diag.channels_blocked[:24] %}<span class="sm-chip"># {{ c.name }}</span>{% endfor %}{% if diag.channels_blocked | length > 24 %}<span class="sm-chip">+{{ diag.channels_blocked | length - 24 }}</span>{% endif %}</div>
-            <p class="sm-help">{{ tr('C’est normal pour les salons privés. Pour qu’il y écrive, ajoute le rôle Hourglass dans les permissions du salon.', 'This is normal for private channels. For it to write there, add the Hourglass role to the channel’s permissions.') }}</p>
         </div>
         {% endif %}
     </section>
@@ -164,8 +161,7 @@
     <section class="gray-box small-border-radius hg-card">
         <div class="hg-card-head">
             <div>
-                <h2 class="hg-card-title">{{ tr('Fuseau horaire', 'Time zone') }}</h2>
-                <p class="hg-card-desc">{{ tr('L’heure du serveur : les rapports partent à l’heure choisie dans ce fuseau, et les journées s’y arrêtent à minuit.', 'The server’s time: reports go out at the chosen hour in this zone, and days end at its midnight.') }}</p>
+                <h2 class="hg-card-title">{{ tr('Fuseau horaire', 'Time zone') }} {{ tip(tr('L’heure du serveur : les rapports partent à l’heure choisie dans ce fuseau, et les journées s’y arrêtent à minuit.', 'The server’s time: reports go out at the chosen hour in this zone, and days end at its midnight.')) }}</h2>
             </div>
         </div>
         <form method="post" action="{{ url_for('server_manage.save_general', server_id=server_id) }}" class="sm-row">
@@ -182,8 +178,7 @@
     <section class="gray-box small-border-radius hg-card" id="managers">
         <div class="hg-card-head">
             <div>
-                <h2 class="hg-card-title">{{ tr('Gestionnaires', 'Managers') }} <span class="sm-count">{{ managers | length }} / {{ max_managers }}</span></h2>
-                <p class="hg-card-desc">{{ tr('Les membres que tu choisis peuvent tout régler ici, sauf cette liste et le mode privé, qui restent à toi. Un gestionnaire qui quitte le serveur perd ses droits tout seul.', 'The members you choose can set everything here, except this list and the private mode, which stay yours. A manager who leaves the server loses their rights by themselves.') }}</p>
+                <h2 class="hg-card-title">{{ tr('Gestionnaires', 'Managers') }} <span class="sm-count">{{ managers | length }} / {{ max_managers }}</span> {{ tip(tr('Les membres que tu choisis peuvent tout régler ici, sauf cette liste et le mode privé, qui restent à toi. Un gestionnaire qui quitte le serveur perd ses droits tout seul.', 'The members you choose can set everything here, except this list and the private mode, which stay yours. A manager who leaves the server loses their rights by themselves.')) }}</h2>
             </div>
         </div>
         {% if managers %}
@@ -230,8 +225,8 @@
         <section class="gray-box small-border-radius hg-card">
             <div class="hg-card-head">
                 <div>
-                    <h2 class="hg-card-title">{{ tr('Annonces de passage de niveau', 'Level-up announcements') }}</h2>
-                    <p class="hg-card-desc">{{ tr('Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. Le niveau, c’est la progression sur ce serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Ce n’est pas le prestige des profils, qui compte toute son activité Hourglass et ses votes. Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.', 'When a member levels up on this server, the bot congratulates them in the channel of your choice. The level is the progression on this server: their voice and messages here (1 minute in voice or 1 message = 1 XP). It is not the prestige of the profiles, which counts all their Hourglass activity and votes. Levels reached before turning it on are never announced.') }}</p>
+                    <h2 class="hg-card-title">{{ tr('Annonces de passage de niveau', 'Level-up announcements') }} {{ tip(tr('Quand un membre monte de niveau sur ce serveur, le bot le félicite dans le salon de ton choix. Le niveau, c’est la progression sur ce serveur : son vocal et ses messages ici (1 minute en vocal ou 1 message = 1 XP). Ce n’est pas le prestige des profils, qui compte toute son activité Hourglass et ses votes. Les niveaux déjà atteints avant l’activation ne sont jamais annoncés.', 'When a member levels up on this server, the bot congratulates them in the channel of your choice. The level is the progression on this server: their voice and messages here (1 minute in voice or 1 message = 1 XP). It is not the prestige of the profiles, which counts all their Hourglass activity and votes. Levels reached before turning it on are never announced.')) }}</h2>
+                    <p class="hg-card-desc">{{ tr('Le bot félicite les membres qui montent de niveau sur ce serveur.', 'The bot congratulates the members who level up on this server.') }}</p>
                 </div>
                 <label class="sm-switch">
                     <input type="checkbox" name="enabled" value="1"{% if levelup.enabled %} checked{% endif %} data-levels-enabled>
@@ -264,12 +259,12 @@
                                 <input type="radio" name="same_channel" value="1"{% if levelup.same_channel %} checked{% endif %}>
                                 <span class="sm-choice-mark" aria-hidden="true"></span>
                                 <span class="sm-choice-text"><b>{{ tr('Là où le membre vient d’écrire', 'Where the member just wrote') }}</b>
-                                    <small>{{ tr('Dans le salon de son dernier message. S’il monte de niveau en vocal, il n’y a pas de salon écrit : l’annonce part dans le salon des annonces.', 'In the channel of their last message. If they level up in voice, there is no text channel: the announcement goes to the announcement channel.') }}</small></span>
+                                    <small>{{ tr('Son dernier salon écrit ; en vocal, le salon des annonces.', 'Their last text channel; in voice, the announcement channel.') }}</small></span> {{ tip(tr('Dans le salon de son dernier message. S’il monte de niveau en vocal, il n’y a pas de salon écrit : l’annonce part dans le salon des annonces.', 'In the channel of their last message. If they level up in voice, there is no text channel: the announcement goes to the announcement channel.')) }}
                             </label>
                         </div>
                     </div>
                     <div class="sm-field">
-                        <label class="sm-label" for="smLevelMessage">{{ tr('Message', 'Message') }} <small class="sm-counter" data-counter>0 / {{ levelup_max }}</small></label>
+                        <label class="sm-label" for="smLevelMessage"><span>{{ tr('Message', 'Message') }} {{ tip(tr('Vide : le texte par défaut, dans la langue du serveur. **gras**, *italique* et les émojis fonctionnent comme sur Discord.', 'Empty: the default text, in the server’s language. **bold**, *italics* and emojis work as on Discord.')) }}</span> <small class="sm-counter" data-counter>0 / {{ levelup_max }}</small></label>
                         <textarea id="smLevelMessage" name="message" rows="3" maxlength="{{ levelup_max }}" class="sm-textarea" placeholder="{{ levelup_default }}">{{ levelup.message }}</textarea>
                         <div class="sm-vars">
                             <span>{{ tr('Insérer :', 'Insert:') }}</span>
@@ -277,7 +272,6 @@
                             <button type="button" data-var="{niveau}">{niveau}</button>
                             <button type="button" data-var="{serveur}">{serveur}</button>
                         </div>
-                        <p class="sm-help">{{ tr('Vide : le texte par défaut, dans la langue du serveur. **gras**, *italique* et les émojis fonctionnent comme sur Discord.', 'Empty: the default text, in the server’s language. **bold**, *italics* and emojis work as on Discord.') }}</p>
                     </div>
                     <div class="sm-field sm-row-fields">
                         <label class="sm-toggle"><input type="checkbox" name="mention" value="1"{% if levelup.mention %} checked{% endif %}><span class="sm-toggle-box" aria-hidden="true">{{ pixel_icon('check', 12) }}</span><span>{{ tr('Mentionner le membre', 'Mention the member') }}</span></label>
@@ -298,7 +292,7 @@
 
                 <!-- What it will look like on Discord -->
                 <div class="sm-preview" aria-label="{{ tr('Aperçu', 'Preview') }}">
-                    <p class="sm-label">{{ tr('Aperçu sur Discord', 'Preview on Discord') }}</p>
+                    <p class="sm-label">{{ tr('Aperçu sur Discord', 'Preview on Discord') }} {{ tip(tr('Exemple avec ta carte (ou celle du membre le plus actif du serveur).', 'Example with your card (or the server’s most active member’s).')) }}</p>
                     <div class="sm-discord">
                         <img class="sm-discord-avatar" src="{{ url_for('static', filename='icons/icon-512.png') }}" alt="" width="40" height="40">
                         <div class="sm-discord-body">
@@ -307,7 +301,6 @@
                             <img class="sm-discord-card" data-preview-card src="{{ url_for('server_manage.levels_card_preview', server_id=server_id) }}" alt="" loading="lazy" data-fallback="hide">
                         </div>
                     </div>
-                    <p class="sm-help">{{ tr('Exemple avec ta carte (ou celle du membre le plus actif du serveur).', 'Example with your card (or the server’s most active member’s).') }}</p>
                 </div>
             </div>
         </section>
@@ -326,8 +319,8 @@
     <section class="gray-box small-border-radius hg-card">
         <div class="hg-card-head">
             <div>
-                <h2 class="hg-card-title">{{ tr('Rapports automatiques', 'Automatic reports') }}</h2>
-                <p class="hg-card-desc">{{ tr('Le bot poste tout seul le bilan du serveur dans un salon, en carte image : vocal et messages comparés à la période d’avant, membres actifs, nouveaux membres, top 5 et heure de pointe. Les heures sont celles du fuseau du serveur ({tz}, onglet Général). Les profils privés et les bots n’apparaissent pas dans le top.', 'The bot posts the server’s summary by itself in a channel, as an image card: voice and messages compared with the period before, active members, new members, top 5 and peak hour. Hours follow the server’s time zone ({tz}, General tab). Private profiles and bots stay out of the top.', tz=settings.timezone | replace('_', ' ')) }}</p>
+                <h2 class="hg-card-title">{{ tr('Rapports automatiques', 'Automatic reports') }} {{ tip(tr('Le bot poste tout seul le bilan du serveur dans un salon, en carte image : vocal et messages comparés à la période d’avant, membres actifs, nouveaux membres, top 5 et heure de pointe. Les heures sont celles du fuseau du serveur ({tz}, onglet Général). Les profils privés et les bots n’apparaissent pas dans le top.', 'The bot posts the server’s summary by itself in a channel, as an image card: voice and messages compared with the period before, active members, new members, top 5 and peak hour. Hours follow the server’s time zone ({tz}, General tab). Private profiles and bots stay out of the top.', tz=settings.timezone | replace('_', ' '))) }}</h2>
+                <p class="hg-card-desc">{{ tr('Le bilan du serveur posté tout seul dans un salon, en carte image.', 'The server’s summary posted by itself in a channel, as an image card.') }}</p>
             </div>
         </div>
         {% if not can_embed %}<p class="sm-help sm-warn-text">{{ tr('Le bot n’a pas la permission « Intégrer des liens » : les rapports ne pourront pas afficher leur carte (voir l’onglet Général).', 'The bot lacks the “Embed links” permission: reports will not be able to show their card (see the General tab).') }}</p>{% endif %}
@@ -385,8 +378,8 @@
                         </label>
                     </div>
                     <div class="sm-report-actions">
-                        <button type="submit" name="test" value="{{ kind }}" class="sm-toggle sm-test">{{ pixel_icon('zap', 12) }}<span>{{ tr('Enregistrer et envoyer un test', 'Save and send a test') }}</span></button>
-                        <small class="sm-help">{{ tr('Le bot poste la dernière période terminée, marquée « test », dans la minute.', 'The bot posts the last finished period, marked “test”, within a minute.') }}</small>
+                        <button type="submit" formaction="{{ url_for('server_manage.test_report', server_id=server_id, kind=kind) }}" class="sm-toggle sm-test" data-report-test data-tip="{{ tr('Le bot poste la dernière période terminée, marquée « test », dans la minute.', 'The bot posts the last finished period, marked “test”, within a minute.') }}">{{ pixel_icon('zap', 12) }}<span>{{ tr('Envoyer un test', 'Send a test') }}</span></button>
+                        <small class="sm-help sm-warn-text" data-test-hint hidden>{{ tr('Enregistre d’abord tes changements pour les tester.', 'Save your changes first to test them.') }}</small>
                     </div>
                 </div>
                 <div class="sm-preview">
@@ -432,8 +425,8 @@
         <section class="gray-box small-border-radius hg-card">
             <div class="hg-card-head">
                 <div>
-                    <h2 class="hg-card-title">{{ tr('Rôles automatiques', 'Automatic roles') }}</h2>
-                    <p class="hg-card-desc">{{ tr('Le bot donne tout seul des rôles aux membres selon leur activité sur ce serveur : heures en vocal, messages ou niveau, au total ou sur les 30 derniers jours. Un membre est vérifié dans la minute quand il écrit ou est en vocal, et tout le serveur l’est chaque heure.', 'The bot gives roles to members by itself according to their activity on this server: voice hours, messages or level, in total or over the last 30 days. A member is checked within a minute when they write or are in voice, and the whole server every hour.') }}</p>
+                    <h2 class="hg-card-title">{{ tr('Rôles automatiques', 'Automatic roles') }} {{ tip(tr('Le bot donne tout seul des rôles aux membres selon leur activité sur ce serveur : heures en vocal, messages ou niveau, au total ou sur les 30 derniers jours. Un membre est vérifié dans la minute quand il écrit ou est en vocal, et tout le serveur l’est chaque heure.', 'The bot gives roles to members by itself according to their activity on this server: voice hours, messages or level, in total or over the last 30 days. A member is checked within a minute when they write or are in voice, and the whole server every hour.')) }}</h2>
+                    <p class="hg-card-desc">{{ tr('Des rôles donnés et retirés tout seuls selon le temps en vocal, les messages ou le niveau, par paliers.', 'Roles given and removed by themselves according to voice time, messages or level, by tiers.') }}</p>
                 </div>
                 <label class="sm-switch">
                     <input type="checkbox" name="enabled" value="1"{% if roles_settings.enabled %} checked{% endif %} data-roles-enabled>
@@ -450,17 +443,16 @@
             {% endif %}
             <div class="sm-rules-intro" data-roles-body>
                 <div class="sm-field sm-row-fields">
-                    <label class="sm-toggle"><input type="checkbox" name="remove_unmet" value="1"{% if roles_settings.remove_unmet %} checked{% endif %}><span class="sm-toggle-box" aria-hidden="true">{{ pixel_icon('check', 12) }}</span><span>{{ tr('Retirer le rôle quand la règle n’est plus remplie', 'Remove the role when the rule is no longer met') }}</span></label>
+                    <label class="sm-toggle"><input type="checkbox" name="remove_unmet" value="1"{% if roles_settings.remove_unmet %} checked{% endif %}><span class="sm-toggle-box" aria-hidden="true">{{ pixel_icon('check', 12) }}</span><span>{{ tr('Retirer le rôle quand la règle n’est plus remplie', 'Remove the role when the rule is no longer met') }}</span></label> {{ tip(tr('Utile pour les critères sur 30 jours (« actif ce mois-ci »). Le bot ne retire jamais un rôle donné à la main : seulement ceux qu’il a donnés lui-même. Supprimer une règle ou tout désactiver ne retire aucun rôle.', 'Useful for criteria over 30 days (“active this month”). The bot never removes a role given by hand: only the ones it gave itself. Deleting a rule or turning everything off removes no role.')) }}
                 </div>
-                <p class="sm-help">{{ tr('Utile pour les critères sur 30 jours (« actif ce mois-ci »). Le bot ne retire jamais un rôle donné à la main : seulement ceux qu’il a donnés lui-même. Supprimer une règle ou tout désactiver ne retire aucun rôle.', 'Useful for criteria over 30 days (“active this month”). The bot never removes a role given by hand: only the ones it gave itself. Deleting a rule or turning everything off removes no role.') }}</p>
             </div>
         </section>
 
         <section class="gray-box small-border-radius hg-card" data-roles-body>
             <div class="hg-card-head">
                 <div>
-                    <h2 class="hg-card-title">{{ tr('Règles', 'Rules') }} <span class="sm-count" data-rule-count>{{ roles_settings.rules | length }} / {{ max_role_rules }}</span></h2>
-                    <p class="hg-card-desc">{{ tr('Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui.', 'A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today.', n=max_role_conditions) }}</p>
+                    <h2 class="hg-card-title">{{ tr('Règles', 'Rules') }} <span class="sm-count" data-rule-count>{{ roles_settings.rules | length }} / {{ max_role_rules }}</span> {{ tip(tr('Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui.', 'A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today.', n=max_role_conditions)) }}</h2>
+                    <p class="hg-card-desc">{{ tr('Chaque règle est une suite de paliers, chacun avec son rôle.', 'Each rule is a series of tiers, each with its role.') }}</p>
                 </div>
             </div>
             <ol class="sm-rules" data-rules></ol>
@@ -487,8 +479,8 @@
             <div class="sm-rule-head">
                 <span class="sm-rule-num" data-rule-num></span>
                 <div class="sm-seg" role="group" aria-label="{{ tr('Plusieurs paliers atteints', 'Several tiers reached') }}" data-rule-mode>
-                    <button type="button" data-mode="1">{{ tr('Seul le plus haut', 'Highest only') }}</button>
-                    <button type="button" data-mode="0">{{ tr('Cumuler', 'Stack') }}</button>
+                    <button type="button" data-mode="1" data-tip="{{ tr('Le membre ne garde que le rôle du palier le plus haut qu’il atteint : en montant, il échange son rôle contre le suivant. Range les paliers du plus facile au plus dur.', 'The member only keeps the role of the highest tier they reach: going up, they swap their role for the next one. Order the tiers from easiest to hardest.') }}">{{ tr('Seul le plus haut', 'Highest only') }}</button>
+                    <button type="button" data-mode="0" data-tip="{{ tr('Le membre reçoit le rôle de chaque palier qu’il atteint, et les garde tous.', 'The member gets the role of every tier they reach, and keeps them all.') }}">{{ tr('Cumuler', 'Stack') }}</button>
                 </div>
                 <span class="sm-rule-tools">
                     <button type="button" class="sm-icon-btn" data-rule-up aria-label="{{ tr('Monter la règle', 'Move the rule up') }}">{{ pixel_icon('chevron_up', 12) }}</button>
@@ -496,8 +488,6 @@
                     <button type="button" class="sm-icon-btn is-danger" data-rule-delete aria-label="{{ tr('Supprimer la règle', 'Delete the rule') }}">{{ pixel_icon('close', 12) }}</button>
                 </span>
             </div>
-            <p class="sm-help sm-rule-mode-help" data-mode-help="1">{{ tr('Le membre ne garde que le rôle du palier le plus haut qu’il atteint : en montant, il échange son rôle contre le suivant. Range les paliers du plus facile au plus dur.', 'The member only keeps the role of the highest tier they reach: going up, they swap their role for the next one. Order the tiers from easiest to hardest.') }}</p>
-            <p class="sm-help sm-rule-mode-help" data-mode-help="0">{{ tr('Le membre reçoit le rôle de chaque palier qu’il atteint, et les garde tous.', 'The member gets the role of every tier they reach, and keeps them all.') }}</p>
             <ol class="sm-tiers" data-tiers></ol>
             <button type="button" class="sm-link-btn" data-add-tier>{{ pixel_icon('plus', 10) }}{{ tr('Ajouter un palier', 'Add a tier') }}</button>
         </li>
@@ -557,8 +547,7 @@
     <section class="gray-box small-border-radius hg-card">
         <div class="hg-card-head">
             <div>
-                <h2 class="hg-card-title">{{ tr('Journal', 'Log') }}</h2>
-                <p class="hg-card-desc">{{ tr('Les réglages modifiés et tout ce que le bot fait sur ce serveur (annonces, rapports, rôles), avec les erreurs : les 200 dernières lignes.', 'Settings changed and everything the bot does on this server (announcements, reports, roles), with errors: the last 200 lines.') }}</p>
+                <h2 class="hg-card-title">{{ tr('Journal', 'Log') }} {{ tip(tr('Les réglages modifiés et tout ce que le bot fait sur ce serveur (annonces, rapports, rôles), avec les erreurs : les 200 dernières lignes.', 'Settings changed and everything the bot does on this server (announcements, reports, roles), with errors: the last 200 lines.')) }}</h2>
             </div>
         </div>
         {% if journal %}
