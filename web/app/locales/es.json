@@ -1311,5 +1311,7 @@
  "p1448": "Condiciones de uso",
  "p1449": "Un nivel sin condición no puede dar un rol con permisos de moderación: todos los recién llegados lo obtendrían. Añade una condición a este nivel.",
  "p1450": "Una regla es una progresión de niveles: cada nivel otorga un rol cuando se cumplen sus condiciones (hasta {n} por nivel). Por ejemplo 10 h en voz → @Habitual, 50 h → @Veterano, 100 h → @Leyenda. La cifra a la derecha de cada nivel cuenta los miembros que tendrían ese rol hoy. Un nivel sin condición se da a todos los miembros, en cuanto llegan.",
- "p1451": "Sin condición: todos los miembros tienen este rol, en cuanto llegan al servidor."
+ "p1451": "Sin condición: todos los miembros tienen este rol, en cuanto llegan al servidor.",
+ "p1452": "Este rol da permisos de moderación y este nivel no tiene condición: todos los miembros lo obtendrán, recién llegados incluidos.",
+ "p1453": "Sin condición"
 }

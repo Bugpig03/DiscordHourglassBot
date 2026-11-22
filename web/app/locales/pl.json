@@ -1311,5 +1311,7 @@
  "p1448": "Warunki korzystania",
  "p1449": "Stopień bez warunku nie może nadawać roli z uprawnieniami moderacyjnymi: dostałby ją każdy nowy członek. Dodaj warunek do tego stopnia.",
  "p1450": "Reguła to ścieżka progów: każdy próg nadaje rolę, gdy jego warunki są spełnione (maksymalnie {n} na próg). Na przykład 10 h na kanałach głosowych → @Bywalec, 50 h → @Weteran, 100 h → @Legenda. Liczba po prawej stronie każdego progu to członkowie, którzy mieliby dziś tę rolę. Stopień bez warunku jest nadawany każdemu członkowi od razu po dołączeniu.",
- "p1451": "Brak warunku: wszyscy członkowie mają tę rolę od razu po dołączeniu do serwera."
+ "p1451": "Brak warunku: wszyscy członkowie mają tę rolę od razu po dołączeniu do serwera.",
+ "p1452": "Ta rola daje uprawnienia moderacyjne, a ten stopień nie ma warunku: dostaną ją wszyscy członkowie, także nowi.",
+ "p1453": "Bez warunku"
 }

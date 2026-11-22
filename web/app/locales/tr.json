@@ -1311,5 +1311,7 @@
  "p1448": "Kullanım koşulları",
  "p1449": "Koşulsuz bir kademe moderasyon yetkisi veren bir rol veremez: her yeni gelen onu alırdı. Bu kademeye bir koşul ekle.",
  "p1450": "Bir kural, kademelerden oluşan bir ilerlemedir: her kademe, koşulları karşılandığında bir rol verir (kademe başına en fazla {n}). Örneğin seste 10 sa → @Müdavim, 50 sa → @Kıdemli, 100 sa → @Efsane. Her kademenin sağındaki sayı, bugün o role sahip olacak üyeleri sayar. Koşulsuz bir kademe, katılır katılmaz her üyeye verilir.",
- "p1451": "Koşul yok: tüm üyeler sunucuya katılır katılmaz bu rolü alır."
+ "p1451": "Koşul yok: tüm üyeler sunucuya katılır katılmaz bu rolü alır.",
+ "p1452": "Bu rol moderasyon yetkisi verir ve bu kademenin koşulu yok: yeni gelenler dahil tüm üyeler alır.",
+ "p1453": "Koşulsuz"
 }

@@ -5235,10 +5235,6 @@
   "Conditions d’utilisation",
   "Terms of use"
  ],
- "p1449": [
-  "Un palier sans condition ne peut pas donner un rôle avec des droits de modération : tous les nouveaux venus l’obtiendraient. Ajoute une condition à ce palier.",
-  "A tier without condition cannot give a role with moderation rights: every newcomer would get it. Add a condition to this tier."
- ],
  "p1450": [
   "Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui. Un palier sans condition est donné à tous les membres, dès leur arrivée.",
   "A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today. A tier without condition is given to every member, as soon as they join."
@@ -5246,5 +5242,13 @@
  "p1451": [
   "Aucune condition : tous les membres ont ce rôle, dès leur arrivée sur le serveur.",
   "No condition: every member gets this role, as soon as they join the server."
+ ],
+ "p1452": [
+  "Ce rôle donne des droits de modération et ce palier n’a aucune condition : tous les membres l’obtiendront, nouveaux venus compris.",
+  "This role gives moderation rights and this tier has no condition: every member will get it, newcomers included."
+ ],
+ "p1453": [
+  "Sans condition",
+  "No condition"
  ]
 }

@@ -1311,5 +1311,7 @@
  "p1448": "Nutzungsbedingungen",
  "p1449": "Eine Stufe ohne Bedingung kann keine Rolle mit Moderationsrechten vergeben: Jeder Neuankömmling würde sie erhalten. Füge dieser Stufe eine Bedingung hinzu.",
  "p1450": "Eine Regel ist eine Abfolge von Stufen: Jede Stufe vergibt eine Rolle, wenn ihre Bedingungen erfüllt sind (bis zu {n} pro Stufe). Zum Beispiel 10 h im Sprachkanal → @Stammgast, 50 h → @Veteran, 100 h → @Legende. Die Zahl rechts neben jeder Stufe zählt die Mitglieder, die diese Rolle heute hätten. Eine Stufe ohne Bedingung wird jedem Mitglied gegeben, sobald es beitritt.",
- "p1451": "Keine Bedingung: Alle Mitglieder erhalten diese Rolle, sobald sie dem Server beitreten."
+ "p1451": "Keine Bedingung: Alle Mitglieder erhalten diese Rolle, sobald sie dem Server beitreten.",
+ "p1452": "Diese Rolle gibt Moderationsrechte und diese Stufe hat keine Bedingung: Alle Mitglieder erhalten sie, auch Neuankömmlinge.",
+ "p1453": "Ohne Bedingung"
 }

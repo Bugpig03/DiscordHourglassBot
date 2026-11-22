@@ -1311,5 +1311,7 @@
  "p1448": "Condizioni d'uso",
  "p1449": "Un grado senza condizione non può dare un ruolo con permessi di moderazione: tutti i nuovi arrivati lo otterrebbero. Aggiungi una condizione a questo grado.",
  "p1450": "Una regola è una progressione di livelli: ogni livello assegna un ruolo quando le sue condizioni sono soddisfatte (fino a {n} per livello). Per esempio 10 h in vocale → @Habitué, 50 h → @Veterano, 100 h → @Leggenda. Il numero a destra di ogni livello conta i membri che avrebbero quel ruolo oggi. Un grado senza condizione viene dato a tutti i membri, appena arrivano.",
- "p1451": "Nessuna condizione: tutti i membri hanno questo ruolo, appena arrivano sul server."
+ "p1451": "Nessuna condizione: tutti i membri hanno questo ruolo, appena arrivano sul server.",
+ "p1452": "Questo ruolo dà permessi di moderazione e questo grado non ha condizioni: tutti i membri lo otterranno, compresi i nuovi arrivati.",
+ "p1453": "Senza condizione"
 }

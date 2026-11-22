@@ -3,6 +3,11 @@
 English version of the changelog, posted with the French one in the patch notes of the official Discord server.
 Older versions only exist in French (CHANGELOG.md).
 
+## Version 3.52.1 - Tier Remarks as Icons - 23/11/2026
+- **Automatic roles**: the "No condition" line no longer shows in every tier, only in tiers that really have no condition.
+- The remarks of a tier are now icons next to the role, with the details on hover: moderation rights (orange), role above the bot (red), "No condition" (green).
+- A role with moderation rights is accepted again in a tier without condition. The orange icon then warns that every member will get it, newcomers included.
+
 ## Version 3.52.0 - Role Tiers Without Condition - 23/11/2026
 - **Automatic roles**: a tier can now have no condition at all. Its role goes to every member, as soon as they join the server.
   - Just remove the last condition of the tier; a green line confirms it.

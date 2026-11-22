@@ -68,7 +68,6 @@
     'roles_saved': ('ok', tr('Rôles automatiques enregistrés : le bot les applique dans la minute, progressivement sur un gros serveur.', 'Automatic roles saved: the bot applies them within a minute, gradually on a big server.')),
     'roles_empty': ('warn', tr('Ajoute au moins une règle avant d’activer les rôles automatiques.', 'Add at least one rule before turning automatic roles on.')),
     'roles_dangerous': ('error', tr('Un rôle choisi est le rôle Administrateur ou est géré par une intégration : il ne peut pas être donné automatiquement.', 'A chosen role is the Administrator role or is managed by an integration: it cannot be given automatically.')),
-    'roles_open_danger': ('error', tr('Un palier sans condition ne peut pas donner un rôle avec des droits de modération : tous les nouveaux venus l’obtiendraient. Ajoute une condition à ce palier.', 'A tier without condition cannot give a role with moderation rights: every newcomer would get it. Add a condition to this tier.')),
     'roles_role': ('warn', tr('Un rôle choisi n’existe plus sur le serveur. Vérifie les règles.', 'A chosen role no longer exists on the server. Check the rules.')),
     'roles_full': ('warn', tr('Maximum : {n} règles, {t} paliers par règle et {total} paliers en tout.', 'Maximum: {n} rules, {t} tiers per rule and {total} tiers in all.', n=max_role_rules, t=max_role_tiers, total=max_role_tiers_total)),
     'roles_invalid': ('warn', tr('Une règle est incomplète : choisis un rôle et un seuil d’au moins 1 pour chaque condition.', 'A rule is incomplete: choose a role and a threshold of at least 1 for each condition.')),
@@ -521,6 +520,11 @@
                     {% else %}<option value="{{ r.id }}">@{{ r.name }}</option>{% endif %}
                     {% endfor %}
                 </select>
+                <span class="sm-tier-flags">
+                    <span class="sm-flag is-blocked" data-tier-blocked hidden tabindex="0" role="note" data-tip="{{ tr('Le bot ne peut pas encore donner ce rôle : il est placé au-dessus de son rôle « Hourglass » (voir l’aide plus bas).', 'The bot cannot give this role yet: it is placed above its “Hourglass” role (see the help below).') }}" aria-label="{{ tr('Le bot ne peut pas encore donner ce rôle : il est placé au-dessus de son rôle « Hourglass » (voir l’aide plus bas).', 'The bot cannot give this role yet: it is placed above its “Hourglass” role (see the help below).') }}">{{ pixel_icon('lock', 13) }}</span>
+                    <span class="sm-flag is-danger" data-tier-danger hidden tabindex="0" role="note" data-tip-cond="{{ tr('Ce rôle donne des droits de modération : tous les membres qui remplissent ce palier l’obtiendront. Choisis des seuils élevés.', 'This role gives moderation rights: every member who meets this tier will get it. Choose high thresholds.') }}" data-tip-open="{{ tr('Ce rôle donne des droits de modération et ce palier n’a aucune condition : tous les membres l’obtiendront, nouveaux venus compris.', 'This role gives moderation rights and this tier has no condition: every member will get it, newcomers included.') }}">{{ pixel_icon('alert', 13) }}</span>
+                    <span class="sm-flag is-open" data-tier-nocond hidden tabindex="0" role="note" data-tip="{{ tr('Aucune condition : tous les membres ont ce rôle, dès leur arrivée sur le serveur.', 'No condition: every member gets this role, as soon as they join the server.') }}" aria-label="{{ tr('Aucune condition : tous les membres ont ce rôle, dès leur arrivée sur le serveur.', 'No condition: every member gets this role, as soon as they join the server.') }}">{{ pixel_icon('users', 13) }}<span>{{ tr('Sans condition', 'No condition') }}</span></span>
+                </span>
                 <span class="sm-rule-count" data-tier-count></span>
                 <span class="sm-rule-tools">
                     <button type="button" class="sm-icon-btn" data-tier-up aria-label="{{ tr('Monter', 'Move up') }}">{{ pixel_icon('chevron_up', 12) }}</button>
@@ -528,8 +532,6 @@
                     <button type="button" class="sm-icon-btn is-danger" data-tier-delete aria-label="{{ tr('Supprimer le palier', 'Delete the tier') }}">{{ pixel_icon('close', 12) }}</button>
                 </span>
             </div>
-            <p class="sm-help sm-danger-text" data-tier-danger hidden>{{ tr('Ce rôle donne des droits de modération : tous les membres qui remplissent ce palier l’obtiendront. Choisis des seuils élevés.', 'This role gives moderation rights: every member who meets this tier will get it. Choose high thresholds.') }}</p>
-            <p class="sm-help sm-warn-text" data-tier-blocked hidden>{{ tr('Le bot ne peut pas encore donner ce rôle : il est placé au-dessus de son rôle « Hourglass » (voir l’aide plus bas).', 'The bot cannot give this role yet: it is placed above its “Hourglass” role (see the help below).') }}</p>
             <div class="sm-rule-match" data-tier-match-wrap>
                 <span>{{ tr('Le membre doit remplir', 'The member must meet') }}</span>
                 <select class="top-select sm-select-sm" data-tier-match aria-label="{{ tr('Conditions à remplir', 'Conditions to meet') }}">
@@ -537,8 +539,6 @@
                     <option value="any">{{ tr('au moins une condition (OU)', 'at least one condition (OR)') }}</option>
                 </select>
             </div>
-            <p class="sm-help sm-nocond" data-tier-nocond hidden>{{ pixel_icon('users', 12) }}{{ tr('Aucune condition : tous les membres ont ce rôle, dès leur arrivée sur le serveur.', 'No condition: every member gets this role, as soon as they join the server.') }}</p>
-            <p class="sm-help sm-danger-text is-strong" data-tier-open-danger hidden>{{ tr('Un palier sans condition ne peut pas donner un rôle avec des droits de modération : tous les nouveaux venus l’obtiendraient. Ajoute une condition à ce palier.', 'A tier without condition cannot give a role with moderation rights: every newcomer would get it. Add a condition to this tier.') }}</p>
             <ul class="sm-conds" data-conds></ul>
             <button type="button" class="sm-link-btn" data-add-cond>{{ pixel_icon('plus', 10) }}{{ tr('Ajouter une condition', 'Add a condition') }}</button>
         </li>

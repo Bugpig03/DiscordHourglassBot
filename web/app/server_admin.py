@@ -675,9 +675,6 @@ def _parse_tier(item, known_roles: dict) -> tuple[dict | None, str | None]:
         if not 1 <= value <= ROLE_LIMITS[metric]:
             return None, "invalid"
         clean.append({"metric": metric, "scope": scope, "min": value})
-    # A moderation role given to everyone on arrival would hand those rights to any newcomer (a raid included)
-    if not clean and known_roles[role].get("dangerous"):
-        return None, "open_danger"
     return {"role_id": role, "match": match, "conditions": clean}, None
 
 
@@ -716,7 +713,7 @@ def parse_role_rules(raw: str, known_roles: dict) -> tuple[list[dict] | None, st
 
 def save_roles(server_id: int, form: dict, by: int) -> str | None:
     """Validated save of the automatic roles. None when saved, else the reason: "invalid", "role", "dangerous",
-    "open_danger" (moderation role in a tier without condition), "full", "empty" (turned on without a rule) or "error"."""
+    "full", "empty" (turned on without a rule) or "error"."""
     import json
 
     sid = int(server_id)

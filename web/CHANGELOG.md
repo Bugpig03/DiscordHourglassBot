@@ -1,5 +1,10 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.52.1 - Remarques des Paliers en Icônes - 23/11/2026
+- **Rôles automatiques** : la ligne « Aucune condition » ne s'affiche plus dans tous les paliers, seulement dans ceux qui n'ont vraiment aucune condition.
+- Les remarques d'un palier deviennent des icônes à côté du rôle, avec le détail au survol : droits de modération (orange), rôle au-dessus du bot (rouge), « Sans condition » (vert).
+- Un rôle avec des droits de modération est de nouveau accepté dans un palier sans condition. L'icône orange prévient alors que tous les membres l'obtiendront, nouveaux venus compris.
+
 ## Version 3.52.0 - Paliers de Rôles sans Condition - 23/11/2026
 - **Rôles automatiques** : un palier peut maintenant n'avoir aucune condition. Son rôle est donné à tous les membres, dès leur arrivée sur le serveur.
   - Il suffit de retirer la dernière condition du palier. Un message vert le confirme.

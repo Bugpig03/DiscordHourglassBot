@@ -1311,5 +1311,7 @@
  "p1448": "Condições de utilização",
  "p1449": "Um patamar sem condição não pode dar um cargo com permissões de moderação: todos os recém-chegados o receberiam. Adiciona uma condição a este patamar.",
  "p1450": "Uma regra é uma progressão de níveis: cada nível atribui um cargo quando suas condições são cumpridas (até {n} por nível). Por exemplo 10 h em voz → @Frequente, 50 h → @Veterano, 100 h → @Lenda. O número à direita de cada nível conta os membros que teriam esse cargo hoje. Um patamar sem condição é dado a todos os membros, assim que chegam.",
- "p1451": "Sem condição: todos os membros têm este cargo, assim que chegam ao servidor."
+ "p1451": "Sem condição: todos os membros têm este cargo, assim que chegam ao servidor.",
+ "p1452": "Este cargo dá permissões de moderação e este patamar não tem condição: todos os membros o receberão, incluindo os recém-chegados.",
+ "p1453": "Sem condição"
 }

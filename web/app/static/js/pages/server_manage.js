@@ -244,9 +244,11 @@
                     li.querySelector('[data-tier-blocked]').hidden = !(option && option.dataset.blocked);
                     const danger = !!(option && option.dataset.danger);
                     const open = conds.length === 0;
-                    li.querySelector('[data-tier-danger]').hidden = !danger || open;
-                    li.querySelector('[data-tier-open-danger]').hidden = !(danger && open);
-                    li.querySelector('[data-tier-nocond]').hidden = !open || danger;
+                    const dangerFlag = li.querySelector('[data-tier-danger]');
+                    dangerFlag.hidden = !danger;
+                    dangerFlag.dataset.tip = open ? dangerFlag.dataset.tipOpen : dangerFlag.dataset.tipCond;
+                    dangerFlag.setAttribute('aria-label', dangerFlag.dataset.tip);
+                    li.querySelector('[data-tier-nocond]').hidden = !open;
                     const given = grants[role.value] || 0;
                     li.querySelector('[data-tier-count]').innerHTML = role.value
                         ? `<b>${fmt(counts[k])}</b> ${esc(T('membre(s)', 'member(s)'))}${given ? `<small>${esc(T('{n} déjà donnés par le bot', '{n} already given by the bot', { n: fmt(given) }))}</small>` : ''}`

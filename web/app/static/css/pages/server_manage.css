@@ -402,6 +402,13 @@ html body .sm-tier-head .hg-select-btn { width: auto; flex: 1 1 220px; min-width
 .sm-beta a { color: #a5acff; }
 .sm-beta a:hover { color: #fff; }
 
-/* Tier without condition (web 3.52.0) */
-.sm-nocond { display: flex; align-items: center; gap: 6px; margin: 8px 0 4px; color: #3fd1a0; }
-.sm-nocond > svg { flex: none; }
+/* Remarks of a tier (web 3.52.1): icons next to the role, the text on hover */
+.sm-tier-flags { display: inline-flex; align-items: center; gap: 6px; }
+.sm-tier-flags:not(:has(.sm-flag:not([hidden]))) { display: none; }
+.sm-flag { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 7px; cursor: help; font-size: 0.74rem; font-weight: 600; clip-path: var(--slant, none); }
+.sm-flag[hidden] { display: none; }
+.sm-flag > svg { flex: none; }
+.sm-flag.is-danger { background: rgba(245, 158, 11, 0.14); color: #f59e0b; }
+.sm-flag.is-blocked { background: rgba(240, 71, 71, 0.14); color: #f04747; }
+.sm-flag.is-open { background: rgba(63, 209, 160, 0.12); color: #3fd1a0; }
+.sm-flag:hover, .sm-flag:focus-visible { filter: brightness(1.25); outline: none; }
