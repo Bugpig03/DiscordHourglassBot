@@ -1,5 +1,11 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.50.0 - Gestion des Serveurs Ouverte à Tous (Bêta) - 23/11/2026
+- **La gestion des serveurs est ouverte à tous les propriétaires de serveurs**, en bêta. Ils peuvent la confier à des membres de leur choix.
+  - Le bouton « Gérer » sur la fiche du serveur et le menu « Mes serveurs » apparaissent pour le propriétaire et ses gestionnaires.
+  - On y trouve les annonces de passage de niveau, les rapports automatiques, les rôles automatiques par paliers, le mode privé et le journal.
+- **Mention « Bêta »** sur les pages « Gérer » et « Mes serveurs », avec un lien vers le serveur Discord Hourglass pour signaler un bug ou proposer une idée.
+
 ## Version 3.49.1 - Rôles de Modération Autorisés - 23/11/2026
 - **Rôles automatiques** : les rôles qui donnent des droits de modération (Gérer les messages, Expulser, Bannir…) peuvent maintenant être donnés par une règle.
   - Ils sont signalés en orange dans la liste.

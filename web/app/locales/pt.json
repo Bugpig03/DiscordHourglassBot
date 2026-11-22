@@ -1185,5 +1185,8 @@
  "p1325": "Um cargo escolhido é o cargo de Administrador ou é gerenciado por uma integração: não pode ser atribuído automaticamente.",
  "p1326": "Cargos com permissões de moderação (Gerenciar mensagens, Expulsar, Banir…) são marcados em laranja: o bot pode atribuí-los, mas todos os membros que cumprirem a regra vão recebê-los. O cargo de Administrador nunca é atribuído.",
  "p1327": "administrador",
- "p1328": "Este cargo dá permissões de moderação: todos os membros que cumprirem este nível vão recebê-lo. Escolha limites altos."
+ "p1328": "Este cargo dá permissões de moderação: todos os membros que cumprirem este nível vão recebê-lo. Escolha limites altos.",
+ "p1329": "Beta",
+ "p1330": "A gestão de servidores é novinha. Um bug ou uma ideia?",
+ "p1331": "Conte no Discord do Hourglass"
 }

@@ -1185,5 +1185,8 @@
  "p1325": "Eine gewählte Rolle ist die Administratorrolle oder wird von einer Integration verwaltet: Sie kann nicht automatisch vergeben werden.",
  "p1326": "Rollen mit Moderationsrechten (Nachrichten verwalten, Kicken, Bannen…) sind orange markiert: Der Bot kann sie vergeben, aber alle Mitglieder, die die Regel erfüllen, erhalten sie. Die Administratorrolle wird nie vergeben.",
  "p1327": "Administrator",
- "p1328": "Diese Rolle gibt Moderationsrechte: Alle Mitglieder, die diese Stufe erfüllen, erhalten sie. Wähle hohe Schwellenwerte."
+ "p1328": "Diese Rolle gibt Moderationsrechte: Alle Mitglieder, die diese Stufe erfüllen, erhalten sie. Wähle hohe Schwellenwerte.",
+ "p1329": "Beta",
+ "p1330": "Die Serververwaltung ist ganz neu. Ein Fehler oder eine Idee?",
+ "p1331": "Sag es auf dem Hourglass-Discord"
 }

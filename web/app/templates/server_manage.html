@@ -83,7 +83,7 @@
         <div class="sm-head">
             <img src="{{ server_avatar or url_for('static', filename='images/base_avatar_big.png') }}" class="big-pp border-server" alt="">
             <div class="sm-head-text">
-                <p class="sm-kicker">{{ pixel_icon('wrench', 13) }}{{ tr('Gestion du serveur', 'Server management') }}</p>
+                <p class="sm-kicker">{{ pixel_icon('wrench', 13) }}{{ tr('Gestion du serveur', 'Server management') }} <span class="sm-tag is-beta">{{ tr('Bêta', 'Beta') }}</span></p>
                 <h1 class="giant-bold-text sm-title">{{ server_name }}</h1>
                 <div class="sm-badges">
                     <span class="sm-tag {{ 'is-owner' if role == 'owner' else 'is-manager' }}">{{ pixel_icon('crown' if role == 'owner' else 'user', 12) }}{{ tr('Propriétaire', 'Owner') if role == 'owner' else tr('Gestionnaire', 'Manager') }}</span>
@@ -118,6 +118,8 @@
         </div>
     </nav>
 </section>
+
+<p class="sm-beta">{{ pixel_icon('flame', 13) }}<span><b>{{ tr('Bêta', 'Beta') }}</b> · {{ tr('La gestion des serveurs est toute nouvelle. Un bug ou une idée ?', 'Server management is brand new. A bug or an idea?') }} <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer">{{ tr('Dis-le sur le Discord Hourglass', 'Tell us on the Hourglass Discord') }}</a></span></p>
 
 {% if notice in notices %}
 {% set kind, text = notices[notice] %}

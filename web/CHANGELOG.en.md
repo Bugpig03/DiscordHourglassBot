@@ -3,6 +3,12 @@
 English version of the changelog, posted with the French one in the patch notes of the official Discord server.
 Older versions only exist in French (CHANGELOG.md).
 
+## Version 3.50.0 - Server Management Open to Everyone (Beta) - 23/11/2026
+- **Server management is open to every server owner**, in beta. Owners can hand it over to members of their choice.
+  - The "Manage" button on the server page and the "My servers" menu show up for the owner and their managers.
+  - It brings level-up announcements, automatic reports, automatic roles by tiers, private mode and the log.
+- **"Beta" label** on the "Manage" and "My servers" pages, with a link to the Hourglass Discord server to report a bug or suggest an idea.
+
 ## Version 3.49.1 - Moderation Roles Allowed - 23/11/2026
 - **Automatic roles**: roles that give moderation rights (Manage messages, Kick, Ban…) can now be given by a rule.
   - They are flagged in orange in the list.

@@ -219,9 +219,9 @@ def is_member(user_id: int, server_id: int) -> bool:
     return cache.get_or_set(("guild_member", int(server_id), int(user_id)), ACCESS_CACHE_SECONDS, load)
 
 
-# Preview period: server management is open to the site admins only (ADMIN_USER_IDS) until it is ready for every
-# owner. Set to True to open it to all owners and their managers.
-OPEN_TO_ALL = False
+# Server management is open to every owner and their managers (web 3.50.0, beta). False would limit it again to the
+# site admins (ADMIN_USER_IDS).
+OPEN_TO_ALL = True
 
 
 def preview_allowed(user_id: int | str | None) -> bool:

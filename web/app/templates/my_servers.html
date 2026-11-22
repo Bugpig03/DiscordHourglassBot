@@ -7,11 +7,13 @@
 <br>
 <section class="gray-box small-border-radius hg-hero sm-hero">
     <div class="hg-hero-body">
-        <p class="sm-kicker">{{ pixel_icon('wrench', 13) }}{{ tr('Gestion des serveurs', 'Server management') }}</p>
+        <p class="sm-kicker">{{ pixel_icon('wrench', 13) }}{{ tr('Gestion des serveurs', 'Server management') }} <span class="sm-tag is-beta">{{ tr('Bêta', 'Beta') }}</span></p>
         <h1 class="giant-bold-text sm-title">{{ tr('Mes serveurs', 'My servers') }}</h1>
         <p class="hg-card-desc">{{ tr('Les serveurs dont tu es propriétaire, et ceux que leur propriétaire t’a confiés. Hourglass y suit l’activité, et tu peux régler son comportement.', 'The servers you own, and those their owner entrusted to you. Hourglass tracks their activity, and you can set how it behaves.') }}</p>
     </div>
 </section>
+
+<p class="sm-beta">{{ pixel_icon('flame', 13) }}<span><b>{{ tr('Bêta', 'Beta') }}</b> · {{ tr('La gestion des serveurs est toute nouvelle. Un bug ou une idée ?', 'Server management is brand new. A bug or an idea?') }} <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer">{{ tr('Dis-le sur le Discord Hourglass', 'Tell us on the Hourglass Discord') }}</a></span></p>
 
 {% if servers %}
 <div class="ms-grid">

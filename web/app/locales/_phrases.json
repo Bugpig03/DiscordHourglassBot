@@ -4762,5 +4762,17 @@
  "p1328": [
   "Ce rôle donne des droits de modération : tous les membres qui remplissent ce palier l’obtiendront. Choisis des seuils élevés.",
   "This role gives moderation rights: every member who meets this tier will get it. Choose high thresholds."
+ ],
+ "p1329": [
+  "Bêta",
+  "Beta"
+ ],
+ "p1330": [
+  "La gestion des serveurs est toute nouvelle. Un bug ou une idée ?",
+  "Server management is brand new. A bug or an idea?"
+ ],
+ "p1331": [
+  "Dis-le sur le Discord Hourglass",
+  "Tell us on the Hourglass Discord"
  ]
 }

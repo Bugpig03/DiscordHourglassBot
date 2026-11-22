@@ -1185,5 +1185,8 @@
  "p1325": "Un rol elegido es el rol de Administrador o lo gestiona una integración: no se puede otorgar automáticamente.",
  "p1326": "Los roles con permisos de moderación (Gestionar mensajes, Expulsar, Banear…) se marcan en naranja: el bot puede otorgarlos, pero todos los miembros que cumplan la regla los obtendrán. El rol de Administrador nunca se otorga.",
  "p1327": "administrador",
- "p1328": "Este rol da permisos de moderación: todos los miembros que cumplan este nivel lo obtendrán. Elige umbrales altos."
+ "p1328": "Este rol da permisos de moderación: todos los miembros que cumplan este nivel lo obtendrán. Elige umbrales altos.",
+ "p1329": "Beta",
+ "p1330": "La gestión de servidores es totalmente nueva. ¿Un error o una idea?",
+ "p1331": "Dilo en el Discord de Hourglass"
 }

@@ -1185,5 +1185,8 @@
  "p1325": "Un ruolo scelto è il ruolo Amministratore o è gestito da un'integrazione: non può essere assegnato automaticamente.",
  "p1326": "I ruoli con permessi di moderazione (Gestire i messaggi, Espellere, Bannare…) sono segnalati in arancione: il bot può assegnarli, ma tutti i membri che soddisfano la regola li otterranno. Il ruolo Amministratore non viene mai assegnato.",
  "p1327": "amministratore",
- "p1328": "Questo ruolo dà permessi di moderazione: tutti i membri che soddisfano questo livello lo otterranno. Scegli soglie alte."
+ "p1328": "Questo ruolo dà permessi di moderazione: tutti i membri che soddisfano questo livello lo otterranno. Scegli soglie alte.",
+ "p1329": "Beta",
+ "p1330": "La gestione dei server è nuovissima. Un bug o un'idea?",
+ "p1331": "Dillo sul Discord di Hourglass"
 }
