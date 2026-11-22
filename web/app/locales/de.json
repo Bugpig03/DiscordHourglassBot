@@ -1180,5 +1180,10 @@
  "p1319": "Gepostet",
  "p1320": "Server wählen…",
  "p1321": "Gespeichert: Der Bot übernimmt die Einstellungen innerhalb einer Minute.",
- "p1322": "Angefordert: Der Bot postet innerhalb einer Minute."
+ "p1322": "Angefordert: Der Bot postet innerhalb einer Minute.",
+ "p1324": "Administratorrolle",
+ "p1325": "Eine gewählte Rolle ist die Administratorrolle oder wird von einer Integration verwaltet: Sie kann nicht automatisch vergeben werden.",
+ "p1326": "Rollen mit Moderationsrechten (Nachrichten verwalten, Kicken, Bannen…) sind orange markiert: Der Bot kann sie vergeben, aber alle Mitglieder, die die Regel erfüllen, erhalten sie. Die Administratorrolle wird nie vergeben.",
+ "p1327": "Administrator",
+ "p1328": "Diese Rolle gibt Moderationsrechte: Alle Mitglieder, die diese Stufe erfüllen, erhalten sie. Wähle hohe Schwellenwerte."
 }

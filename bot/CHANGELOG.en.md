@@ -3,6 +3,11 @@
 English version of the changelog, posted with the French one in the patch notes of the official Discord server.
 Older versions only exist in French (CHANGELOG.md).
 
+## Version 3.13.1 - Moderation Roles Allowed - 23/11/2026
+
+- **Automatic roles**: the bot also gives roles with moderation rights (the website warns in orange when one is chosen).
+- It still never gives the Administrator role, roles managed by an integration or roles placed above its own. This is checked again on Discord before each change.
+
 ## Version 3.13.0 - Patch Notes on the Official Server - 22/11/2026
 
 - **Automatic patch notes**: every new version of the website and of the bot is posted on the official Discord server, in the channel chosen on the website's admin page.

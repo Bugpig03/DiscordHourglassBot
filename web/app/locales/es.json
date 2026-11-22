@@ -1180,5 +1180,10 @@
  "p1319": "Publicado",
  "p1320": "Elegir un servidor…",
  "p1321": "Guardado: el bot aplica los ajustes en menos de un minuto.",
- "p1322": "Pedido: el bot publica en menos de un minuto."
+ "p1322": "Pedido: el bot publica en menos de un minuto.",
+ "p1324": "rol de administrador",
+ "p1325": "Un rol elegido es el rol de Administrador o lo gestiona una integración: no se puede otorgar automáticamente.",
+ "p1326": "Los roles con permisos de moderación (Gestionar mensajes, Expulsar, Banear…) se marcan en naranja: el bot puede otorgarlos, pero todos los miembros que cumplan la regla los obtendrán. El rol de Administrador nunca se otorga.",
+ "p1327": "administrador",
+ "p1328": "Este rol da permisos de moderación: todos los miembros que cumplan este nivel lo obtendrán. Elige umbrales altos."
 }

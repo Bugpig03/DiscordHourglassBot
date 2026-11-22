@@ -20,8 +20,8 @@ import (
 //     hour (criteria over 30 days go down by themselves) and right after the rules change.
 //   - The bot only removes the roles it gave itself (role_grants): a role given by hand is never touched. Deleting a
 //     rule or turning the feature off removes nothing.
-//   - Roles carrying moderation or administration rights, managed roles and roles above the bot are never given,
-//     whatever the database says (checked again before each change).
+//   - The Administrator role, managed roles and roles above the bot are never given, whatever the database says
+//     (checked again before each change). Moderation roles may be given: the website warns about them.
 //   - Changes go through one queue, one at a time: turning it on for a big server spreads hundreds of roles over a
 //     few minutes instead of hitting Discord's limits.
 
@@ -339,8 +339,10 @@ func roleProblem(s *discordgo.Session, guildID, roleID string) string {
 	if role.Managed {
 		return "managed role"
 	}
-	if role.Permissions&dangerousPermissions != 0 {
-		return "dangerous role"
+	// Moderation roles may be given (the website warns in orange); the Administrator role never: any active member
+	// would become a full admin of the server
+	if role.Permissions&discordgo.PermissionAdministrator != 0 {
+		return "administrator role"
 	}
 	if guildPermissions(guild, me.User.ID, me.Roles)&discordgo.PermissionManageRoles == 0 {
 		return "Manage Roles missing"

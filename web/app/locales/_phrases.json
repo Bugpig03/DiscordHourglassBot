@@ -4351,10 +4351,6 @@
   "Ajoute au moins une règle avant d’activer les rôles automatiques.",
   "Add at least one rule before turning automatic roles on."
  ],
- "p1216": [
-  "Un rôle choisi donne des droits de modération ou est géré par une intégration : il ne peut pas être donné automatiquement.",
-  "A chosen role gives moderation rights or is managed by an integration: it cannot be given automatically."
- ],
  "p1217": [
   "Un rôle choisi n’existe plus sur le serveur. Vérifie les règles.",
   "A chosen role no longer exists on the server. Check the rules."
@@ -4406,10 +4402,6 @@
  "p1236": [
   "Le bot ne peut donner que les rôles placés sous son propre rôle « Hourglass ». Sur Discord : Paramètres du serveur > Rôles, puis glisse « Hourglass » au-dessus des rôles à donner.",
   "The bot can only give the roles placed under its own “Hourglass” role. On Discord: Server Settings > Roles, then drag “Hourglass” above the roles to give."
- ],
- "p1237": [
-  "Les rôles qui donnent des droits de modération ou d’administration (Administrateur, Gérer le serveur, Bannir, Expulser, Gérer les messages…) ne sont jamais proposés : sinon il suffirait d’écrire beaucoup pour les obtenir.",
-  "Roles giving moderation or administration rights (Administrator, Manage server, Ban, Kick, Manage messages…) are never offered: otherwise writing a lot would be enough to get them."
  ],
  "p1238": [
   "Les rôles gérés par une intégration (bots, boosts) ne peuvent pas être donnés.",
@@ -4750,5 +4742,25 @@
  "p1323": [
   "Le bot poste chaque nouvelle version du site et du bot dans le salon choisi, avec son changelog en anglais puis en français (CHANGELOG.en.md, sinon le français seul), dans la minute qui suit le déploiement. Rien d’ancien n’est posté à l’activation. Dans un salon d’annonces, le message est publié pour les serveurs abonnés.",
   "The bot posts every new version of the website and of the bot in the chosen channel, with its changelog in English then in French (CHANGELOG.en.md, else the French one only), within a minute of the deploy. Nothing old is posted when turned on. In an announcement channel, the message is published to the following servers."
+ ],
+ "p1324": [
+  "rôle administrateur",
+  "administrator role"
+ ],
+ "p1325": [
+  "Un rôle choisi est le rôle Administrateur ou est géré par une intégration : il ne peut pas être donné automatiquement.",
+  "A chosen role is the Administrator role or is managed by an integration: it cannot be given automatically."
+ ],
+ "p1326": [
+  "Les rôles avec des droits de modération (Gérer les messages, Expulser, Bannir…) sont signalés en orange : le bot peut les donner, mais tous les membres qui remplissent la règle les obtiendront. Le rôle Administrateur n’est jamais donné.",
+  "Roles with moderation rights (Manage messages, Kick, Ban…) are flagged in orange: the bot can give them, but every member who meets the rule will get them. The Administrator role is never given."
+ ],
+ "p1327": [
+  "administrateur",
+  "administrator"
+ ],
+ "p1328": [
+  "Ce rôle donne des droits de modération : tous les membres qui remplissent ce palier l’obtiendront. Choisis des seuils élevés.",
+  "This role gives moderation rights: every member who meets this tier will get it. Choose high thresholds."
  ]
 }

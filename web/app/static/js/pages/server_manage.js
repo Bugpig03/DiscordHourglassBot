@@ -239,6 +239,7 @@
                     const role = li.querySelector('[data-tier-role]');
                     const option = role.options[role.selectedIndex];
                     li.querySelector('[data-tier-blocked]').hidden = !(option && option.dataset.blocked);
+                    li.querySelector('[data-tier-danger]').hidden = !(option && option.dataset.danger);
                     const given = grants[role.value] || 0;
                     li.querySelector('[data-tier-count]').innerHTML = role.value
                         ? `<b>${fmt(counts[k])}</b> ${esc(T('membre(s)', 'member(s)'))}${given ? `<small>${esc(T('{n} déjà donnés par le bot', '{n} already given by the bot', { n: fmt(given) }))}</small>` : ''}`

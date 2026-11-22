@@ -1,5 +1,12 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.49.1 - Rôles de Modération Autorisés - 23/11/2026
+- **Rôles automatiques** : les rôles qui donnent des droits de modération (Gérer les messages, Expulser, Bannir…) peuvent maintenant être donnés par une règle.
+  - Ils sont signalés en orange dans la liste.
+  - Une fois choisis, un avertissement rappelle que tous les membres qui remplissent le palier les obtiendront.
+  - Seuls le rôle Administrateur et les rôles gérés par une intégration restent impossibles.
+- **Listes déroulantes de la page Gérer** : seule la remarque est en couleur, le nom du rôle ou du salon reste normal. Exemples : « au-dessus du bot » et « le bot ne peut pas y écrire » en rouge, « droits de modération » en orange, « administrateur » en gris.
+
 ## Version 3.49.0 - Patch Notes sur le Serveur Officiel - 22/11/2026
 - **Admin, nouvelle section « Patch notes »** : le serveur officiel et le salon où le bot poste chaque nouvelle version du site et du bot, avec son changelog en anglais puis en français (nouveau `CHANGELOG.en.md`). Une version sans texte anglais est postée en français.
   - Les choix : site et bot, ou l'un des deux seulement, et un rôle à mentionner en option.

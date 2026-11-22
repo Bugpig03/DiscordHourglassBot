@@ -272,11 +272,12 @@ def channels(server_id: int) -> list[dict]:
 
 
 def roles(server_id: int) -> list[dict]:
-    rows = _rows("SELECT role_id, name, color, position, managed, assignable, dangerous FROM guild_roles "
+    rows = _rows("SELECT role_id, name, color, position, managed, assignable, dangerous, permissions FROM guild_roles "
                  "WHERE server_id = %s ORDER BY position DESC", (int(server_id),))
+    # dangerous: moderation rights (may be given, with a warning); admin: the Administrator permission (never given)
     return [{"id": str(rid), "name": name, "color": f"#{int(color or 0):06x}" if color else None, "position": pos,
-             "managed": managed, "assignable": assignable, "dangerous": dangerous}
-            for rid, name, color, pos, managed, assignable, dangerous in rows]
+             "managed": managed, "assignable": assignable, "dangerous": dangerous, "admin": bool(int(perms or 0) & ADMINISTRATOR)}
+            for rid, name, color, pos, managed, assignable, dangerous, perms in rows]
 
 
 def diagnostics(server_id: int, lang: str) -> dict:
@@ -653,7 +654,8 @@ def _parse_tier(item, known_roles: dict) -> tuple[dict | None, str | None]:
     role = str(item.get("role_id") or "")
     if role not in known_roles:
         return None, "role"
-    if known_roles[role]["dangerous"] or known_roles[role]["managed"]:
+    # Moderation roles are allowed (warned in orange on the page); the Administrator role and managed roles never
+    if known_roles[role].get("admin") or known_roles[role]["managed"]:
         return None, "dangerous"
     match = item.get("match") if item.get("match") in ("all", "any") else "all"
     conds = item.get("conditions")

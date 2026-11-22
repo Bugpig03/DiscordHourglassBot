@@ -2123,8 +2123,11 @@ html body .voice-now-tag.is-live { color: #3fd1a0; background: rgba(63, 209, 160
 html body .private-tag { color: #f5c542; background: rgba(245, 197, 66, 0.12); }
 
 /* Drop-down option flagged as a problem (channel the bot cannot write in): red italics, in the list and once chosen */
-html body .hg-select-opt.is-blocked .hg-select-opt-text,
-html body .hg-select-btn.is-blocked .hg-select-value { color: #f87171; font-style: italic; }
+/* A remark after an option (data-note): only it is in color, the name stays plain */
+html body .hg-select-note { font-weight: 600; }
+html body .hg-select-note.is-blocked { color: #f87171; font-style: italic; }
+html body .hg-select-note.is-warn { color: #f59e0b; }
+html body .hg-select-note.is-off { color: var(--ar-dim, #72767d); }
 
 /* Prestige circle of the profile: a short label that fits the square */
 html body .user-level-circle .user-level-sub { letter-spacing: 0; font-size: 0.5rem; }

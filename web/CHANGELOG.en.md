@@ -3,6 +3,13 @@
 English version of the changelog, posted with the French one in the patch notes of the official Discord server.
 Older versions only exist in French (CHANGELOG.md).
 
+## Version 3.49.1 - Moderation Roles Allowed - 23/11/2026
+- **Automatic roles**: roles that give moderation rights (Manage messages, Kick, Ban…) can now be given by a rule.
+  - They are flagged in orange in the list.
+  - Once chosen, a warning reminds that every member who meets the tier will get them.
+  - Only the Administrator role and roles managed by an integration remain impossible.
+- **Drop-down lists of the Manage page**: only the remark is colored, the name of the role or channel stays plain. For example "above the bot" and "the bot cannot write there" in red, "moderation rights" in orange, "administrator" in grey.
+
 ## Version 3.49.0 - Patch Notes on the Official Server - 22/11/2026
 - **Admin, new "Patch notes" section**: the official server and the channel where the bot posts every new version of the website and of the bot, with its changelog in English and in French.
   - Choose what to announce (website and bot, or only one of them) and an optional role to mention.

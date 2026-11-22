@@ -389,3 +389,7 @@ html body .sm-tier-head .hg-select-btn { width: auto; flex: 1 1 220px; min-width
 
 /* A section turned off cannot be changed (inert): dimmed, values kept until it is turned on again */
 .sm-levels-grid.is-off, [data-roles-body].is-off, [data-report-body].is-off { opacity: 0.45; filter: grayscale(0.4); user-select: none; }
+
+/* A moderation role chosen in a tier: orange warning */
+.sm-danger-text { color: #f59e0b; }
+.sm-danger-text[hidden], [data-tier-blocked][hidden] { display: none; }

@@ -1180,5 +1180,10 @@
  "p1319": "Opublikowano",
  "p1320": "Wybierz serwer…",
  "p1321": "Zapisano: bot zastosuje ustawienia w ciągu minuty.",
- "p1322": "Zamówiono: bot opublikuje w ciągu minuty."
+ "p1322": "Zamówiono: bot opublikuje w ciągu minuty.",
+ "p1324": "rola administratora",
+ "p1325": "Wybrana rola to rola Administratora lub jest zarządzana przez integrację: nie można jej nadawać automatycznie.",
+ "p1326": "Role z uprawnieniami moderacyjnymi (Zarządzanie wiadomościami, Wyrzucanie, Banowanie…) są oznaczone na pomarańczowo: bot może je nadawać, ale dostaną je wszyscy członkowie spełniający regułę. Rola Administratora nigdy nie jest nadawana.",
+ "p1327": "administrator",
+ "p1328": "Ta rola daje uprawnienia moderacyjne: dostaną ją wszyscy członkowie, którzy spełnią ten próg. Wybierz wysokie progi."
 }

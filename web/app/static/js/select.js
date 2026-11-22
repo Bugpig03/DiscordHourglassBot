@@ -15,6 +15,9 @@
 
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const options = (select) => Array.from(select.options).filter((o) => !o.hidden);
+    // data-note="…" (data-note-kind="blocked" red, "warn" orange, "off" grey): a remark after the option's text,
+    // the only part in color (the name itself stays plain)
+    const label = (o) => esc(o.textContent.trim()) + (o.dataset.note ? ` <span class="hg-select-note is-${esc(o.dataset.noteKind || 'off')}">· ${esc(o.dataset.note)}</span>` : '');
 
     function enhance(select) {
         if (select.dataset.hgSelect) return;
@@ -56,9 +59,7 @@
         const button = select._hgButton;
         if (!button) return;
         const current = select.options[select.selectedIndex];
-        button.querySelector('.hg-select-value').textContent = current ? current.textContent.trim() : '';
-        // A flagged option (e.g. class="is-blocked") keeps its look once chosen
-        button.classList.toggle('is-blocked', !!(current && current.classList.contains('is-blocked')));
+        button.querySelector('.hg-select-value').innerHTML = current ? label(current) : '';
         button.disabled = select.disabled;
     }
 
@@ -71,7 +72,7 @@
         list.setAttribute('role', 'listbox');
         list.tabIndex = -1;
         const opts = options(select);
-        list.innerHTML = opts.map((o, i) => `<div class="hg-select-opt${o.disabled ? ' is-disabled' : ''}${o.classList.contains('is-blocked') ? ' is-blocked' : ''}" role="option" id="${list.id}-${i}" data-index="${i}" aria-selected="${o.selected}"${o.disabled ? ' aria-disabled="true"' : ''}><span class="hg-select-opt-text">${esc(o.textContent.trim())}</span><span class="hg-select-check">${CHECK}</span></div>`).join('');
+        list.innerHTML = opts.map((o, i) => `<div class="hg-select-opt${o.disabled ? ' is-disabled' : ''}" role="option" id="${list.id}-${i}" data-index="${i}" aria-selected="${o.selected}"${o.disabled ? ' aria-disabled="true"' : ''}><span class="hg-select-opt-text">${label(o)}</span><span class="hg-select-check">${CHECK}</span></div>`).join('');
         document.body.appendChild(list);
         button.setAttribute('aria-expanded', 'true');
         button.setAttribute('aria-controls', list.id);

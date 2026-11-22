@@ -1180,5 +1180,10 @@
  "p1319": "Publicado",
  "p1320": "Escolher um servidor…",
  "p1321": "Salvo: o bot aplica as configurações em até um minuto.",
- "p1322": "Pedido: o bot publica em até um minuto."
+ "p1322": "Pedido: o bot publica em até um minuto.",
+ "p1324": "cargo de administrador",
+ "p1325": "Um cargo escolhido é o cargo de Administrador ou é gerenciado por uma integração: não pode ser atribuído automaticamente.",
+ "p1326": "Cargos com permissões de moderação (Gerenciar mensagens, Expulsar, Banir…) são marcados em laranja: o bot pode atribuí-los, mas todos os membros que cumprirem a regra vão recebê-los. O cargo de Administrador nunca é atribuído.",
+ "p1327": "administrador",
+ "p1328": "Este cargo dá permissões de moderação: todos os membros que cumprirem este nível vão recebê-lo. Escolha limites altos."
 }

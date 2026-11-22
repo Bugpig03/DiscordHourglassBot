@@ -1180,5 +1180,10 @@
  "p1319": "Gönderildi",
  "p1320": "Bir sunucu seç…",
  "p1321": "Kaydedildi: bot ayarları bir dakika içinde uygular.",
- "p1322": "İstendi: bot bir dakika içinde gönderir."
+ "p1322": "İstendi: bot bir dakika içinde gönderir.",
+ "p1324": "yönetici rolü",
+ "p1325": "Seçilen bir rol Yönetici rolü veya bir entegrasyon tarafından yönetiliyor: otomatik olarak verilemez.",
+ "p1326": "Moderasyon yetkisi veren roller (Mesajları yönet, At, Yasakla…) turuncu ile işaretlenir: bot bunları verebilir, ancak kuralı karşılayan tüm üyeler alır. Yönetici rolü asla verilmez.",
+ "p1327": "yönetici",
+ "p1328": "Bu rol moderasyon yetkisi verir: bu kademeyi karşılayan tüm üyeler alır. Yüksek eşikler seç."
 }

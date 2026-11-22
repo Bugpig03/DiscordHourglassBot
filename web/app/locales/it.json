@@ -1180,5 +1180,10 @@
  "p1319": "Pubblicato",
  "p1320": "Scegli un server…",
  "p1321": "Salvato: il bot applica le impostazioni entro un minuto.",
- "p1322": "Richiesto: il bot pubblica entro un minuto."
+ "p1322": "Richiesto: il bot pubblica entro un minuto.",
+ "p1324": "ruolo amministratore",
+ "p1325": "Un ruolo scelto è il ruolo Amministratore o è gestito da un'integrazione: non può essere assegnato automaticamente.",
+ "p1326": "I ruoli con permessi di moderazione (Gestire i messaggi, Espellere, Bannare…) sono segnalati in arancione: il bot può assegnarli, ma tutti i membri che soddisfano la regola li otterranno. Il ruolo Amministratore non viene mai assegnato.",
+ "p1327": "amministratore",
+ "p1328": "Questo ruolo dà permessi di moderazione: tutti i membri che soddisfano questo livello lo otterranno. Scegli soglie alte."
 }

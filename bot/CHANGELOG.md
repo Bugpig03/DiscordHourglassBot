@@ -1,5 +1,10 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.13.1 - Rôles de Modération Autorisés - 23/11/2026
+
+- **Rôles automatiques** : le bot donne aussi les rôles avec des droits de modération (le site prévient en orange quand on en choisit un).
+- Il ne donne toujours jamais le rôle Administrateur, les rôles gérés par une intégration ni les rôles placés au-dessus du sien. C'est revérifié sur Discord avant chaque changement.
+
 ## Version 3.13.0 - Patch Notes sur le Serveur Officiel - 22/11/2026
 
 - **Patch notes automatiques** : chaque nouvelle version du site et du bot est postée sur le serveur Discord officiel, dans le salon choisi sur la page admin du site.
