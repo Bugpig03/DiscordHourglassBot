@@ -44,8 +44,25 @@ func TestRuleMatch(t *testing.T) {
 	if !ruleMet(database.RoleRule{Match: "any", Conditions: both}, m) {
 		t.Error("any: one condition met, must match")
 	}
-	if ruleMet(database.RoleRule{Match: "all"}, m) {
-		t.Error("a rule without conditions never matches")
+	// A tier without condition (website 3.52.0) is met by everyone, even a newcomer with no activity
+	if !ruleMet(database.RoleRule{Match: "all", Conditions: []database.RoleCondition{}}, database.MemberMetrics{}) {
+		t.Error("a tier without conditions must match every member")
+	}
+}
+
+func TestPlanMemberNoCondition(t *testing.T) {
+	// Newcomer → @Rookie at once; 10 h → @Regular replaces it when the rule keeps the highest
+	ladder := database.RoleLadder{KeepHighest: true, Tiers: []database.RoleRule{
+		{RoleID: 1, Match: "all", Conditions: []database.RoleCondition{}},
+		{RoleID: 2, Match: "all", Conditions: []database.RoleCondition{cond("voice", "total", 10)}},
+	}}
+	st := &database.RoleSettings{Ladders: []database.RoleLadder{ladder}}
+	if got := planMember(st, database.MemberMetrics{}, map[int64]bool{}, map[int64]bool{}); !reflect.DeepEqual(got.Add, []int64{1}) {
+		t.Errorf("newcomer: %+v", got)
+	}
+	got := planMember(st, database.MemberMetrics{VoiceTotal: 12 * 3600}, map[int64]bool{1: true}, map[int64]bool{1: true})
+	if !reflect.DeepEqual(got.Add, []int64{2}) || !reflect.DeepEqual(got.Remove, []int64{1}) {
+		t.Errorf("promoted: %+v", got)
 	}
 }
 

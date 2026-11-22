@@ -1,5 +1,10 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.14.0 - Paliers de Rôles sans Condition - 23/11/2026
+
+- **Rôles automatiques** : un palier sans condition donne son rôle à tous les membres du serveur.
+- Un nouveau membre est vérifié dans la minute qui suit son arrivée, au lieu d'attendre le passage de chaque heure.
+
 ## Version 3.13.1 - Rôles de Modération Autorisés - 23/11/2026
 
 - **Rôles automatiques** : le bot donne aussi les rôles avec des droits de modération (le site prévient en orange quand on en choisit un).

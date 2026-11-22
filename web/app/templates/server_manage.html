@@ -68,6 +68,7 @@
     'roles_saved': ('ok', tr('Rôles automatiques enregistrés : le bot les applique dans la minute, progressivement sur un gros serveur.', 'Automatic roles saved: the bot applies them within a minute, gradually on a big server.')),
     'roles_empty': ('warn', tr('Ajoute au moins une règle avant d’activer les rôles automatiques.', 'Add at least one rule before turning automatic roles on.')),
     'roles_dangerous': ('error', tr('Un rôle choisi est le rôle Administrateur ou est géré par une intégration : il ne peut pas être donné automatiquement.', 'A chosen role is the Administrator role or is managed by an integration: it cannot be given automatically.')),
+    'roles_open_danger': ('error', tr('Un palier sans condition ne peut pas donner un rôle avec des droits de modération : tous les nouveaux venus l’obtiendraient. Ajoute une condition à ce palier.', 'A tier without condition cannot give a role with moderation rights: every newcomer would get it. Add a condition to this tier.')),
     'roles_role': ('warn', tr('Un rôle choisi n’existe plus sur le serveur. Vérifie les règles.', 'A chosen role no longer exists on the server. Check the rules.')),
     'roles_full': ('warn', tr('Maximum : {n} règles, {t} paliers par règle et {total} paliers en tout.', 'Maximum: {n} rules, {t} tiers per rule and {total} tiers in all.', n=max_role_rules, t=max_role_tiers, total=max_role_tiers_total)),
     'roles_invalid': ('warn', tr('Une règle est incomplète : choisis un rôle et un seuil d’au moins 1 pour chaque condition.', 'A rule is incomplete: choose a role and a threshold of at least 1 for each condition.')),
@@ -465,7 +466,7 @@
         <section class="gray-box small-border-radius hg-card" data-roles-body>
             <div class="hg-card-head">
                 <div>
-                    <h2 class="hg-card-title">{{ tr('Règles', 'Rules') }} <span class="sm-count" data-rule-count>{{ roles_settings.rules | length }} / {{ max_role_rules }}</span> {{ tip(tr('Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui.', 'A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today.', n=max_role_conditions)) }}</h2>
+                    <h2 class="hg-card-title">{{ tr('Règles', 'Rules') }} <span class="sm-count" data-rule-count>{{ roles_settings.rules | length }} / {{ max_role_rules }}</span> {{ tip(tr('Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui. Un palier sans condition est donné à tous les membres, dès leur arrivée.', 'A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today. A tier without condition is given to every member, as soon as they join.', n=max_role_conditions)) }}</h2>
                     <p class="hg-card-desc">{{ tr('Chaque règle est une suite de paliers, chacun avec son rôle.', 'Each rule is a series of tiers, each with its role.') }}</p>
                 </div>
             </div>
@@ -536,6 +537,8 @@
                     <option value="any">{{ tr('au moins une condition (OU)', 'at least one condition (OR)') }}</option>
                 </select>
             </div>
+            <p class="sm-help sm-nocond" data-tier-nocond hidden>{{ pixel_icon('users', 12) }}{{ tr('Aucune condition : tous les membres ont ce rôle, dès leur arrivée sur le serveur.', 'No condition: every member gets this role, as soon as they join the server.') }}</p>
+            <p class="sm-help sm-danger-text is-strong" data-tier-open-danger hidden>{{ tr('Un palier sans condition ne peut pas donner un rôle avec des droits de modération : tous les nouveaux venus l’obtiendraient. Ajoute une condition à ce palier.', 'A tier without condition cannot give a role with moderation rights: every newcomer would get it. Add a condition to this tier.') }}</p>
             <ul class="sm-conds" data-conds></ul>
             <button type="button" class="sm-link-btn" data-add-cond>{{ pixel_icon('plus', 10) }}{{ tr('Ajouter une condition', 'Add a condition') }}</button>
         </li>

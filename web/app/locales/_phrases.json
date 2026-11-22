@@ -2151,10 +2151,6 @@
   "Meilleur total de vocal sur 30 jours",
   "Best voice total over 30 days"
  ],
- "p0616": [
-  "Duel entre deux membres, avec un vainqueur.",
-  "Head-to-head duel between two members, with a winner."
- ],
  "p0620": [
   "Dès le départ",
   "From the start"
@@ -4495,10 +4491,6 @@
   "Maximum : {n} règles, {t} paliers par règle et {total} paliers en tout.",
   "Maximum: {n} rules, {t} tiers per rule and {total} tiers in all."
  ],
- "p1261": [
-  "Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui.",
-  "A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today."
- ],
  "p1262": [
   "Plusieurs paliers atteints",
   "Several tiers reached"
@@ -4774,5 +4766,485 @@
  "p1331": [
   "Dis-le sur le Discord Hourglass",
   "Tell us on the Hourglass Discord"
+ ],
+ "p1332": [
+  "Ouvrir",
+  "Open"
+ ],
+ "p1333": [
+  "Aide et documentation",
+  "Help and documentation"
+ ],
+ "p1334": [
+  "Tout sur Hourglass : le bot, les commandes, la progression, le site et la gestion des serveurs.",
+  "All about Hourglass: the bot, the commands, the progression, the website and server management."
+ ],
+ "p1335": [
+  "Sections de l’aide",
+  "Help sections"
+ ],
+ "p1336": [
+  "Démarrer",
+  "Get started"
+ ],
+ "p1337": [
+  "Inviter le bot, ce qui compte",
+  "Invite the bot, what counts"
+ ],
+ "p1338": [
+  "Les commandes du bot",
+  "The bot’s commands"
+ ],
+ "p1339": [
+  "Progression",
+  "Progression"
+ ],
+ "p1340": [
+  "XP, prestige, niveau, titres",
+  "XP, prestige, level, titles"
+ ],
+ "p1341": [
+  "{n} badges, 7 paliers",
+  "{n} badges, 7 tiers"
+ ],
+ "p1342": [
+  "Le site",
+  "The website"
+ ],
+ "p1343": [
+  "Profils, classements, Versus…",
+  "Profiles, rankings, Versus…"
+ ],
+ "p1344": [
+  "Gestion",
+  "Management"
+ ],
+ "p1345": [
+  "Annonces, rapports, rôles",
+  "Announcements, reports, roles"
+ ],
+ "p1346": [
+  "FAQ",
+  "FAQ"
+ ],
+ "p1347": [
+  "Questions fréquentes",
+  "Frequent questions"
+ ],
+ "p1348": [
+  "Liens",
+  "Links"
+ ],
+ "p1349": [
+  "Discord, API, code source",
+  "Discord, API, source code"
+ ],
+ "p1350": [
+  "Démarrer en 3 étapes",
+  "Get started in 3 steps"
+ ],
+ "p1351": [
+  "Invite le bot",
+  "Invite the bot"
+ ],
+ "p1352": [
+  "Ajoute Hourglass à ton serveur Discord. Il n’y a rien à régler : il compte dès son arrivée.",
+  "Add Hourglass to your Discord server. There is nothing to set up: it counts from the moment it arrives."
+ ],
+ "p1353": [
+  "Inviter Hourglass",
+  "Invite Hourglass"
+ ],
+ "p1354": [
+  "Parle, joue, écris",
+  "Talk, play, write"
+ ],
+ "p1355": [
+  "Le temps passé dans les salons vocaux et les messages envoyés sont comptés pour chaque membre.",
+  "Time spent in voice channels and messages sent are counted for every member."
+ ],
+ "p1356": [
+  "Regarde tes stats",
+  "Check your stats"
+ ],
+ "p1357": [
+  "Tape /stats sur Discord, ou connecte-toi au site avec Discord pour voir ton profil complet.",
+  "Type /stats on Discord, or log in to the website with Discord to see your full profile."
+ ],
+ "p1358": [
+  "Ce qui est compté",
+  "What is counted"
+ ],
+ "p1359": [
+  "Le vocal",
+  "Voice"
+ ],
+ "p1360": [
+  "chaque minute passée dans un salon vocal, micro coupé compris.",
+  "every minute spent in a voice channel, muted included."
+ ],
+ "p1361": [
+  "Les messages",
+  "Messages"
+ ],
+ "p1362": [
+  "chaque message envoyé dans un salon du serveur.",
+  "every message sent in a channel of the server."
+ ],
+ "p1363": [
+  "Le partage d’écran et la caméra",
+  "Screen sharing and camera"
+ ],
+ "p1364": [
+  "le temps passé en direct ou caméra allumée, pour les statistiques.",
+  "the time spent live or with the camera on, for the statistics."
+ ],
+ "p1365": [
+  "Les statuts",
+  "Statuses"
+ ],
+ "p1366": [
+  "le nombre de membres en ligne, pour les graphiques du serveur.",
+  "the number of members online, for the server’s charts."
+ ],
+ "p1367": [
+  "Ce qui ne l’est pas",
+  "What is not"
+ ],
+ "p1368": [
+  "Le contenu des messages : Hourglass les compte, il ne les lit pas.",
+  "The content of messages: Hourglass counts them, it does not read them."
+ ],
+ "p1369": [
+  "Les messages privés.",
+  "Direct messages."
+ ],
+ "p1370": [
+  "Les bots : ils sont exclus des classements.",
+  "Bots: they are left out of the rankings."
+ ],
+ "p1371": [
+  "Ce qui s’est passé avant l’arrivée du bot sur le serveur.",
+  "What happened before the bot arrived on the server."
+ ],
+ "p1372": [
+  "Les permissions du bot",
+  "The bot’s permissions"
+ ],
+ "p1373": [
+  "Le lien d’invitation les demande déjà. Les commandes marchent sans elles ; elles servent aux fonctions de la page « Gérer ».",
+  "The invite link already asks for them. Commands work without them; they are used by the features of the “Manage” page."
+ ],
+ "p1374": [
+  "Commandes du bot",
+  "Bot commands"
+ ],
+ "p1375": [
+  "Tape « / » dans un salon pour les voir. Elles répondent par une carte image, dans la langue de ton Discord.",
+  "Type “/” in a channel to see them. They answer with an image card, in your Discord language."
+ ],
+ "p1376": [
+  "Tes stats sur ce serveur : vocal, messages, niveau, classement.",
+  "Your stats on this server: voice, messages, level, ranking."
+ ],
+ "p1377": [
+  "Tes stats sur tous les serveurs, avec ton prestige et ton titre.",
+  "Your stats across every server, with your prestige and your title."
+ ],
+ "p1378": [
+  "Le top 10 en vocal ou en messages, depuis toujours, sur 30 jours ou sur 7 jours, sur ce serveur ou partout.",
+  "The top 10 by voice or messages, all-time, over 30 days or over 7 days, on this server or everywhere."
+ ],
+ "p1379": [
+  "Le top 10 sur tous les serveurs.",
+  "The top 10 across every server."
+ ],
+ "p1380": [
+  "Un duel entre deux membres, sur ce serveur ou sur tous, avec un vainqueur.",
+  "A duel between two members, on this server or on all of them, with a winner."
+ ],
+ "p1381": [
+  "Les stats du serveur : vocal, messages, membres actifs.",
+  "The server’s stats: voice, messages, active members."
+ ],
+ "p1382": [
+  "Le lien pour voter sur top.gg, tes votes et l’heure de ton prochain vote.",
+  "The link to vote on top.gg, your votes and the time of your next vote."
+ ],
+ "p1383": [
+  "La liste des commandes.",
+  "The list of commands."
+ ],
+ "p1384": [
+  "Sur un serveur",
+  "On a server"
+ ],
+ "p1385": [
+  "[ ] : option facultative · < > : obligatoire. Sans [user], la commande parle de toi.",
+  "[ ]: optional · < >: required. Without [user], the command is about you."
+ ],
+ "p1386": [
+  "Gagner de l’XP",
+  "Earning XP"
+ ],
+ "p1387": [
+  "Sur ton profil, l’onglet Badges montre ceux que tu as et ce qu’il manque pour le palier suivant. Tu peux en épingler dans ta vitrine depuis « Personnaliser mon profil ».",
+  "On your profile, the Badges tab shows the ones you have and what is missing for the next tier. You can pin some in your showcase from “Customize my profile”."
+ ],
+ "p1388": [
+  "Tes heures, tes messages, tes séries, ton calendrier d’activité, tes graphiques, tes serveurs et tes badges. Cherche n’importe quel membre avec la barre de recherche.",
+  "Your hours, messages, streaks, activity calendar, charts, servers and badges. Look up any member with the search bar."
+ ],
+ "p1389": [
+  "Couleurs, fond, vitrine de badges, blocs à afficher ou à cacher, et profil privé. Il faut être connecté avec Discord.",
+  "Colors, background, badge showcase, blocks to show or hide, and private profile. You need to be logged in with Discord."
+ ],
+ "p1390": [
+  "Classements",
+  "Rankings"
+ ],
+ "p1391": [
+  "Les membres et les serveurs les plus actifs, en vocal ou en messages, sur la période de ton choix.",
+  "The most active members and servers, by voice or messages, over the period you choose."
+ ],
+ "p1392": [
+  "Fiches serveur",
+  "Server pages"
+ ],
+ "p1393": [
+  "L’activité d’un serveur : membres, salons, heures de pointe, membres en vocal en direct et niveaux de ses membres.",
+  "A server’s activity: members, channels, peak hours, members in voice live and its members’ levels."
+ ],
+ "p1394": [
+  "Versus",
+  "Versus"
+ ],
+ "p1395": [
+  "Compare deux membres sur un radar : vocal, messages, série, serveurs, badges, votes. Le lien se partage tel quel.",
+  "Compare two members on a radar: voice, messages, streak, servers, badges, votes. The link can be shared as is."
+ ],
+ "p1396": [
+  "La course des membres ou des serveurs mois après mois, en barres animées.",
+  "The race of members or servers month after month, as animated bars."
+ ],
+ "p1397": [
+  "L’activité de tout Hourglass : membres en ligne, en vocal, heures et messages, carte de chaleur jour × heure.",
+  "Activity across Hourglass: members online, in voice, hours and messages, day × hour heatmap."
+ ],
+ "p1398": [
+  "Cartes à partager",
+  "Cards to share"
+ ],
+ "p1399": [
+  "Chaque profil, serveur et duel a sa carte image. Un lien du site collé sur Discord s’affiche avec sa carte.",
+  "Every profile, server and duel has its image card. A link to the website pasted on Discord shows with its card."
+ ],
+ "p1400": [
+  "Le site existe en 12 langues : change-la dans le menu en haut à droite.",
+  "The website comes in 12 languages: change it in the menu at the top right."
+ ],
+ "p1401": [
+  "Gérer son serveur",
+  "Manage your server"
+ ],
+ "p1402": [
+  "Le propriétaire d’un serveur règle ce que le bot y fait, depuis le site. Il peut confier ces réglages à {n} gestionnaires au plus.",
+  "A server’s owner sets what the bot does there, from the website. They can hand these settings to up to {n} managers."
+ ],
+ "p1403": [
+  "Connecte-toi avec Discord.",
+  "Log in with Discord."
+ ],
+ "p1404": [
+  "Ouvre « Mes serveurs » dans le menu de ton compte, ou le bouton « Gérer » sur la fiche du serveur.",
+  "Open “My servers” in your account menu, or the “Manage” button on the server page."
+ ],
+ "p1405": [
+  "Active une fonction avec son interrupteur, règle-la, puis enregistre.",
+  "Turn a feature on with its switch, set it up, then save."
+ ],
+ "p1406": [
+  "Le bot félicite un membre qui passe un niveau sur le serveur, dans le salon choisi, avec ou sans carte image et mention.",
+  "The bot congratulates a member who reaches a new level on the server, in the chosen channel, with or without an image card and a mention."
+ ],
+ "p1407": [
+  "Message personnalisable, à partir d’un niveau donné, et tous les 1, 2, 5 ou 10 niveaux pour éviter le spam.",
+  "Custom message, from a given level, and every 1, 2, 5 or 10 levels to avoid spam."
+ ],
+ "p1408": [
+  "Un bilan quotidien, hebdomadaire ou mensuel en carte image : vocal, messages, membres actifs, top 5, heure de pointe.",
+  "A daily, weekly or monthly summary as an image card: voice, messages, active members, top 5, peak hour."
+ ],
+ "p1409": [
+  "Envoyé à l’heure du fuseau du serveur. Le bouton « Envoyer un test » poste la dernière période terminée.",
+  "Sent at the time of the server’s time zone. The “Send a test” button posts the last finished period."
+ ],
+ "p1410": [
+  "Le bot donne des rôles selon les heures en vocal, les messages ou le niveau, au total ou sur 30 jours. Une règle peut avoir plusieurs paliers (10 h → @Habitué, 100 h → @Légende).",
+  "The bot gives roles based on voice hours, messages or level, in total or over 30 days. A rule can have several tiers (10 h → @Regular, 100 h → @Legend)."
+ ],
+ "p1411": [
+  "Par règle : cumuler les rôles ou garder seulement le plus haut. Le bot ne retire que les rôles qu’il a donnés. Il ne donne jamais le rôle Administrateur, ni un rôle placé au-dessus du sien.",
+  "Per rule: stack the roles or keep only the highest. The bot only removes the roles it gave. It never gives the Administrator role, nor a role placed above its own."
+ ],
+ "p1412": [
+  "La fiche du serveur et ses détails sont réservés à ses membres, et le serveur disparaît des classements publics.",
+  "The server page and its details are for its members only, and the server leaves the public rankings."
+ ],
+ "p1413": [
+  "Réservé au propriétaire. Les stats de chacun restent comptées.",
+  "Owner only. Everyone’s stats are still counted."
+ ],
+ "p1414": [
+  "Chaque réglage modifié (par qui, quand) et chaque action du bot : annonces, rapports, rôles donnés ou retirés, erreurs.",
+  "Every setting changed (by whom, when) and every action of the bot: announcements, reports, roles given or removed, errors."
+ ],
+ "p1415": [
+  "Le propriétaire choisit des membres du serveur qui peuvent tout régler, sauf la liste des gestionnaires et le mode privé.",
+  "The owner picks server members who can set everything, except the list of managers and private mode."
+ ],
+ "p1416": [
+  "C’est une fonction toute nouvelle. Un bug ou une idée ? Dis-le sur le Discord Hourglass.",
+  "This is a brand-new feature. A bug or an idea? Tell us on the Hourglass Discord."
+ ],
+ "p1417": [
+  "Mes heures en vocal n’ont pas bougé. Pourquoi ?",
+  "My voice hours did not move. Why?"
+ ],
+ "p1418": [
+  "Le temps d’une session est ajouté à ton total quand tu quittes le salon vocal ou que tu en changes. Pendant la session, le site t’affiche « en vocal ». Les messages, eux, comptent tout de suite. Certaines pages et cartes gardent leurs chiffres quelques minutes.",
+  "The time of a session is added to your total when you leave the voice channel or switch to another one. During the session, the website shows you as “in voice”. Messages count right away. Some pages and cards keep their figures for a few minutes."
+ ],
+ "p1419": [
+  "Le micro coupé et le salon AFK comptent-ils ?",
+  "Do a muted mic and the AFK channel count?"
+ ],
+ "p1420": [
+  "Oui. Tout le temps passé dans un salon vocal compte, micro coupé, casque coupé ou dans le salon AFK.",
+  "Yes. All the time spent in a voice channel counts, muted, deafened or in the AFK channel."
+ ],
+ "p1421": [
+  "Mon activité d’avant l’arrivée du bot est-elle comptée ?",
+  "Is my activity from before the bot arrived counted?"
+ ],
+ "p1422": [
+  "Non. Hourglass ne voit que ce qui se passe sur un serveur pendant qu’il y est.",
+  "No. Hourglass only sees what happens on a server while it is there."
+ ],
+ "p1423": [
+  "Quelle différence entre prestige et niveau ?",
+  "What is the difference between prestige and level?"
+ ],
+ "p1424": [
+  "Le prestige compte toute ton activité sur tous les serveurs, plus tes votes. Le niveau ne compte que ton activité sur un serveur. Détails dans l’onglet Progression.",
+  "Prestige counts all your activity on every server, plus your votes. The level only counts your activity on one server. Details in the Progression tab."
+ ],
+ "p1425": [
+  "Pourquoi un serveur n’apparaît pas dans les classements ?",
+  "Why does a server not show in the rankings?"
+ ],
+ "p1426": [
+  "Soit le bot n’est pas sur ce serveur, soit le serveur est en mode privé : sa fiche est alors réservée à ses membres.",
+  "Either the bot is not on that server, or the server is in private mode: its page is then for its members only."
+ ],
+ "p1427": [
+  "Les bots sont-ils comptés ?",
+  "Are bots counted?"
+ ],
+ "p1428": [
+  "Non. Les comptes de bots portent une étiquette « BOT » et sont exclus des classements, des rapports et des tops.",
+  "No. Bot accounts carry a “BOT” label and are left out of the rankings, reports and tops."
+ ],
+ "p1429": [
+  "Comment cacher mon profil ?",
+  "How do I hide my profile?"
+ ],
+ "p1430": [
+  "Dans « Personnaliser mon profil », passe ton profil en privé ou cache seulement certains blocs. Ton activité reste comptée pour les serveurs.",
+  "In “Customize my profile”, make your profile private or hide only some blocks. Your activity is still counted for the servers."
+ ],
+ "p1431": [
+  "Le bot ne donne pas un rôle automatique. Que vérifier ?",
+  "The bot does not give an automatic role. What should I check?"
+ ],
+ "p1432": [
+  "Le bot doit avoir la permission « Gérer les rôles », et son propre rôle doit être placé au-dessus du rôle à donner dans les paramètres du serveur. Il ne donne jamais le rôle Administrateur ni les rôles gérés par une intégration. Le journal de la page « Gérer » donne la raison de chaque échec.",
+  "The bot needs the “Manage roles” permission, and its own role must be placed above the role to give in the server settings. It never gives the Administrator role nor roles managed by an integration. The log of the “Manage” page gives the reason for each failure."
+ ],
+ "p1433": [
+  "Les annonces ou les rapports n’arrivent pas.",
+  "Announcements or reports do not arrive."
+ ],
+ "p1434": [
+  "Dans le salon choisi, le bot doit pouvoir voir le salon, y envoyer des messages et intégrer des liens. La page « Gérer » signale les salons où il ne peut pas écrire, et « Envoyer un test » permet de vérifier.",
+  "In the chosen channel, the bot must be able to see the channel, send messages and embed links. The “Manage” page flags the channels where it cannot write, and “Send a test” lets you check."
+ ],
+ "p1435": [
+  "Qui peut gérer un serveur ?",
+  "Who can manage a server?"
+ ],
+ "p1436": [
+  "Le propriétaire du serveur, et les gestionnaires qu’il choisit ({n} au plus). Seul le propriétaire peut changer la liste des gestionnaires et le mode privé.",
+  "The server owner, and the managers they pick (up to {n}). Only the owner can change the list of managers and private mode."
+ ],
+ "p1437": [
+  "Comment voter pour Hourglass et qu’est-ce que ça rapporte ?",
+  "How do I vote for Hourglass and what does it give?"
+ ],
+ "p1438": [
+  "Vote sur top.gg toutes les 12 heures (la commande /vote donne le lien). Chaque vote rapporte {n} XP de prestige et fait monter le badge Soutien.",
+  "Vote on top.gg every 12 hours (the /vote command gives the link). Each vote gives {n} prestige XP and raises the Supporter badge."
+ ],
+ "p1439": [
+  "Dans quelle langue répond le bot ?",
+  "Which language does the bot answer in?"
+ ],
+ "p1440": [
+  "Dans la langue de ton application Discord, parmi les 12 langues du site. Sinon, en anglais.",
+  "In the language of your Discord app, among the 12 languages of the website. Otherwise, in English."
+ ],
+ "p1441": [
+  "Comment supprimer mes données ?",
+  "How do I delete my data?"
+ ],
+ "p1442": [
+  "La demande se fait sur le serveur Discord officiel, pour vérifier qu’elle vient bien de toi. Tout est expliqué dans la politique de confidentialité.",
+  "The request is made on the official Discord server, to check it really comes from you. Everything is explained in the privacy policy."
+ ],
+ "p1443": [
+  "Pas de réponse ici ? Pose ta question sur le Discord Hourglass.",
+  "No answer here? Ask your question on the Hourglass Discord."
+ ],
+ "p1444": [
+  "Voter pour Hourglass",
+  "Vote for Hourglass"
+ ],
+ "p1445": [
+  "Un vote toutes les 12 heures sur top.gg aide le bot à se faire connaître, et te rapporte {n} XP.",
+  "A vote every 12 hours on top.gg helps the bot get known, and gives you {n} XP."
+ ],
+ "p1446": [
+  "Confidentialité et conditions",
+  "Privacy and terms"
+ ],
+ "p1447": [
+  "Les données enregistrées, leur durée de conservation, tes droits et les règles d’utilisation.",
+  "The data recorded, how long it is kept, your rights and the terms of use."
+ ],
+ "p1448": [
+  "Conditions d’utilisation",
+  "Terms of use"
+ ],
+ "p1449": [
+  "Un palier sans condition ne peut pas donner un rôle avec des droits de modération : tous les nouveaux venus l’obtiendraient. Ajoute une condition à ce palier.",
+  "A tier without condition cannot give a role with moderation rights: every newcomer would get it. Add a condition to this tier."
+ ],
+ "p1450": [
+  "Une règle est une progression de paliers : chaque palier donne un rôle quand ses conditions sont remplies (jusqu’à {n} par palier). Par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende. Le chiffre à droite de chaque palier compte les membres qui auraient ce rôle aujourd’hui. Un palier sans condition est donné à tous les membres, dès leur arrivée.",
+  "A rule is a progression of tiers: each tier gives a role when its conditions are met (up to {n} per tier). For example 10 h in voice → @Regular, 50 h → @Veteran, 100 h → @Legend. The figure on the right of each tier counts the members who would have that role today. A tier without condition is given to every member, as soon as they join."
+ ],
+ "p1451": [
+  "Aucune condition : tous les membres ont ce rôle, dès leur arrivée sur le serveur.",
+  "No condition: every member gets this role, as soon as they join the server."
  ]
 }

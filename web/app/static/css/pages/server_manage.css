@@ -401,3 +401,7 @@ html body .sm-tier-head .hg-select-btn { width: auto; flex: 1 1 220px; min-width
 .sm-beta b { color: #f59e0b; }
 .sm-beta a { color: #a5acff; }
 .sm-beta a:hover { color: #fff; }
+
+/* Tier without condition (web 3.52.0) */
+.sm-nocond { display: flex; align-items: center; gap: 6px; margin: 8px 0 4px; color: #3fd1a0; }
+.sm-nocond > svg { flex: none; }

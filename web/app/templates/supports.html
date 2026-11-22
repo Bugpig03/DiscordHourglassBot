@@ -2,252 +2,319 @@
 
 {% block title %}{{ t('supports.title') }}{% endblock %}
 
+{% macro tip(text) %}<span class="help-info" data-tip="{{ text }}" tabindex="0" role="note" aria-label="{{ text }}">?</span>{% endmacro %}
+
+{% macro tab(id, icon, title, desc) %}
+<button class="graphs-tab-btn{% if id == 'demarrer' %} active{% endif %}" data-tab="{{ id }}" data-call="switchHelpTab" data-arg="{{ id }}">
+    {{ pixel_icon(icon, 15) }}
+    <span class="tab-text"><span class="tab-title">{{ title }}</span><small class="tab-desc">{{ desc }}</small></span>
+</button>
+{% endmacro %}
+
+{% macro tile(icon, title, text, href=None, color='blurple', extra=None) %}
+<div class="help-tile is-{{ color }}">
+    <div class="help-tile-head"><span class="help-tile-icon">{{ pixel_icon(icon, 18) }}</span><h3>{{ title }}</h3>{% if extra %}{{ extra }}{% endif %}</div>
+    <p>{{ text }}</p>
+    {% if href %}<a class="help-tile-link" href="{{ href }}">{{ tr('Ouvrir', 'Open') }} {{ pixel_icon('arrow_right', 11) }}</a>{% endif %}
+</div>
+{% endmacro %}
+
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/supports.css', v=asset_version('css/pages/supports.css')) }}">
-<h1 class="big-bold-text">{{ t('supports.heading') }}</h1>
 
-<!-- Commands Table Card -->
-<div class="gray-box small-border-radius" style="padding: 24px;">
-    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.commands_title') }}</div>
-    <p class="small-text gray" style="margin-top: 4px; margin-bottom: 16px;">
-        {{ t('supports.commands_desc') }}
-    </p>
+<header class="help-hero">
+    <h1 class="big-bold-text">{{ tr('Aide et documentation', 'Help and documentation') }}</h1>
+    <p class="help-lead">{{ tr('Tout sur Hourglass : le bot, les commandes, la progression, le site et la gestion des serveurs.', 'All about Hourglass: the bot, the commands, the progression, the website and server management.') }}</p>
+</header>
 
-    <div class="commands-table-wrapper">
-        <table class="commands-table">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">{{ t('supports.th_command') }}</th>
-                    <th>{{ t('supports.th_description') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>/stats [user]</td>
-                    <td>{{ t('supports.cmd_stats') }}</td>
-                </tr>
-                <tr>
-                    <td>/allstats [user]</td>
-                    <td>{{ t('supports.cmd_allstats') }}</td>
-                </tr>
-                <tr>
-                    <td>/top [type] [period] [scope]</td>
-                    <td>{{ t('supports.cmd_top') }}</td>
-                </tr>
-                <tr>
-                    <td>/alltop</td>
-                    <td>{{ t('supports.cmd_alltop') }}</td>
-                </tr>
-                <tr>
-                    <td>/versus &lt;player1&gt; &lt;player2&gt;</td>
-                    <td>{{ tr('Duel entre deux membres, avec un vainqueur.', 'Head-to-head duel between two members, with a winner.') }}</td>
-                </tr>
-                <tr>
-                    <td>/server</td>
-                    <td>{{ t('supports.cmd_server') }}</td>
-                </tr>
-                <tr>
-                    <td>/help</td>
-                    <td>{{ t('supports.cmd_help') }}</td>
-                </tr>
-            </tbody>
-        </table>
+<nav class="help-tabs" aria-label="{{ tr('Sections de l’aide', 'Help sections') }}">
+<div class="hg-tabs-sentinel" aria-hidden="true"></div>
+<div class="graphs-tabs-wrapper hg-sticky-tabs hg-card-tabs">
+    <div class="graphs-tabs" role="tablist">
+        {{ tab('demarrer', 'sparkle', tr('Démarrer', 'Get started'), tr('Inviter le bot, ce qui compte', 'Invite the bot, what counts')) }}
+        {{ tab('commandes', 'terminal', tr('Commandes', 'Commands'), tr('Les commandes du bot', 'The bot’s commands')) }}
+        {{ tab('progression', 'trend', tr('Progression', 'Progression'), tr('XP, prestige, niveau, titres', 'XP, prestige, level, titles')) }}
+        {{ tab('badges', 'award', tr('Badges', 'Badges'), tr('{n} badges, 7 paliers', '{n} badges, 7 tiers', n=badge_ladders | length)) }}
+        {{ tab('site', 'globe', tr('Le site', 'The website'), tr('Profils, classements, Versus…', 'Profiles, rankings, Versus…')) }}
+        {{ tab('gerer', 'wrench', tr('Gestion', 'Management'), tr('Annonces, rapports, rôles', 'Announcements, reports, roles')) }}
+        {{ tab('faq', 'chat_round', tr('FAQ', 'FAQ'), tr('Questions fréquentes', 'Frequent questions')) }}
+        {{ tab('liens', 'share', tr('Liens', 'Links'), tr('Discord, API, code source', 'Discord, API, source code')) }}
     </div>
 </div>
+</nav>
 
-<!-- Experience, Levels & Badges Guide Card -->
-<div class="gray-box small-border-radius" style="padding: 24px;">
-    <div class="medium-bold-text nomargin" style="font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
-        <svg width="22" height="22" style="color: #717cf8;" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="trophy"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM2 1h5v1h-5zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h5v1h-5zM8 2h1v1h-1zM1 3h7v1h-7zM2 4h5v1h-5zM3 5h3v1h-3zM4 6h1v1h-1zM3 7h3v1h-3zM1 8h7v1h-7z"/></svg>
-        <span>{{ t('supports.xp_section_title') }}</span>
+{# ============================================================ Get started #}
+<section id="tab-demarrer" class="graphs-tab-pane help-pane active" data-pane="demarrer">
+    <div class="hg-card help-card">
+        <h2 class="help-card-title">{{ pixel_icon('sparkle', 20) }}<span>{{ tr('Démarrer en 3 étapes', 'Get started in 3 steps') }}</span></h2>
+        <ol class="help-steps">
+            <li>
+                <span class="help-step-num">1</span>
+                <div>
+                    <h3>{{ tr('Invite le bot', 'Invite the bot') }}</h3>
+                    <p>{{ tr('Ajoute Hourglass à ton serveur Discord. Il n’y a rien à régler : il compte dès son arrivée.', 'Add Hourglass to your Discord server. There is nothing to set up: it counts from the moment it arrives.') }}</p>
+                    <a class="help-btn" href="{{ bot_invite_url }}" target="_blank" rel="noopener noreferrer">{{ pixel_icon('discord', 16) }}<span>{{ tr('Inviter Hourglass', 'Invite Hourglass') }}</span></a>
+                </div>
+            </li>
+            <li>
+                <span class="help-step-num">2</span>
+                <div>
+                    <h3>{{ tr('Parle, joue, écris', 'Talk, play, write') }}</h3>
+                    <p>{{ tr('Le temps passé dans les salons vocaux et les messages envoyés sont comptés pour chaque membre.', 'Time spent in voice channels and messages sent are counted for every member.') }}</p>
+                </div>
+            </li>
+            <li>
+                <span class="help-step-num">3</span>
+                <div>
+                    <h3>{{ tr('Regarde tes stats', 'Check your stats') }}</h3>
+                    <p>{{ tr('Tape /stats sur Discord, ou connecte-toi au site avec Discord pour voir ton profil complet.', 'Type /stats on Discord, or log in to the website with Discord to see your full profile.') }}</p>
+                </div>
+            </li>
+        </ol>
     </div>
-    <p class="small-text gray" style="margin-top: 6px; margin-bottom: 20px;">
-        {{ t('supports.xp_section_desc') }}
-    </p>
 
-    <div class="xp-guide-grid">
-        <!-- Voice XP -->
-        <div class="xp-guide-item">
-            <div class="xp-guide-header">
-                <div class="xp-guide-icon-box cyan">
-                    <svg width="20" height="20" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="mic"><path d="M3 0h3v1h-3zM2 1h5v1h-5zM2 2h5v1h-5zM2 3h5v1h-5zM0 4h1v1h-1zM2 4h5v1h-5zM8 4h1v1h-1zM0 5h1v1h-1zM3 5h3v1h-3zM8 5h1v1h-1zM1 6h2v1h-2zM6 6h2v1h-2zM3 7h3v1h-3zM2 8h5v1h-5z"/></svg>
-                </div>
-                <div class="xp-guide-meta">
-                    <div class="xp-guide-title">{{ t('supports.xp_voice_title') }}</div>
-                    <span class="xp-guide-chip cyan">{{ t('supports.xp_voice_rate') }}</span>
-                </div>
-            </div>
-            <p class="xp-guide-desc">{{ t('supports.xp_voice_desc') }}</p>
+    <div class="help-grid">
+        <div class="hg-card help-card">
+            <h2 class="help-card-title">{{ pixel_icon('check', 18) }}<span>{{ tr('Ce qui est compté', 'What is counted') }}</span></h2>
+            <ul class="help-list is-ok">
+                <li><b>{{ tr('Le vocal', 'Voice') }}</b> · {{ tr('chaque minute passée dans un salon vocal, micro coupé compris.', 'every minute spent in a voice channel, muted included.') }}</li>
+                <li><b>{{ tr('Les messages', 'Messages') }}</b> · {{ tr('chaque message envoyé dans un salon du serveur.', 'every message sent in a channel of the server.') }}</li>
+                <li><b>{{ tr('Le partage d’écran et la caméra', 'Screen sharing and camera') }}</b> · {{ tr('le temps passé en direct ou caméra allumée, pour les statistiques.', 'the time spent live or with the camera on, for the statistics.') }}</li>
+                <li><b>{{ tr('Les statuts', 'Statuses') }}</b> · {{ tr('le nombre de membres en ligne, pour les graphiques du serveur.', 'the number of members online, for the server’s charts.') }}</li>
+            </ul>
         </div>
-
-        <!-- Messages XP -->
-        <div class="xp-guide-item">
-            <div class="xp-guide-header">
-                <div class="xp-guide-icon-box blurple">
-                    <svg width="20" height="20" aria-hidden="true" viewBox="0 -1 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="chat"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM0 3h1v1h-1zM8 3h1v1h-1zM0 4h9v1h-9zM1 5h2v1h-2zM1 6h1v1h-1z"/></svg>
-                </div>
-                <div class="xp-guide-meta">
-                    <div class="xp-guide-title">{{ t('supports.xp_msg_title') }}</div>
-                    <span class="xp-guide-chip blurple">{{ t('supports.xp_msg_rate') }}</span>
-                </div>
-            </div>
-            <p class="xp-guide-desc">{{ t('supports.xp_msg_desc') }}</p>
-        </div>
-
-        <!-- Votes XP (top.gg) -->
-        <div class="xp-guide-item full-width">
-            <div class="xp-guide-header">
-                <div class="xp-guide-icon-box pink">{{ pixel_icon('heart', 20) }}</div>
-                <div class="xp-guide-meta">
-                    <div class="xp-guide-title">{{ tr('Votes pour Hourglass', 'Votes for Hourglass') }}</div>
-                    <span class="xp-guide-chip pink">{{ tr('+{n} XP / vote', '+{n} XP / vote', n=xp_per_vote) }}</span>
-                </div>
-            </div>
-            <p class="xp-guide-desc">
-                {{ tr('Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre prestige (tous serveurs), pas pour le niveau d’un serveur, et font aussi monter le badge Soutien.', 'Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your prestige (all servers), not for the level on one server, and also raise the Supporter badge.', n=xp_per_vote) }}
-                {% if vote_url %}<a class="xp-guide-link" href="{{ vote_url }}" target="_blank" rel="noopener">{{ tr('Voter sur top.gg ↗', 'Vote on top.gg ↗') }}</a>{% endif %}
-            </p>
-        </div>
-
-        <!-- Level Curve -->
-        <div class="xp-guide-item">
-            <div class="xp-guide-header">
-                <div class="xp-guide-icon-box amber">
-                    <svg width="20" height="20" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="zap"><path d="M4 0h3v1h-3zM3 1h3v1h-3zM2 2h3v1h-3zM1 3h7v1h-7zM4 4h3v1h-3zM3 5h3v1h-3zM2 6h2v1h-2zM1 7h2v1h-2zM1 8h1v1h-1z"/></svg>
-                </div>
-                <div class="xp-guide-meta">
-                    <div class="xp-guide-title">{{ t('supports.xp_curve_title') }}</div>
-                    <span class="xp-guide-chip amber">{{ t('supports.xp_curve_rate') }}</span>
-                </div>
-            </div>
-            <p class="xp-guide-desc">{{ t('supports.xp_curve_desc') }}</p>
-        </div>
-
-        <!-- Badges & Achievements -->
-        <div class="xp-guide-item">
-            <div class="xp-guide-header">
-                <div class="xp-guide-icon-box green">
-                    <svg width="20" height="20" aria-hidden="true" viewBox="0 0 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="award"><path d="M2 0h5v1h-5zM1 1h7v1h-7zM1 2h2v1h-2zM6 2h2v1h-2zM1 3h2v1h-2zM6 3h2v1h-2zM1 4h7v1h-7zM2 5h5v1h-5zM2 6h1v1h-1zM6 6h1v1h-1zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg>
-                </div>
-                <div class="xp-guide-meta">
-                    <div class="xp-guide-title">{{ t('supports.xp_badges_title') }}</div>
-                    <span class="xp-guide-chip green">{{ t('supports.xp_badges_rate') }}</span>
-                </div>
-            </div>
-            <p class="xp-guide-desc">{{ t('supports.xp_badges_desc') }}</p>
-        </div>
-
-        <!-- Exportable Profile Card -->
-        <div class="xp-guide-item full-width">
-            <div class="xp-guide-header">
-                <div class="xp-guide-icon-box purple">
-                    <svg width="20" height="20" aria-hidden="true" viewBox="0 -0.5 9 9" fill="currentColor" shape-rendering="crispEdges" data-px="image"><path d="M0 0h9v1h-9zM0 1h1v1h-1zM8 1h1v1h-1zM0 2h1v1h-1zM2 2h2v1h-2zM8 2h1v1h-1zM0 3h1v1h-1zM2 3h2v1h-2zM6 3h1v1h-1zM8 3h1v1h-1zM0 4h1v1h-1zM5 4h4v1h-4zM0 5h1v1h-1zM3 5h1v1h-1zM5 5h4v1h-4zM0 6h1v1h-1zM2 6h7v1h-7zM0 7h9v1h-9z"/></svg>
-                </div>
-                <div class="xp-guide-meta">
-                    <div class="xp-guide-title">{{ t('supports.xp_card_title') }}</div>
-                    <span class="xp-guide-chip purple">{{ t('supports.xp_card_rate') }}</span>
-                </div>
-            </div>
-            <p class="xp-guide-desc">{{ t('supports.xp_card_desc') }}</p>
+        <div class="hg-card help-card">
+            <h2 class="help-card-title">{{ pixel_icon('eye_off', 18) }}<span>{{ tr('Ce qui ne l’est pas', 'What is not') }}</span></h2>
+            <ul class="help-list is-off">
+                <li>{{ tr('Le contenu des messages : Hourglass les compte, il ne les lit pas.', 'The content of messages: Hourglass counts them, it does not read them.') }}</li>
+                <li>{{ tr('Les messages privés.', 'Direct messages.') }}</li>
+                <li>{{ tr('Les bots : ils sont exclus des classements.', 'Bots: they are left out of the rankings.') }}</li>
+                <li>{{ tr('Ce qui s’est passé avant l’arrivée du bot sur le serveur.', 'What happened before the bot arrived on the server.') }}</li>
+            </ul>
         </div>
     </div>
-</div>
 
-<!-- Prestige and level: two progressions, same formula -->
-<div class="gray-box small-border-radius help-ladder-card" id="prestige">
-    <div class="medium-bold-text nomargin help-ladder-title">
-        {{ pixel_icon('crown', 22) }}
-        <span>{{ tr('Prestige et niveau', 'Prestige and level') }}</span>
+    <div class="hg-card help-card">
+        <h2 class="help-card-title">{{ pixel_icon('shield_check', 18) }}<span>{{ tr('Les permissions du bot', 'The bot’s permissions') }}</span> {{ tip(tr('Le lien d’invitation les demande déjà. Les commandes marchent sans elles ; elles servent aux fonctions de la page « Gérer ».', 'The invite link already asks for them. Commands work without them; they are used by the features of the “Manage” page.')) }}</h2>
+        <ul class="help-perms">
+            {% for key, (name, what) in perms.items() %}
+            <li><b>{{ name }}</b><span>{{ what }}</span></li>
+            {% endfor %}
+        </ul>
     </div>
-    <p class="small-text gray help-ladder-desc">
-        {{ tr('Hourglass suit deux progressions, avec la même formule (1 minute en vocal ou 1 message = 1 XP) :', 'Hourglass follows two progressions, with the same formula (1 minute in voice or 1 message = 1 XP):') }}
-    </p>
-    <ul class="help-prestige">
-        <li><b>{{ tr('Prestige', 'Prestige') }}</b> · {{ tr('ta progression sur tout Hourglass : toute ton activité, sur tous les serveurs, plus tes votes. Elle donne ton titre et s’affiche sur ton profil, dans les classements et sur /allstats. Elle ne baisse jamais.', 'your progression across all of Hourglass: all your activity, on every server, plus your votes. It gives your title and shows on your profile, in the leaderboards and on /allstats. It never goes down.') }}</li>
-        <li><b>{{ tr('Niveau', 'Level') }}</b> · {{ tr('ta progression sur un serveur : seulement ton vocal et tes messages sur ce serveur (sans les votes). Il s’affiche sur la fiche du serveur, sur /stats dans le serveur, et c’est lui que le bot annonce quand le serveur a activé les annonces de niveau.', 'your progression on one server: only your voice and messages on that server (no votes). It shows on the server page, on /stats in the server, and it is the one the bot announces when the server turned the level-up announcements on.') }}</li>
-    </ul>
-</div>
+</section>
 
-<!-- Titles by prestige -->
-<div class="gray-box small-border-radius help-ladder-card" id="titres">
-    <div class="medium-bold-text nomargin help-ladder-title">
-        {{ pixel_icon('star', 22) }}
-        <span>{{ tr('Titres par prestige', 'Titles by prestige') }}</span>
-    </div>
-    <p class="small-text gray help-ladder-desc">
-        {{ tr('Chaque palier de prestige donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.', 'Each prestige step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer.') }}
-    </p>
-    <ol class="help-titles">
-        {% for t in titles %}
-        <li class="help-title group-{{ t.group }}">
-            <span class="help-title-level">{{ tr('Prestige', 'Prestige') }} {{ t.level }}</span>
-            <span class="help-title-name">{{ t.title }}</span>
-            <span class="help-title-req">{% if t.level == 1 %}{{ tr('Dès le départ', 'From the start') }}{% else %}{{ t.xp | num }} XP · ~{{ t.hours | num }} h{% endif %}</span>
-        </li>
-        {% endfor %}
-    </ol>
-</div>
-
-<!-- Badge tiers -->
-<div class="gray-box small-border-radius help-ladder-card" id="badges">
-    <div class="medium-bold-text nomargin help-ladder-title">
-        {{ pixel_icon('award', 22) }}
-        <span>{{ tr('Paliers des badges', 'Badge tiers') }}</span>
-    </div>
-    <p class="small-text gray help-ladder-desc">
-        {{ tr('{n} badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.', '{n} badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month.', n=badge_ladders | length) }}
-    </p>
-    <div class="help-badges">
-        <div class="help-badges-head" aria-hidden="true">
-            <span></span>
-            {% for tier in badge_ladders[0].tiers %}<span class="help-tier-name" style="--tier: {{ tier.color }};">{{ tier.label }}</span>{% endfor %}
-        </div>
-        {% for b in badge_ladders %}
-        <div class="help-badge-row">
-            <div class="help-badge-name">
-                <span class="help-badge-icon">{{ b.icon | safe }}</span>
-                <span><strong>{{ b.name }}</strong><small>{{ b.what }}</small></span>
+{# ============================================================ Commands #}
+<section id="tab-commandes" class="graphs-tab-pane help-pane" data-pane="commandes" hidden>
+    <div class="hg-card help-card">
+        <h2 class="help-card-title">{{ pixel_icon('terminal', 20) }}<span>{{ tr('Commandes du bot', 'Bot commands') }}</span></h2>
+        <p class="help-desc">{{ tr('Tape « / » dans un salon pour les voir. Elles répondent par une carte image, dans la langue de ton Discord.', 'Type “/” in a channel to see them. They answer with an image card, in your Discord language.') }}</p>
+        <div class="help-cmds">
+            {% set cmds = [
+                ('/stats', '[user]', tr('Tes stats sur ce serveur : vocal, messages, niveau, classement.', 'Your stats on this server: voice, messages, level, ranking.'), True),
+                ('/allstats', '[user]', tr('Tes stats sur tous les serveurs, avec ton prestige et ton titre.', 'Your stats across every server, with your prestige and your title.'), False),
+                ('/top', '[type] [period] [scope]', tr('Le top 10 en vocal ou en messages, depuis toujours, sur 30 jours ou sur 7 jours, sur ce serveur ou partout.', 'The top 10 by voice or messages, all-time, over 30 days or over 7 days, on this server or everywhere.'), False),
+                ('/alltop', '', tr('Le top 10 sur tous les serveurs.', 'The top 10 across every server.'), False),
+                ('/versus', '<player1> <player2> [scope]', tr('Un duel entre deux membres, sur ce serveur ou sur tous, avec un vainqueur.', 'A duel between two members, on this server or on all of them, with a winner.'), False),
+                ('/server', '', tr('Les stats du serveur : vocal, messages, membres actifs.', 'The server’s stats: voice, messages, active members.'), True),
+                ('/vote', '', tr('Le lien pour voter sur top.gg, tes votes et l’heure de ton prochain vote.', 'The link to vote on top.gg, your votes and the time of your next vote.'), False),
+                ('/help', '', tr('La liste des commandes.', 'The list of commands.'), False),
+            ] %}
+            {% for name, args, what, server_only in cmds %}
+            <div class="help-cmd">
+                <code class="help-cmd-name">{{ name }}{% if args %} <span>{{ args }}</span>{% endif %}</code>
+                <p>{{ what }}</p>
+                {% if server_only %}<span class="help-chip">{{ tr('Sur un serveur', 'On a server') }}</span>{% endif %}
             </div>
-            {% for tier in b.tiers %}
-            <span class="help-badge-tier" style="--tier: {{ tier.color }};"><em>{{ tier.label }}</em>{{ tier.threshold }}</span>
             {% endfor %}
         </div>
-        {% endfor %}
+        <p class="help-note">{{ tr('[ ] : option facultative · < > : obligatoire. Sans [user], la commande parle de toi.', '[ ]: optional · < >: required. Without [user], the command is about you.') }}</p>
     </div>
-</div>
+</section>
 
-<!-- Community & Discord Support Card -->
-<div class="gray-box small-border-radius" style="padding: 24px;">
-    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.discord_title') }}</div>
-    <p class="medium-text gray" style="margin: 10px 0 16px;">
-        {{ t('supports.discord_desc') }}
-    </p>
-    <a href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer" class="btn-discord" style="margin: 0;">
-        {{ pixel_icon('discord', 22, 'class="btn-discord-icon"') }}
-        <span>{{ t('supports.discord_btn') }}</span>
-    </a>
-</div>
+{# ============================================================ Progression #}
+<section id="tab-progression" class="graphs-tab-pane help-pane" data-pane="progression" hidden>
+    <div class="hg-card help-card">
+        <h2 class="help-card-title">{{ pixel_icon('zap', 20) }}<span>{{ tr('Gagner de l’XP', 'Earning XP') }}</span></h2>
+        <div class="help-xp">
+            <div class="help-xp-item is-cyan">{{ pixel_icon('mic', 18) }}<b>{{ t('supports.xp_voice_rate') }}</b><span>{{ t('supports.xp_voice_title') }}</span></div>
+            <div class="help-xp-item is-blurple">{{ pixel_icon('chat', 18) }}<b>{{ t('supports.xp_msg_rate') }}</b><span>{{ t('supports.xp_msg_title') }}</span></div>
+            <div class="help-xp-item is-pink">{{ pixel_icon('heart', 18) }}<b>{{ tr('+{n} XP / vote', '+{n} XP / vote', n=xp_per_vote) }}</b><span>{{ tr('Votes pour Hourglass', 'Votes for Hourglass') }} {{ tip(tr('Chaque vote pour Hourglass sur top.gg vous rapporte {n} XP, soit autant que {n} minutes en vocal. On peut voter toutes les 12 heures. Les votes comptent pour votre prestige (tous serveurs), pas pour le niveau d’un serveur, et font aussi monter le badge Soutien.', 'Each vote for Hourglass on top.gg awards {n} XP, as much as {n} minutes in voice. You can vote every 12 hours. Votes count for your prestige (all servers), not for the level on one server, and also raise the Supporter badge.', n=xp_per_vote)) }}</span>{% if vote_url %}<a href="{{ vote_url }}" target="_blank" rel="noopener">{{ tr('Voter sur top.gg ↗', 'Vote on top.gg ↗') }}</a>{% endif %}</div>
+        </div>
+        <p class="help-note">{{ t('supports.xp_curve_desc') }}</p>
+    </div>
 
-<!-- REST API Documentation Card -->
-<div class="gray-box small-border-radius" style="padding: 24px;">
-    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.api_title') }}</div>
-    <p class="medium-text gray" style="margin: 10px 0 16px;">
-        {{ t('supports.api_desc') }}
-    </p>
-    <a href="https://github.com/Bugpig03/DiscordHourglassBot/blob/main/web/API.md" target="_blank" rel="noopener noreferrer" class="simplelink" style="font-size: 1.05rem;">
-        {{ t('supports.api_btn') }}
-    </a>
-</div>
+    <div class="hg-card help-card" id="prestige">
+        <h2 class="help-card-title">{{ pixel_icon('crown', 20) }}<span>{{ tr('Prestige et niveau', 'Prestige and level') }}</span></h2>
+        <p class="help-desc">{{ tr('Hourglass suit deux progressions, avec la même formule (1 minute en vocal ou 1 message = 1 XP) :', 'Hourglass follows two progressions, with the same formula (1 minute in voice or 1 message = 1 XP):') }}</p>
+        <div class="help-grid">
+            <div class="help-duo is-gold">
+                <h3>{{ pixel_icon('globe', 16) }}{{ tr('Prestige', 'Prestige') }}</h3>
+                <p>{{ tr('ta progression sur tout Hourglass : toute ton activité, sur tous les serveurs, plus tes votes. Elle donne ton titre et s’affiche sur ton profil, dans les classements et sur /allstats. Elle ne baisse jamais.', 'your progression across all of Hourglass: all your activity, on every server, plus your votes. It gives your title and shows on your profile, in the leaderboards and on /allstats. It never goes down.') }}</p>
+            </div>
+            <div class="help-duo is-blurple">
+                <h3>{{ pixel_icon('servers', 16) }}{{ tr('Niveau', 'Level') }}</h3>
+                <p>{{ tr('ta progression sur un serveur : seulement ton vocal et tes messages sur ce serveur (sans les votes). Il s’affiche sur la fiche du serveur, sur /stats dans le serveur, et c’est lui que le bot annonce quand le serveur a activé les annonces de niveau.', 'your progression on one server: only your voice and messages on that server (no votes). It shows on the server page, on /stats in the server, and it is the one the bot announces when the server turned the level-up announcements on.') }}</p>
+            </div>
+        </div>
+    </div>
 
-<!-- Open Source Card -->
-<div class="gray-box small-border-radius" style="padding: 24px;">
-    <div class="medium-bold-text nomargin" style="font-size: 1.25rem;">{{ t('supports.source_title') }}</div>
-    <p class="medium-text gray" style="margin: 10px 0 16px;">
-        {{ t('supports.source_desc') }}
-    </p>
-    <a href="https://github.com/Bugpig03/DiscordHourglassBot" target="_blank" rel="noopener noreferrer" class="simplelink" style="font-size: 1.05rem;">
-        {{ t('supports.source_btn') }}
-    </a>
-</div>
+    <div class="hg-card help-card" id="titres">
+        <h2 class="help-card-title">{{ pixel_icon('star', 20) }}<span>{{ tr('Titres par prestige', 'Titles by prestige') }}</span> {{ tip(tr('Chaque palier de prestige donne un titre, affiché sous ton pseudo sur ton profil et sur tes cartes. Les heures sont celles du vocal seul : chaque message envoyé rapproche aussi du palier suivant.', 'Each prestige step gives a title, shown under your name on your profile and your cards. Hours are for voice alone: every message sent also brings the next step closer.')) }}</h2>
+        <ol class="help-titles">
+            {% for ti in titles %}
+            <li class="help-title group-{{ ti.group }}">
+                <span class="help-title-level">{{ tr('Prestige', 'Prestige') }} {{ ti.level }}</span>
+                <span class="help-title-name">{{ ti.title }}</span>
+                <span class="help-title-req">{% if ti.level == 1 %}{{ tr('Dès le départ', 'From the start') }}{% else %}{{ ti.xp | num }} XP · ~{{ ti.hours | num }} h{% endif %}</span>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
 
+{# ============================================================ Badges #}
+<section id="tab-badges" class="graphs-tab-pane help-pane" data-pane="badges" hidden>
+    <div class="hg-card help-card" id="badges-list">
+        <h2 class="help-card-title">{{ pixel_icon('award', 20) }}<span>{{ tr('Paliers des badges', 'Badge tiers') }}</span></h2>
+        <p class="help-desc">{{ tr('{n} badges, 7 paliers chacun. Un palier atteint reste acquis : le classement et l’activité retiennent ta meilleure place et ton meilleur mois.', '{n} badges, 7 tiers each. A tier once reached stays: the ranking and activity badges keep your best spot and your best month.', n=badge_ladders | length) }}</p>
+        <div class="help-badges">
+            <div class="help-badges-head" aria-hidden="true">
+                <span></span>
+                {% for tier in badge_ladders[0].tiers %}<span class="help-tier-name" style="--tier: {{ tier.color }};">{{ tier.label }}</span>{% endfor %}
+            </div>
+            {% for b in badge_ladders %}
+            <div class="help-badge-row">
+                <div class="help-badge-name">
+                    <span class="help-badge-icon">{{ b.icon | safe }}</span>
+                    <span><strong>{{ b.name }}</strong><small>{{ b.what }}</small></span>
+                </div>
+                {% for tier in b.tiers %}
+                <span class="help-badge-tier" style="--tier: {{ tier.color }};"><em>{{ tier.label }}</em>{{ tier.threshold }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <p class="help-note">{{ tr('Sur ton profil, l’onglet Badges montre ceux que tu as et ce qu’il manque pour le palier suivant. Tu peux en épingler dans ta vitrine depuis « Personnaliser mon profil ».', 'On your profile, the Badges tab shows the ones you have and what is missing for the next tier. You can pin some in your showcase from “Customize my profile”.') }}</p>
+    </div>
+</section>
+
+{# ============================================================ The website #}
+<section id="tab-site" class="graphs-tab-pane help-pane" data-pane="site" hidden>
+    <div class="help-tiles">
+        {{ tile('user', tr('Profils', 'Profiles'), tr('Tes heures, tes messages, tes séries, ton calendrier d’activité, tes graphiques, tes serveurs et tes badges. Cherche n’importe quel membre avec la barre de recherche.', 'Your hours, messages, streaks, activity calendar, charts, servers and badges. Look up any member with the search bar.'), color='blurple') }}
+        {{ tile('palette', tr('Personnaliser mon profil', 'Customize my profile'), tr('Couleurs, fond, vitrine de badges, blocs à afficher ou à cacher, et profil privé. Il faut être connecté avec Discord.', 'Colors, background, badge showcase, blocks to show or hide, and private profile. You need to be logged in with Discord.'), url_for('customize.customize_profile'), 'purple') }}
+        {{ tile('trophy', tr('Classements', 'Rankings'), tr('Les membres et les serveurs les plus actifs, en vocal ou en messages, sur la période de ton choix.', 'The most active members and servers, by voice or messages, over the period you choose.'), url_for('top.top_users'), 'gold') }}
+        {{ tile('servers', tr('Fiches serveur', 'Server pages'), tr('L’activité d’un serveur : membres, salons, heures de pointe, membres en vocal en direct et niveaux de ses membres.', 'A server’s activity: members, channels, peak hours, members in voice live and its members’ levels.'), url_for('top.top_servers'), 'cyan') }}
+        {{ tile('swords', tr('Versus', 'Versus'), tr('Compare deux membres sur un radar : vocal, messages, série, serveurs, badges, votes. Le lien se partage tel quel.', 'Compare two members on a radar: voice, messages, streak, servers, badges, votes. The link can be shared as is.'), url_for('versus.versus'), 'pink') }}
+        {{ tile('clock', tr('Timeline', 'Timeline'), tr('La course des membres ou des serveurs mois après mois, en barres animées.', 'The race of members or servers month after month, as animated bars.'), url_for('timeline.timeline'), 'green') }}
+        {{ tile('chart', tr('Graphiques', 'Charts'), tr('L’activité de tout Hourglass : membres en ligne, en vocal, heures et messages, carte de chaleur jour × heure.', 'Activity across Hourglass: members online, in voice, hours and messages, day × hour heatmap.'), url_for('graphs.graphs'), 'cyan') }}
+        {{ tile('image', tr('Cartes à partager', 'Cards to share'), tr('Chaque profil, serveur et duel a sa carte image. Un lien du site collé sur Discord s’affiche avec sa carte.', 'Every profile, server and duel has its image card. A link to the website pasted on Discord shows with its card.'), color='purple') }}
+    </div>
+    <p class="help-note">{{ tr('Le site existe en 12 langues : change-la dans le menu en haut à droite.', 'The website comes in 12 languages: change it in the menu at the top right.') }}</p>
+</section>
+
+{# ============================================================ Manage your server #}
+<section id="tab-gerer" class="graphs-tab-pane help-pane" data-pane="gerer" hidden>
+    <div class="hg-card help-card">
+        <h2 class="help-card-title">{{ pixel_icon('wrench', 20) }}<span>{{ tr('Gérer son serveur', 'Manage your server') }}</span> <span class="help-beta">{{ tr('Bêta', 'Beta') }}</span></h2>
+        <p class="help-desc">{{ tr('Le propriétaire d’un serveur règle ce que le bot y fait, depuis le site. Il peut confier ces réglages à {n} gestionnaires au plus.', 'A server’s owner sets what the bot does there, from the website. They can hand these settings to up to {n} managers.', n=max_managers) }}</p>
+        <ol class="help-path">
+            <li>{{ tr('Connecte-toi avec Discord.', 'Log in with Discord.') }}</li>
+            <li>{{ tr('Ouvre « Mes serveurs » dans le menu de ton compte, ou le bouton « Gérer » sur la fiche du serveur.', 'Open “My servers” in your account menu, or the “Manage” button on the server page.') }}</li>
+            <li>{{ tr('Active une fonction avec son interrupteur, règle-la, puis enregistre.', 'Turn a feature on with its switch, set it up, then save.') }}</li>
+        </ol>
+        {% if current_user %}<a class="help-btn" href="{{ url_for('server_manage.my_servers') }}">{{ pixel_icon('servers', 16) }}<span>{{ tr('Mes serveurs', 'My servers') }}</span></a>{% endif %}
+    </div>
+
+    <div class="help-tiles">
+        {{ tile('zap', tr('Annonces de niveau', 'Level-up announcements'), tr('Le bot félicite un membre qui passe un niveau sur le serveur, dans le salon choisi, avec ou sans carte image et mention.', 'The bot congratulates a member who reaches a new level on the server, in the chosen channel, with or without an image card and a mention.'), color='gold', extra=tip(tr('Message personnalisable, à partir d’un niveau donné, et tous les 1, 2, 5 ou 10 niveaux pour éviter le spam.', 'Custom message, from a given level, and every 1, 2, 5 or 10 levels to avoid spam.'))) }}
+        {{ tile('calendar', tr('Rapports automatiques', 'Automatic reports'), tr('Un bilan quotidien, hebdomadaire ou mensuel en carte image : vocal, messages, membres actifs, top 5, heure de pointe.', 'A daily, weekly or monthly summary as an image card: voice, messages, active members, top 5, peak hour.'), color='cyan', extra=tip(tr('Envoyé à l’heure du fuseau du serveur. Le bouton « Envoyer un test » poste la dernière période terminée.', 'Sent at the time of the server’s time zone. The “Send a test” button posts the last finished period.'))) }}
+        {{ tile('users', tr('Rôles automatiques', 'Automatic roles'), tr('Le bot donne des rôles selon les heures en vocal, les messages ou le niveau, au total ou sur 30 jours. Une règle peut avoir plusieurs paliers (10 h → @Habitué, 100 h → @Légende).', 'The bot gives roles based on voice hours, messages or level, in total or over 30 days. A rule can have several tiers (10 h → @Regular, 100 h → @Legend).'), color='purple', extra=tip(tr('Par règle : cumuler les rôles ou garder seulement le plus haut. Le bot ne retire que les rôles qu’il a donnés. Il ne donne jamais le rôle Administrateur, ni un rôle placé au-dessus du sien.', 'Per rule: stack the roles or keep only the highest. The bot only removes the roles it gave. It never gives the Administrator role, nor a role placed above its own.'))) }}
+        {{ tile('lock', tr('Mode privé', 'Private mode'), tr('La fiche du serveur et ses détails sont réservés à ses membres, et le serveur disparaît des classements publics.', 'The server page and its details are for its members only, and the server leaves the public rankings.'), color='pink', extra=tip(tr('Réservé au propriétaire. Les stats de chacun restent comptées.', 'Owner only. Everyone’s stats are still counted.'))) }}
+        {{ tile('book', tr('Journal', 'Log'), tr('Chaque réglage modifié (par qui, quand) et chaque action du bot : annonces, rapports, rôles donnés ou retirés, erreurs.', 'Every setting changed (by whom, when) and every action of the bot: announcements, reports, roles given or removed, errors.'), color='green') }}
+        {{ tile('user_check', tr('Gestionnaires', 'Managers'), tr('Le propriétaire choisit des membres du serveur qui peuvent tout régler, sauf la liste des gestionnaires et le mode privé.', 'The owner picks server members who can set everything, except the list of managers and private mode.'), color='blurple') }}
+    </div>
+    <p class="help-note">{{ tr('C’est une fonction toute nouvelle. Un bug ou une idée ? Dis-le sur le Discord Hourglass.', 'This is a brand-new feature. A bug or an idea? Tell us on the Hourglass Discord.') }}</p>
+</section>
+
+{# ============================================================ FAQ #}
+<section id="tab-faq" class="graphs-tab-pane help-pane" data-pane="faq" hidden>
+    {% set faq = [
+        (tr('Mes heures en vocal n’ont pas bougé. Pourquoi ?', 'My voice hours did not move. Why?'),
+         tr('Le temps d’une session est ajouté à ton total quand tu quittes le salon vocal ou que tu en changes. Pendant la session, le site t’affiche « en vocal ». Les messages, eux, comptent tout de suite. Certaines pages et cartes gardent leurs chiffres quelques minutes.', 'The time of a session is added to your total when you leave the voice channel or switch to another one. During the session, the website shows you as “in voice”. Messages count right away. Some pages and cards keep their figures for a few minutes.')),
+        (tr('Le micro coupé et le salon AFK comptent-ils ?', 'Do a muted mic and the AFK channel count?'),
+         tr('Oui. Tout le temps passé dans un salon vocal compte, micro coupé, casque coupé ou dans le salon AFK.', 'Yes. All the time spent in a voice channel counts, muted, deafened or in the AFK channel.')),
+        (tr('Mon activité d’avant l’arrivée du bot est-elle comptée ?', 'Is my activity from before the bot arrived counted?'),
+         tr('Non. Hourglass ne voit que ce qui se passe sur un serveur pendant qu’il y est.', 'No. Hourglass only sees what happens on a server while it is there.')),
+        (tr('Quelle différence entre prestige et niveau ?', 'What is the difference between prestige and level?'),
+         tr('Le prestige compte toute ton activité sur tous les serveurs, plus tes votes. Le niveau ne compte que ton activité sur un serveur. Détails dans l’onglet Progression.', 'Prestige counts all your activity on every server, plus your votes. The level only counts your activity on one server. Details in the Progression tab.')),
+        (tr('Pourquoi un serveur n’apparaît pas dans les classements ?', 'Why does a server not show in the rankings?'),
+         tr('Soit le bot n’est pas sur ce serveur, soit le serveur est en mode privé : sa fiche est alors réservée à ses membres.', 'Either the bot is not on that server, or the server is in private mode: its page is then for its members only.')),
+        (tr('Les bots sont-ils comptés ?', 'Are bots counted?'),
+         tr('Non. Les comptes de bots portent une étiquette « BOT » et sont exclus des classements, des rapports et des tops.', 'No. Bot accounts carry a “BOT” label and are left out of the rankings, reports and tops.')),
+        (tr('Comment cacher mon profil ?', 'How do I hide my profile?'),
+         tr('Dans « Personnaliser mon profil », passe ton profil en privé ou cache seulement certains blocs. Ton activité reste comptée pour les serveurs.', 'In “Customize my profile”, make your profile private or hide only some blocks. Your activity is still counted for the servers.')),
+        (tr('Le bot ne donne pas un rôle automatique. Que vérifier ?', 'The bot does not give an automatic role. What should I check?'),
+         tr('Le bot doit avoir la permission « Gérer les rôles », et son propre rôle doit être placé au-dessus du rôle à donner dans les paramètres du serveur. Il ne donne jamais le rôle Administrateur ni les rôles gérés par une intégration. Le journal de la page « Gérer » donne la raison de chaque échec.', 'The bot needs the “Manage roles” permission, and its own role must be placed above the role to give in the server settings. It never gives the Administrator role nor roles managed by an integration. The log of the “Manage” page gives the reason for each failure.')),
+        (tr('Les annonces ou les rapports n’arrivent pas.', 'Announcements or reports do not arrive.'),
+         tr('Dans le salon choisi, le bot doit pouvoir voir le salon, y envoyer des messages et intégrer des liens. La page « Gérer » signale les salons où il ne peut pas écrire, et « Envoyer un test » permet de vérifier.', 'In the chosen channel, the bot must be able to see the channel, send messages and embed links. The “Manage” page flags the channels where it cannot write, and “Send a test” lets you check.')),
+        (tr('Qui peut gérer un serveur ?', 'Who can manage a server?'),
+         tr('Le propriétaire du serveur, et les gestionnaires qu’il choisit ({n} au plus). Seul le propriétaire peut changer la liste des gestionnaires et le mode privé.', 'The server owner, and the managers they pick (up to {n}). Only the owner can change the list of managers and private mode.', n=max_managers)),
+        (tr('Comment voter pour Hourglass et qu’est-ce que ça rapporte ?', 'How do I vote for Hourglass and what does it give?'),
+         tr('Vote sur top.gg toutes les 12 heures (la commande /vote donne le lien). Chaque vote rapporte {n} XP de prestige et fait monter le badge Soutien.', 'Vote on top.gg every 12 hours (the /vote command gives the link). Each vote gives {n} prestige XP and raises the Supporter badge.', n=xp_per_vote)),
+        (tr('Dans quelle langue répond le bot ?', 'Which language does the bot answer in?'),
+         tr('Dans la langue de ton application Discord, parmi les 12 langues du site. Sinon, en anglais.', 'In the language of your Discord app, among the 12 languages of the website. Otherwise, in English.')),
+        (tr('Comment supprimer mes données ?', 'How do I delete my data?'),
+         tr('La demande se fait sur le serveur Discord officiel, pour vérifier qu’elle vient bien de toi. Tout est expliqué dans la politique de confidentialité.', 'The request is made on the official Discord server, to check it really comes from you. Everything is explained in the privacy policy.')),
+    ] %}
+    <div class="hg-card help-card">
+        <h2 class="help-card-title">{{ pixel_icon('chat_round', 20) }}<span>{{ tr('Questions fréquentes', 'Frequent questions') }}</span></h2>
+        <div class="help-faq">
+            {% for q, a in faq %}
+            <details class="help-faq-item">
+                <summary>{{ q }}{{ pixel_icon('chevron_down', 12) }}</summary>
+                <p>{{ a }}</p>
+            </details>
+            {% endfor %}
+        </div>
+        <p class="help-note">{{ tr('Pas de réponse ici ? Pose ta question sur le Discord Hourglass.', 'No answer here? Ask your question on the Hourglass Discord.') }}</p>
+    </div>
+</section>
+
+{# ============================================================ Links #}
+<section id="tab-liens" class="graphs-tab-pane help-pane" data-pane="liens" hidden>
+    <div class="help-tiles">
+        <div class="help-tile is-blurple">
+            <div class="help-tile-head"><span class="help-tile-icon">{{ pixel_icon('discord', 18) }}</span><h3>{{ t('supports.discord_title') }}</h3></div>
+            <p>{{ t('supports.discord_desc') }}</p>
+            <a class="help-tile-link" href="https://discord.gg/WU3mTwkGZV" target="_blank" rel="noopener noreferrer">{{ t('supports.discord_btn') }} ↗</a>
+        </div>
+        {% if vote_url %}
+        <div class="help-tile is-pink">
+            <div class="help-tile-head"><span class="help-tile-icon">{{ pixel_icon('heart', 18) }}</span><h3>{{ tr('Voter pour Hourglass', 'Vote for Hourglass') }}</h3></div>
+            <p>{{ tr('Un vote toutes les 12 heures sur top.gg aide le bot à se faire connaître, et te rapporte {n} XP.', 'A vote every 12 hours on top.gg helps the bot get known, and gives you {n} XP.', n=xp_per_vote) }}</p>
+            <a class="help-tile-link" href="{{ vote_url }}" target="_blank" rel="noopener">{{ tr('Voter sur top.gg ↗', 'Vote on top.gg ↗') }}</a>
+        </div>
+        {% endif %}
+        <div class="help-tile is-cyan">
+            <div class="help-tile-head"><span class="help-tile-icon">{{ pixel_icon('terminal', 18) }}</span><h3>{{ t('supports.api_title') }}</h3></div>
+            <p>{{ t('supports.api_desc') }}</p>
+            <a class="help-tile-link" href="https://github.com/Bugpig03/DiscordHourglassBot/blob/main/web/API.md" target="_blank" rel="noopener noreferrer">{{ t('supports.api_btn') }}</a>
+        </div>
+        <div class="help-tile is-green">
+            <div class="help-tile-head"><span class="help-tile-icon">{{ pixel_icon('book', 18) }}</span><h3>{{ t('supports.source_title') }}</h3></div>
+            <p>{{ t('supports.source_desc') }}</p>
+            <a class="help-tile-link" href="https://github.com/Bugpig03/DiscordHourglassBot" target="_blank" rel="noopener noreferrer">{{ t('supports.source_btn') }}</a>
+        </div>
+        <div class="help-tile is-purple">
+            <div class="help-tile-head"><span class="help-tile-icon">{{ pixel_icon('shield', 18) }}</span><h3>{{ tr('Confidentialité et conditions', 'Privacy and terms') }}</h3></div>
+            <p>{{ tr('Les données enregistrées, leur durée de conservation, tes droits et les règles d’utilisation.', 'The data recorded, how long it is kept, your rights and the terms of use.') }}</p>
+            <a class="help-tile-link" href="{{ url_for('home.privacy') }}">{{ tr('Confidentialité', 'Privacy') }} {{ pixel_icon('arrow_right', 11) }}</a>
+            <a class="help-tile-link" href="{{ url_for('home.terms') }}">{{ tr('Conditions d’utilisation', 'Terms of use') }} {{ pixel_icon('arrow_right', 11) }}</a>
+        </div>
+    </div>
+</section>
+
+<script src="{{ url_for('static', filename='js/pages/supports.js', v=asset_version('js/pages/supports.js')) }}" defer></script>
 {% endblock %}

@@ -97,13 +97,15 @@ def home():
 
 @home_bp.route("/supports", methods=["GET"])
 def supports():
-    """Render the project support and help information page (commands, XP, titles and badge tiers)."""
+    """Help page in tabs: get started, commands, progression, badges, website, server management, FAQ, links."""
     from app.gamification import XP_PER_VOTE, badge_ladders, title_ladder
     from app.i18n import current_lang
     from app.topgg_votes import VOTE_URL
+    from app.server_admin import MAX_MANAGERS, permission_texts
     lang = current_lang()
     return render_template("supports.html", titles=title_ladder(lang), badge_ladders=badge_ladders(lang),
-                           xp_per_vote=XP_PER_VOTE, vote_url=VOTE_URL)
+                           xp_per_vote=XP_PER_VOTE, vote_url=VOTE_URL, perms=permission_texts(lang),
+                           max_managers=MAX_MANAGERS)
 
 
 @home_bp.route("/confidentialite", methods=["GET"])

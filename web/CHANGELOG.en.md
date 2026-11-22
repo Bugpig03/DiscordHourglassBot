@@ -3,6 +3,23 @@
 English version of the changelog, posted with the French one in the patch notes of the official Discord server.
 Older versions only exist in French (CHANGELOG.md).
 
+## Version 3.52.0 - Role Tiers Without Condition - 23/11/2026
+- **Automatic roles**: a tier can now have no condition at all. Its role goes to every member, as soon as they join the server.
+  - Just remove the last condition of the tier; a green line confirms it.
+  - For example: @Newcomer for everyone, then 10 h in voice → @Regular. With "highest only", @Regular replaces @Newcomer.
+  - A role with moderation rights is still refused in a tier without condition, so that no newcomer gets those rights.
+- The member count next to each tier no longer includes bots, like the bot itself.
+
+## Version 3.51.0 - New Help Page in Tabs - 23/11/2026
+- **The Help page is rebuilt**, in 8 tabs: Get started, Commands, Progression, Badges, The website, Management, FAQ and Links.
+  - The address keeps the open tab (for example `/supports#faq`), so a direct link can be shared. The old `#prestige`, `#titres` and `#badges` links still work.
+- **Get started**: invite the bot in 3 steps, what is counted and what is not, and the permissions the bot uses.
+- **Commands**: every command with its options, including `/vote` and the server choice of `/versus`.
+- **The website**: profiles, customization, rankings, server pages, Versus, Timeline, charts and cards to share.
+- **Management** (beta): level-up announcements, reports, automatic roles, private mode, log and managers.
+- **FAQ**: 13 frequent questions, such as why voice hours did not move, whether the AFK channel counts, or what to check when a role is not given.
+- Less text: the details sit in the "?" on hover. Available in all 12 languages.
+
 ## Version 3.50.0 - Server Management Open to Everyone (Beta) - 23/11/2026
 - **Server management is open to every server owner**, in beta. Owners can hand it over to members of their choice.
   - The "Manage" button on the server page and the "My servers" menu show up for the owner and their managers.

@@ -180,8 +180,10 @@ func (db *DB) LoadRoleSettings(ctx context.Context) (map[int64]*RoleSettings, er
 		if !ok {
 			continue
 		}
-		if json.Unmarshal([]byte(conditions), &tier.Conditions) != nil || len(tier.Conditions) == 0 {
-			continue // unreadable tier: ignored rather than giving a role on a wrong reading
+		// Unreadable tier: ignored rather than giving a role on a wrong reading. A readable empty list ("[]") is a
+		// tier without condition, given to every member.
+		if json.Unmarshal([]byte(conditions), &tier.Conditions) != nil || tier.Conditions == nil {
+			continue
 		}
 		if n := len(s.Ladders); n == 0 || s.Ladders[n-1].ID != ladderID {
 			s.Ladders = append(s.Ladders, RoleLadder{ID: ladderID, KeepHighest: keep})

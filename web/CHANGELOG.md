@@ -1,5 +1,22 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.52.0 - Paliers de Rôles sans Condition - 23/11/2026
+- **Rôles automatiques** : un palier peut maintenant n'avoir aucune condition. Son rôle est donné à tous les membres, dès leur arrivée sur le serveur.
+  - Il suffit de retirer la dernière condition du palier. Un message vert le confirme.
+  - Exemple : @Nouveau pour tout le monde, puis 10 h en vocal → @Habitué. Avec « seul le plus haut », @Habitué remplace @Nouveau.
+  - Un rôle avec des droits de modération reste refusé dans un palier sans condition, pour qu'aucun nouveau venu ne les obtienne.
+- Le nombre de membres affiché à côté de chaque palier ne compte plus les bots, comme le bot lui-même.
+
+## Version 3.51.0 - Nouvelle Page d'Aide en Onglets - 23/11/2026
+- **La page Aide est refaite**, en 8 onglets : Démarrer, Commandes, Progression, Badges, Le site, Gestion, FAQ et Liens.
+  - L'adresse garde l'onglet ouvert (par exemple `/supports#faq`) pour envoyer un lien direct. Les anciens liens `#prestige`, `#titres` et `#badges` marchent toujours.
+- **Démarrer** : inviter le bot en 3 étapes, ce qui est compté ou non, et les permissions du bot.
+- **Commandes** : toutes les commandes avec leurs options, dont `/vote` et le choix du serveur pour `/versus`.
+- **Le site** : profils, personnalisation, classements, fiches serveur, Versus, Timeline, graphiques et cartes à partager.
+- **Gestion** (bêta) : annonces de niveau, rapports, rôles automatiques, mode privé, journal et gestionnaires.
+- **FAQ** : 13 questions fréquentes, par exemple pourquoi les heures n'ont pas bougé, si le salon AFK compte, ou ce qu'il faut vérifier quand un rôle n'est pas donné.
+- Moins de texte : les détails sont dans les « ? » au survol. Traduit dans les 12 langues.
+
 ## Version 3.50.0 - Gestion des Serveurs Ouverte à Tous (Bêta) - 23/11/2026
 - **La gestion des serveurs est ouverte à tous les propriétaires de serveurs**, en bêta. Ils peuvent la confier à des membres de leur choix.
   - Le bouton « Gérer » sur la fiche du serveur et le menu « Mes serveurs » apparaissent pour le propriétaire et ses gestionnaires.

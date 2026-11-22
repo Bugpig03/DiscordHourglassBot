@@ -274,6 +274,10 @@ func (h *BotHandler) OnGuildMemberAdd(s *discordgo.Session, m *discordgo.GuildMe
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		_ = h.DB.UpsertGuildMember(ctx, serverID, row)
+		// Automatic roles: a newcomer is checked at the next minute (tiers without condition)
+		if userID, err := strconv.ParseInt(m.User.ID, 10, 64); err == nil && !m.User.Bot {
+			markRoleActivity(serverID, userID)
+		}
 	}
 }
 

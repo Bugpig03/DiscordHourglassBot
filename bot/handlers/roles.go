@@ -59,8 +59,9 @@ func conditionMet(c database.RoleCondition, m database.MemberMetrics) bool {
 }
 
 func ruleMet(r database.RoleRule, m database.MemberMetrics) bool {
+	// A tier without condition (website 3.52.0) is met by every member, from the moment they join
 	if len(r.Conditions) == 0 {
-		return false
+		return true
 	}
 	anyOf := r.Match == "any"
 	for _, c := range r.Conditions {

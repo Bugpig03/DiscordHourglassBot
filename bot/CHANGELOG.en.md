@@ -3,6 +3,11 @@
 English version of the changelog, posted with the French one in the patch notes of the official Discord server.
 Older versions only exist in French (CHANGELOG.md).
 
+## Version 3.14.0 - Role Tiers Without Condition - 23/11/2026
+
+- **Automatic roles**: a tier without condition gives its role to every member of the server.
+- A new member is checked within a minute of joining, instead of waiting for the hourly pass.
+
 ## Version 3.13.1 - Moderation Roles Allowed - 23/11/2026
 
 - **Automatic roles**: the bot also gives roles with moderation rights (the website warns in orange when one is chosen).

@@ -133,7 +133,8 @@
         // Index in a member's row: [voice hours, voice hours 30 d, messages, messages 30 d, level]
         const column = c => c.metric === 'level' ? 4 : (c.metric === 'voice' ? 0 : 2) + (c.scope === '30d' ? 1 : 0);
         const condMet = (c, row) => row[column(c)] >= c.min;
-        const tierMet = (t, row) => t.conditions.length > 0 && (t.match === 'any' ? t.conditions.some(c => condMet(c, row)) : t.conditions.every(c => condMet(c, row)));
+        // A tier without condition is met by every member, newcomers included
+        const tierMet = (t, row) => t.conditions.length === 0 || (t.match === 'any' ? t.conditions.some(c => condMet(c, row)) : t.conditions.every(c => condMet(c, row)));
 
         const readCond = li => ({
             metric: li.querySelector('[data-cond-metric]').value,
@@ -170,6 +171,8 @@
             tiers.appendChild(li);
             if (tier && tier.conditions && tier.conditions.length) {
                 tier.conditions.forEach(c => addCond(li, c));
+            } else if (tier) {
+                // Saved without condition: stays without
             } else {
                 // A new tier starts from the previous one's criteria, a step higher: 10 h -> 50 h -> 100 h…
                 const prev = li.previousElementSibling ? readTier(li.previousElementSibling) : null;
@@ -228,8 +231,8 @@
                         scope.disabled = level;
                         if (level) scope.value = 'total';
                         if (scope._hgButton) scope._hgButton.hidden = level;
-                        c.querySelector('[data-cond-delete]').hidden = conds.length < 2;
                     });
+                    li.querySelector('[data-conds]').hidden = conds.length === 0;
                     li.querySelector('[data-tier-match-wrap]').hidden = conds.length < 2;
                     li.querySelector('[data-add-cond]').hidden = conds.length >= maxConds;
                     li.querySelector('[data-tier-up]').hidden = li.querySelector('[data-tier-down]').hidden = !several;
@@ -239,7 +242,11 @@
                     const role = li.querySelector('[data-tier-role]');
                     const option = role.options[role.selectedIndex];
                     li.querySelector('[data-tier-blocked]').hidden = !(option && option.dataset.blocked);
-                    li.querySelector('[data-tier-danger]').hidden = !(option && option.dataset.danger);
+                    const danger = !!(option && option.dataset.danger);
+                    const open = conds.length === 0;
+                    li.querySelector('[data-tier-danger]').hidden = !danger || open;
+                    li.querySelector('[data-tier-open-danger]').hidden = !(danger && open);
+                    li.querySelector('[data-tier-nocond]').hidden = !open || danger;
                     const given = grants[role.value] || 0;
                     li.querySelector('[data-tier-count]').innerHTML = role.value
                         ? `<b>${fmt(counts[k])}</b> ${esc(T('membre(s)', 'member(s)'))}${given ? `<small>${esc(T('{n} déjà donnés par le bot', '{n} already given by the bot', { n: fmt(given) }))}</small>` : ''}`
