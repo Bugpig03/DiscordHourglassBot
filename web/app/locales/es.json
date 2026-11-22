@@ -1167,5 +1167,18 @@
  "p1295": "Modo privado: ves estas estadísticas porque eres miembro del servidor. Los demás visitantes solo ven el total de horas y mensajes.",
  "p1296": "Servidor privado: solo sus miembros ven sus detalles.",
  "p1297": "servidor privado",
- "p1298": "Servidor privado: solo sus miembros ven la actividad de cada uno en él."
+ "p1298": "Servidor privado: solo sus miembros ven la actividad de cada uno en él.",
+ "p1310": "Este servidor no es (o ya no es) un servidor del bot.",
+ "p1311": "Elige un servidor y un canal para activar las notas de versión.",
+ "p1312": "Guarda primero un servidor y un canal.",
+ "p1313": "Se acaba de pedir una prueba: espera un minuto.",
+ "p1314": "Aún no se conoce ninguna versión.",
+ "p1315": "No se pudo guardar.",
+ "p1316": "El bot no puede escribir en este canal (o insertar enlaces): dale «Enviar mensajes» e «Insertar enlaces».",
+ "p1317": "Canal de texto normal: los mensajes no se publicarán para otros servidores. Un canal de anuncios (📢) permite que otros servidores lo sigan.",
+ "p1318": "Sitio",
+ "p1319": "Publicado",
+ "p1320": "Elegir un servidor…",
+ "p1321": "Guardado: el bot aplica los ajustes en menos de un minuto.",
+ "p1322": "Pedido: el bot publica en menos de un minuto."
 }

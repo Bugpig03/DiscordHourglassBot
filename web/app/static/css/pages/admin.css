@@ -585,3 +585,26 @@ a.an-rank-name:hover { color: var(--accent-hi); }
     transition: opacity 0.12s ease;
 }
 .hg-tooltip.visible { opacity: 1; }
+
+/* Patch notes (admin > Patch notes): settings form, tests, latest posts */
+.adm-pn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 6px; }
+.adm-pn-field { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.adm-pn-field .adm-select { max-width: none; width: 100%; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.adm-pn-grid[inert] { opacity: 0.45; }
+.adm-pn-hint { margin: 10px 0 0; color: var(--warn); font-size: 13px; }
+.adm-pn-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.adm-pn-status { color: var(--muted); font-size: 13px; }
+.adm-pn-status.is-ok { color: var(--ok); }
+.adm-pn-status.is-ko { color: var(--ko); }
+.adm-pn-switch { font-weight: 600; }
+.adm-pn-tests { display: flex; flex-wrap: wrap; gap: 10px; }
+.adm-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; }
+.adm-btn:hover { background: var(--hover); }
+.adm-btn small { color: var(--muted); font-weight: 400; }
+.adm-btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.adm-btn-primary:hover { background: var(--accent-hi); }
+.adm-btn:disabled { opacity: 0.5; cursor: wait; }
+.adm-pn-tag { display: inline-block; padding: 1px 7px; font-size: 11px; font-weight: 700; }
+.adm-pn-tag.is-ok { background: var(--ok-soft); color: var(--ok); }
+.adm-pn-tag.is-ko { background: var(--ko-soft); color: var(--ko); }
+.adm-pn-tag.is-wait { background: var(--accent-soft); color: var(--accent-hi); }

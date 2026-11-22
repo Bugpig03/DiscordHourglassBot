@@ -1167,5 +1167,18 @@
  "p1295": "Tryb prywatny: widzisz te statystyki, bo jesteś członkiem serwera. Pozostali odwiedzający widzą tylko łączną liczbę godzin i wiadomości.",
  "p1296": "Prywatny serwer: tylko jego członkowie widzą szczegóły.",
  "p1297": "prywatny serwer",
- "p1298": "Prywatny serwer: tylko jego członkowie widzą na nim aktywność poszczególnych osób."
+ "p1298": "Prywatny serwer: tylko jego członkowie widzą na nim aktywność poszczególnych osób.",
+ "p1310": "Ten serwer nie jest (lub już nie jest) serwerem bota.",
+ "p1311": "Wybierz serwer i kanał, aby włączyć informacje o aktualizacjach.",
+ "p1312": "Najpierw zapisz serwer i kanał.",
+ "p1313": "Test został właśnie zamówiony: odczekaj minutę.",
+ "p1314": "Nie znamy jeszcze żadnej wersji.",
+ "p1315": "Zapis nie powiódł się.",
+ "p1316": "Bot nie może pisać na tym kanale (ani osadzać linków): daj mu „Wysyłanie wiadomości” i „Osadzanie linków”.",
+ "p1317": "Zwykły kanał tekstowy: wiadomości nie będą publikowane dla innych serwerów. Kanał ogłoszeń (📢) pozwala innym serwerom go obserwować.",
+ "p1318": "Strona",
+ "p1319": "Opublikowano",
+ "p1320": "Wybierz serwer…",
+ "p1321": "Zapisano: bot zastosuje ustawienia w ciągu minuty.",
+ "p1322": "Zamówiono: bot opublikuje w ciągu minuty."
 }

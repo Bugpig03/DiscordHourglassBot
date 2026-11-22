@@ -85,6 +85,9 @@ func (h *BotHandler) OnReady(s *discordgo.Session, r *discordgo.Ready) {
 
 	// Rôles automatiques : membres actifs vérifiés chaque minute, tout le serveur chaque heure
 	h.startRoles(s)
+
+	// Patch notes du site et du bot sur le serveur officiel (réglées sur la page admin du site)
+	h.startPatchnotes(s)
 }
 
 // OnMessageCreate enregistre chaque message textuel

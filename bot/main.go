@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"io"
 	"log"
 	"os"
@@ -15,6 +16,16 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
+
+// The bot's own CHANGELOG, built into the binary: its entries become the patch notes posted on the official server
+//
+//go:embed CHANGELOG.md
+var changelog string
+
+// Its English version (posted first in the patch notes)
+//
+//go:embed CHANGELOG.en.md
+var changelogEN string
 
 func main() {
 	log.Printf("🚀 Démarrage de Hourglass Bot v%s (Go Edition, build %s)...", handlers.Version, handlers.BuildDate)
@@ -60,6 +71,12 @@ func main() {
 	// Automatic roles: settings and rules (written by the website) and the roles the bot gave
 	if err := db.EnsureRoleTables(ensureCtx); err != nil {
 		log.Printf("⚠️ Rôles automatiques désactivés (tables server_roles / role_grants indisponibles): %v", err)
+	}
+	// Patch notes on the official server: tables, then this version's CHANGELOG entries (posted by the bot)
+	if err := db.EnsurePatchnoteTables(ensureCtx); err != nil {
+		log.Printf("⚠️ Patch notes désactivées (tables patchnotes indisponibles): %v", err)
+	} else if err := db.RegisterPatchnotes(ensureCtx, "bot", handlers.MergeEnglish(handlers.ParseChangelog(changelog), handlers.ParseChangelog(changelogEN))); err != nil {
+		log.Printf("⚠️ Patch notes du bot non enregistrées: %v", err)
 	}
 	// Log lines copied to bot_logs as well (website admin page, "Logs du bot")
 	if err := db.EnsureBotLogsTable(ensureCtx); err != nil {

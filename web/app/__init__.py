@@ -93,6 +93,9 @@ def create_app():
     # Server management (settings, managers, journal), created if the migration was not applied
     from app.server_admin import ensure_tables as ensure_server_admin_tables
     ensure_server_admin_tables()
+    # Patch notes on the official Discord server: tables, and this version's CHANGELOG entries for the bot to post
+    from app.patchnotes import init_patchnotes
+    init_patchnotes()
 
     @app.before_request
     def _open_month_totals_scope():

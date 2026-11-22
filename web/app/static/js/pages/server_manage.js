@@ -63,6 +63,7 @@
             counter.textContent = `${area.value.length} / ${max}`;
             switchLabel.textContent = toggle.checked ? switchLabel.dataset.on : switchLabel.dataset.off;
             body.classList.toggle('is-off', !toggle.checked);
+            body.inert = !toggle.checked; // turned off: nothing to change until it is turned on (values kept)
         };
         levels.addEventListener('input', render);
         levels.addEventListener('change', render);
@@ -87,6 +88,7 @@
         const sync = () => {
             label.textContent = toggle.checked ? label.dataset.on : label.dataset.off;
             body.classList.toggle('is-off', !toggle.checked);
+            body.inert = !toggle.checked;
         };
         toggle.addEventListener('change', sync);
         sync();
@@ -247,7 +249,7 @@
             addRule.hidden = rules.length >= maxRules || full;
             counter.textContent = `${rules.length} / ${maxRules}`;
             switchLabel.textContent = toggle.checked ? switchLabel.dataset.on : switchLabel.dataset.off;
-            rolesForm.querySelectorAll('[data-roles-body]').forEach(b => b.classList.toggle('is-off', !toggle.checked));
+            rolesForm.querySelectorAll('[data-roles-body]').forEach(b => { b.classList.toggle('is-off', !toggle.checked); b.inert = !toggle.checked; });
         }
 
         (data.rules || []).forEach(addRuleItem);

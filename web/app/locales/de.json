@@ -1167,5 +1167,18 @@
  "p1295": "Privatmodus: Du siehst diese Statistiken, weil du Mitglied des Servers bist. Andere Besucher sehen nur die Gesamtstunden und Nachrichten.",
  "p1296": "Privater Server: Nur seine Mitglieder sehen seine Details.",
  "p1297": "privater Server",
- "p1298": "Privater Server: Nur seine Mitglieder sehen die Aktivität der Einzelnen darauf."
+ "p1298": "Privater Server: Nur seine Mitglieder sehen die Aktivität der Einzelnen darauf.",
+ "p1310": "Dieser Server ist kein Server des Bots (mehr).",
+ "p1311": "Wähle einen Server und einen Kanal, um die Patchnotes zu aktivieren.",
+ "p1312": "Speichere zuerst einen Server und einen Kanal.",
+ "p1313": "Gerade wurde ein Test angefordert: Warte eine Minute.",
+ "p1314": "Noch keine Version bekannt.",
+ "p1315": "Speichern fehlgeschlagen.",
+ "p1316": "Der Bot kann in diesem Kanal nicht schreiben (oder keine Links einbetten): Gib ihm „Nachrichten senden“ und „Links einbetten“.",
+ "p1317": "Normaler Textkanal: Die Nachrichten werden nicht für andere Server veröffentlicht. Ein Ankündigungskanal (📢) lässt andere Server ihm folgen.",
+ "p1318": "Website",
+ "p1319": "Gepostet",
+ "p1320": "Server wählen…",
+ "p1321": "Gespeichert: Der Bot übernimmt die Einstellungen innerhalb einer Minute.",
+ "p1322": "Angefordert: Der Bot postet innerhalb einer Minute."
 }

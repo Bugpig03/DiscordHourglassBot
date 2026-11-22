@@ -37,6 +37,7 @@
             {{ nav('tab-profiles', 'palette', tr('Profils', 'Profiles')) }}
             {{ nav('tab-community', 'users', tr('Communauté', 'Community')) }}
             {{ nav('tab-manage', 'servers', tr('Gestion des serveurs', 'Server management'), 'navBadgeManage') }}
+            {{ nav('tab-patchnotes', 'book', tr('Patch notes', 'Patch notes')) }}
             <div class="adm-nav-group">{{tr('Technique', 'Technical')}}</div>
             {{ nav('tab-bot', 'bot', 'Bot', 'navBadgeBot') }}
             {{ nav('tab-tech', 'wrench', tr('Technique', 'Technical'), 'navBadgeTech') }}
@@ -196,6 +197,47 @@
             </section>
         </section>
 
+        <!-- ============================ Patch notes ============================ -->
+        <section id="tab-patchnotes" class="graphs-tab-pane">
+            <form class="an-card adm-pn" id="pnForm" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="an-card-head">
+                    <div>
+                        <h2 class="an-card-title">{{ tr('Patch notes sur Discord', 'Patch notes on Discord') }}</h2>
+                        <p class="an-card-desc">{{ tr('Le bot poste chaque nouvelle version du site et du bot dans le salon choisi, avec son changelog en anglais puis en français (CHANGELOG.en.md, sinon le français seul), dans la minute qui suit le déploiement. Rien d’ancien n’est posté à l’activation. Dans un salon d’annonces, le message est publié pour les serveurs abonnés.', 'The bot posts every new version of the website and of the bot in the chosen channel, with its changelog in English then in French (CHANGELOG.en.md, else the French one only), within a minute of the deploy. Nothing old is posted when turned on. In an announcement channel, the message is published to the following servers.') }}</p>
+                    </div>
+                    <label class="adm-toggle adm-pn-switch"><input type="checkbox" name="enabled" value="1" id="pnEnabled"> <span id="pnEnabledLabel">{{ tr('Désactivées', 'Off') }}</span></label>
+                </div>
+                <div class="adm-pn-grid">
+                    <label class="adm-pn-field"><span>{{ tr('Serveur', 'Server') }}</span><select class="adm-select" name="server_id" id="pnServer"></select></label>
+                    <label class="adm-pn-field"><span>{{ tr('Salon', 'Channel') }}</span><select class="adm-select" name="channel_id" id="pnChannel"></select></label>
+                    <label class="adm-pn-field"><span>{{ tr('Annoncer', 'Announce') }}</span>
+                        <select class="adm-select" name="scope" id="pnScope">
+                            <option value="both">{{ tr('Site et bot', 'Website and bot') }}</option>
+                            <option value="web">{{ tr('Le site seulement', 'The website only') }}</option>
+                            <option value="bot">{{ tr('Le bot seulement', 'The bot only') }}</option>
+                        </select></label>
+                    <label class="adm-pn-field"><span>{{ tr('Rôle à mentionner', 'Role to mention') }}</span><select class="adm-select" name="mention_role_id" id="pnRole"></select></label>
+                </div>
+                <p class="adm-pn-hint" id="pnChannelHint" hidden></p>
+                <div class="adm-pn-actions">
+                    <button type="submit" class="adm-btn adm-btn-primary">{{ tr('Enregistrer', 'Save') }}</button>
+                    <span class="adm-pn-status" id="pnStatus" role="status"></span>
+                </div>
+            </form>
+            <section class="an-card">
+                {{ card(tr('Tester', 'Test'), tr('Poste (à nouveau) la dernière version dans le salon enregistré, dans la minute.', 'Posts (again) the latest version in the saved channel, within a minute.')) }}
+                <div class="adm-pn-tests">
+                    <button type="button" class="adm-btn" data-pn-test="web">{{ pixel_icon('globe', 14) }}<span>{{ tr('Poster la dernière version du site', 'Post the latest website version') }}</span> <small data-pn-latest="web"></small></button>
+                    <button type="button" class="adm-btn" data-pn-test="bot">{{ pixel_icon('bot', 14) }}<span>{{ tr('Poster la dernière version du bot', 'Post the latest bot version') }}</span> <small data-pn-latest="bot"></small></button>
+                </div>
+            </section>
+            <section class="an-card">
+                {{ card(tr('Derniers envois', 'Latest posts')) }}
+                <div class="adm-table-wrap"><table class="adm-table" id="pnHistory"><tbody><tr><td>…</td></tr></tbody></table></div>
+            </section>
+        </section>
+
         <!-- ================================ Bot ================================ -->
         <section id="tab-bot" class="graphs-tab-pane">
             <div class="adm-stats" id="botStats"></div>
@@ -292,5 +334,6 @@
 </div>
 <script type="application/json" id="hgPageConfig">{{ {"current_lang": current_lang}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/admin.js', v=asset_version('js/pages/admin.js')) }}" defer></script>
+<script src="{{ url_for('static', filename='js/pages/admin_patchnotes.js', v=asset_version('js/pages/admin_patchnotes.js')) }}" defer></script>
 </body>
 </html>

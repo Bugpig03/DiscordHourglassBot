@@ -1167,5 +1167,18 @@
  "p1295": "Modalità privata: vedi queste statistiche perché sei membro del server. Gli altri visitatori vedono solo il totale di ore e messaggi.",
  "p1296": "Server privato: solo i suoi membri ne vedono i dettagli.",
  "p1297": "server privato",
- "p1298": "Server privato: solo i suoi membri vedono l'attività di ognuno su di esso."
+ "p1298": "Server privato: solo i suoi membri vedono l'attività di ognuno su di esso.",
+ "p1310": "Questo server non è (o non è più) un server del bot.",
+ "p1311": "Scegli un server e un canale per attivare le patch note.",
+ "p1312": "Salva prima un server e un canale.",
+ "p1313": "È appena stato richiesto un test: aspetta un minuto.",
+ "p1314": "Ancora nessuna versione nota.",
+ "p1315": "Salvataggio non riuscito.",
+ "p1316": "Il bot non può scrivere in questo canale (o incorporare link): dagli «Inviare messaggi» e «Incorporare link».",
+ "p1317": "Canale testuale normale: i messaggi non saranno pubblicati per altri server. Un canale annunci (📢) permette agli altri server di seguirlo.",
+ "p1318": "Sito",
+ "p1319": "Pubblicato",
+ "p1320": "Scegli un server…",
+ "p1321": "Salvato: il bot applica le impostazioni entro un minuto.",
+ "p1322": "Richiesto: il bot pubblica entro un minuto."
 }

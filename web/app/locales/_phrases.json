@@ -4253,7 +4253,7 @@
  ],
  "p1191": [
   "Derniers envois",
-  "Latest sends"
+  "Latest posts"
  ],
  "p1192": [
   "Rapport",
@@ -4654,5 +4654,101 @@
  "p1298": [
   "Serveur privé : seuls ses membres voient l’activité de chacun dessus.",
   "Private server: only its members see everyone’s activity on it."
+ ],
+ "p1299": [
+  "Patch notes",
+  "Patch notes"
+ ],
+ "p1300": [
+  "Patch notes sur Discord",
+  "Patch notes on Discord"
+ ],
+ "p1302": [
+  "Site et bot",
+  "Website and bot"
+ ],
+ "p1303": [
+  "Le site seulement",
+  "The website only"
+ ],
+ "p1304": [
+  "Le bot seulement",
+  "The bot only"
+ ],
+ "p1305": [
+  "Rôle à mentionner",
+  "Role to mention"
+ ],
+ "p1306": [
+  "Tester",
+  "Test"
+ ],
+ "p1307": [
+  "Poste (à nouveau) la dernière version dans le salon enregistré, dans la minute.",
+  "Posts (again) the latest version in the saved channel, within a minute."
+ ],
+ "p1308": [
+  "Poster la dernière version du site",
+  "Post the latest website version"
+ ],
+ "p1309": [
+  "Poster la dernière version du bot",
+  "Post the latest bot version"
+ ],
+ "p1310": [
+  "Ce serveur n’est pas (ou plus) un serveur du bot.",
+  "This server is not (or no longer) one of the bot’s."
+ ],
+ "p1311": [
+  "Choisis un serveur et un salon pour activer les patch notes.",
+  "Choose a server and a channel to turn the patch notes on."
+ ],
+ "p1312": [
+  "Enregistre d’abord un serveur et un salon.",
+  "Save a server and a channel first."
+ ],
+ "p1313": [
+  "Un test vient d’être demandé : attends une minute.",
+  "A test was just asked: wait a minute."
+ ],
+ "p1314": [
+  "Aucune version connue pour l’instant.",
+  "No version known yet."
+ ],
+ "p1315": [
+  "L’enregistrement a échoué.",
+  "Saving failed."
+ ],
+ "p1316": [
+  "Le bot ne peut pas écrire dans ce salon (ou y mettre des liens) : donne-lui « Envoyer des messages » et « Intégrer des liens ».",
+  "The bot cannot write in this channel (or embed links there): give it “Send messages” and “Embed links”."
+ ],
+ "p1317": [
+  "Salon texte normal : les messages n’y seront pas publiés pour d’autres serveurs. Un salon d’annonces (📢) permet aux autres serveurs de le suivre.",
+  "Regular text channel: the messages will not be published to other servers. An announcement channel (📢) lets other servers follow it."
+ ],
+ "p1318": [
+  "Site",
+  "Website"
+ ],
+ "p1319": [
+  "Posté",
+  "Posted"
+ ],
+ "p1320": [
+  "Choisir un serveur…",
+  "Choose a server…"
+ ],
+ "p1321": [
+  "Enregistré : le bot applique les réglages dans la minute.",
+  "Saved: the bot applies the settings within a minute."
+ ],
+ "p1322": [
+  "Demandé : le bot poste dans la minute.",
+  "Asked: the bot posts within a minute."
+ ],
+ "p1323": [
+  "Le bot poste chaque nouvelle version du site et du bot dans le salon choisi, avec son changelog en anglais puis en français (CHANGELOG.en.md, sinon le français seul), dans la minute qui suit le déploiement. Rien d’ancien n’est posté à l’activation. Dans un salon d’annonces, le message est publié pour les serveurs abonnés.",
+  "The bot posts every new version of the website and of the bot in the chosen channel, with its changelog in English then in French (CHANGELOG.en.md, else the French one only), within a minute of the deploy. Nothing old is posted when turned on. In an announcement channel, the message is published to the following servers."
  ]
 }

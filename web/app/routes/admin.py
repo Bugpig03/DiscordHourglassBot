@@ -59,6 +59,81 @@ def admin_data():
     return jsonify(data)
 
 
+# ------------------------------------------------------------------------------
+# Patch notes on the official Discord server
+# ------------------------------------------------------------------------------
+def _guild_choices(server_id: str | None) -> dict:
+    """Text channels (with what the bot may do there) and roles of a server, for the patch notes form."""
+    from app import server_admin as sa
+
+    if not server_id or not str(server_id).isdigit():
+        return {"channels": [], "roles": []}
+    sid = int(server_id)
+    return {
+        "channels": [{"id": c["id"], "name": c["name"], "kind": c["kind"], "can_send": c["can_send"] and c["can_embed"]}
+                     for c in sa.channels(sid)],
+        "roles": [{"id": r["id"], "name": r["name"]} for r in sa.roles(sid) if not r["managed"]],
+    }
+
+
+@admin_bp.route("/admin/patchnotes", methods=["GET"])
+@admin_required
+def admin_patchnotes():
+    from app import patchnotes as pn
+
+    settings = pn.get_settings()
+    data = {
+        "settings": {k: v for k, v in settings.items() if k not in ("since", "updated_at")},
+        "since": settings["since"].isoformat(timespec="seconds") if settings["since"] else None,
+        "servers": pn.servers(),
+        "latest": pn.latest_versions(),
+        "history": pn.history(),
+        **_guild_choices(settings["server_id"]),
+    }
+    response = jsonify(data)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@admin_bp.route("/admin/patchnotes/guild", methods=["GET"])
+@admin_required
+def admin_patchnotes_guild():
+    response = jsonify(_guild_choices(request.args.get("server")))
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+def _admin_csrf() -> None:
+    from flask import abort
+    from app.auth import get_current_user
+    from app.security import valid_csrf
+
+    if not valid_csrf(request.form.get("csrf_token")):
+        security_log.record("csrf_fail", "admin (patch notes)", user_id=int((get_current_user() or {}).get("id") or 0) or None)
+        abort(400)
+
+
+@admin_bp.route("/admin/patchnotes", methods=["POST"])
+@admin_required
+def admin_patchnotes_save():
+    from app import patchnotes as pn
+    from app.auth import get_current_user
+
+    _admin_csrf()
+    error = pn.save_settings(request.form, int(get_current_user()["id"]))
+    return jsonify({"ok": error is None, "error": error})
+
+
+@admin_bp.route("/admin/patchnotes/test", methods=["POST"])
+@admin_required
+def admin_patchnotes_test():
+    from app import patchnotes as pn
+
+    _admin_csrf()
+    error = pn.request_post(request.form.get("component", ""))
+    return jsonify({"ok": error is None, "error": error})
+
+
 @admin_bp.route("/admin/logs", methods=["GET"])
 @admin_required
 def admin_logs():

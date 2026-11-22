@@ -1,5 +1,17 @@
 # Hourglass - Discord BOT - CHANGELOG
 
+## Version 3.13.0 - Patch Notes sur le Serveur Officiel - 22/11/2026
+
+- **Patch notes automatiques** : chaque nouvelle version du site et du bot est postée sur le serveur Discord officiel, dans le salon choisi sur la page admin du site.
+  - Le message est posté dans la minute qui suit le déploiement : un par version, en anglais d'abord puis en français (le serveur officiel est surtout anglophone).
+  - Un titre « 🌐 Site » ou « 🤖 Bot » avec le numéro de version et un lien vers le changelog complet.
+  - Un rôle à mentionner en option (jamais @everyone ni @here).
+- **Salon d'annonces** : le message est aussi publié, pour que les serveurs qui suivent le salon le reçoivent automatiquement.
+- **Jamais en double**, même après un redémarrage. Rien d'ancien n'est posté à l'activation. Une version sautée par un déploiement rapide est quand même annoncée.
+- Un changelog trop long pour un seul message Discord est coupé entre deux lignes, en plusieurs messages.
+- Les changelogs du bot (français et anglais, nouveau `CHANGELOG.en.md`) sont intégrés au bot : il connaît ses propres nouveautés.
+- Nouvelles tables créées automatiquement (ou par `database/migrations/2026-11-22_bot_v3.13.0_patchnotes.sql`).
+
 ## Version 3.12.0 - Rôles par Progressions - 21/11/2026
 
 - **Une règle peut gérer plusieurs rôles** : c'est maintenant une progression de paliers (par exemple 10 h en vocal → @Habitué, 50 h → @Vétéran, 100 h → @Légende), chaque palier avec son rôle et ses conditions.

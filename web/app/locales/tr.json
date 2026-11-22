@@ -1167,5 +1167,18 @@
  "p1295": "Özel mod: bu istatistikleri sunucunun üyesi olduğun için görüyorsun. Diğer ziyaretçiler yalnızca toplam saat ve mesajları görür.",
  "p1296": "Özel sunucu: ayrıntılarını yalnızca üyeleri görür.",
  "p1297": "özel sunucu",
- "p1298": "Özel sunucu: üzerindeki kişisel etkinliği yalnızca üyeleri görür."
+ "p1298": "Özel sunucu: üzerindeki kişisel etkinliği yalnızca üyeleri görür.",
+ "p1310": "Bu sunucu botun sunucusu değil (veya artık değil).",
+ "p1311": "Yama notlarını açmak için bir sunucu ve kanal seç.",
+ "p1312": "Önce bir sunucu ve kanal kaydet.",
+ "p1313": "Az önce bir test istendi: bir dakika bekle.",
+ "p1314": "Henüz bilinen bir sürüm yok.",
+ "p1315": "Kaydetme başarısız.",
+ "p1316": "Bot bu kanala yazamıyor (veya bağlantı yerleştiremiyor): ona “Mesaj gönder” ve “Bağlantı yerleştir” izinlerini ver.",
+ "p1317": "Normal yazı kanalı: mesajlar diğer sunuculara yayınlanmaz. Bir duyuru kanalı (📢) diğer sunucuların onu takip etmesini sağlar.",
+ "p1318": "Site",
+ "p1319": "Gönderildi",
+ "p1320": "Bir sunucu seç…",
+ "p1321": "Kaydedildi: bot ayarları bir dakika içinde uygular.",
+ "p1322": "İstendi: bot bir dakika içinde gönderir."
 }

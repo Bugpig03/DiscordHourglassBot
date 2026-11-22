@@ -386,3 +386,6 @@ html body .sm-tier-head .hg-select-btn { width: auto; flex: 1 1 220px; min-width
 /* Private mode */
 .sm-tag.is-private { background: rgba(245, 197, 66, 0.12); color: #f5c542; }
 #private .hg-card-title svg { color: #f5c542; vertical-align: -2px; }
+
+/* A section turned off cannot be changed (inert): dimmed, values kept until it is turned on again */
+.sm-levels-grid.is-off, [data-roles-body].is-off, [data-report-body].is-off { opacity: 0.45; filter: grayscale(0.4); user-select: none; }

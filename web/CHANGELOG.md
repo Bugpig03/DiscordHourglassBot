@@ -1,5 +1,17 @@
 # Hourglass - WEB APP - CHANGELOG
 
+## Version 3.49.0 - Patch Notes sur le Serveur Officiel - 22/11/2026
+- **Admin, nouvelle section « Patch notes »** : le serveur officiel et le salon où le bot poste chaque nouvelle version du site et du bot, avec son changelog en anglais puis en français (nouveau `CHANGELOG.en.md`). Une version sans texte anglais est postée en français.
+  - Les choix : site et bot, ou l'un des deux seulement, et un rôle à mentionner en option.
+  - Les salons où le bot ne peut pas écrire sont signalés. Un salon d'annonces (📢) permet aux autres serveurs de le suivre.
+  - Les champs sont verrouillés tant que les patch notes sont désactivées.
+  - **Tester** : « Poster la dernière version du site » ou « du bot » poste à nouveau la dernière version, dans la minute.
+  - **Derniers envois** : les versions postées, en attente ou en échec, avec la raison.
+- Au démarrage, le site enregistre les entrées de son changelog. Le bot les poste dès que les patch notes sont activées, et rien d'ancien n'est posté.
+
+## Version 3.48.1 - Réglages Verrouillés si Désactivés - 22/11/2026
+- **Page « Gérer »** : une fonctionnalité désactivée (Niveaux, chaque Rapport, Rôles) ne se modifie plus tant que son interrupteur n'est pas activé. Ses champs sont grisés et inaccessibles. Les réglages déjà faits sont gardés et réapparaissent dès qu'on l'active.
+
 ## Version 3.48.0 - Mode Privé des Serveurs - 22/11/2026
 - **Mode privé** (page « Gérer » > Général, réservé au propriétaire du serveur) : un interrupteur qui réserve le détail des stats aux membres du serveur connectés au site.
   - **Ce que tout le monde voit** : le nom, l'icône, un cadenas « Privé », et le total d'heures en vocal et de messages.
